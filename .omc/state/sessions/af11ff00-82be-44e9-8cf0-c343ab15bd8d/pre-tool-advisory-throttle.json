@@ -1,0 +1,30 @@
+{
+  "version": 1,
+  "entries": {
+    "79a93d4a2f8f50b95f852280616242fee1855dc99a3c75211917f55e72e95fae": {
+      "last_emitted_at_ms": 1782657488591,
+      "message": "Use parallel execution for independent tasks. Use run_in_background for long operations (npm install, builds, tests)."
+    },
+    "445ed27a3872b681d98190bae61ccb84954e1bc4e140df5370be958dee776b3a": {
+      "last_emitted_at_ms": 1782657368074,
+      "message": "Verify changes work after editing. Test functionality before marking complete."
+    },
+    "466399dafa2d20f60587180bad0a07358eb7f2bce724df0ff682f038ad33f5ad": {
+      "last_emitted_at_ms": 1782657262248,
+      "message": "Read multiple files in parallel when possible for faster analysis."
+    },
+    "bd51f4c66bf5c108ef1209f350c079c25ac863e411e3ea2c28b3be2e11b27141": {
+      "last_emitted_at_ms": 1782655812266,
+      "message": "Spawning agent: oh-my-claudecode:critic (opus) | Task: Critic evaluates plan"
+    },
+    "31968b522f99085862c96478807e68cc11ed6731addc92c1438edc332765ac73": {
+      "last_emitted_at_ms": 1782655555338,
+      "message": "Spawning agent: oh-my-claudecode:architect (opus) | Task: Architect reviews plan"
+    },
+    "d1ec833362fd6449b3b3984e8c7cd8b91d8e415e58ab178a8b701a159ef82896": {
+      "last_emitted_at_ms": 1782655118097,
+      "message": "Spawning agent: oh-my-claudecode:planner (opus) | Task: Draft implementation plan"
+    }
+  },
+  "updated_at": "2026-06-28T14:38:08.591Z"
+}

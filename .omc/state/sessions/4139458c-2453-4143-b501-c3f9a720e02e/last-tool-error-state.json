@@ -1,0 +1,7 @@
+{
+  "tool_name": "Bash",
+  "tool_input_preview": "{\"command\":\"echo \\\"=== ls -la ===\\\" && ls -la && echo \\\"=== .omc contents ===\\\" && find .omc -type f 2>/dev/null | head -50 && echo \\\"=== git config user ===\\\" && git config user.name && git config us...",
+  "error": "Exit code 1\n=== ls -la ===\ntotal 8\ndrwxr-xr-x@  6 seolwon  staff  192 Jun 28 22:19 .\ndrwxr-xr-x@ 12 seolwon  staff  384 Jun 28 22:48 ..\ndrwxr-xr-x@ 10 seolwon  staff  320 Jun 29 11:09 .git\ndrwxr-xr-x@  7 seolwon  staff  224 Jun 28 23:58 .idea\ndrwxr-xr-x@  7 seolwon  staff  224 Jun 29 11:09 .omc\n-rw-r--r--@  1 seolwon  staff  300 Jun 28 22:19 mijin.iml\n=== .omc contents ===\n.omc/project-memory.json\n.omc/plans/mijin-dispatch-plan.md\n.omc/plans/open-questions.md\n.omc/specs/deep-interview-mijin-disp...",
+  "timestamp": "2026-06-29T02:10:10.851Z",
+  "retry_count": 1
+}

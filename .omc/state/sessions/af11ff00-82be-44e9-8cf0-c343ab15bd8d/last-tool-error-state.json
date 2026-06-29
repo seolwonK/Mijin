@@ -1,0 +1,7 @@
+{
+  "tool_name": "Bash",
+  "tool_input_preview": "{\"command\":\"ls -la && echo \\\"---PLANS DIR---\\\" && ls -la .omc/plans/ 2>/dev/null && echo \\\"---SPECS---\\\" && ls -la .omc/specs/ 2>/dev/null\",\"description\":\"List project root and omc dirs\"}",
+  "error": "Exit code 1\ntotal 8\ndrwxr-xr-x@  6 seolwon  staff  192 Jun 28 22:19 .\ndrwxr-xr-x@ 12 seolwon  staff  384 Jun 28 22:48 ..\ndrwxr-xr-x@ 10 seolwon  staff  320 Jun 28 22:19 .git\ndrwxr-xr-x@  7 seolwon  staff  224 Jun 28 22:19 .idea\ndrwxr-xr-x@  5 seolwon  staff  160 Jun 28 22:58 .omc\n-rw-r--r--@  1 seolwon  staff  300 Jun 28 22:19 mijin.iml\n---PLANS DIR---",
+  "timestamp": "2026-06-28T13:58:42.796Z",
+  "retry_count": 1
+}

@@ -1,0 +1,18 @@
+{
+  "active": false,
+  "current_phase": "plan-pending-approval",
+  "interview_id": "mijin-dispatch-2026-06-28",
+  "status": "PASSED",
+  "final_ambiguity": "0.175",
+  "spec_path": ".omc/specs/deep-interview-mijin-dispatch.md",
+  "plan_path": ".omc/plans/mijin-dispatch-plan.md",
+  "plan_status": "pending-approval",
+  "consensus": "reached (Architect SOUND_WITH_CONCERNS + Critic APPROVE @ Rev3)",
+  "next_step": "explicit execution approval required",
+  "_meta": {
+    "mode": "deep-interview",
+    "sessionId": null,
+    "updatedAt": "2026-06-28T14:39:46.795Z",
+    "updatedBy": "state_write_tool"
+  }
+}
