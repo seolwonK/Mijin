@@ -1,0 +1,64 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { z } from 'zod';
+import { prisma } from '@/lib/db';
+import { requireSession } from '@/lib/auth';
+import { claimAndAssign } from '@/lib/assignment';
+import { haversineKm } from '@/lib/geo/distance';
+
+const assignSchema = z.object({ providerId: z.string().min(1) });
+
+export async function POST(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  const session = await requireSession('ADMIN');
+  if (!session) return NextResponse.json({ error: '권한이 없습니다' }, { status: 401 });
+
+  const { id } = await params;
+  let body: unknown;
+  try {
+    body = await req.json();
+  } catch {
+    return NextResponse.json({ error: '잘못된 요청입니다' }, { status: 400 });
+  }
+  const parsed = assignSchema.safeParse(body);
+  if (!parsed.success) {
+    return NextResponse.json({ error: '업체를 선택해 주세요' }, { status: 400 });
+  }
+
+  const request = await prisma.serviceRequest.findUnique({ where: { id } });
+  if (!request) {
+    return NextResponse.json({ error: '접수를 찾을 수 없습니다' }, { status: 404 });
+  }
+  const provider = await prisma.provider.findUnique({
+    where: { id: parsed.data.providerId },
+  });
+  if (!provider || !provider.isActive || provider.approvalStatus !== 'APPROVED') {
+    return NextResponse.json(
+      { error: '배정할 수 없는 업체입니다 (미등록·비활성·미승인)' },
+      { status: 400 },
+    );
+  }
+
+  const distanceKm =
+    request.lat != null &&
+    request.lng != null &&
+    provider.lat != null &&
+    provider.lng != null
+      ? haversineKm(request.lat, request.lng, provider.lat, provider.lng)
+      : null;
+
+  const ok = await claimAndAssign({
+    requestId: id,
+    providerId: provider.id,
+    assignedBy: 'ADMIN',
+    distanceKm,
+  });
+  if (!ok) {
+    return NextResponse.json(
+      { error: '배정 대기 상태가 아닙니다. 이미 배정되었거나 취소되었을 수 있습니다.' },
+      { status: 409 },
+    );
+  }
+  return NextResponse.json({ ok: true });
+}

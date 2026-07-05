@@ -1,0 +1,189 @@
+'use client';
+
+import { useState } from 'react';
+import Link from 'next/link';
+
+const inputClass =
+  'w-full rounded-xl border border-gray-300 p-3 text-base focus:border-blue-500 focus:outline-none';
+
+export default function PartnerSignupPage() {
+  const [loginId, setLoginId] = useState('');
+  const [password, setPassword] = useState('');
+  const [name, setName] = useState('');
+  const [phone, setPhone] = useState('');
+  const [address, setAddress] = useState('');
+  const [bizRegNo, setBizRegNo] = useState('');
+  const [file, setFile] = useState<File | null>(null);
+  const [agreed, setAgreed] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [done, setDone] = useState(false);
+
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    setError(null);
+    if (!file) return setError('사업자등록증 사진을 첨부해 주세요');
+    if (!agreed) return setError('개인정보 수집·이용에 동의해 주세요');
+
+    setBusy(true);
+    try {
+      const form = new FormData();
+      form.set('loginId', loginId);
+      form.set('password', password);
+      form.set('name', name);
+      form.set('phone', phone);
+      form.set('address', address);
+      form.set('bizRegNo', bizRegNo);
+      form.set('bizCert', file);
+      const res = await fetch('/api/partner/signup', { method: 'POST', body: form });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error ?? '신청에 실패했습니다');
+        return;
+      }
+      setDone(true);
+    } catch {
+      setError('네트워크 오류가 발생했습니다');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  if (done) {
+    return (
+      <main className="flex min-h-screen flex-col items-center justify-center gap-5 p-6 text-center">
+        <div className="text-6xl">📨</div>
+        <h1 className="text-2xl font-bold">가입 신청이 접수되었습니다</h1>
+        <p className="text-gray-500">
+          관리자가 사업자등록증을 확인한 뒤 승인합니다.
+          <br />
+          승인 후 로그인할 수 있으며, 승인 여부는
+          <br />
+          로그인 화면에서 확인해 주세요.
+        </p>
+        <Link
+          href="/partner/login"
+          className="w-full rounded-2xl bg-blue-600 p-4 text-center font-bold text-white"
+        >
+          로그인 화면으로
+        </Link>
+      </main>
+    );
+  }
+
+  return (
+    <main className="min-h-screen">
+      <header className="flex items-center gap-3 border-b border-gray-200 p-4">
+        <Link href="/partner/login" className="text-xl">
+          ←
+        </Link>
+        <h1 className="text-lg font-bold">업체 가입 신청</h1>
+      </header>
+
+      <form onSubmit={submit} className="space-y-5 p-4 pb-10">
+        <section className="space-y-2">
+          <h2 className="text-sm font-semibold">계정 정보</h2>
+          <input
+            type="text"
+            value={loginId}
+            onChange={(e) => setLoginId(e.target.value)}
+            placeholder="로그인 아이디 (3자 이상)"
+            autoComplete="username"
+            className={inputClass}
+          />
+          <input
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="비밀번호 (8자 이상)"
+            autoComplete="new-password"
+            className={inputClass}
+          />
+        </section>
+
+        <section className="space-y-2">
+          <h2 className="text-sm font-semibold">업체 정보</h2>
+          <input
+            type="text"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="업체명"
+            className={inputClass}
+          />
+          <input
+            type="tel"
+            inputMode="tel"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+            placeholder="전화번호 (배정 안내 문자 수신)"
+            className={inputClass}
+          />
+          <input
+            type="text"
+            value={address}
+            onChange={(e) => setAddress(e.target.value)}
+            placeholder="사업장 주소"
+            className={inputClass}
+          />
+        </section>
+
+        <section className="space-y-2">
+          <h2 className="text-sm font-semibold">사업자 인증</h2>
+          <input
+            type="text"
+            inputMode="numeric"
+            value={bizRegNo}
+            onChange={(e) => setBizRegNo(e.target.value)}
+            placeholder="사업자등록번호 (예: 123-45-67890)"
+            className={inputClass}
+          />
+          <label
+            className={`flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl border p-3 text-base font-medium ${
+              file
+                ? 'border-green-300 bg-green-50 text-green-700'
+                : 'border-blue-300 bg-blue-50 text-blue-700'
+            }`}
+          >
+            {file ? `✓ ${file.name}` : '📎 사업자등록증 사진 첨부'}
+            <input
+              type="file"
+              accept="image/*,application/pdf"
+              className="hidden"
+              onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+            />
+          </label>
+          <p className="text-xs text-gray-400">
+            JPG/PNG/PDF, 8MB 이하. 관리자 확인 용도로만 사용됩니다.
+          </p>
+        </section>
+
+        <label className="flex items-start gap-2 text-sm text-gray-600">
+          <input
+            type="checkbox"
+            checked={agreed}
+            onChange={(e) => setAgreed(e.target.checked)}
+            className="mt-0.5 h-4 w-4"
+          />
+          <span>
+            가입 심사를 위한 개인정보(사업자등록증, 연락처) 수집·이용에 동의합니다.
+            수집된 증빙은 심사 목적 외에 사용되지 않습니다.
+          </span>
+        </label>
+
+        {error && (
+          <p className="rounded-xl bg-red-50 p-3 text-sm font-medium text-red-600">
+            {error}
+          </p>
+        )}
+
+        <button
+          type="submit"
+          disabled={busy || !loginId || !password || !name || !phone || !address || !bizRegNo}
+          className="h-14 w-full rounded-2xl bg-blue-600 text-lg font-bold text-white disabled:opacity-50"
+        >
+          {busy ? '신청 중…' : '가입 신청하기'}
+        </button>
+      </form>
+    </main>
+  );
+}

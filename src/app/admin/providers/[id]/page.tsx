@@ -1,0 +1,279 @@
+'use client';
+
+import { use, useCallback, useEffect, useState } from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import ProviderForm, { type ProviderFormValue } from '@/components/ProviderForm';
+
+type ProviderDetail = {
+  id: string;
+  loginId: string;
+  name: string;
+  phone: string;
+  address: string;
+  lat: number | null;
+  lng: number | null;
+  isActive: boolean;
+  memo: string | null;
+  approvalStatus: 'PENDING' | 'APPROVED' | 'REJECTED';
+  bizRegNo: string | null;
+  hasCert: boolean;
+  appliedAt: string;
+  rejectReason: string | null;
+};
+
+const APPROVAL_BADGE: Record<string, { label: string; className: string }> = {
+  PENDING: { label: '승인 대기', className: 'bg-amber-500 text-white' },
+  APPROVED: { label: '승인됨', className: 'bg-green-600 text-white' },
+  REJECTED: { label: '거절됨', className: 'bg-gray-400 text-white' },
+};
+
+export default function EditProviderPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = use(params);
+  const router = useRouter();
+  const [detail, setDetail] = useState<ProviderDetail | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [rejecting, setRejecting] = useState(false);
+  const [reason, setReason] = useState('');
+
+  const load = useCallback(async () => {
+    const res = await fetch(`/api/admin/providers/${id}`, { cache: 'no-store' });
+    if (!res.ok) {
+      setError('업체를 불러오지 못했습니다');
+      return;
+    }
+    setDetail(await res.json());
+  }, [id]);
+
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  async function approve() {
+    if (
+      detail &&
+      (detail.lat == null || detail.lng == null) &&
+      !window.confirm(
+        '좌표가 없는 업체입니다. 승인해도 거리 계산·자동배정에서 제외됩니다.\n(아래 수정 폼에서 좌표를 입력할 수 있습니다) 그래도 승인할까요?',
+      )
+    )
+      return;
+    setBusy(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/admin/providers/${id}/approve`, { method: 'POST' });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error ?? '승인에 실패했습니다');
+        return;
+      }
+      await load();
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function reject() {
+    setBusy(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/admin/providers/${id}/reject`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reason: reason || null }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error ?? '거절에 실패했습니다');
+        return;
+      }
+      setRejecting(false);
+      await load();
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function submitEdit(v: ProviderFormValue) {
+    setBusy(true);
+    setError(null);
+    try {
+      const lat = v.lat.trim() === '' ? null : Number(v.lat);
+      const lng = v.lng.trim() === '' ? null : Number(v.lng);
+      if ((lat != null && !Number.isFinite(lat)) || (lng != null && !Number.isFinite(lng))) {
+        setError('위도/경도는 숫자로 입력해 주세요');
+        return;
+      }
+      const res = await fetch(`/api/admin/providers/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: v.name,
+          phone: v.phone,
+          address: v.address,
+          lat,
+          lng,
+          memo: v.memo.trim() || null,
+          ...(v.password ? { password: v.password } : {}),
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error ?? '저장에 실패했습니다');
+        return;
+      }
+      router.replace('/admin/providers');
+    } catch {
+      setError('네트워크 오류가 발생했습니다');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  if (!detail) {
+    return (
+      <main className="p-6 text-center text-gray-400">{error ?? '불러오는 중…'}</main>
+    );
+  }
+
+  const badge = APPROVAL_BADGE[detail.approvalStatus];
+
+  return (
+    <main className="min-h-screen">
+      <header className="flex items-center gap-3 border-b border-gray-200 p-4">
+        <Link href="/admin/providers" className="text-xl">
+          ←
+        </Link>
+        <h1 className="text-lg font-bold">{detail.name}</h1>
+        <span
+          className={`ml-auto rounded-full px-2 py-0.5 text-xs font-bold ${badge.className}`}
+        >
+          {badge.label}
+        </span>
+      </header>
+
+      <section className="space-y-3 border-b border-gray-100 p-4">
+        <h2 className="text-sm font-semibold text-gray-500">사업자 인증</h2>
+        <div className="rounded-2xl border border-gray-200 p-4 text-sm">
+          <p>
+            사업자등록번호:{' '}
+            <span className="font-bold">{detail.bizRegNo ?? '미입력'}</span>
+          </p>
+          <p className="mt-1 text-xs text-gray-400">
+            신청 {new Date(detail.appliedAt).toLocaleString('ko-KR')}
+          </p>
+          {detail.rejectReason && (
+            <p className="mt-1 text-xs text-red-500">거절 사유: {detail.rejectReason}</p>
+          )}
+        </div>
+        {detail.hasCert ? (
+          <div className="overflow-hidden rounded-2xl border border-gray-200">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={`/api/admin/providers/${id}/cert`}
+              alt="사업자등록증"
+              className="max-h-96 w-full object-contain"
+            />
+            <a
+              href={`/api/admin/providers/${id}/cert`}
+              target="_blank"
+              rel="noreferrer"
+              className="block border-t border-gray-100 p-2 text-center text-sm text-blue-600 underline"
+            >
+              원본 크게 보기
+            </a>
+          </div>
+        ) : (
+          <p className="rounded-xl bg-gray-50 p-3 text-sm text-gray-400">
+            첨부된 사업자등록증이 없습니다 (관리자 직접 등록 업체)
+          </p>
+        )}
+
+        {detail.approvalStatus !== 'APPROVED' && !rejecting && (
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={approve}
+              disabled={busy}
+              className="h-12 flex-[2] rounded-2xl bg-green-600 font-bold text-white disabled:opacity-60"
+            >
+              ✅ 가입 승인
+            </button>
+            {detail.approvalStatus === 'PENDING' && (
+              <button
+                type="button"
+                onClick={() => setRejecting(true)}
+                disabled={busy}
+                className="h-12 flex-1 rounded-2xl border border-red-300 font-bold text-red-600 disabled:opacity-60"
+              >
+                거절
+              </button>
+            )}
+          </div>
+        )}
+        {rejecting && (
+          <div className="space-y-2">
+            <input
+              type="text"
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+              placeholder="거절 사유 (신청자가 로그인 시 확인합니다)"
+              className="w-full rounded-xl border border-gray-300 p-3 text-base focus:border-blue-500 focus:outline-none"
+            />
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={reject}
+                disabled={busy}
+                className="h-12 flex-1 rounded-2xl bg-red-600 font-bold text-white disabled:opacity-60"
+              >
+                거절 확정
+              </button>
+              <button
+                type="button"
+                onClick={() => setRejecting(false)}
+                disabled={busy}
+                className="h-12 flex-1 rounded-2xl border border-gray-300 font-bold text-gray-600"
+              >
+                취소
+              </button>
+            </div>
+          </div>
+        )}
+        {(detail.lat == null || detail.lng == null) && (
+          <p className="rounded-xl bg-amber-50 p-3 text-sm text-amber-700">
+            ⚠️ 좌표가 없어 거리 계산·자동배정에서 제외됩니다. 아래 폼에서 좌표를
+            입력해 주세요.
+          </p>
+        )}
+        {error && (
+          <p className="rounded-xl bg-red-50 p-3 text-sm font-medium text-red-600">
+            {error}
+          </p>
+        )}
+      </section>
+
+      <ProviderForm
+        initial={{
+          loginId: detail.loginId,
+          password: '',
+          name: detail.name,
+          phone: detail.phone,
+          address: detail.address,
+          lat: detail.lat == null ? '' : String(detail.lat),
+          lng: detail.lng == null ? '' : String(detail.lng),
+          memo: detail.memo ?? '',
+        }}
+        isEdit
+        onSubmit={submitEdit}
+        busy={busy}
+        error={null}
+      />
+    </main>
+  );
+}
