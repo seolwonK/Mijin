@@ -75,14 +75,15 @@ export default function AdminDashboardPage() {
         })}
       </div>
 
-      <div className="space-y-2 p-4">
-        {error && <p className="text-sm text-red-600">{error}</p>}
+      <div className="p-4">
+        {error && <p className="mb-2 text-sm text-red-600">{error}</p>}
         {rows.length === 0 && (
           <p className="rounded-xl bg-gray-50 p-6 text-center text-sm text-gray-400">
             해당하는 접수가 없습니다
           </p>
         )}
-        {rows.map((r) => (
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+          {rows.map((r) => (
           <Link
             key={r.id}
             href={`/admin/requests/${r.id}`}
@@ -113,7 +114,8 @@ export default function AdminDashboardPage() {
               </p>
             )}
           </Link>
-        ))}
+          ))}
+        </div>
       </div>
     </main>
   );

@@ -58,7 +58,7 @@ export default function AdminProvidersPage() {
             <h2 className="mb-2 font-semibold text-amber-700">
               🕐 승인 대기 ({pending.length})
             </h2>
-            <div className="space-y-2">
+            <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
               {pending.map((p) => (
                 <Link
                   key={p.id}
@@ -85,7 +85,12 @@ export default function AdminProvidersPage() {
 
         <section>
           <h2 className="mb-2 font-semibold">운영 중 업체 ({approved.length})</h2>
-          <div className="space-y-2">
+          {approved.length === 0 && (
+            <p className="rounded-xl bg-gray-50 p-6 text-center text-sm text-gray-400">
+              운영 중인 업체가 없습니다
+            </p>
+          )}
+          <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
             {approved.map((p) => (
               <div
                 key={p.id}
@@ -117,18 +122,13 @@ export default function AdminProvidersPage() {
                 <p className="text-sm text-gray-500">📍 {p.address}</p>
               </div>
             ))}
-            {approved.length === 0 && (
-              <p className="rounded-xl bg-gray-50 p-6 text-center text-sm text-gray-400">
-                운영 중인 업체가 없습니다
-              </p>
-            )}
           </div>
         </section>
 
         {rejected.length > 0 && (
           <section>
             <h2 className="mb-2 font-semibold text-gray-400">거절된 신청 ({rejected.length})</h2>
-            <div className="space-y-2 opacity-60">
+            <div className="grid gap-2 opacity-60 sm:grid-cols-2 xl:grid-cols-3">
               {rejected.map((p) => (
                 <Link
                   key={p.id}

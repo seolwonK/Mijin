@@ -9,7 +9,6 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
-  maximumScale: 1,
 };
 
 export default function RootLayout({
@@ -17,13 +16,11 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // 폭 제약은 라우트 그룹별 레이아웃에서 지정한다.
+  // (mobile) 그룹: 고객·업체용 모바일 프레임 / admin: 데스크톱 대응 넓은 프레임
   return (
     <html lang="ko" className="h-full antialiased">
-      <body className="min-h-full bg-slate-100 text-gray-900">
-        <div className="mx-auto min-h-screen w-full max-w-md bg-white shadow-sm">
-          {children}
-        </div>
-      </body>
+      <body className="min-h-full bg-slate-100 text-gray-900">{children}</body>
     </html>
   );
 }

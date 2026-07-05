@@ -76,7 +76,7 @@ export default function AdminSettingsPage() {
         <h1 className="text-lg font-bold">자동배정 설정</h1>
       </header>
 
-      <div className="space-y-6 p-4">
+      <div className="mx-auto max-w-2xl space-y-6 p-4">
         <section className="rounded-2xl border border-gray-200 p-4">
           <div className="flex items-center justify-between">
             <div>

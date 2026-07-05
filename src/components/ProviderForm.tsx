@@ -72,7 +72,7 @@ export default function ProviderForm({
         e.preventDefault();
         onSubmit(v);
       }}
-      className="space-y-4 p-4"
+      className="mx-auto w-full max-w-2xl space-y-4 p-4"
     >
       <div className="space-y-2">
         <label className="text-sm font-semibold">계정</label>

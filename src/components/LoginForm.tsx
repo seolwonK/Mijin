@@ -40,7 +40,7 @@ export default function LoginForm({
   }
 
   return (
-    <main className="flex min-h-screen flex-col justify-center p-6">
+    <main className="mx-auto flex min-h-screen w-full max-w-sm flex-col justify-center p-6">
       <h1 className="mb-6 text-center text-2xl font-bold">{title}</h1>
       <form onSubmit={submit} className="space-y-3">
         <input

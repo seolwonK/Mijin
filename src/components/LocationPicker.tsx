@@ -15,7 +15,9 @@ export default function LocationPicker({
   value: LocationValue;
   onChange: (v: LocationValue) => void;
 }) {
-  const [status, setStatus] = useState<'idle' | 'loading' | 'ok' | 'error'>('idle');
+  const [status, setStatus] = useState<
+    'idle' | 'loading' | 'ok' | 'notfound' | 'error'
+  >('idle');
 
   function locate() {
     if (!navigator.geolocation) {
@@ -26,16 +28,17 @@ export default function LocationPicker({
     navigator.geolocation.getCurrentPosition(
       async (pos) => {
         const { latitude: lat, longitude: lng } = pos.coords;
-        let address = value.address;
+        let address: string | null = null;
         try {
           const res = await fetch(`/api/geo/reverse?lat=${lat}&lng=${lng}`);
           const data = await res.json();
-          if (data.address) address = data.address;
+          address = data.address ?? null;
         } catch {
-          // 역지오코딩 실패해도 좌표는 유지
+          // 역지오코딩 실패해도 좌표는 확보됨 — 주소는 수동 입력으로 보완
         }
-        onChange({ lat, lng, address });
-        setStatus('ok');
+        // 지역명(주소)을 입력란에 채운다. 좌표는 거리 계산용으로만 저장하고 화면엔 노출하지 않는다.
+        onChange({ lat, lng, address: address ?? value.address });
+        setStatus(address ? 'ok' : 'notfound');
       },
       () => setStatus('error'),
       { enableHighAccuracy: true, timeout: 10_000 },
@@ -50,11 +53,16 @@ export default function LocationPicker({
         disabled={status === 'loading'}
         className="flex w-full items-center justify-center gap-2 rounded-xl border border-blue-300 bg-blue-50 p-3 text-base font-medium text-blue-700 disabled:opacity-60"
       >
-        {status === 'loading' ? '위치 확인 중…' : '📍 내 위치 확인'}
+        {status === 'loading' ? '위치 확인 중…' : '📍 내 위치로 주소 채우기'}
       </button>
-      {status === 'ok' && value.lat != null && (
+      {status === 'ok' && (
         <p className="text-sm text-green-700">
-          ✓ 위치가 확인되었습니다 ({value.lat.toFixed(5)}, {value.lng?.toFixed(5)})
+          ✓ 현재 위치의 주소를 가져왔어요. 상세 주소(동/호수 등)를 덧붙여 주세요.
+        </p>
+      )}
+      {status === 'notfound' && (
+        <p className="text-sm text-amber-600">
+          위치는 확인했지만 주소를 자동으로 찾지 못했어요. 아래에 주소를 입력해 주세요.
         </p>
       )}
       {status === 'error' && (

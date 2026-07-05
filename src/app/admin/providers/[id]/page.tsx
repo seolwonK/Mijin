@@ -157,7 +157,7 @@ export default function EditProviderPage({
         </span>
       </header>
 
-      <section className="space-y-3 border-b border-gray-100 p-4">
+      <section className="mx-auto max-w-2xl space-y-3 border-b border-gray-100 p-4">
         <h2 className="text-sm font-semibold text-gray-500">사업자 인증</h2>
         <div className="rounded-2xl border border-gray-200 p-4 text-sm">
           <p>

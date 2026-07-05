@@ -126,7 +126,7 @@ export default function AdminRequestDetailPage({
         </div>
       </header>
 
-      <div className="space-y-4 p-4">
+      <div className="mx-auto max-w-5xl space-y-4 p-4">
         {req.needsAttention && (
           <p className="rounded-xl bg-red-50 p-3 text-sm font-medium text-red-600">
             ⚠️ 관리자 확인이 필요합니다 (자동배정 실패 또는 업체 거절)
@@ -168,7 +168,7 @@ export default function AdminRequestDetailPage({
             ) : candData.candidates.length === 0 ? (
               <p className="text-sm text-gray-500">배정 가능한 활성 업체가 없습니다</p>
             ) : (
-              <div className="space-y-2">
+              <div className="grid gap-2 sm:grid-cols-2">
                 {candData.candidates.map((c) => (
                   <div
                     key={c.providerId}
@@ -208,7 +208,7 @@ export default function AdminRequestDetailPage({
         {req.assignments.length > 0 && (
           <section className="rounded-2xl border border-gray-200 p-4">
             <h2 className="mb-2 text-sm text-gray-500">배정 이력</h2>
-            <div className="space-y-2">
+            <div className="grid gap-2 sm:grid-cols-2">
               {req.assignments.map((a) => (
                 <div key={a.id} className="rounded-xl bg-gray-50 p-3 text-sm">
                   <div className="flex items-center justify-between">
