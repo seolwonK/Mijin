@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import Link from 'next/link';
+import BackButton from '@/components/BackButton';
 import { StatusBadge, UrgencyBadge } from '@/components/StatusBadge';
 
 type LookupRequest = {
@@ -148,10 +148,8 @@ export default function LookupPage() {
 
   return (
     <main className="min-h-screen">
-      <header className="flex items-center gap-3 border-b border-gray-200 p-4">
-        <Link href="/" className="text-xl">
-          ←
-        </Link>
+      <header className="sticky top-0 z-20 flex items-center gap-2 border-b border-gray-200 bg-white/95 px-4 py-2 backdrop-blur">
+        <BackButton fallback="/" />
         <h1 className="text-lg font-bold">접수 내역 조회</h1>
       </header>
 
@@ -166,6 +164,7 @@ export default function LookupPage() {
           <input
             type="tel"
             inputMode="tel"
+            autoComplete="tel"
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
             placeholder="접수하신 전화번호"

@@ -9,6 +9,9 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
+  // 노치/홈바 영역까지 사용 — 하단 고정 버튼은 safe-area-inset 패딩으로 보호
+  viewportFit: 'cover',
+  themeColor: '#ffffff',
 };
 
 export default function RootLayout({

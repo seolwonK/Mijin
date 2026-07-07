@@ -1,7 +1,7 @@
 'use client';
 
 import { use, useState } from 'react';
-import Link from 'next/link';
+import BackButton from '@/components/BackButton';
 import { usePolling } from '@/components/usePolling';
 import { StatusBadge, UrgencyBadge } from '@/components/StatusBadge';
 
@@ -83,10 +83,8 @@ export default function PartnerJobDetailPage({
 
   return (
     <main className="min-h-screen pb-40">
-      <header className="flex items-center gap-3 border-b border-gray-200 p-4">
-        <Link href="/partner" className="text-xl">
-          ←
-        </Link>
+      <header className="sticky top-0 z-20 flex items-center gap-2 border-b border-gray-200 bg-white/95 px-4 py-2 backdrop-blur">
+        <BackButton fallback="/partner" />
         <h1 className="text-lg font-bold">배정 상세</h1>
       </header>
 
@@ -150,7 +148,7 @@ export default function PartnerJobDetailPage({
       </div>
 
       {(canRespond || canDispatch || canComplete) && (
-        <div className="fixed bottom-0 left-1/2 w-full max-w-md -translate-x-1/2 space-y-2 border-t border-gray-200 bg-white p-4">
+        <div className="fixed bottom-0 left-1/2 w-full max-w-md -translate-x-1/2 space-y-2 border-t border-gray-200 bg-white px-4 pt-4 pb-[calc(1rem+env(safe-area-inset-bottom))]">
           {canRespond && !rejecting && (
             <div className="flex gap-2">
               <button

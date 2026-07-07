@@ -1,8 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import BackButton from '@/components/BackButton';
 import SpeechInput, { type VoiceNote } from '@/components/SpeechInput';
 import LocationPicker, { type LocationValue } from '@/components/LocationPicker';
 import UrgencySelect, { type UrgencyValue } from '@/components/UrgencySelect';
@@ -78,10 +78,8 @@ export default function NewRequestPage() {
 
   return (
     <main className="flex min-h-screen flex-col">
-      <header className="flex items-center gap-3 border-b border-gray-200 p-4">
-        <Link href="/" className="text-xl">
-          ←
-        </Link>
+      <header className="sticky top-0 z-20 flex items-center gap-2 border-b border-gray-200 bg-white/95 px-4 py-2 backdrop-blur">
+        <BackButton fallback="/" />
         <h1 className="text-lg font-bold">고장 접수</h1>
       </header>
 
@@ -119,6 +117,7 @@ export default function NewRequestPage() {
           <div className="space-y-2">
             <input
               type="text"
+              autoComplete="name"
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="이름"
@@ -127,6 +126,7 @@ export default function NewRequestPage() {
             <input
               type="tel"
               inputMode="tel"
+              autoComplete="tel"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
               placeholder="전화번호 (예: 01012345678)"
@@ -142,7 +142,7 @@ export default function NewRequestPage() {
         )}
       </div>
 
-      <div className="fixed bottom-0 left-1/2 w-full max-w-md -translate-x-1/2 border-t border-gray-200 bg-white p-4">
+      <div className="fixed bottom-0 left-1/2 w-full max-w-md -translate-x-1/2 border-t border-gray-200 bg-white px-4 pt-4 pb-[calc(1rem+env(safe-area-inset-bottom))]">
         <button
           type="button"
           onClick={submit}

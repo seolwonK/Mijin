@@ -1,5 +1,10 @@
 @import "tailwindcss";
 
+html {
+  /* 모바일 탭 시 회색 하이라이트 제거 (active: 스타일로 대체) */
+  -webkit-tap-highlight-color: transparent;
+}
+
 body {
   font-family:
     "Pretendard Variable",

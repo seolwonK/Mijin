@@ -2,6 +2,9 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import BackButton from '@/components/BackButton';
+import RegionSelect, { type RegionValue } from '@/components/RegionSelect';
+import { hasSigungu } from '@/lib/regions';
 
 const inputClass =
   'w-full rounded-xl border border-gray-300 p-3 text-base focus:border-blue-500 focus:outline-none';
@@ -11,7 +14,8 @@ export default function PartnerSignupPage() {
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
-  const [address, setAddress] = useState('');
+  const [region, setRegion] = useState<RegionValue>({ sido: '', sigungu: '' });
+  const [addrDetail, setAddrDetail] = useState('');
   const [bizRegNo, setBizRegNo] = useState('');
   const [file, setFile] = useState<File | null>(null);
   const [agreed, setAgreed] = useState(false);
@@ -19,9 +23,17 @@ export default function PartnerSignupPage() {
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState(false);
 
+  // 지역 선택 + 상세 주소를 합쳐 하나의 주소로 (지오코딩·거리계산에 사용)
+  const regionComplete =
+    !!region.sido && (!hasSigungu(region.sido) || !!region.sigungu);
+  const fullAddress = [region.sido, region.sigungu, addrDetail.trim()]
+    .filter(Boolean)
+    .join(' ');
+
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
+    if (!regionComplete) return setError('사업장 지역을 선택해 주세요');
     if (!file) return setError('사업자등록증 사진을 첨부해 주세요');
     if (!agreed) return setError('개인정보 수집·이용에 동의해 주세요');
 
@@ -32,7 +44,7 @@ export default function PartnerSignupPage() {
       form.set('password', password);
       form.set('name', name);
       form.set('phone', phone);
-      form.set('address', address);
+      form.set('address', fullAddress);
       form.set('bizRegNo', bizRegNo);
       form.set('bizCert', file);
       const res = await fetch('/api/partner/signup', { method: 'POST', body: form });
@@ -73,10 +85,8 @@ export default function PartnerSignupPage() {
 
   return (
     <main className="min-h-screen">
-      <header className="flex items-center gap-3 border-b border-gray-200 p-4">
-        <Link href="/partner/login" className="text-xl">
-          ←
-        </Link>
+      <header className="sticky top-0 z-20 flex items-center gap-2 border-b border-gray-200 bg-white/95 px-4 py-2 backdrop-blur">
+        <BackButton fallback="/partner/login" />
         <h1 className="text-lg font-bold">업체 가입 신청</h1>
       </header>
 
@@ -113,16 +123,19 @@ export default function PartnerSignupPage() {
           <input
             type="tel"
             inputMode="tel"
+            autoComplete="tel"
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
             placeholder="전화번호 (배정 안내 문자 수신)"
             className={inputClass}
           />
+          <RegionSelect value={region} onChange={setRegion} />
           <input
             type="text"
-            value={address}
-            onChange={(e) => setAddress(e.target.value)}
-            placeholder="사업장 주소"
+            value={addrDetail}
+            onChange={(e) => setAddrDetail(e.target.value)}
+            placeholder="상세 주소 (도로명, 건물명 등)"
+            autoComplete="street-address"
             className={inputClass}
           />
         </section>
@@ -178,7 +191,16 @@ export default function PartnerSignupPage() {
 
         <button
           type="submit"
-          disabled={busy || !loginId || !password || !name || !phone || !address || !bizRegNo}
+          disabled={
+            busy ||
+            !loginId ||
+            !password ||
+            !name ||
+            !phone ||
+            !regionComplete ||
+            !addrDetail.trim() ||
+            !bizRegNo
+          }
           className="h-14 w-full rounded-2xl bg-blue-600 text-lg font-bold text-white disabled:opacity-50"
         >
           {busy ? '신청 중…' : '가입 신청하기'}

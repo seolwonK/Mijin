@@ -64,7 +64,7 @@ export default function PartnerHomePage() {
 
   return (
     <main className="min-h-screen">
-      <header className="flex items-center justify-between border-b border-gray-200 p-4">
+      <header className="sticky top-0 z-20 flex items-center justify-between border-b border-gray-200 bg-white/95 p-4 backdrop-blur">
         <h1 className="text-lg font-bold">업체 포털</h1>
         <LogoutButton loginPath="/partner/login" />
       </header>
