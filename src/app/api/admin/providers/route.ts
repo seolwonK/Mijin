@@ -43,7 +43,7 @@ export async function GET() {
       memo: p.memo,
       approvalStatus: p.approvalStatus,
       bizRegNo: p.bizRegNo,
-      hasCert: !!p.bizCertPath,
+      hasCert: !!(p.bizCertFileId || p.bizCertPath),
       appliedAt: p.appliedAt,
       rejectReason: p.rejectReason,
     })),

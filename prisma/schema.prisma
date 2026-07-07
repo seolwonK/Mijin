@@ -68,7 +68,8 @@ model Provider {
   isActive       Boolean          @default(true) // 비활성 업체는 배정 제외 (승인된 업체의 영업 on/off)
   memo           String?
   bizRegNo       String?          @unique // 사업자등록번호 (숫자 10자리)
-  bizCertPath    String? // 사업자등록증 이미지 파일 경로 (uploads/, 관리자만 열람)
+  bizCertPath    String? // (레거시) 파일시스템 저장 경로 — 신규 가입은 bizCertFileId 사용
+  bizCertFileId  String? // 사업자등록증 StoredFile id (DB 저장, 관리자만 열람)
   approvalStatus ProviderApproval @default(PENDING)
   rejectReason   String?
   appliedAt      DateTime         @default(now())
@@ -82,7 +83,8 @@ model ServiceRequest {
   customerName    String
   customerPhone   String // 숫자만 정규화 저장
   description     String
-  voicePath       String? // 음성 녹음 파일 경로 (uploads/voice-notes/, 관리자만 열람)
+  voicePath       String? // (레거시) 파일시스템 저장 경로 — 신규 접수는 voiceFileId 사용
+  voiceFileId     String? // 음성 녹음 StoredFile id (DB 저장, 관리자만 열람)
   voiceMime       String? // audio/webm | audio/mp4 등 — 재생 시 Content-Type
   voiceTranscript String? // 서버 STT 변환 결과 (원본 보존, description과 별도)
   urgency         Urgency
@@ -137,5 +139,14 @@ model SmsLog {
   status    String // "SENT" | "FAILED"
   error     String?
   requestId String?
+  createdAt DateTime @default(now())
+}
+
+// 업로드 파일 본문 (음성 녹음·사업자등록증) — 볼륨 마운트 없이도 유지되도록
+// 파일시스템 대신 DB(bytea)에 저장한다. 접근은 관리자 전용 라우트로만.
+model StoredFile {
+  id        String   @id @default(cuid())
+  mime      String
+  data      Bytes
   createdAt DateTime @default(now())
 }

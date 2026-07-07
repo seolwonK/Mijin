@@ -31,7 +31,7 @@ export async function GET(
     customerName: request.customerName,
     customerPhone: request.customerPhone,
     description: request.description,
-    hasVoice: !!request.voicePath,
+    hasVoice: !!(request.voiceFileId || request.voicePath),
     voiceTranscript: request.voiceTranscript,
     urgency: request.urgency,
     status: request.status,

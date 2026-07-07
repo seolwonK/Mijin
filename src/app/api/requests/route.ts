@@ -1,23 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { randomInt, randomUUID } from 'crypto';
-import { promises as fs } from 'fs';
-import path from 'path';
+import { randomInt } from 'crypto';
 import { z } from 'zod';
 import { prisma } from '@/lib/db';
 import { sendSms } from '@/lib/sms';
 import { smsRequestReceived } from '@/lib/sms/templates';
 import { transcribeVoiceNote, VOICE_PLACEHOLDER } from '@/lib/stt';
-import { uploadsRoot } from '@/lib/uploads';
 
 const MAX_VOICE_BYTES = 15 * 1024 * 1024; // 3분 녹음도 수 MB 수준 — 여유 상한
 
-const EXT_BY_MIME: Record<string, string> = {
-  'audio/webm': 'webm',
-  'audio/mp4': 'm4a', // iOS Safari MediaRecorder
-  'audio/mpeg': 'mp3',
-  'audio/ogg': 'ogg',
-  'audio/wav': 'wav',
-};
+// 지원 녹음 포맷 (브라우저 MediaRecorder 산출물)
+const SUPPORTED_VOICE_MIMES = new Set([
+  'audio/webm', // Chrome/삼성인터넷
+  'audio/mp4', // iOS Safari
+  'audio/mpeg',
+  'audio/ogg',
+  'audio/wav',
+]);
 
 const createSchema = z.object({
   customerName: z.string().trim().min(1, '이름을 입력해 주세요').max(50),
@@ -99,14 +97,13 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  // 음성 검증 + 저장 (레코드 생성 전에 저장해 파일 없는 음성 접수 방지)
-  let voicePath: string | null = null;
+  // 음성 검증 + 저장 — 컨테이너 파일시스템은 재배포 시 초기화되므로 DB(StoredFile)에 저장
+  let voiceFileId: string | null = null;
   let voiceMime: string | null = null;
-  let voiceBytes: Uint8Array | null = null;
+  let voiceBytes: Uint8Array<ArrayBuffer> | null = null;
   if (voice) {
     voiceMime = (voice.type || '').split(';')[0].trim().toLowerCase();
-    const ext = EXT_BY_MIME[voiceMime];
-    if (!ext) {
+    if (!SUPPORTED_VOICE_MIMES.has(voiceMime)) {
       return NextResponse.json(
         { error: '지원하지 않는 음성 형식입니다' },
         { status: 400 },
@@ -120,11 +117,11 @@ export async function POST(req: NextRequest) {
     }
     voiceBytes = new Uint8Array(await voice.arrayBuffer());
     try {
-      const dir = path.join(uploadsRoot(), 'voice-notes');
-      await fs.mkdir(dir, { recursive: true });
-      const fileName = `${randomUUID()}.${ext}`;
-      await fs.writeFile(path.join(dir, fileName), voiceBytes);
-      voicePath = path.join('uploads', 'voice-notes', fileName);
+      const stored = await prisma.storedFile.create({
+        data: { mime: voiceMime, data: voiceBytes },
+        select: { id: true },
+      });
+      voiceFileId = stored.id;
     } catch (e) {
       console.error('[requests] 음성 저장 실패', e);
       if (!data.description) {
@@ -134,7 +131,7 @@ export async function POST(req: NextRequest) {
         );
       }
       // 텍스트가 있으면 음성 없이 접수 진행
-      voicePath = null;
+      voiceFileId = null;
       voiceMime = null;
       voiceBytes = null;
     }
@@ -151,7 +148,7 @@ export async function POST(req: NextRequest) {
       lat: data.lat ?? null,
       lng: data.lng ?? null,
       address: data.address || null,
-      voicePath,
+      voiceFileId,
       voiceMime,
     },
   });

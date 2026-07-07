@@ -1,12 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { promises as fs } from 'fs';
-import path from 'path';
 import bcrypt from 'bcryptjs';
 import { z } from 'zod';
 import { prisma } from '@/lib/db';
 import { geocode } from '@/lib/geo/kakao';
 import { isValidBizRegNo, normalizeBizRegNo } from '@/lib/bizRegNo';
-import { uploadsRoot } from '@/lib/uploads';
 
 // 업체 셀프 가입 신청. PENDING 상태로 생성되며 관리자 승인 후 이용 가능.
 // multipart/form-data: 텍스트 필드 + bizCert(사업자등록증 이미지/PDF)
@@ -101,8 +98,7 @@ export async function POST(req: NextRequest) {
       { status: 400 },
     );
   }
-  const ext = ALLOWED_TYPES[file.type];
-  if (!ext) {
+  if (!ALLOWED_TYPES[file.type]) {
     return NextResponse.json(
       { error: '이미지(JPG/PNG/WEBP/HEIC) 또는 PDF만 첨부할 수 있습니다' },
       { status: 400 },
@@ -148,13 +144,14 @@ export async function POST(req: NextRequest) {
   const providerId = user.provider!.id;
 
   try {
-    const dir = path.join(uploadsRoot(), 'biz-certs');
-    await fs.mkdir(dir, { recursive: true });
-    const filePath = path.join(dir, `${providerId}.${ext}`);
-    await fs.writeFile(filePath, Buffer.from(await file.arrayBuffer()));
+    // 컨테이너 파일시스템은 재배포 시 초기화되므로 DB(StoredFile)에 저장
+    const stored = await prisma.storedFile.create({
+      data: { mime: file.type, data: new Uint8Array(await file.arrayBuffer()) },
+      select: { id: true },
+    });
     await prisma.provider.update({
       where: { id: providerId },
-      data: { bizCertPath: path.join('uploads', 'biz-certs', `${providerId}.${ext}`) },
+      data: { bizCertFileId: stored.id },
     });
   } catch (e) {
     // 파일 저장 실패 시 신청 자체를 롤백 (증빙 없는 신청 방지)
