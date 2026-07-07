@@ -1,0 +1,40 @@
+# 로컬에서 프로덕션 이미지를 검증하기 위한 compose (CloudType 배포에는 사용하지 않음)
+#   docker compose up --build
+#   → http://localhost:3000  (admin / admin1234)
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: mijin
+      POSTGRES_PASSWORD: mijin
+      POSTGRES_DB: mijin
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mijin"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  app:
+    build: .
+    environment:
+      DATABASE_URL: "postgresql://mijin:mijin@db:5432/mijin?schema=public"
+      AUTH_SECRET: "local-docker-auth-secret-change-me-min-32-chars"
+      SMS_PROVIDER: "console"
+      # 최초 1회 관리자/샘플 계정 시드
+      RUN_DB_SEED: "1"
+    ports:
+      - "3000:3000"
+    volumes:
+      # 업로드 영속화 (CloudType에서는 스토리지 볼륨을 /app/uploads에 마운트)
+      - uploads:/app/uploads
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  pgdata:
+  uploads:
