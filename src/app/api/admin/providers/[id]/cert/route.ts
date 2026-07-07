@@ -3,6 +3,7 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import { prisma } from '@/lib/db';
 import { requireSession } from '@/lib/auth';
+import { resolveUploadPath } from '@/lib/uploads';
 
 const CONTENT_TYPES: Record<string, string> = {
   '.jpg': 'image/jpeg',
@@ -29,9 +30,9 @@ export async function GET(
     return NextResponse.json({ error: '첨부된 증빙이 없습니다' }, { status: 404 });
   }
 
-  // 경로 조작 방지: uploads/ 바깥 접근 차단
-  const filePath = path.resolve(process.cwd(), provider.bizCertPath);
-  if (!filePath.startsWith(path.resolve(process.cwd(), 'uploads'))) {
+  // 경로 조작 방지: uploads 루트 바깥 접근 차단
+  const filePath = resolveUploadPath(provider.bizCertPath);
+  if (!filePath) {
     return NextResponse.json({ error: '잘못된 경로입니다' }, { status: 400 });
   }
 

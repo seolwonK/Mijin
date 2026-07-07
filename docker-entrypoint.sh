@@ -21,6 +21,19 @@ case "$DATABASE_URL" in
     exit 1 ;;
 esac
 
+# 업로드 디렉터리 준비 — 볼륨이 마운트되면 이미지의 디렉터리가 가려지므로 기동 시
+# 재생성하고, 쓰기 가능 여부를 로그로 남긴다 (마운트 권한 문제 조기 발견용)
+UPLOAD_ROOT="${UPLOADS_DIR:-uploads}"
+mkdir -p "$UPLOAD_ROOT/biz-certs" "$UPLOAD_ROOT/voice-notes" 2>/dev/null || true
+chmod 777 "$UPLOAD_ROOT" "$UPLOAD_ROOT/biz-certs" "$UPLOAD_ROOT/voice-notes" 2>/dev/null || true
+if touch "$UPLOAD_ROOT/.write-probe" 2>/dev/null; then
+  rm -f "$UPLOAD_ROOT/.write-probe"
+  echo "[entrypoint] 업로드 디렉터리 쓰기 가능: $UPLOAD_ROOT"
+else
+  echo "[entrypoint] WARN: 업로드 디렉터리에 쓸 수 없습니다: $UPLOAD_ROOT" >&2
+  echo "[entrypoint]  스토리지 마운트 권한을 확인하거나, 쓰기 가능한 경로에 마운트 후 UPLOADS_DIR 로 지정하세요." >&2
+fi
+
 # CLI는 패키지 진입점을 직접 호출한다. (.bin 심링크는 Docker COPY 시 실제 파일로
 # 복사되며 형제 wasm/asset 을 잃어 깨지므로 사용하지 않는다.)
 echo "[entrypoint] Prisma 마이그레이션 적용 (migrate deploy)..."

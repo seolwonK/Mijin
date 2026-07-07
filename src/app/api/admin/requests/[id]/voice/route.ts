@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { promises as fs } from 'fs';
-import path from 'path';
 import { prisma } from '@/lib/db';
 import { requireSession } from '@/lib/auth';
+import { resolveUploadPath } from '@/lib/uploads';
 
 // 고객 음성 녹음 재생 — 개인정보 포함 파일이므로 관리자 전용.
 // Safari 의 <audio> 는 Range 요청을 보내므로 206 부분 응답을 지원한다.
@@ -22,9 +22,9 @@ export async function GET(
     return NextResponse.json({ error: '음성 녹음이 없습니다' }, { status: 404 });
   }
 
-  // 경로 조작 방지: uploads/ 바깥 접근 차단
-  const filePath = path.resolve(process.cwd(), request.voicePath);
-  if (!filePath.startsWith(path.resolve(process.cwd(), 'uploads'))) {
+  // 경로 조작 방지: uploads 루트 바깥 접근 차단
+  const filePath = resolveUploadPath(request.voicePath);
+  if (!filePath) {
     return NextResponse.json({ error: '잘못된 경로입니다' }, { status: 400 });
   }
 

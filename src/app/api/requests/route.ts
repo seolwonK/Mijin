@@ -7,6 +7,7 @@ import { prisma } from '@/lib/db';
 import { sendSms } from '@/lib/sms';
 import { smsRequestReceived } from '@/lib/sms/templates';
 import { transcribeVoiceNote, VOICE_PLACEHOLDER } from '@/lib/stt';
+import { uploadsRoot } from '@/lib/uploads';
 
 const MAX_VOICE_BYTES = 15 * 1024 * 1024; // 3분 녹음도 수 MB 수준 — 여유 상한
 
@@ -119,7 +120,7 @@ export async function POST(req: NextRequest) {
     }
     voiceBytes = new Uint8Array(await voice.arrayBuffer());
     try {
-      const dir = path.join(process.cwd(), 'uploads', 'voice-notes');
+      const dir = path.join(uploadsRoot(), 'voice-notes');
       await fs.mkdir(dir, { recursive: true });
       const fileName = `${randomUUID()}.${ext}`;
       await fs.writeFile(path.join(dir, fileName), voiceBytes);

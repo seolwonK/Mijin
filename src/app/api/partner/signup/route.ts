@@ -6,6 +6,7 @@ import { z } from 'zod';
 import { prisma } from '@/lib/db';
 import { geocode } from '@/lib/geo/kakao';
 import { isValidBizRegNo, normalizeBizRegNo } from '@/lib/bizRegNo';
+import { uploadsRoot } from '@/lib/uploads';
 
 // 업체 셀프 가입 신청. PENDING 상태로 생성되며 관리자 승인 후 이용 가능.
 // multipart/form-data: 텍스트 필드 + bizCert(사업자등록증 이미지/PDF)
@@ -147,7 +148,7 @@ export async function POST(req: NextRequest) {
   const providerId = user.provider!.id;
 
   try {
-    const dir = path.join(process.cwd(), 'uploads', 'biz-certs');
+    const dir = path.join(uploadsRoot(), 'biz-certs');
     await fs.mkdir(dir, { recursive: true });
     const filePath = path.join(dir, `${providerId}.${ext}`);
     await fs.writeFile(filePath, Buffer.from(await file.arrayBuffer()));

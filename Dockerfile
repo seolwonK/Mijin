@@ -54,7 +54,8 @@ COPY --from=builder /app/package.json ./package.json
 COPY --from=builder /app/next.config.ts ./next.config.ts
 
 # 업로드 영속 디렉터리 — CloudType 스토리지를 /app/uploads 에 마운트할 것
-RUN mkdir -p /app/uploads/biz-certs
+# (비루트 실행 환경 대비 전체 쓰기 허용; 볼륨 마운트 시엔 entrypoint 가 재생성/재설정)
+RUN mkdir -p /app/uploads/biz-certs /app/uploads/voice-notes && chmod -R 777 /app/uploads
 
 COPY docker-entrypoint.sh /app/docker-entrypoint.sh
 RUN chmod +x /app/docker-entrypoint.sh
