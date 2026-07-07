@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import Link from 'next/link';
+import BackButton from '@/components/BackButton';
 
 type Settings = {
   autoAssignEnabled: boolean;
@@ -69,10 +69,8 @@ export default function AdminSettingsPage() {
 
   return (
     <main className="min-h-screen">
-      <header className="flex items-center gap-3 border-b border-gray-200 p-4">
-        <Link href="/admin" className="text-xl">
-          ←
-        </Link>
+      <header className="sticky top-0 z-20 flex items-center gap-2 border-b border-gray-200 bg-white/95 px-4 py-2 backdrop-blur">
+        <BackButton fallback="/admin" />
         <h1 className="text-lg font-bold">자동배정 설정</h1>
       </header>
 

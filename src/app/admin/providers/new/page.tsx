@@ -1,8 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import BackButton from '@/components/BackButton';
 import ProviderForm, { type ProviderFormValue } from '@/components/ProviderForm';
 
 export default function NewProviderPage() {
@@ -49,10 +49,8 @@ export default function NewProviderPage() {
 
   return (
     <main className="min-h-screen">
-      <header className="flex items-center gap-3 border-b border-gray-200 p-4">
-        <Link href="/admin/providers" className="text-xl">
-          ←
-        </Link>
+      <header className="sticky top-0 z-20 flex items-center gap-2 border-b border-gray-200 bg-white/95 px-4 py-2 backdrop-blur">
+        <BackButton fallback="/admin/providers" />
         <h1 className="text-lg font-bold">업체 등록</h1>
       </header>
       <ProviderForm

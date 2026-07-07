@@ -1,6 +1,9 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import BackButton from '@/components/BackButton';
 import { usePolling } from '@/components/usePolling';
 
 type ProviderRow = {
@@ -17,34 +20,58 @@ type ProviderRow = {
 };
 
 export default function AdminProvidersPage() {
+  const router = useRouter();
   const { data, error, refresh } = usePolling<{ providers: ProviderRow[] }>(
     '/api/admin/providers',
     15_000,
   );
+  const [togglingId, setTogglingId] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
   const all = data?.providers ?? [];
   const pending = all.filter((p) => p.approvalStatus === 'PENDING');
   const approved = all.filter((p) => p.approvalStatus === 'APPROVED');
   const rejected = all.filter((p) => p.approvalStatus === 'REJECTED');
 
   async function toggleActive(p: ProviderRow) {
-    await fetch(`/api/admin/providers/${p.id}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ isActive: !p.isActive }),
-    });
-    await refresh();
+    // 비활성 전환은 배정 대상 제외라 실수 방지용 확인
+    if (
+      p.isActive &&
+      !window.confirm(
+        `${p.name}을(를) 비활성으로 바꿀까요?\n비활성 업체는 배정 대상에서 제외됩니다.`,
+      )
+    )
+      return;
+    setTogglingId(p.id);
+    setActionError(null);
+    try {
+      const res = await fetch(`/api/admin/providers/${p.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ isActive: !p.isActive }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        setActionError(
+          (data as { error?: string }).error ?? '상태 변경에 실패했습니다',
+        );
+        return;
+      }
+      await refresh();
+    } catch {
+      setActionError('네트워크 오류가 발생했습니다');
+    } finally {
+      setTogglingId(null);
+    }
   }
 
   return (
     <main className="min-h-screen">
-      <header className="flex items-center gap-3 border-b border-gray-200 p-4">
-        <Link href="/admin" className="text-xl">
-          ←
-        </Link>
+      <header className="sticky top-0 z-20 flex items-center gap-2 border-b border-gray-200 bg-white/95 px-4 py-2 backdrop-blur">
+        <BackButton fallback="/admin" />
         <h1 className="text-lg font-bold">업체 관리</h1>
         <Link
           href="/admin/providers/new"
-          className="ml-auto rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-bold text-white"
+          className="ml-auto rounded-lg bg-blue-600 px-3 py-2 text-sm font-bold text-white active:bg-blue-700"
         >
           + 직접 등록
         </Link>
@@ -52,6 +79,11 @@ export default function AdminProvidersPage() {
 
       <div className="space-y-6 p-4">
         {error && <p className="text-sm text-red-600">{error}</p>}
+        {actionError && (
+          <p className="rounded-xl bg-red-50 p-3 text-sm font-medium text-red-600">
+            {actionError}
+          </p>
+        )}
 
         {pending.length > 0 && (
           <section>
@@ -94,26 +126,29 @@ export default function AdminProvidersPage() {
             {approved.map((p) => (
               <div
                 key={p.id}
-                className={`rounded-2xl border p-4 ${
+                onClick={() => router.push(`/admin/providers/${p.id}`)}
+                className={`cursor-pointer rounded-2xl border p-4 active:bg-gray-50 ${
                   p.isActive
                     ? 'border-gray-200 bg-white'
                     : 'border-gray-200 bg-gray-50 opacity-70'
                 }`}
               >
                 <div className="flex items-center justify-between">
-                  <Link href={`/admin/providers/${p.id}`} className="font-bold underline">
-                    {p.name}
-                  </Link>
+                  <span className="font-bold">{p.name}</span>
                   <button
                     type="button"
-                    onClick={() => toggleActive(p)}
-                    className={`rounded-full px-3 py-1 text-xs font-bold ${
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleActive(p);
+                    }}
+                    disabled={togglingId === p.id}
+                    className={`rounded-full px-3 py-1.5 text-xs font-bold disabled:opacity-50 ${
                       p.isActive
                         ? 'bg-green-100 text-green-700'
                         : 'bg-gray-200 text-gray-500'
                     }`}
                   >
-                    {p.isActive ? '활성' : '비활성'}
+                    {togglingId === p.id ? '변경 중…' : p.isActive ? '활성' : '비활성'}
                   </button>
                 </div>
                 <p className="mt-1 text-sm text-gray-500">

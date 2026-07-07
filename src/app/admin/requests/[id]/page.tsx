@@ -1,7 +1,7 @@
 'use client';
 
 import { use, useState } from 'react';
-import Link from 'next/link';
+import BackButton from '@/components/BackButton';
 import { usePolling } from '@/components/usePolling';
 import { StatusBadge, UrgencyBadge } from '@/components/StatusBadge';
 
@@ -88,6 +88,32 @@ export default function AdminRequestDetailPage({
     }
   }
 
+  async function unassign() {
+    if (
+      !window.confirm(
+        '현재 배정을 회수하고 배정 대기로 되돌릴까요?\n업체에는 회수 안내 문자가 발송됩니다.',
+      )
+    )
+      return;
+    setBusy(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/admin/requests/${id}/unassign`, {
+        method: 'POST',
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error ?? '배정 회수에 실패했습니다');
+        return;
+      }
+      await refresh();
+    } catch {
+      setError('네트워크 오류가 발생했습니다');
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function cancel() {
     if (!window.confirm('이 접수를 취소할까요?')) return;
     setBusy(true);
@@ -117,10 +143,8 @@ export default function AdminRequestDetailPage({
 
   return (
     <main className="min-h-screen pb-10">
-      <header className="flex items-center gap-3 border-b border-gray-200 p-4">
-        <Link href="/admin" className="text-xl">
-          ←
-        </Link>
+      <header className="sticky top-0 z-20 flex items-center gap-2 border-b border-gray-200 bg-white/95 px-4 py-2 backdrop-blur">
+        <BackButton fallback="/admin" />
         <h1 className="text-lg font-bold">접수 #{req.lookupCode}</h1>
         <div className="ml-auto flex gap-1">
           <UrgencyBadge urgency={req.urgency} />
@@ -179,6 +203,27 @@ export default function AdminRequestDetailPage({
           </div>
         </section>
 
+        {req.status === 'ASSIGNED' && (
+          <section className="rounded-2xl border border-blue-200 bg-blue-50/50 p-4">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="font-semibold text-blue-700">업체 응답 대기 중</p>
+                <p className="mt-0.5 text-sm text-gray-500">
+                  응답이 없으면 배정을 회수하고 다른 업체에 다시 배정할 수 있습니다.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={unassign}
+                disabled={busy}
+                className="h-11 shrink-0 rounded-xl border border-red-300 bg-white px-4 text-sm font-bold text-red-600 active:bg-red-50 disabled:opacity-60"
+              >
+                배정 회수
+              </button>
+            </div>
+          </section>
+        )}
+
         {req.status === 'RECEIVED' && (
           <section className="rounded-2xl border border-blue-200 p-4">
             <h2 className="mb-2 font-semibold text-blue-700">거리순 추천 업체</h2>
@@ -230,8 +275,16 @@ export default function AdminRequestDetailPage({
             <div className="grid gap-2 sm:grid-cols-2">
               {req.assignments.map((a) => (
                 <div key={a.id} className="rounded-xl bg-gray-50 p-3 text-sm">
-                  <div className="flex items-center justify-between">
-                    <span className="font-bold">{a.provider.name}</span>
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="min-w-0 font-bold">
+                      {a.provider.name}{' '}
+                      <a
+                        href={`tel:${a.provider.phone}`}
+                        className="whitespace-nowrap text-xs font-medium text-blue-600 underline"
+                      >
+                        📞 {a.provider.phone}
+                      </a>
+                    </span>
                     <span
                       className={
                         a.status === 'REJECTED'

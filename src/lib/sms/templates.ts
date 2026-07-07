@@ -24,6 +24,11 @@ function formatPhone(digits: string): string {
   return digits;
 }
 
+// 배정 회수 안내 — 업체가 배정 문자만 보고 출동하지 않도록 즉시 알린다 (단문 유지)
+export function smsAssignmentRecalled(): string {
+  return '[전기출동] 안내드린 배정이 회수되었습니다. 출동하지 않으셔도 됩니다.';
+}
+
 // 업체 배정 알림 — 고객 연락처·주소 포함 (장문이라 LMS 단가 적용 가능)
 export function smsProviderAssigned(p: {
   customerName: string;

@@ -34,28 +34,47 @@ export default function AdminDashboardPage() {
     '/api/admin/requests',
     8_000,
   );
+  // 승인 대기 업체 수 배지용 (심사 요청을 대시보드에서 바로 인지)
+  const { data: provData } = usePolling<{
+    providers: { approvalStatus: string }[];
+  }>('/api/admin/providers', 30_000);
+  const pendingProviders = (provData?.providers ?? []).filter(
+    (p) => p.approvalStatus === 'PENDING',
+  ).length;
   const all = data?.requests ?? [];
   const statuses = TABS.find((t) => t.key === tab)?.statuses ?? null;
   const rows = statuses ? all.filter((r) => statuses.includes(r.status)) : all;
 
   return (
     <main className="min-h-screen">
-      <header className="border-b border-gray-200 p-4">
-        <div className="flex items-center justify-between">
-          <h1 className="text-lg font-bold">관리자 대시보드</h1>
-          <LogoutButton loginPath="/admin/login" />
-        </div>
-        <div className="mt-3 flex gap-4 text-sm">
-          <Link href="/admin/providers" className="font-medium text-blue-600 underline">
-            업체 관리
-          </Link>
-          <Link href="/admin/settings" className="font-medium text-blue-600 underline">
-            자동배정 설정
-          </Link>
-        </div>
-      </header>
+      <div className="sticky top-0 z-20 bg-white/95 backdrop-blur">
+        <header className="border-b border-gray-100 p-4 pb-3">
+          <div className="flex items-center justify-between">
+            <h1 className="text-lg font-bold">관리자 대시보드</h1>
+            <LogoutButton loginPath="/admin/login" />
+          </div>
+          <div className="mt-3 flex gap-2">
+            <Link
+              href="/admin/providers"
+              className="relative rounded-xl border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 active:bg-gray-50"
+            >
+              업체 관리
+              {pendingProviders > 0 && (
+                <span className="absolute -right-2 -top-2 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1.5 text-xs font-bold text-white">
+                  {pendingProviders}
+                </span>
+              )}
+            </Link>
+            <Link
+              href="/admin/settings"
+              className="rounded-xl border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 active:bg-gray-50"
+            >
+              자동배정 설정
+            </Link>
+          </div>
+        </header>
 
-      <div className="scrollbar-none flex gap-1 overflow-x-auto border-b border-gray-100 p-2">
+        <div className="scrollbar-none flex gap-1 overflow-x-auto border-b border-gray-200 p-2">
         {TABS.map((t) => {
           const count = t.statuses
             ? all.filter((r) => t.statuses!.includes(r.status)).length
@@ -73,6 +92,7 @@ export default function AdminDashboardPage() {
             </button>
           );
         })}
+        </div>
       </div>
 
       <div className="p-4">
