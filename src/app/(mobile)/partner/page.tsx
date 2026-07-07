@@ -24,7 +24,7 @@ function JobCard({ job, highlight }: { job: Job; highlight?: boolean }) {
   return (
     <Link
       href={`/partner/jobs/${job.id}`}
-      className={`block rounded-2xl border p-4 ${
+      className={`block rounded-2xl border p-4 transition-shadow hover:shadow-md ${
         highlight ? 'border-blue-400 bg-blue-50' : 'border-gray-200 bg-white'
       }`}
     >
@@ -64,12 +64,14 @@ export default function PartnerHomePage() {
 
   return (
     <main className="min-h-screen">
-      <header className="sticky top-0 z-20 flex items-center justify-between border-b border-gray-200 bg-white/95 p-4 backdrop-blur">
-        <h1 className="text-lg font-bold">업체 포털</h1>
-        <LogoutButton loginPath="/partner/login" />
+      <header className="sticky top-0 z-20 border-b border-gray-200 bg-white/95 backdrop-blur">
+        <div className="mx-auto flex w-full max-w-5xl items-center justify-between p-4">
+          <h1 className="text-lg font-bold">업체 포털</h1>
+          <LogoutButton loginPath="/partner/login" />
+        </div>
       </header>
 
-      <div className="space-y-6 p-4">
+      <div className="mx-auto w-full max-w-5xl space-y-6 p-4 md:space-y-8 md:py-8">
         {error && <p className="text-sm text-red-600">{error}</p>}
 
         <section>
@@ -81,7 +83,7 @@ export default function PartnerHomePage() {
               새로 배정된 건이 없습니다
             </p>
           ) : (
-            <div className="space-y-2">
+            <div className="space-y-2 md:grid md:grid-cols-2 md:gap-3 md:space-y-0 xl:grid-cols-3">
               {waiting.map((j) => (
                 <JobCard key={j.id} job={j} highlight />
               ))}
@@ -96,7 +98,7 @@ export default function PartnerHomePage() {
               진행중인 건이 없습니다
             </p>
           ) : (
-            <div className="space-y-2">
+            <div className="space-y-2 md:grid md:grid-cols-2 md:gap-3 md:space-y-0 xl:grid-cols-3">
               {inProgress.map((j) => (
                 <JobCard key={j.id} job={j} />
               ))}
@@ -107,7 +109,7 @@ export default function PartnerHomePage() {
         {past.length > 0 && (
           <section>
             <h2 className="mb-2 font-semibold text-gray-500">지난 내역</h2>
-            <div className="space-y-2 opacity-70">
+            <div className="space-y-2 opacity-70 md:grid md:grid-cols-2 md:gap-3 md:space-y-0 xl:grid-cols-3">
               {past.slice(0, 20).map((j) => (
                 <JobCard key={j.id} job={j} />
               ))}

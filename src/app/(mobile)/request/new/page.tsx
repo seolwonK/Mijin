@@ -78,14 +78,16 @@ export default function NewRequestPage() {
 
   return (
     <main className="flex min-h-screen flex-col">
-      <header className="sticky top-0 z-20 flex items-center gap-2 border-b border-gray-200 bg-white/95 px-4 py-2 backdrop-blur">
-        <BackButton fallback="/" />
-        <h1 className="text-lg font-bold">고장 접수</h1>
+      <header className="sticky top-0 z-20 border-b border-gray-200 bg-white/95 backdrop-blur">
+        <div className="mx-auto flex w-full max-w-2xl items-center gap-2 px-4 py-2 md:py-3">
+          <BackButton fallback="/" />
+          <h1 className="text-lg font-bold">고장 접수</h1>
+        </div>
       </header>
 
-      <div className="flex-1 space-y-6 p-4 pb-32">
-        <section>
-          <h2 className="mb-2 font-semibold">
+      <div className="mx-auto w-full max-w-2xl flex-1 space-y-6 p-4 pb-32 md:space-y-5 md:py-8 md:pb-6">
+        <section className="md:rounded-2xl md:bg-white md:p-6 md:shadow-sm">
+          <h2 className="mb-2 font-semibold md:mb-3">
             1. 어떤 고장인가요? <span className="text-red-500">*</span>
           </h2>
           <SpeechInput
@@ -96,22 +98,22 @@ export default function NewRequestPage() {
           />
         </section>
 
-        <section>
-          <h2 className="mb-2 font-semibold">
+        <section className="md:rounded-2xl md:bg-white md:p-6 md:shadow-sm">
+          <h2 className="mb-2 font-semibold md:mb-3">
             2. 얼마나 급한가요? <span className="text-red-500">*</span>
           </h2>
           <UrgencySelect value={urgency} onChange={setUrgency} />
         </section>
 
-        <section>
-          <h2 className="mb-2 font-semibold">
+        <section className="md:rounded-2xl md:bg-white md:p-6 md:shadow-sm">
+          <h2 className="mb-2 font-semibold md:mb-3">
             3. 어디로 가야 하나요? <span className="text-red-500">*</span>
           </h2>
           <LocationPicker value={location} onChange={setLocation} />
         </section>
 
-        <section>
-          <h2 className="mb-2 font-semibold">
+        <section className="md:rounded-2xl md:bg-white md:p-6 md:shadow-sm">
+          <h2 className="mb-2 font-semibold md:mb-3">
             4. 연락처 <span className="text-red-500">*</span>
           </h2>
           <div className="space-y-2">
@@ -142,12 +144,12 @@ export default function NewRequestPage() {
         )}
       </div>
 
-      <div className="fixed bottom-0 left-1/2 w-full max-w-md -translate-x-1/2 border-t border-gray-200 bg-white px-4 pt-4 pb-[calc(1rem+env(safe-area-inset-bottom))]">
+      <div className="fixed bottom-0 left-1/2 w-full max-w-md -translate-x-1/2 border-t border-gray-200 bg-white px-4 pt-4 pb-[calc(1rem+env(safe-area-inset-bottom))] md:static md:left-auto md:mx-auto md:max-w-2xl md:translate-x-0 md:border-t-0 md:bg-transparent md:px-4 md:pt-0 md:pb-12">
         <button
           type="button"
           onClick={submit}
           disabled={busy}
-          className="h-14 w-full rounded-2xl bg-blue-600 text-lg font-bold text-white active:bg-blue-700 disabled:opacity-60"
+          className="h-14 w-full rounded-2xl bg-blue-600 text-lg font-bold text-white transition-colors enabled:hover:bg-blue-700 active:bg-blue-700 disabled:opacity-60"
         >
           {busy ? '접수 중…' : '접수하기'}
         </button>

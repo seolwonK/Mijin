@@ -63,35 +63,42 @@ export default function PartnerSignupPage() {
 
   if (done) {
     return (
-      <main className="flex min-h-screen flex-col items-center justify-center gap-5 p-6 text-center">
-        <div className="text-6xl">📨</div>
-        <h1 className="text-2xl font-bold">가입 신청이 접수되었습니다</h1>
-        <p className="text-gray-500">
-          관리자가 사업자등록증을 확인한 뒤 승인합니다.
-          <br />
-          승인 후 로그인할 수 있으며, 승인 여부는
-          <br />
-          로그인 화면에서 확인해 주세요.
-        </p>
-        <Link
-          href="/partner/login"
-          className="w-full rounded-2xl bg-blue-600 p-4 text-center font-bold text-white"
-        >
-          로그인 화면으로
-        </Link>
+      <main className="flex min-h-screen flex-col items-center justify-center p-6">
+        <div className="flex w-full flex-col items-center gap-5 text-center md:max-w-lg md:rounded-3xl md:bg-white md:p-12 md:shadow-sm">
+          <div className="text-6xl">📨</div>
+          <h1 className="text-2xl font-bold">가입 신청이 접수되었습니다</h1>
+          <p className="text-gray-500">
+            관리자가 사업자등록증을 확인한 뒤 승인합니다.
+            <br />
+            승인 후 로그인할 수 있으며, 승인 여부는
+            <br />
+            로그인 화면에서 확인해 주세요.
+          </p>
+          <Link
+            href="/partner/login"
+            className="w-full rounded-2xl bg-blue-600 p-4 text-center font-bold text-white transition-colors hover:bg-blue-700"
+          >
+            로그인 화면으로
+          </Link>
+        </div>
       </main>
     );
   }
 
   return (
     <main className="min-h-screen">
-      <header className="sticky top-0 z-20 flex items-center gap-2 border-b border-gray-200 bg-white/95 px-4 py-2 backdrop-blur">
-        <BackButton fallback="/partner/login" />
-        <h1 className="text-lg font-bold">업체 가입 신청</h1>
+      <header className="sticky top-0 z-20 border-b border-gray-200 bg-white/95 backdrop-blur">
+        <div className="mx-auto flex w-full max-w-2xl items-center gap-2 px-4 py-2 md:py-3">
+          <BackButton fallback="/partner/login" />
+          <h1 className="text-lg font-bold">업체 가입 신청</h1>
+        </div>
       </header>
 
-      <form onSubmit={submit} className="space-y-5 p-4 pb-10">
-        <section className="space-y-2">
+      <form
+        onSubmit={submit}
+        className="mx-auto w-full max-w-2xl space-y-5 p-4 pb-10 md:py-8 md:pb-16"
+      >
+        <section className="space-y-2 md:rounded-2xl md:bg-white md:p-6 md:shadow-sm">
           <h2 className="text-sm font-semibold">계정 정보</h2>
           <input
             type="text"
@@ -111,7 +118,7 @@ export default function PartnerSignupPage() {
           />
         </section>
 
-        <section className="space-y-2">
+        <section className="space-y-2 md:rounded-2xl md:bg-white md:p-6 md:shadow-sm">
           <h2 className="text-sm font-semibold">업체 정보</h2>
           <input
             type="text"
@@ -140,7 +147,7 @@ export default function PartnerSignupPage() {
           />
         </section>
 
-        <section className="space-y-2">
+        <section className="space-y-2 md:rounded-2xl md:bg-white md:p-6 md:shadow-sm">
           <h2 className="text-sm font-semibold">사업자 인증</h2>
           <input
             type="text"
@@ -201,7 +208,7 @@ export default function PartnerSignupPage() {
             !addrDetail.trim() ||
             !bizRegNo
           }
-          className="h-14 w-full rounded-2xl bg-blue-600 text-lg font-bold text-white disabled:opacity-50"
+          className="h-14 w-full rounded-2xl bg-blue-600 text-lg font-bold text-white transition-colors enabled:hover:bg-blue-700 disabled:opacity-50"
         >
           {busy ? '신청 중…' : '가입 신청하기'}
         </button>

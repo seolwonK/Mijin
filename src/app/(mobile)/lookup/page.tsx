@@ -64,7 +64,7 @@ function Timeline({ status }: { status: string }) {
 
 function RequestCard({ r }: { r: LookupRequest }) {
   return (
-    <div className="space-y-4 rounded-2xl border border-gray-200 p-4">
+    <div className="space-y-4 rounded-2xl border border-gray-200 bg-white p-4 md:p-5">
       <div className="flex items-center justify-between">
         <span className="font-bold">접수번호 {r.lookupCode}</span>
         <div className="flex gap-1">
@@ -148,40 +148,44 @@ export default function LookupPage() {
 
   return (
     <main className="min-h-screen">
-      <header className="sticky top-0 z-20 flex items-center gap-2 border-b border-gray-200 bg-white/95 px-4 py-2 backdrop-blur">
-        <BackButton fallback="/" />
-        <h1 className="text-lg font-bold">접수 내역 조회</h1>
+      <header className="sticky top-0 z-20 border-b border-gray-200 bg-white/95 backdrop-blur">
+        <div className="mx-auto flex w-full max-w-2xl items-center gap-2 px-4 py-2 md:py-3">
+          <BackButton fallback="/" />
+          <h1 className="text-lg font-bold">접수 내역 조회</h1>
+        </div>
       </header>
 
-      <div className="space-y-4 p-4">
+      <div className="mx-auto w-full max-w-2xl space-y-4 p-4 md:space-y-5 md:py-8">
         <form
-          className="space-y-2"
+          className="flex flex-col gap-2 md:rounded-2xl md:bg-white md:p-5 md:shadow-sm"
           onSubmit={(e) => {
             e.preventDefault();
             lookup();
           }}
         >
-          <input
-            type="tel"
-            inputMode="tel"
-            autoComplete="tel"
-            value={phone}
-            onChange={(e) => setPhone(e.target.value)}
-            placeholder="접수하신 전화번호"
-            className="w-full rounded-xl border border-gray-300 p-3 text-base focus:border-blue-500 focus:outline-none"
-          />
-          <button
-            type="submit"
-            disabled={busy || !phone.trim()}
-            className="w-full rounded-xl bg-blue-600 p-4 font-bold text-white disabled:opacity-50"
-          >
-            {busy ? '조회 중…' : '조회하기'}
-          </button>
+          <div className="flex flex-col gap-2 md:flex-row">
+            <input
+              type="tel"
+              inputMode="tel"
+              autoComplete="tel"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              placeholder="접수하신 전화번호"
+              className="w-full rounded-xl border border-gray-300 p-3 text-base focus:border-blue-500 focus:outline-none md:flex-1"
+            />
+            <button
+              type="submit"
+              disabled={busy || !phone.trim()}
+              className="w-full rounded-xl bg-blue-600 p-4 font-bold text-white transition-colors enabled:hover:bg-blue-700 disabled:opacity-50 md:w-40 md:p-3"
+            >
+              {busy ? '조회 중…' : '조회하기'}
+            </button>
+          </div>
           {error && <p className="text-sm text-red-600">{error}</p>}
         </form>
 
         {results && results.length === 0 && (
-          <p className="rounded-xl bg-gray-50 p-6 text-center text-sm text-gray-400">
+          <p className="rounded-xl bg-gray-50 p-6 text-center text-sm text-gray-400 md:bg-white md:py-10 md:shadow-sm">
             이 번호로 접수된 내역이 없습니다
           </p>
         )}
