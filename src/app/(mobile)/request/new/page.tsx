@@ -3,13 +3,14 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import SpeechInput from '@/components/SpeechInput';
+import SpeechInput, { type VoiceNote } from '@/components/SpeechInput';
 import LocationPicker, { type LocationValue } from '@/components/LocationPicker';
 import UrgencySelect, { type UrgencyValue } from '@/components/UrgencySelect';
 
 export default function NewRequestPage() {
   const router = useRouter();
   const [description, setDescription] = useState('');
+  const [voice, setVoice] = useState<VoiceNote | null>(null);
   const [urgency, setUrgency] = useState<UrgencyValue | null>(null);
   const [location, setLocation] = useState<LocationValue>({
     lat: null,
@@ -23,7 +24,8 @@ export default function NewRequestPage() {
 
   async function submit() {
     setError(null);
-    if (!description.trim()) return setError('고장 내용을 입력해 주세요');
+    if (!description.trim() && !voice)
+      return setError('고장 내용을 입력하거나 음성으로 남겨 주세요');
     if (!urgency) return setError('긴급도를 선택해 주세요');
     if (!location.lat && !location.address.trim())
       return setError('위치 확인 버튼을 누르거나 주소를 입력해 주세요');
@@ -33,19 +35,34 @@ export default function NewRequestPage() {
 
     setBusy(true);
     try {
-      const res = await fetch('/api/requests', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          customerName: name,
-          customerPhone: phone,
-          description,
-          urgency,
-          lat: location.lat,
-          lng: location.lng,
-          address: location.address.trim() || null,
-        }),
-      });
+      let res: Response;
+      if (voice) {
+        // 녹음본이 있으면 multipart 로 파일까지 함께 전송
+        const fd = new FormData();
+        fd.append('customerName', name);
+        fd.append('customerPhone', phone);
+        fd.append('description', description);
+        fd.append('urgency', urgency);
+        if (location.lat != null) fd.append('lat', String(location.lat));
+        if (location.lng != null) fd.append('lng', String(location.lng));
+        if (location.address.trim()) fd.append('address', location.address.trim());
+        fd.append('voice', voice.blob, 'voice');
+        res = await fetch('/api/requests', { method: 'POST', body: fd });
+      } else {
+        res = await fetch('/api/requests', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            customerName: name,
+            customerPhone: phone,
+            description,
+            urgency,
+            lat: location.lat,
+            lng: location.lng,
+            address: location.address.trim() || null,
+          }),
+        });
+      }
       const data = await res.json();
       if (!res.ok) {
         setError(data.error ?? '접수에 실패했습니다');
@@ -73,7 +90,12 @@ export default function NewRequestPage() {
           <h2 className="mb-2 font-semibold">
             1. 어떤 고장인가요? <span className="text-red-500">*</span>
           </h2>
-          <SpeechInput value={description} onChange={setDescription} />
+          <SpeechInput
+            value={description}
+            onChange={setDescription}
+            voice={voice}
+            onVoiceChange={setVoice}
+          />
         </section>
 
         <section>

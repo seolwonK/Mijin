@@ -77,22 +77,25 @@ model Provider {
 }
 
 model ServiceRequest {
-  id             String        @id @default(cuid())
-  lookupCode     String        @unique // 6자리 숫자, 고객 조회용
-  customerName   String
-  customerPhone  String // 숫자만 정규화 저장
-  description    String
-  urgency        Urgency
-  status         RequestStatus @default(RECEIVED)
-  lat            Float?
-  lng            Float? // 위치 거부 시 null 허용
-  address        String? // 역지오코딩 or 수동 입력
-  assignBaseAt   DateTime      @default(now()) // 자동배정 타이머 기준 시각
-  needsAttention Boolean       @default(false) // 자동배정 실패/거절 반환 플래그
-  completedAt    DateTime?
-  assignments    Assignment[]
-  createdAt      DateTime      @default(now())
-  updatedAt      DateTime      @updatedAt
+  id              String        @id @default(cuid())
+  lookupCode      String        @unique // 6자리 숫자, 고객 조회용
+  customerName    String
+  customerPhone   String // 숫자만 정규화 저장
+  description     String
+  voicePath       String? // 음성 녹음 파일 경로 (uploads/voice-notes/, 관리자만 열람)
+  voiceMime       String? // audio/webm | audio/mp4 등 — 재생 시 Content-Type
+  voiceTranscript String? // 서버 STT 변환 결과 (원본 보존, description과 별도)
+  urgency         Urgency
+  status          RequestStatus @default(RECEIVED)
+  lat             Float?
+  lng             Float? // 위치 거부 시 null 허용
+  address         String? // 역지오코딩 or 수동 입력
+  assignBaseAt    DateTime      @default(now()) // 자동배정 타이머 기준 시각
+  needsAttention  Boolean       @default(false) // 자동배정 실패/거절 반환 플래그
+  completedAt     DateTime?
+  assignments     Assignment[]
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
 
   @@index([status, assignBaseAt]) // 자동배정 워커 스캔용
   @@index([customerPhone])

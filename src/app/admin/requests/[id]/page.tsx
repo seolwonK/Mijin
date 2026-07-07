@@ -22,6 +22,8 @@ type RequestDetail = {
   customerName: string;
   customerPhone: string;
   description: string;
+  hasVoice: boolean;
+  voiceTranscript: string | null;
   urgency: string;
   status: string;
   lat: number | null;
@@ -136,6 +138,23 @@ export default function AdminRequestDetailPage({
         <section className="rounded-2xl border border-gray-200 p-4">
           <h2 className="mb-1 text-sm text-gray-500">고장 내용</h2>
           <p className="whitespace-pre-wrap">{req.description}</p>
+          {req.hasVoice && (
+            <div className="mt-3 rounded-xl bg-gray-50 p-3">
+              <p className="mb-1 text-sm font-medium text-gray-600">🎤 고객 음성 녹음</p>
+              <audio
+                controls
+                preload="none"
+                src={`/api/admin/requests/${id}/voice`}
+                className="w-full"
+              />
+              {req.voiceTranscript && req.voiceTranscript !== req.description && (
+                <p className="mt-2 whitespace-pre-wrap text-sm text-gray-600">
+                  <span className="font-medium">자동 변환 텍스트:</span>{' '}
+                  {req.voiceTranscript}
+                </p>
+              )}
+            </div>
+          )}
           <div className="mt-3 space-y-1 text-sm text-gray-600">
             <p>
               👤 {req.customerName} ·{' '}
