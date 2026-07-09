@@ -36,6 +36,44 @@ function recorderSupported(): boolean {
   );
 }
 
+// iOS의 비-Safari 브라우저(크롬·엣지 등)와 인앱 웹뷰는 Web Speech API가 없고,
+// getUserMedia 호출이 권한창도 거부도 없이 무한 대기한다 → 음성 입력 자체가 불가능(iOS는 Safari 전용).
+function isIos(): boolean {
+  if (typeof navigator === 'undefined') return false;
+  const ua = navigator.userAgent;
+  return (
+    /iP(hone|od|ad)/.test(ua) ||
+    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
+  );
+}
+
+// getUserMedia가 무한 대기하는 브라우저를 대비해 타임아웃을 건다. 타임아웃 후 뒤늦게
+// 스트림이 도착하면 트랙을 정리해 마이크를 놓아준다.
+function getMicStream(timeoutMs: number): Promise<MediaStream | null> {
+  return new Promise((resolve) => {
+    let settled = false;
+    const done = (s: MediaStream | null) => {
+      if (settled) {
+        s?.getTracks().forEach((t) => t.stop());
+        return;
+      }
+      settled = true;
+      resolve(s);
+    };
+    const timer = setTimeout(() => done(null), timeoutMs);
+    navigator.mediaDevices.getUserMedia({ audio: true }).then(
+      (s) => {
+        clearTimeout(timer);
+        done(s);
+      },
+      () => {
+        clearTimeout(timer);
+        done(null);
+      },
+    );
+  });
+}
+
 // 브라우저별 지원 컨테이너가 다르다 (Chrome/삼성인터넷: webm+opus, iOS Safari: mp4)
 const MIME_CANDIDATES = [
   'audio/webm;codecs=opus',
@@ -63,7 +101,9 @@ export default function SpeechInput({
 }) {
   const [sttSupported, setSttSupported] = useState(false);
   const [recSupported, setRecSupported] = useState(false);
+  const [voiceBlocked, setVoiceBlocked] = useState(false);
   const [listening, setListening] = useState(false);
+  const [preparing, setPreparing] = useState(false);
   const [micError, setMicError] = useState<string | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const srRef = useRef<SpeechRecognitionInstance | null>(null);
@@ -73,8 +113,12 @@ export default function SpeechInput({
   const finalRef = useRef('');
 
   useEffect(() => {
-    setSttSupported(getSpeechRecognition() !== null);
+    const stt = getSpeechRecognition() !== null;
+    setSttSupported(stt);
     setRecSupported(recorderSupported());
+    // iOS인데 Web Speech가 없으면 Safari가 아니라는 신호 — 녹음(getUserMedia)도 무한 대기하므로
+    // 버튼을 숨기고 안내로 대체한다.
+    setVoiceBlocked(isIos() && !stt);
     return () => {
       srRef.current?.stop();
       if (mrRef.current && mrRef.current.state !== 'inactive') mrRef.current.stop();
@@ -140,7 +184,9 @@ export default function SpeechInput({
   async function startRecorder(): Promise<boolean> {
     if (!recorderSupported()) return false;
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      // 무한 대기 브라우저 대비 타임아웃 — 못 얻으면 조용히 실패 처리
+      const stream = await getMicStream(5000);
+      if (!stream) return false;
       const mimeType = MIME_CANDIDATES.find((m) => MediaRecorder.isTypeSupported(m));
       const mr = mimeType
         ? new MediaRecorder(stream, { mimeType })
@@ -170,8 +216,10 @@ export default function SpeechInput({
     }
     setMicError(null);
     onVoiceChange(null); // 새 녹음 시작 → 기존 녹음 대체
+    setPreparing(true);
     const recording = await startRecorder();
     const stt = startStt();
+    setPreparing(false);
     if (!recording && !stt) {
       setMicError('마이크를 사용할 수 없습니다. 권한을 확인하거나 직접 입력해 주세요.');
       return;
@@ -180,7 +228,7 @@ export default function SpeechInput({
     setListening(true);
   }
 
-  const voiceAvailable = sttSupported || recSupported;
+  const voiceAvailable = (sttSupported || recSupported) && !voiceBlocked;
 
   return (
     <div>
@@ -195,18 +243,27 @@ export default function SpeechInput({
         <button
           type="button"
           onClick={toggleListening}
-          className={`mt-2 flex w-full items-center justify-center gap-2 rounded-xl border p-3 text-base font-medium ${
+          disabled={preparing}
+          className={`mt-2 flex w-full items-center justify-center gap-2 rounded-xl border p-3 text-base font-medium disabled:opacity-60 ${
             listening
               ? 'animate-pulse border-red-300 bg-red-50 text-red-600'
               : 'border-gray-300 bg-white text-gray-700'
           }`}
         >
-          {listening
-            ? recSupported
-              ? '🔴 녹음 중… 탭하여 종료'
-              : '🔴 듣는 중… 탭하여 종료'
-            : '🎤 음성으로 입력하기'}
+          {preparing
+            ? '마이크 준비 중…'
+            : listening
+              ? recSupported
+                ? '🔴 녹음 중… 탭하여 종료'
+                : '🔴 듣는 중… 탭하여 종료'
+              : '🎤 음성으로 입력하기'}
         </button>
+      )}
+      {voiceBlocked && (
+        <p className="mt-2 text-xs text-gray-500">
+          아이폰·아이패드에서는 <b className="font-semibold">Safari</b>에서만 음성 입력이 됩니다.
+          Safari로 열거나 위 칸에 직접 입력해 주세요.
+        </p>
       )}
       {listening && recSupported && (
         <p className="mt-1 text-xs text-gray-400">
