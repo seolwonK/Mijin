@@ -5,7 +5,7 @@ export function Skeleton({ className = '' }: { className?: string }) {
   return (
     <div
       aria-hidden="true"
-      className={`animate-pulse rounded-md bg-gray-200 motion-reduce:animate-none ${className}`}
+      className={`animate-pulse rounded-md bg-neutral-200 motion-reduce:animate-none ${className}`}
     />
   );
 }
@@ -13,7 +13,7 @@ export function Skeleton({ className = '' }: { className?: string }) {
 // 목록 카드 자리표시 1개
 export function CardSkeleton() {
   return (
-    <div className="space-y-3 rounded-2xl border border-gray-200 bg-white p-4">
+    <div className="space-y-3 rounded-2xl border border-border bg-white p-4">
       <div className="flex items-center justify-between">
         <Skeleton className="h-5 w-24" />
         <Skeleton className="h-5 w-12" />

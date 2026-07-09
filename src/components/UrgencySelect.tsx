@@ -24,7 +24,7 @@ const OPTIONS: {
     value: 'NORMAL',
     label: '일반',
     desc: '순차 처리',
-    selectedClass: 'border-gray-500 bg-gray-100 text-gray-800 ring-2 ring-gray-400',
+    selectedClass: 'border-neutral-500 bg-neutral-100 text-neutral-800 ring-2 ring-neutral-400',
   },
 ];
 
@@ -45,7 +45,7 @@ export default function UrgencySelect({
           className={`rounded-xl border p-3 text-center ${
             value === opt.value
               ? opt.selectedClass
-              : 'border-gray-300 bg-white text-gray-600'
+              : 'border-border bg-white text-muted'
           }`}
         >
           <div className="text-base font-bold">{opt.label}</div>

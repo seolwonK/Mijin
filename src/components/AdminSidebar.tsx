@@ -37,10 +37,10 @@ export default function AdminSidebar() {
   if (isLoginPage) return null;
 
   return (
-    <aside className="sticky top-0 hidden h-screen w-56 shrink-0 flex-col border-r border-gray-200 bg-white md:flex">
-      <div className="border-b border-gray-100 px-5 py-4">
+    <aside className="sticky top-0 hidden h-screen w-56 shrink-0 flex-col border-r border-border bg-white md:flex">
+      <div className="border-b border-neutral-100 px-5 py-4">
         <p className="text-base font-bold">⚡ 미진전기</p>
-        <p className="text-xs text-gray-500">관리자 콘솔</p>
+        <p className="text-xs text-muted">관리자 콘솔</p>
       </div>
       <nav className="flex flex-1 flex-col gap-1 p-3">
         {NAV.map((n) => {
@@ -55,7 +55,7 @@ export default function AdminSidebar() {
               href={n.href}
               aria-current={active ? 'page' : undefined}
               className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold transition-colors ${
-                active ? 'bg-blue-50 text-blue-700' : 'text-gray-700 hover:bg-gray-50'
+                active ? 'bg-brand-50 text-brand-700' : 'text-neutral-700 hover:bg-neutral-50'
               }`}
             >
               <span className="text-lg">{n.icon}</span>
@@ -69,7 +69,7 @@ export default function AdminSidebar() {
           );
         })}
       </nav>
-      <div className="border-t border-gray-100 p-3">
+      <div className="border-t border-neutral-100 p-3">
         <LogoutButton loginPath="/admin/login" />
       </div>
     </aside>

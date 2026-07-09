@@ -16,7 +16,7 @@ export default function PageHeader({
   width?: string;
 }) {
   return (
-    <header className="sticky top-0 z-20 border-b border-slate-200 bg-white/85 backdrop-blur">
+    <header className="sticky top-0 z-20 border-b border-border bg-surface/85 backdrop-blur">
       <div
         className={`mx-auto flex w-full ${width} items-center gap-2 px-4 py-2.5 md:py-3`}
       >

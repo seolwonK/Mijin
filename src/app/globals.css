@@ -1,12 +1,73 @@
 @import "tailwindcss";
 
 /* ── 디자인 토큰 (Tailwind v4 @theme) ──
-   정제된 블루(blue-600 유지) 톤에 맞춘 세만틱 그림자.
-   shadow-card / shadow-card-hover / shadow-pop 유틸로 전 화면에서 재사용한다. */
+   새 비주얼 아이덴티티: Electric Violet (짙은 블루-바이올렛, hue ~270°).
+   각 축의 결정 근거(팔레트 후보 비교, 뉴트럴/라디우스/타이포 결정)는
+   .omc/research/design-direction.md 참조. 3계층 구조: Primitive(brand/neutral 풀스케일)
+   → Semantic(surface/fg/muted/border) → Component(개별 컴포넌트, B4에서 적용). */
 @theme {
-  --shadow-card: 0 1px 2px rgb(15 23 42 / 0.04), 0 10px 30px -14px rgb(15 23 42 / 0.13);
-  --shadow-card-hover: 0 1px 2px rgb(15 23 42 / 0.05), 0 18px 40px -18px rgb(15 23 42 / 0.2);
-  --shadow-pop: 0 8px 30px -6px rgb(15 23 42 / 0.18);
+  /* Primitive — 브랜드 (Electric Violet). 흰 텍스트 대비용 solid 버튼은 600~800 레인지,
+     50~200은 배경/틴트 전용 — 본문 텍스트에 직접 쓰지 않는다(WCAG 4.5:1 가드레일). */
+  --color-brand-50: oklch(0.97 0.014 275);
+  --color-brand-100: oklch(0.93 0.03 275);
+  --color-brand-200: oklch(0.87 0.055 274);
+  --color-brand-300: oklch(0.79 0.09 273);
+  --color-brand-400: oklch(0.69 0.13 272);
+  --color-brand-500: oklch(0.58 0.17 271);
+  --color-brand-600: oklch(0.49 0.19 270);
+  --color-brand-700: oklch(0.41 0.18 269);
+  --color-brand-800: oklch(0.34 0.15 268);
+  --color-brand-900: oklch(0.28 0.11 267);
+  --color-brand-950: oklch(0.19 0.075 266);
+
+  /* Primitive — 뉴트럴. 기존 slate의 cool 블루 틴트를 걷어낸 warm-neutral 그레이
+     (뉴트럴 변경 결정: design-direction.md §2.2). B4에서 slate/gray 콜사이트를
+     아래 시맨틱 토큰으로 점진 치환한다. */
+  --color-neutral-50: oklch(0.985 0.002 90);
+  --color-neutral-100: oklch(0.967 0.003 90);
+  --color-neutral-200: oklch(0.922 0.005 90);
+  --color-neutral-300: oklch(0.869 0.006 90);
+  --color-neutral-400: oklch(0.708 0.008 90);
+  --color-neutral-500: oklch(0.556 0.008 90);
+  --color-neutral-600: oklch(0.446 0.008 90);
+  --color-neutral-700: oklch(0.373 0.008 90);
+  --color-neutral-800: oklch(0.269 0.007 90);
+  --color-neutral-900: oklch(0.205 0.006 90);
+  --color-neutral-950: oklch(0.145 0.005 90);
+
+  /* Semantic — 화면 표면/텍스트/보더. 컴포넌트/화면은 brand-*, neutral-* 프리미티브를 직접
+     참조하지 말고 이 레이어를 통해서만 색을 가져갈 것(B4 리팩토링 원칙). surface는 기존 바디
+     배경(#f4f7fc, 블루 틴트 오프화이트)과 동일한 발상을 새 hue로 이어받은 값. */
+  --color-surface: oklch(0.975 0.006 275);
+  --color-fg: var(--color-neutral-900);
+  --color-muted: var(--color-neutral-500);
+  --color-border: var(--color-neutral-200);
+
+  /* 임시 마이그레이션 브리지 — TODO(remove-alias): Phase C4에서 `grep -rEn "blue-[0-9]|#2563eb" src/`
+     가 0을 반환하도록 전부 시맨틱 토큰으로 옮긴 뒤 이 블록을 삭제할 것
+     (.omc/plans/design-refactor-flow-simplify.md §4 B3/C4, R3). 아직 손대지 못한 raw blue-*
+     유틸(코드베이스 실사용 shade: 50~800, 139건)이 롤아웃 중에도 새 브랜드 톤으로 렌더링되게 한다. */
+  --color-blue-50: var(--color-brand-50);
+  --color-blue-100: var(--color-brand-100);
+  --color-blue-200: var(--color-brand-200);
+  --color-blue-300: var(--color-brand-300);
+  --color-blue-400: var(--color-brand-400);
+  --color-blue-500: var(--color-brand-500);
+  --color-blue-600: var(--color-brand-600);
+  --color-blue-700: var(--color-brand-700);
+  --color-blue-800: var(--color-brand-800);
+
+  /* 라디우스 — 코너 언어를 한 단계 절제(소비자앱풍 → 전문 툴풍, `/admin` 밀도 테이블 개선 효과 겸함).
+     기존 rounded-xl/2xl/3xl 리터럴은 코드 수정 없이 이 값을 그대로 상속한다(B1 실증 확인).
+     rounded-full(배지/아바타 pill)은 대상 아님 — 그대로 유지. */
+  --radius-xl: 0.625rem;
+  --radius-2xl: 0.75rem;
+  --radius-3xl: 1.125rem;
+
+  /* 섀도우 — 구조는 기존과 동일, 잉크만 slate(블루 틴트) → 브랜드 계열 다크 잉크로 재틴트. */
+  --shadow-card: 0 1px 2px rgb(20 16 32 / 0.04), 0 10px 30px -14px rgb(20 16 32 / 0.13);
+  --shadow-card-hover: 0 1px 2px rgb(20 16 32 / 0.05), 0 18px 40px -18px rgb(20 16 32 / 0.2);
+  --shadow-pop: 0 8px 30px -6px rgb(20 16 32 / 0.18);
 }
 
 html {
@@ -38,14 +99,14 @@ h3 {
 
 /* 키보드 포커스에 일관된 링 (마우스 클릭 땐 표시 안 됨) — 접근성 + 정돈된 느낌 */
 :focus-visible {
-  outline: 2px solid #2563eb;
+  outline: 2px solid var(--color-brand-600);
   outline-offset: 2px;
   border-radius: 6px;
 }
 
 /* 텍스트 선택 영역에 브랜드 틴트 */
 ::selection {
-  background: rgb(37 99 235 / 0.16);
+  background: color-mix(in oklch, var(--color-brand-600) 16%, transparent);
 }
 
 /* 근로계약서 인쇄 — A4, 화면 전용 요소(헤더·버튼)는 숨긴다 */

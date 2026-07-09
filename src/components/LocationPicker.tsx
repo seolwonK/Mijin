@@ -51,7 +51,7 @@ export default function LocationPicker({
         type="button"
         onClick={locate}
         disabled={status === 'loading'}
-        className="flex w-full items-center justify-center gap-2 rounded-xl border border-blue-300 bg-blue-50 p-3 text-base font-medium text-blue-700 disabled:opacity-60"
+        className="flex w-full items-center justify-center gap-2 rounded-xl border border-brand-300 bg-brand-50 p-3 text-base font-medium text-brand-700 disabled:opacity-60"
       >
         {status === 'loading' ? '위치 확인 중…' : '📍 내 위치로 주소 채우기'}
       </button>
@@ -75,7 +75,7 @@ export default function LocationPicker({
         value={value.address}
         onChange={(e) => onChange({ ...value, address: e.target.value })}
         placeholder="주소 (예: 서울 강남구 역삼동 ○○아파트 101동)"
-        className="w-full rounded-xl border border-gray-300 p-3 text-base focus:border-blue-500 focus:outline-none"
+        className="w-full rounded-xl border border-border p-3 text-base focus:border-brand-500 focus:outline-none"
       />
     </div>
   );

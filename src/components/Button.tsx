@@ -7,10 +7,10 @@ const BASE =
   'inline-flex items-center justify-center gap-2 rounded-2xl font-bold transition-colors disabled:cursor-not-allowed disabled:opacity-50';
 
 const VARIANT: Record<Variant, string> = {
-  primary: 'bg-blue-600 text-white shadow-sm enabled:hover:bg-blue-700 active:bg-blue-800',
+  primary: 'bg-brand-600 text-white shadow-sm enabled:hover:bg-brand-700 active:bg-brand-800',
   secondary:
-    'border border-gray-300 bg-white text-gray-800 enabled:hover:bg-gray-50 active:bg-gray-100',
-  ghost: 'text-gray-600 enabled:hover:bg-gray-100 active:bg-gray-200',
+    'border border-border bg-white text-fg enabled:hover:bg-neutral-50 active:bg-neutral-100',
+  ghost: 'text-muted enabled:hover:bg-neutral-100 active:bg-neutral-200',
   danger: 'bg-red-600 text-white enabled:hover:bg-red-700 active:bg-red-800',
 };
 

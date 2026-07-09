@@ -54,11 +54,11 @@ export default function LoginForm({
 
   return (
     <main className="flex min-h-screen w-full flex-col items-center justify-center p-6">
-      <div className="w-full max-w-sm md:max-w-md md:rounded-3xl md:border md:border-slate-200 md:bg-white md:p-10 md:shadow-card">
+      <div className="w-full max-w-sm md:max-w-md md:rounded-3xl md:border md:border-border md:bg-white md:p-10 md:shadow-card">
         <h1 className="mb-6 text-center text-2xl font-bold">{title}</h1>
         <form onSubmit={submit} className="space-y-3">
           <div>
-            <label htmlFor="loginId" className="mb-1 block text-xs font-medium text-gray-600">
+            <label htmlFor="loginId" className="mb-1 block text-xs font-medium text-muted">
               아이디
             </label>
             <input
@@ -68,11 +68,11 @@ export default function LoginForm({
               onChange={(e) => setLoginId(e.target.value)}
               placeholder="아이디"
               autoComplete="username"
-              className="w-full rounded-xl border border-gray-300 p-3 text-base focus:border-blue-500 focus:outline-none"
+              className="w-full rounded-xl border border-border p-3 text-base focus:border-brand-500 focus:outline-none"
             />
           </div>
           <div>
-            <label htmlFor="password" className="mb-1 block text-xs font-medium text-gray-600">
+            <label htmlFor="password" className="mb-1 block text-xs font-medium text-muted">
               비밀번호
             </label>
             <input
@@ -82,7 +82,7 @@ export default function LoginForm({
               onChange={(e) => setPassword(e.target.value)}
               placeholder="비밀번호"
               autoComplete="current-password"
-              className="w-full rounded-xl border border-gray-300 p-3 text-base focus:border-blue-500 focus:outline-none"
+              className="w-full rounded-xl border border-border p-3 text-base focus:border-brand-500 focus:outline-none"
             />
           </div>
           {error && (
@@ -99,7 +99,7 @@ export default function LoginForm({
           </button>
         </form>
         {footer && (
-          <div className="mt-4 text-center text-sm text-gray-500">{footer}</div>
+          <div className="mt-4 text-center text-sm text-muted">{footer}</div>
         )}
       </div>
     </main>

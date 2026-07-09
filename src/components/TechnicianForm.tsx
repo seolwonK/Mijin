@@ -16,7 +16,7 @@ export type TechnicianFormValue = {
 };
 
 const inputClass =
-  'w-full rounded-xl border border-gray-300 p-3 text-base focus:border-blue-500 focus:outline-none';
+  'w-full rounded-xl border border-border p-3 text-base focus:border-brand-500 focus:outline-none';
 
 const EMPLOYMENT_OPTIONS: { value: 'DAILY' | 'PERMANENT'; label: string }[] = [
   { value: 'DAILY', label: '일일 근로자' },
@@ -90,7 +90,7 @@ export default function TechnicianForm({
           placeholder="로그인 아이디"
           aria-label="로그인 아이디"
           disabled={isEdit}
-          className={`${inputClass} disabled:bg-gray-100 disabled:text-gray-500`}
+          className={`${inputClass} disabled:bg-neutral-100 disabled:text-muted`}
         />
         <input
           type="password"
@@ -112,8 +112,8 @@ export default function TechnicianForm({
               onClick={() => set('employmentType', opt.value)}
               className={`rounded-xl border p-3 text-sm font-bold ${
                 v.employmentType === opt.value
-                  ? 'border-blue-500 bg-blue-50'
-                  : 'border-gray-300 bg-white'
+                  ? 'border-brand-500 bg-brand-50'
+                  : 'border-border bg-white'
               }`}
             >
               {opt.label}
@@ -156,12 +156,12 @@ export default function TechnicianForm({
           <button
             type="button"
             onClick={convertAddress}
-            className="shrink-0 rounded-xl border border-blue-300 bg-blue-50 px-3 text-sm font-bold text-blue-700"
+            className="shrink-0 rounded-xl border border-brand-300 bg-brand-50 px-3 text-sm font-bold text-brand-700"
           >
             좌표 변환
           </button>
         </div>
-        {geoMsg && <p className="text-sm text-gray-500">{geoMsg}</p>}
+        {geoMsg && <p className="text-sm text-muted">{geoMsg}</p>}
         <div className="flex gap-2">
           <input
             type="text"

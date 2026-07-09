@@ -83,17 +83,17 @@ export default function SignaturePad({
         onPointerMove={move}
         onPointerUp={end}
         onPointerLeave={end}
-        className="h-40 w-full touch-none rounded-xl border border-gray-300 bg-white"
+        className="h-40 w-full touch-none rounded-xl border border-border bg-white"
       />
       <div className="flex items-center justify-between">
-        <span className="text-xs text-gray-400">
+        <span className="text-xs text-neutral-400">
           {empty ? '위 칸에 손가락 또는 마우스로 서명해 주세요' : '서명됨'}
         </span>
         <button
           type="button"
           onClick={clear}
           disabled={disabled}
-          className="text-sm font-medium text-blue-600 underline disabled:opacity-50"
+          className="text-sm font-medium text-brand-600 underline disabled:opacity-50"
         >
           지우기
         </button>

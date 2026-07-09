@@ -15,7 +15,7 @@ export type ProviderFormValue = {
 };
 
 const inputClass =
-  'w-full rounded-xl border border-gray-300 p-3 text-base focus:border-blue-500 focus:outline-none';
+  'w-full rounded-xl border border-border p-3 text-base focus:border-brand-500 focus:outline-none';
 
 export default function ProviderForm({
   initial,
@@ -84,7 +84,7 @@ export default function ProviderForm({
           placeholder="로그인 아이디"
           aria-label="로그인 아이디"
           disabled={isEdit}
-          className={`${inputClass} disabled:bg-gray-100 disabled:text-gray-500`}
+          className={`${inputClass} disabled:bg-neutral-100 disabled:text-muted`}
         />
         <input
           type="password"
@@ -130,12 +130,12 @@ export default function ProviderForm({
           <button
             type="button"
             onClick={convertAddress}
-            className="shrink-0 rounded-xl border border-blue-300 bg-blue-50 px-3 text-sm font-bold text-blue-700"
+            className="shrink-0 rounded-xl border border-brand-300 bg-brand-50 px-3 text-sm font-bold text-brand-700"
           >
             좌표 변환
           </button>
         </div>
-        {geoMsg && <p className="text-sm text-gray-500">{geoMsg}</p>}
+        {geoMsg && <p className="text-sm text-muted">{geoMsg}</p>}
         <div className="flex gap-2">
           <input
             type="text"

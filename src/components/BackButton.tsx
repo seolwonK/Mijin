@@ -14,7 +14,7 @@ export default function BackButton({ fallback }: { fallback: string }) {
         if (window.history.length > 1) router.back();
         else router.replace(fallback);
       }}
-      className="-ml-2 flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-2xl text-gray-700 active:bg-gray-100"
+      className="-ml-2 flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-2xl text-neutral-700 active:bg-neutral-100"
     >
       ←
     </button>

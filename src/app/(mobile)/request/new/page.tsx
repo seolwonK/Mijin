@@ -118,9 +118,10 @@ export default function NewRequestPage() {
 
       <form onSubmit={(e) => { e.preventDefault(); submit(); }} className="contents">
       <div className="mx-auto w-full max-w-2xl flex-1 space-y-6 p-4 pb-32 md:space-y-5 md:py-8 md:pb-6">
-        <section id="req-desc" className="md:rounded-2xl md:bg-white md:p-6 md:shadow-card">
-          <h2 className="mb-2 font-semibold md:mb-3">
-            1. 어떤 고장인가요? <span className="text-red-500">*</span>
+        <section id="req-desc" className="md:rounded-2xl md:border md:border-border md:bg-white md:p-6 md:shadow-card">
+          <h2 className="mb-3 flex items-center gap-2 text-base font-bold text-fg md:mb-4 md:text-lg">
+            <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-brand-100 text-xs font-bold text-brand-700">1</span>
+            어떤 고장인가요? <span className="text-red-500">*</span>
             <span className="sr-only"> 필수</span>
           </h2>
           <SpeechInput
@@ -131,25 +132,28 @@ export default function NewRequestPage() {
           />
         </section>
 
-        <section id="req-urgency" className="md:rounded-2xl md:bg-white md:p-6 md:shadow-card">
-          <h2 className="mb-2 font-semibold md:mb-3">
-            2. 얼마나 급한가요? <span className="text-red-500">*</span>
+        <section id="req-urgency" className="md:rounded-2xl md:border md:border-border md:bg-white md:p-6 md:shadow-card">
+          <h2 className="mb-3 flex items-center gap-2 text-base font-bold text-fg md:mb-4 md:text-lg">
+            <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-brand-100 text-xs font-bold text-brand-700">2</span>
+            얼마나 급한가요? <span className="text-red-500">*</span>
             <span className="sr-only"> 필수</span>
           </h2>
           <UrgencySelect value={urgency} onChange={setUrgency} />
         </section>
 
-        <section id="req-loc" className="md:rounded-2xl md:bg-white md:p-6 md:shadow-card">
-          <h2 className="mb-2 font-semibold md:mb-3">
-            3. 어디로 가야 하나요? <span className="text-red-500">*</span>
+        <section id="req-loc" className="md:rounded-2xl md:border md:border-border md:bg-white md:p-6 md:shadow-card">
+          <h2 className="mb-3 flex items-center gap-2 text-base font-bold text-fg md:mb-4 md:text-lg">
+            <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-brand-100 text-xs font-bold text-brand-700">3</span>
+            어디로 가야 하나요? <span className="text-red-500">*</span>
             <span className="sr-only"> 필수</span>
           </h2>
           <LocationPicker value={location} onChange={setLocation} />
         </section>
 
-        <section className="md:rounded-2xl md:bg-white md:p-6 md:shadow-card">
-          <h2 className="mb-2 font-semibold md:mb-3">
-            4. 연락처 <span className="text-red-500">*</span>
+        <section className="md:rounded-2xl md:border md:border-border md:bg-white md:p-6 md:shadow-card">
+          <h2 className="mb-3 flex items-center gap-2 text-base font-bold text-fg md:mb-4 md:text-lg">
+            <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-brand-100 text-xs font-bold text-brand-700">4</span>
+            연락처 <span className="text-red-500">*</span>
             <span className="sr-only"> 필수</span>
           </h2>
           <div className="space-y-2">
@@ -160,7 +164,7 @@ export default function NewRequestPage() {
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="이름"
-              className="w-full rounded-xl border border-gray-300 p-3 text-base focus:border-blue-500 focus:outline-none"
+              className="w-full rounded-xl border border-neutral-300 bg-white p-3 text-base text-fg placeholder:text-muted focus:border-brand-500 focus:ring-2 focus:ring-brand-500/15 focus:outline-none"
             />
             <input
               type="tel"
@@ -170,17 +174,17 @@ export default function NewRequestPage() {
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
               placeholder="전화번호 (예: 01012345678)"
-              className="w-full rounded-xl border border-gray-300 p-3 text-base focus:border-blue-500 focus:outline-none"
+              className="w-full rounded-xl border border-neutral-300 bg-white p-3 text-base text-fg placeholder:text-muted focus:border-brand-500 focus:ring-2 focus:ring-brand-500/15 focus:outline-none"
             />
           </div>
         </section>
 
-        <label className="flex items-start gap-2 text-sm text-gray-600">
+        <label className="flex items-start gap-2 text-sm text-neutral-600">
           <input
             type="checkbox"
             checked={agreed}
             onChange={(e) => setAgreed(e.target.checked)}
-            className="mt-0.5 h-4 w-4"
+            className="mt-0.5 h-4 w-4 accent-brand-600"
           />
           <span>
             접수 처리 및 업체 연결을 위한 개인정보(이름, 연락처, 위치)의 수집·이용에
@@ -189,13 +193,13 @@ export default function NewRequestPage() {
         </label>
 
         {error && (
-          <p role="alert" className="rounded-xl bg-red-50 p-3 text-sm font-medium text-red-600">
+          <p role="alert" className="rounded-xl border border-red-100 bg-red-50 p-3 text-sm font-medium text-red-600">
             {error}
           </p>
         )}
       </div>
 
-      <div className="fixed bottom-0 left-1/2 w-full max-w-md -translate-x-1/2 border-t border-slate-200 bg-white px-4 pt-4 pb-[calc(1rem+env(safe-area-inset-bottom))] md:static md:left-auto md:mx-auto md:max-w-2xl md:translate-x-0 md:border-t-0 md:bg-transparent md:px-4 md:pt-0 md:pb-12">
+      <div className="fixed bottom-0 left-1/2 w-full max-w-md -translate-x-1/2 border-t border-border bg-white px-4 pt-4 pb-[calc(1rem+env(safe-area-inset-bottom))] md:static md:left-auto md:mx-auto md:max-w-2xl md:translate-x-0 md:border-t-0 md:bg-transparent md:px-4 md:pt-0 md:pb-12">
         <button
           type="submit"
           disabled={busy}

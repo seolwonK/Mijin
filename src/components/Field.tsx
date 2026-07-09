@@ -18,7 +18,7 @@ export function Field({
     <div>
       <label
         htmlFor={htmlFor}
-        className="mb-1 block text-xs font-medium text-gray-600"
+        className="mb-1 block text-xs font-medium text-muted"
       >
         {label}
         {required && (
@@ -29,7 +29,7 @@ export function Field({
         )}
       </label>
       {children}
-      {hint && <p className="mt-1 text-xs text-gray-500">{hint}</p>}
+      {hint && <p className="mt-1 text-xs text-muted">{hint}</p>}
     </div>
   );
 }
