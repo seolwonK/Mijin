@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import type { EmploymentContract } from '@prisma/client';
 import { prisma } from '@/lib/db';
 import { requireSession } from '@/lib/auth';
-import { contractDefaults } from '@/lib/contractDefaults';
+import { contractDefaults, wageDefaultsFor } from '@/lib/contractDefaults';
 import { techContractSchema } from '@/lib/contract';
 
 // 로그인한 기술자의 근로계약서를 로드(없으면 DRAFT 생성)한다.
@@ -21,6 +21,9 @@ async function loadOrCreate(technicianId: string) {
   });
 
   if (!contract) {
+    // 근로형태별 기본 임금(설정)을 생성 시 자동 기입 — 이후 관리자가 수정 가능
+    const settings = await prisma.appSettings.findUnique({ where: { id: 1 } });
+    const wage = wageDefaultsFor(tech.employmentType, settings);
     contract = await prisma.employmentContract.create({
       data: {
         technicianId,
@@ -30,6 +33,7 @@ async function loadOrCreate(technicianId: string) {
         workerAddress: tech.address,
         workerSignatureName: tech.user.name,
         ...d,
+        ...wage,
       },
     });
   } else if (contract.status === 'DRAFT') {
@@ -62,6 +66,8 @@ function serialize(contract: EmploymentContract) {
     weeklyHoliday: contract.weeklyHoliday,
     workerAddress: contract.workerAddress,
     workerSignatureName: contract.workerSignatureName,
+    workerSignatureDataUrl: contract.workerSignatureDataUrl,
+    signedAt: contract.signedAt,
     submittedAt: contract.submittedAt,
   };
 }
@@ -110,9 +116,11 @@ export async function PUT(req: NextRequest) {
     );
   }
 
-  // 근무조건은 서버가 근로형태로 강제 (클라이언트 값 무시), 일일 근로자는 계약기간 = 근로개시일 당일
+  // 근무조건은 서버가 근로형태로 강제 (클라이언트 값 무시), 일일 근로자는 계약기간 = 근로개시일 당일.
+  // 기술자의 손글씨 서명이 곧 계약 확정이다 → 서명 저장 + status CONFIRMED.
   const d = contractDefaults(loaded.employmentType);
   const startDate = new Date(data.contractStartDate);
+  const now = new Date();
   const contract = await prisma.employmentContract.update({
     where: { technicianId: session.technicianId },
     data: {
@@ -123,9 +131,12 @@ export async function PUT(req: NextRequest) {
       jobDescription: data.jobDescription,
       workerAddress: data.workerAddress,
       workerSignatureName: data.workerSignatureName,
+      workerSignatureDataUrl: data.workerSignatureDataUrl,
       ...d,
-      status: 'SUBMITTED',
-      submittedAt: new Date(),
+      status: 'CONFIRMED',
+      signedAt: now,
+      submittedAt: now,
+      confirmedAt: now,
     },
   });
   return NextResponse.json({ contract: serialize(contract) });

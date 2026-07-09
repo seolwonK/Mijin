@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import BackButton from '@/components/BackButton';
+import SignaturePad from '@/components/SignaturePad';
 
 const inputClass =
   'w-full rounded-xl border border-gray-300 p-3 text-base focus:border-blue-500 focus:outline-none';
@@ -27,6 +28,8 @@ type Contract = {
   weeklyHoliday: string | null;
   workerAddress: string | null;
   workerSignatureName: string | null;
+  workerSignatureDataUrl: string | null;
+  signedAt: string | null;
   submittedAt: string | null;
 };
 
@@ -53,7 +56,6 @@ export default function TechContractPage() {
   const [loadError, setLoadError] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
-  const [saved, setSaved] = useState(false);
 
   // 편집 필드
   const [startDate, setStartDate] = useState('');
@@ -61,6 +63,7 @@ export default function TechContractPage() {
   const [jobDescription, setJobDescription] = useState('');
   const [workerAddress, setWorkerAddress] = useState('');
   const [workerSignatureName, setWorkerSignatureName] = useState('');
+  const [signature, setSignature] = useState<string | null>(null);
 
   useEffect(() => {
     (async () => {
@@ -87,7 +90,7 @@ export default function TechContractPage() {
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
-    setSaved(false);
+    if (!signature) return setError('서명을 해 주세요');
     setBusy(true);
     try {
       const res = await fetch('/api/tech/contract', {
@@ -99,15 +102,15 @@ export default function TechContractPage() {
           jobDescription,
           workerAddress,
           workerSignatureName,
+          workerSignatureDataUrl: signature,
         }),
       });
       const data = await res.json();
       if (!res.ok) {
-        setError(data.error ?? '제출에 실패했습니다');
+        setError(data.error ?? '서명·완료에 실패했습니다');
         return;
       }
       setC(data.contract);
-      setSaved(true);
     } catch {
       setError('네트워크 오류가 발생했습니다');
     } finally {
@@ -141,20 +144,24 @@ export default function TechContractPage() {
         onSubmit={submit}
         className="mx-auto w-full max-w-2xl space-y-5 p-4 pb-10 md:py-8"
       >
-        {c.status === 'SUBMITTED' && (
+        {confirmed ? (
+          <div className="rounded-xl bg-green-50 p-3 text-sm font-medium text-green-700">
+            <p>✅ 서명 완료 — 계약이 체결되었습니다.</p>
+            {c.workerSignatureDataUrl && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={c.workerSignatureDataUrl}
+                alt="내 서명"
+                className="mt-2 h-16 rounded border border-gray-200 bg-white object-contain p-1"
+              />
+            )}
+            <p className="mt-1 text-xs font-normal text-gray-500">
+              수정이 필요하면 관리자에게 문의해 주세요.
+            </p>
+          </div>
+        ) : (
           <p className="rounded-xl bg-blue-50 p-3 text-sm font-medium text-blue-700">
-            제출 완료 — 관리자가 임금을 입력하고 확정합니다. 필요하면 아래에서 다시
-            수정해 제출할 수 있습니다.
-          </p>
-        )}
-        {confirmed && (
-          <p className="rounded-xl bg-green-50 p-3 text-sm font-medium text-green-700">
-            확정된 계약서입니다. 수정하려면 관리자에게 문의해 주세요.
-          </p>
-        )}
-        {saved && c.status !== 'CONFIRMED' && (
-          <p className="rounded-xl bg-green-50 p-3 text-sm font-medium text-green-700">
-            제출되었습니다.
+            아래 내용을 확인하고 서명하면 계약이 바로 완료됩니다.
           </p>
         )}
 
@@ -237,8 +244,19 @@ export default function TechContractPage() {
         {/* 관리자 입력 영역 안내 */}
         <section className="rounded-2xl border border-dashed border-gray-300 bg-gray-50 p-4 text-sm text-gray-500">
           <h2 className="mb-1 font-semibold text-gray-600">임금 · 4대보험</h2>
-          <p>임금(월급/일급/시급)과 4대보험 항목은 관리자가 입력·확정합니다.</p>
+          <p>
+            임금(월급/일급/시급)·4대보험은 관리자가 설정한 값이 적용됩니다. 금액이
+            정해지지 않은 경우 &ldquo;추후 협의&rdquo;로 표기됩니다.
+          </p>
         </section>
+
+        {/* 서명 → 계약 완료 */}
+        {!confirmed && (
+          <section className="space-y-2 md:rounded-2xl md:bg-white md:p-6 md:shadow-sm">
+            <h2 className="text-sm font-semibold">근로자 서명</h2>
+            <SignaturePad onChange={setSignature} />
+          </section>
+        )}
 
         {error && (
           <p className="rounded-xl bg-red-50 p-3 text-sm font-medium text-red-600">
@@ -251,6 +269,7 @@ export default function TechContractPage() {
             type="submit"
             disabled={
               busy ||
+              !signature ||
               !startDate ||
               !workLocation.trim() ||
               !jobDescription.trim() ||
@@ -259,7 +278,7 @@ export default function TechContractPage() {
             }
             className="h-14 w-full rounded-2xl bg-blue-600 text-lg font-bold text-white transition-colors enabled:hover:bg-blue-700 disabled:opacity-50"
           >
-            {busy ? '제출 중…' : '계약서 제출'}
+            {busy ? '처리 중…' : '서명하고 완료'}
           </button>
         )}
       </form>

@@ -12,9 +12,9 @@ const EMPLOYMENT_LABEL: Record<string, string> = {
   PERMANENT: '상시 근로자',
 };
 const STATUS_LABEL: Record<string, string> = {
-  DRAFT: '작성 중',
-  SUBMITTED: '제출됨 (임금 입력 대기)',
-  CONFIRMED: '확정',
+  DRAFT: '서명 대기',
+  SUBMITTED: '서명 대기',
+  CONFIRMED: '서명 완료',
 };
 const WAGE_TYPES: { value: string; label: string }[] = [
   { value: 'MONTHLY', label: '월급' },
@@ -38,6 +38,8 @@ type Contract = {
   weeklyHoliday: string | null;
   workerAddress: string | null;
   workerSignatureName: string | null;
+  workerSignatureDataUrl: string | null;
+  signedAt: string | null;
   wageType: string | null;
   wageAmount: number | null;
   bonusExists: boolean;
@@ -139,7 +141,7 @@ export default function AdminContractPage({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  async function save(confirm: boolean) {
+  async function save() {
     setError(null);
     setMsg(null);
     setBusy(true);
@@ -161,7 +163,6 @@ export default function AdminContractPage({
           insuranceAccident: insAccident,
           insurancePension: insPension,
           insuranceHealth: insHealth,
-          confirm,
         }),
       });
       const data = await res.json();
@@ -169,7 +170,7 @@ export default function AdminContractPage({
         setError(data.error ?? '저장에 실패했습니다');
         return;
       }
-      setMsg(confirm ? '계약서를 확정했습니다.' : '저장했습니다.');
+      setMsg('저장했습니다.');
       await load();
     } catch {
       setError('네트워크 오류가 발생했습니다');
@@ -210,6 +211,26 @@ export default function AdminContractPage({
               <span className="text-gray-500">상태</span>
               <span className="font-semibold">{STATUS_LABEL[c.status]}</span>
             </div>
+
+            {c.workerSignatureDataUrl ? (
+              <div className="rounded-xl border border-green-200 bg-green-50 p-3">
+                <p className="text-sm font-medium text-green-700">
+                  ✍️ 기술자 서명 완료
+                  {c.signedAt &&
+                    ` · ${new Date(c.signedAt).toLocaleString('ko-KR')}`}
+                </p>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={c.workerSignatureDataUrl}
+                  alt="기술자 서명"
+                  className="mt-2 h-16 rounded border border-gray-200 bg-white object-contain p-1"
+                />
+              </div>
+            ) : (
+              <p className="rounded-xl bg-amber-50 p-3 text-sm text-amber-700">
+                기술자 서명 대기 중입니다.
+              </p>
+            )}
 
             {/* 기술자 제출 내용 (읽기전용) */}
             <section className="space-y-1 rounded-2xl border border-gray-200 p-4">
@@ -405,24 +426,14 @@ export default function AdminContractPage({
 
             <div className="flex flex-wrap gap-2">
               {!confirmed && (
-                <>
-                  <button
-                    type="button"
-                    onClick={() => save(false)}
-                    disabled={busy}
-                    className="h-12 flex-1 rounded-2xl border border-gray-300 font-bold text-gray-700 disabled:opacity-60"
-                  >
-                    임금 저장
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => save(true)}
-                    disabled={busy || c.status === 'DRAFT'}
-                    className="h-12 flex-1 rounded-2xl bg-blue-600 font-bold text-white disabled:opacity-50"
-                  >
-                    확정
-                  </button>
-                </>
+                <button
+                  type="button"
+                  onClick={save}
+                  disabled={busy}
+                  className="h-12 flex-1 rounded-2xl border border-gray-300 font-bold text-gray-700 disabled:opacity-60"
+                >
+                  임금 저장
+                </button>
               )}
               <Link
                 href={`/admin/technicians/${id}/contract/print`}
@@ -431,6 +442,12 @@ export default function AdminContractPage({
                 🖨 인쇄
               </Link>
             </div>
+            {!confirmed && (
+              <p className="text-center text-xs text-gray-400">
+                기술자가 포털에서 서명하면 자동으로 완료됩니다. 임금은 비워두면 계약서에
+                &ldquo;추후 협의&rdquo;로 표기됩니다.
+              </p>
+            )}
           </>
         )}
       </div>

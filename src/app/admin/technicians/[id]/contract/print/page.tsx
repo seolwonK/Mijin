@@ -7,10 +7,6 @@ const WAGE_TYPE_LABEL: Record<string, string> = {
   DAILY: '일급',
   HOURLY: '시급',
 };
-const PAY_METHOD_LABEL: Record<string, string> = {
-  BANK_TRANSFER: '예금통장 입금',
-  DIRECT: '근로자에게 직접 지급',
-};
 
 type Contract = {
   status: string;
@@ -28,6 +24,8 @@ type Contract = {
   weeklyHoliday: string | null;
   workerAddress: string | null;
   workerSignatureName: string | null;
+  workerSignatureDataUrl: string | null;
+  signedAt: string | null;
   wageType: string | null;
   wageAmount: number | null;
   bonusExists: boolean;
@@ -45,12 +43,24 @@ type Contract = {
 
 type Data = {
   technician: { name: string; phone: string; address: string; employmentType: string };
-  employer: { name: string; ceo: string | null; address: string | null; phone: string | null };
+  employer: {
+    name: string;
+    ceo: string | null;
+    address: string | null;
+    phone: string | null;
+    signatureDataUrl: string | null;
+  };
   contract: Contract | null;
 };
 
 function won(n: number | null): string {
   return n != null ? `${n.toLocaleString('ko-KR')}원` : '';
+}
+
+function koDate(s: string | null): string {
+  if (!s) return '____년 __월 __일';
+  const [y, m, d] = s.split('-');
+  return `${y}년 ${m}월 ${d}일`;
 }
 
 function hoursText(c: Contract): string {
@@ -70,6 +80,18 @@ function Clause({ n, title, children }: { n: number; title: string; children: Re
       </p>
       <div className="mt-0.5 pl-4 text-[0.95em] leading-relaxed">{children}</div>
     </div>
+  );
+}
+
+// 사업주/근로자 서명란: 등록된 서명 이미지가 있으면 삽입, 없으면 "(서명)"
+function SignatureMark({ dataUrl, alt }: { dataUrl: string | null; alt: string }) {
+  if (!dataUrl) return <span>(서명)</span>;
+  return (
+    <span className="inline-flex items-center gap-1">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={dataUrl} alt={alt} className="inline-block h-10 object-contain align-middle" />
+      <span className="text-xs text-gray-400">(서명)</span>
+    </span>
   );
 }
 
@@ -110,6 +132,8 @@ export default function ContractPrintPage({
     );
   }
   const c = d.contract;
+  const isDaily = c.employmentType === 'DAILY';
+  const title = isDaily ? '일용근로자 표준근로계약서' : '표준근로계약서';
 
   return (
     <main className="bg-white">
@@ -129,9 +153,7 @@ export default function ContractPrintPage({
 
       {/* 계약서 본문 (A4) */}
       <div className="mx-auto max-w-[820px] px-6 py-8 text-[15px] text-gray-900 print:max-w-none print:px-0 print:py-0">
-        <h1 className="mb-6 text-center text-2xl font-bold tracking-widest">
-          표준근로계약서
-        </h1>
+        <h1 className="mb-6 text-center text-2xl font-bold tracking-widest">{title}</h1>
 
         {/* 당사자 */}
         <div className="mb-4 leading-relaxed">
@@ -143,21 +165,22 @@ export default function ContractPrintPage({
         </div>
 
         <div className="border-t-2 border-gray-800">
-          <Clause n={1} title="근로계약기간">
-            {c.contractStartDate ?? '____년 __월 __일'}
-            {c.employmentType === 'DAILY'
-              ? ' (근로개시일 당일, 1일 단위)'
-              : c.contractEndDate
-                ? ` ~ ${c.contractEndDate}`
-                : ' 부터 (기간의 정함이 없음)'}
-          </Clause>
+          {isDaily ? (
+            <Clause n={1} title="근로계약기간">
+              {koDate(c.contractStartDate)} (근로개시일)
+            </Clause>
+          ) : (
+            <Clause n={1} title="근로개시일">
+              {koDate(c.contractStartDate)}부터 (기간의 정함이 없음)
+            </Clause>
+          )}
           <Clause n={2} title="근무장소">
             {c.workLocation || '—'}
           </Clause>
           <Clause n={3} title="업무의 내용">
             {c.jobDescription || '—'}
           </Clause>
-          <Clause n={4} title="소정근로시간">
+          <Clause n={4} title={isDaily ? '근로시간' : '소정근로시간'}>
             {hoursText(c)}
           </Clause>
           <Clause n={5} title="근무일 / 휴일">
@@ -168,20 +191,23 @@ export default function ContractPrintPage({
             <ul className="space-y-0.5">
               <li>
                 {c.wageType ? WAGE_TYPE_LABEL[c.wageType] : '월(일, 시간)급'} :{' '}
-                {won(c.wageAmount) || '____________원'}
+                {c.wageAmount != null ? won(c.wageAmount) : '추후 협의'}
               </li>
-              <li>
-                상여금: {c.bonusExists ? `있음 (${won(c.bonusAmount)})` : '없음'}
-              </li>
+              <li>상여금: {c.bonusExists ? `있음 (${won(c.bonusAmount)})` : '없음'}</li>
               <li>
                 기타급여(제수당 등):{' '}
                 {c.otherPayExists
                   ? `있음 ${c.otherPayDesc ?? ''} ${won(c.otherPayAmount)}`.trim()
                   : '없음'}
               </li>
-              <li>임금지급일: {c.payDate || '매월 ____일'}</li>
+              <li>임금지급일: {c.payDate || '추후 협의'}</li>
               <li>
-                지급방법: {c.payMethod ? PAY_METHOD_LABEL[c.payMethod] : '____________'}
+                지급방법:{' '}
+                {c.payMethod === 'BANK_TRANSFER'
+                  ? '근로자 명의 예금통장에 입금'
+                  : c.payMethod === 'DIRECT'
+                    ? '근로자에게 직접지급'
+                    : '추후 협의'}
               </li>
             </ul>
           </Clause>
@@ -197,7 +223,8 @@ export default function ContractPrintPage({
             </div>
           </Clause>
           <Clause n={9} title="근로계약서 교부">
-            사업주는 근로계약을 체결함과 동시에 본 계약서를 사본하여 근로자에게 교부한다.
+            사업주는 근로계약을 체결함과 동시에 본 계약서를 사본하여 근로자의 교부요구와
+            관계없이 근로자에게 교부한다. (근로기준법 제17조 이행)
           </Clause>
           <Clause n={10} title="근로계약, 취업규칙 등의 성실한 이행의무">
             사업주와 근로자는 각자가 근로계약, 취업규칙, 단체협약을 지키고 성실하게
@@ -208,20 +235,29 @@ export default function ContractPrintPage({
           </Clause>
         </div>
 
+        {/* 작성일자 */}
+        <p className="mt-6 text-center">{koDate(c.signedAt ? c.signedAt.slice(0, 10) : null)}</p>
+
         {/* 서명란 */}
-        <div className="mt-10 grid grid-cols-2 gap-8 text-[0.95em]">
+        <div className="mt-6 grid grid-cols-2 gap-8 text-[0.95em]">
           <div className="space-y-1">
             <p className="font-bold">(사업주)</p>
-            <p>사업체명: {d.employer.name}</p>
-            <p>주 소: {d.employer.address ?? ''}</p>
-            <p>대표자: {d.employer.ceo ?? ''} (서명)</p>
-            {d.employer.phone && <p>전 화: {d.employer.phone}</p>}
+            <p>사업체명 : {d.employer.name}</p>
+            <p>주 소 : {d.employer.address ?? ''}</p>
+            {d.employer.phone && <p>전 화 : {d.employer.phone}</p>}
+            <p className="flex items-center gap-1">
+              대표자 : {d.employer.ceo ?? ''}{' '}
+              <SignatureMark dataUrl={d.employer.signatureDataUrl} alt="사업주 서명" />
+            </p>
           </div>
           <div className="space-y-1">
             <p className="font-bold">(근로자)</p>
-            <p>주 소: {c.workerAddress ?? ''}</p>
-            <p>연락처: {d.technician.phone}</p>
-            <p>성 명: {c.workerSignatureName ?? d.technician.name} (서명)</p>
+            <p>주 소 : {c.workerAddress ?? ''}</p>
+            <p>연락처 : {d.technician.phone}</p>
+            <p className="flex items-center gap-1">
+              성 명 : {c.workerSignatureName ?? d.technician.name}{' '}
+              <SignatureMark dataUrl={c.workerSignatureDataUrl} alt="근로자 서명" />
+            </p>
           </div>
         </div>
       </div>

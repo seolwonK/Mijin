@@ -3,6 +3,12 @@ import { z } from 'zod';
 import { prisma } from '@/lib/db';
 import { requireSession } from '@/lib/auth';
 
+// 서명/직인 이미지 data URL (PNG). 손글씨 서명은 작아서 문자열로 저장한다.
+const signatureDataUrl = z
+  .string()
+  .max(1_500_000, '서명 이미지가 너무 큽니다')
+  .refine((s) => s.startsWith('data:image/'), '이미지 형식이 올바르지 않습니다');
+
 const settingsSchema = z.object({
   autoAssignEnabled: z.boolean(),
   waitMinutesCritical: z.number().int().min(1).max(1440),
@@ -14,6 +20,13 @@ const settingsSchema = z.object({
   employerAddress: z.string().trim().max(200).nullish(),
   employerPhone: z.string().trim().max(30).nullish(),
   employerBizRegNo: z.string().trim().max(20).nullish(),
+  // 회사 서명/직인 이미지 (data URL, null 이면 미등록/삭제)
+  employerSignatureDataUrl: signatureDataUrl.nullish(),
+  // 근로형태별 기본 임금 — 계약서 자동 기입
+  defaultDailyWage: z.coerce.number().int().nonnegative().nullish(),
+  defaultMonthlyWage: z.coerce.number().int().nonnegative().nullish(),
+  defaultPayDate: z.string().trim().max(50).nullish(),
+  defaultPayMethod: z.enum(['BANK_TRANSFER', 'DIRECT']).nullish(),
 });
 
 export async function GET() {

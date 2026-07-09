@@ -13,6 +13,11 @@ type Settings = {
   employerAddress: string | null;
   employerPhone: string | null;
   employerBizRegNo: string | null;
+  employerSignatureDataUrl: string | null;
+  defaultDailyWage: number | null;
+  defaultMonthlyWage: number | null;
+  defaultPayDate: string | null;
+  defaultPayMethod: 'BANK_TRANSFER' | 'DIRECT' | null;
 };
 
 const inputClass =
@@ -51,6 +56,11 @@ export default function AdminSettingsPage() {
           employerAddress: settings.employerAddress?.trim() || null,
           employerPhone: settings.employerPhone?.trim() || null,
           employerBizRegNo: settings.employerBizRegNo?.trim() || null,
+          employerSignatureDataUrl: settings.employerSignatureDataUrl || null,
+          defaultDailyWage: settings.defaultDailyWage ?? null,
+          defaultMonthlyWage: settings.defaultMonthlyWage ?? null,
+          defaultPayDate: settings.defaultPayDate?.trim() || null,
+          defaultPayMethod: settings.defaultPayMethod || null,
         }),
       });
       const data = await res.json();
@@ -202,6 +212,143 @@ export default function AdminSettingsPage() {
                   className="w-full rounded-xl border border-gray-300 p-3 text-base focus:border-blue-500 focus:outline-none"
                 />
               </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="rounded-2xl border border-gray-200 p-4">
+          <p className="mb-1 font-bold">근로계약서 기본값</p>
+          <p className="mb-3 text-sm text-gray-500">
+            계약서 생성 시 자동 기입됩니다. 비워두면 계약서에 &ldquo;추후 협의&rdquo;로
+            표기됩니다.
+          </p>
+          <div className="space-y-2">
+            <div className="flex gap-2">
+              <div className="flex-1">
+                <label className="mb-1 block text-xs text-gray-500">
+                  일용 기본 일급 (원)
+                </label>
+                <input
+                  type="number"
+                  inputMode="numeric"
+                  value={settings.defaultDailyWage ?? ''}
+                  onChange={(e) =>
+                    setSettings({
+                      ...settings,
+                      defaultDailyWage: e.target.value ? Number(e.target.value) : null,
+                    })
+                  }
+                  className="w-full rounded-xl border border-gray-300 p-3 text-base focus:border-blue-500 focus:outline-none"
+                />
+              </div>
+              <div className="flex-1">
+                <label className="mb-1 block text-xs text-gray-500">
+                  상시 기본 월급 (원)
+                </label>
+                <input
+                  type="number"
+                  inputMode="numeric"
+                  value={settings.defaultMonthlyWage ?? ''}
+                  onChange={(e) =>
+                    setSettings({
+                      ...settings,
+                      defaultMonthlyWage: e.target.value ? Number(e.target.value) : null,
+                    })
+                  }
+                  className="w-full rounded-xl border border-gray-300 p-3 text-base focus:border-blue-500 focus:outline-none"
+                />
+              </div>
+            </div>
+            <div>
+              <label className="mb-1 block text-xs text-gray-500">임금지급일</label>
+              <input
+                type="text"
+                value={settings.defaultPayDate ?? ''}
+                onChange={(e) =>
+                  setSettings({ ...settings, defaultPayDate: e.target.value })
+                }
+                placeholder="예: 매월 25일"
+                className="w-full rounded-xl border border-gray-300 p-3 text-base focus:border-blue-500 focus:outline-none"
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs text-gray-500">지급방법</label>
+              <div className="grid grid-cols-2 gap-2">
+                {[
+                  { value: 'BANK_TRANSFER', label: '예금통장 입금' },
+                  { value: 'DIRECT', label: '직접 지급' },
+                ].map((m) => (
+                  <button
+                    key={m.value}
+                    type="button"
+                    onClick={() =>
+                      setSettings({
+                        ...settings,
+                        defaultPayMethod:
+                          settings.defaultPayMethod === m.value
+                            ? null
+                            : (m.value as 'BANK_TRANSFER' | 'DIRECT'),
+                      })
+                    }
+                    className={`rounded-xl border p-3 text-sm font-medium ${
+                      settings.defaultPayMethod === m.value
+                        ? 'border-blue-500 bg-blue-50'
+                        : 'border-gray-300 bg-white'
+                    }`}
+                  >
+                    {m.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <label className="mb-1 block text-xs text-gray-500">
+                회사 서명/직인 이미지
+              </label>
+              <p className="mb-2 text-xs text-gray-400">
+                한 번 등록하면 모든 계약서 사업주 서명란에 자동 삽입됩니다.
+              </p>
+              {settings.employerSignatureDataUrl ? (
+                <div className="flex items-center gap-3">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={settings.employerSignatureDataUrl}
+                    alt="회사 서명"
+                    className="h-20 rounded-lg border border-gray-200 bg-white object-contain p-1"
+                  />
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setSettings({ ...settings, employerSignatureDataUrl: null })
+                    }
+                    className="rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium text-gray-600"
+                  >
+                    삭제
+                  </button>
+                </div>
+              ) : (
+                <label className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl border border-blue-300 bg-blue-50 p-3 text-sm font-medium text-blue-700">
+                  📎 서명/직인 이미지 첨부 (PNG 권장)
+                  <input
+                    type="file"
+                    accept="image/png,image/jpeg,image/webp"
+                    className="hidden"
+                    onChange={(e) => {
+                      const f = e.target.files?.[0];
+                      if (!f) return;
+                      const reader = new FileReader();
+                      reader.onload = () =>
+                        setSettings((s) =>
+                          s
+                            ? { ...s, employerSignatureDataUrl: String(reader.result) }
+                            : s,
+                        );
+                      reader.readAsDataURL(f);
+                    }}
+                  />
+                </label>
+              )}
             </div>
           </div>
         </section>

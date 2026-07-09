@@ -12,6 +12,11 @@ export const techContractSchema = z.object({
   jobDescription: z.string().trim().min(1, '업무 내용을 입력해 주세요').max(500),
   workerAddress: z.string().trim().min(1, '주소를 입력해 주세요').max(200),
   workerSignatureName: z.string().trim().min(1, '성명을 입력해 주세요').max(50),
+  // 캔버스 손글씨 서명 (data URL PNG) — 서명 시 계약이 확정된다
+  workerSignatureDataUrl: z
+    .string()
+    .max(1_500_000, '서명 이미지가 너무 큽니다')
+    .refine((s) => s.startsWith('data:image/'), '서명을 해 주세요'),
 });
 
 export type TechContractInput = z.infer<typeof techContractSchema>;

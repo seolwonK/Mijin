@@ -174,6 +174,9 @@ model EmploymentContract {
   // 근로자(을) 기재란
   workerAddress       String?
   workerSignatureName String?
+  // 근로자 손글씨 서명 (data URL PNG). 서명 시 계약이 확정된다.
+  workerSignatureDataUrl String?
+  signedAt               DateTime?
 
   status      ContractStatus @default(DRAFT)
   submittedAt DateTime?
@@ -244,6 +247,13 @@ model AppSettings {
   employerAddress     String?
   employerPhone       String?
   employerBizRegNo    String? // 사업자등록번호
+  // 회사 서명/직인 이미지 (data URL) — 모든 계약서 사업주 서명란에 자동 삽입
+  employerSignatureDataUrl String?
+  // 근로형태별 기본 임금 — 계약서 생성 시 자동 기입(관리자 수정 가능, 비우면 "추후 협의")
+  defaultDailyWage    Int? // 일용 기본 일급
+  defaultMonthlyWage  Int? // 상시 기본 월급
+  defaultPayDate      String? // 기본 임금지급일 (예: "매월 25일")
+  defaultPayMethod    PayMethod? // 기본 지급방법
   updatedAt           DateTime @updatedAt
 }
 

@@ -1,4 +1,4 @@
-import type { EmploymentType } from '@prisma/client';
+import type { EmploymentType, PayMethod, WageType } from '@prisma/client';
 
 // 근로형태에 따라 서버가 강제하는 소정근로시간·근무일 기본값.
 // 일일 근로자(DAILY): 하루 8시간.
@@ -35,6 +35,33 @@ export function contractDefaults(type: EmploymentType): ContractDefaults {
     hoursNote: '추후 협의 변동 가능',
     workDays: '월~금(주5일)',
     weeklyHoliday: '일요일',
+  };
+}
+
+// 근로형태별 기본 임금 — 계약서 생성 시 AppSettings 값으로 자동 기입.
+// 금액이 없으면 wageType만 세팅되고, 인쇄물에는 "추후 협의"로 표기된다.
+type WageDefaultsSource = {
+  defaultDailyWage: number | null;
+  defaultMonthlyWage: number | null;
+  defaultPayDate: string | null;
+  defaultPayMethod: PayMethod | null;
+} | null;
+
+export function wageDefaultsFor(
+  type: EmploymentType,
+  settings: WageDefaultsSource,
+): {
+  wageType: WageType;
+  wageAmount: number | null;
+  payDate: string | null;
+  payMethod: PayMethod | null;
+} {
+  const isDaily = type === 'DAILY';
+  return {
+    wageType: isDaily ? 'DAILY' : 'MONTHLY',
+    wageAmount: (isDaily ? settings?.defaultDailyWage : settings?.defaultMonthlyWage) ?? null,
+    payDate: settings?.defaultPayDate ?? null,
+    payMethod: settings?.defaultPayMethod ?? null,
   };
 }
 

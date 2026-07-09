@@ -24,6 +24,7 @@ async function loadEmployer() {
     address: s?.employerAddress ?? null,
     phone: s?.employerPhone ?? null,
     bizRegNo: s?.employerBizRegNo ?? null,
+    signatureDataUrl: s?.employerSignatureDataUrl ?? null,
   };
 }
 
@@ -89,20 +90,12 @@ export async function PUT(
     );
   }
 
-  // 확정 시엔 기술자 제출 완료 + 임금 필수 항목을 요구한다
-  if (data.confirm) {
-    if (contract.status === 'DRAFT') {
-      return NextResponse.json(
-        { error: '기술자가 계약서를 제출한 후에 확정할 수 있습니다' },
-        { status: 409 },
-      );
-    }
-    if (!data.wageType || data.wageAmount == null || !data.payDate || !data.payMethod) {
-      return NextResponse.json(
-        { error: '임금 형태·금액·지급일·지급방법을 모두 입력해야 확정할 수 있습니다' },
-        { status: 400 },
-      );
-    }
+  // 계약 완료(CONFIRMED)는 기술자의 서명으로 이뤄진다. 서명 완료본은 수정 불가.
+  if (contract.status === 'CONFIRMED') {
+    return NextResponse.json(
+      { error: '기술자가 서명 완료한 계약서는 수정할 수 없습니다' },
+      { status: 409 },
+    );
   }
 
   const updated = await prisma.employmentContract.update({
@@ -121,7 +114,6 @@ export async function PUT(
       insuranceAccident: data.insuranceAccident,
       insurancePension: data.insurancePension,
       insuranceHealth: data.insuranceHealth,
-      ...(data.confirm ? { status: 'CONFIRMED', confirmedAt: new Date() } : {}),
     },
   });
 
