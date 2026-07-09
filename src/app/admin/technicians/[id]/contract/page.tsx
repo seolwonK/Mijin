@@ -2,10 +2,11 @@
 
 import { use, useEffect, useState } from 'react';
 import Link from 'next/link';
-import BackButton from '@/components/BackButton';
+import PageHeader from '@/components/PageHeader';
+import { buttonClasses } from '@/components/Button';
 
 const inputClass =
-  'w-full rounded-xl border border-gray-300 p-3 text-base focus:border-blue-500 focus:outline-none';
+  'w-full rounded-xl border border-neutral-300 bg-white p-3 text-base text-fg placeholder:text-muted focus:border-brand-500 focus:ring-2 focus:ring-brand-500/15 focus:outline-none';
 
 const EMPLOYMENT_LABEL: Record<string, string> = {
   DAILY: '일일 근로자',
@@ -186,29 +187,28 @@ export default function AdminContractPage({
       </main>
     );
   }
-  if (!d) return <main className="p-6 text-center text-gray-400">불러오는 중…</main>;
+  if (!d) return <main className="p-6 text-center text-muted">불러오는 중…</main>;
 
   const c = d.contract;
   const confirmed = c?.status === 'CONFIRMED';
 
   return (
     <main className="min-h-screen">
-      <header className="sticky top-0 z-20 border-b border-gray-200 bg-white/95 backdrop-blur">
-        <div className="mx-auto flex w-full max-w-3xl items-center gap-2 px-4 py-3">
-          <BackButton fallback={`/admin/technicians/${id}`} />
-          <h1 className="text-lg font-bold">근로계약서 — {d.technician.name}</h1>
-        </div>
-      </header>
+      <PageHeader
+        title={`근로계약서 — ${d.technician.name}`}
+        back={`/admin/technicians/${id}`}
+        width="max-w-3xl"
+      />
 
       <div className="mx-auto w-full max-w-3xl space-y-5 p-4 md:py-8">
         {!c ? (
-          <p className="rounded-xl bg-gray-50 p-6 text-center text-sm text-gray-500">
+          <p className="rounded-xl bg-neutral-50 p-6 text-center text-sm text-muted">
             기술자가 아직 근로계약서를 작성하지 않았습니다.
           </p>
         ) : (
           <>
-            <div className="flex items-center justify-between rounded-xl bg-gray-50 p-3 text-sm">
-              <span className="text-gray-500">상태</span>
+            <div className="flex items-center justify-between rounded-xl bg-neutral-50 p-3 text-sm">
+              <span className="text-muted">상태</span>
               <span className="font-semibold">{STATUS_LABEL[c.status]}</span>
             </div>
 
@@ -223,7 +223,7 @@ export default function AdminContractPage({
                 <img
                   src={c.workerSignatureDataUrl}
                   alt="기술자 서명"
-                  className="mt-2 h-16 rounded border border-gray-200 bg-white object-contain p-1"
+                  className="mt-2 h-16 rounded border border-border bg-white object-contain p-1"
                 />
               </div>
             ) : (
@@ -233,7 +233,7 @@ export default function AdminContractPage({
             )}
 
             {/* 기술자 제출 내용 (읽기전용) */}
-            <section className="space-y-1 rounded-2xl border border-gray-200 p-4">
+            <section className="space-y-1 rounded-2xl border border-border p-4">
               <h2 className="mb-1 text-sm font-semibold">
                 기술자 작성 내용 · {EMPLOYMENT_LABEL[c.employmentType]}
               </h2>
@@ -253,10 +253,10 @@ export default function AdminContractPage({
             </section>
 
             {/* 임금 입력 (관리자) */}
-            <section className="space-y-3 rounded-2xl border border-blue-200 bg-blue-50/40 p-4">
-              <h2 className="text-sm font-semibold text-blue-800">임금 (관리자 입력)</h2>
+            <section className="space-y-3 rounded-2xl border border-brand-200 bg-brand-50/40 p-4">
+              <h2 className="text-sm font-semibold text-brand-800">임금 (관리자 입력)</h2>
               <div>
-                <label className="mb-1 block text-xs text-gray-500">임금 형태</label>
+                <label className="mb-1 block text-xs text-muted">임금 형태</label>
                 <div className="grid grid-cols-3 gap-2">
                   {WAGE_TYPES.map((w) => (
                     <button
@@ -266,8 +266,8 @@ export default function AdminContractPage({
                       disabled={confirmed}
                       className={`rounded-xl border p-2 text-sm font-medium ${
                         wageType === w.value
-                          ? 'border-blue-500 bg-blue-50'
-                          : 'border-gray-300 bg-white'
+                          ? 'border-brand-500 bg-brand-50'
+                          : 'border-neutral-300 bg-white'
                       } disabled:opacity-60`}
                     >
                       {w.label}
@@ -276,7 +276,7 @@ export default function AdminContractPage({
                 </div>
               </div>
               <div>
-                <label className="mb-1 block text-xs text-gray-500">금액 (원)</label>
+                <label className="mb-1 block text-xs text-muted">금액 (원)</label>
                 <input
                   type="number"
                   inputMode="numeric"
@@ -293,7 +293,7 @@ export default function AdminContractPage({
                   checked={bonusExists}
                   onChange={(e) => setBonusExists(e.target.checked)}
                   disabled={confirmed}
-                  className="h-4 w-4"
+                  className="h-4 w-4 accent-brand-600"
                 />
                 상여금 있음
               </label>
@@ -315,7 +315,7 @@ export default function AdminContractPage({
                   checked={otherPayExists}
                   onChange={(e) => setOtherPayExists(e.target.checked)}
                   disabled={confirmed}
-                  className="h-4 w-4"
+                  className="h-4 w-4 accent-brand-600"
                 />
                 기타급여(제수당 등) 있음
               </label>
@@ -342,7 +342,7 @@ export default function AdminContractPage({
               )}
 
               <div>
-                <label className="mb-1 block text-xs text-gray-500">임금지급일</label>
+                <label className="mb-1 block text-xs text-muted">임금지급일</label>
                 <input
                   type="text"
                   value={payDate}
@@ -353,7 +353,7 @@ export default function AdminContractPage({
                 />
               </div>
               <div>
-                <label className="mb-1 block text-xs text-gray-500">지급방법</label>
+                <label className="mb-1 block text-xs text-muted">지급방법</label>
                 <div className="grid grid-cols-2 gap-2">
                   {[
                     { value: 'BANK_TRANSFER', label: '예금통장 입금' },
@@ -366,8 +366,8 @@ export default function AdminContractPage({
                       disabled={confirmed}
                       className={`rounded-xl border p-2 text-sm font-medium ${
                         payMethod === m.value
-                          ? 'border-blue-500 bg-blue-50'
-                          : 'border-gray-300 bg-white'
+                          ? 'border-brand-500 bg-brand-50'
+                          : 'border-neutral-300 bg-white'
                       } disabled:opacity-60`}
                     >
                       {m.label}
@@ -378,7 +378,7 @@ export default function AdminContractPage({
             </section>
 
             {/* 4대보험 */}
-            <section className="space-y-2 rounded-2xl border border-gray-200 p-4">
+            <section className="space-y-2 rounded-2xl border border-border p-4">
               <h2 className="text-sm font-semibold">사회보험 적용</h2>
               <div className="grid grid-cols-2 gap-2 text-sm">
                 {[
@@ -393,7 +393,7 @@ export default function AdminContractPage({
                       checked={it.v}
                       onChange={(e) => it.set(e.target.checked)}
                       disabled={confirmed}
-                      className="h-4 w-4"
+                      className="h-4 w-4 accent-brand-600"
                     />
                     {it.label}
                   </label>
@@ -402,13 +402,13 @@ export default function AdminContractPage({
             </section>
 
             {/* 사업주 (미진전기, 읽기전용) */}
-            <section className="space-y-1 rounded-2xl border border-gray-200 bg-gray-50 p-4">
+            <section className="space-y-1 rounded-2xl border border-border bg-neutral-50 p-4">
               <h2 className="mb-1 text-sm font-semibold">사업주 (고용주)</h2>
               <Row label="사업체명" value={d.employer.name} />
               {d.employer.ceo && <Row label="대표자" value={d.employer.ceo} />}
               {d.employer.address && <Row label="주소" value={d.employer.address} />}
               {d.employer.phone && <Row label="전화" value={d.employer.phone} />}
-              <p className="pt-1 text-xs text-gray-400">
+              <p className="pt-1 text-xs text-muted">
                 사업주 정보는 관리자 설정에서 수정합니다.
               </p>
             </section>
@@ -430,20 +430,20 @@ export default function AdminContractPage({
                   type="button"
                   onClick={save}
                   disabled={busy}
-                  className="h-12 flex-1 rounded-2xl border border-gray-300 font-bold text-gray-700 disabled:opacity-60"
+                  className={buttonClasses('secondary', 'md', 'flex-1')}
                 >
                   임금 저장
                 </button>
               )}
               <Link
                 href={`/admin/technicians/${id}/contract/print`}
-                className="flex h-12 flex-1 items-center justify-center rounded-2xl bg-gray-800 font-bold text-white"
+                className={buttonClasses('primary', 'md', 'flex-1')}
               >
                 🖨 인쇄
               </Link>
             </div>
             {!confirmed && (
-              <p className="text-center text-xs text-gray-400">
+              <p className="text-center text-xs text-muted">
                 기술자가 포털에서 서명하면 자동으로 완료됩니다. 임금은 비워두면 계약서에
                 &ldquo;추후 협의&rdquo;로 표기됩니다.
               </p>
@@ -458,8 +458,8 @@ export default function AdminContractPage({
 function Row({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex justify-between gap-4 py-1 text-sm">
-      <span className="shrink-0 text-gray-500">{label}</span>
-      <span className="text-right font-medium text-gray-800">{value}</span>
+      <span className="shrink-0 text-muted">{label}</span>
+      <span className="text-right font-medium text-fg">{value}</span>
     </div>
   );
 }

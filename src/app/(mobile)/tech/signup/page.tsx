@@ -10,7 +10,7 @@ import { hasSigungu } from '@/lib/regions';
 import { startIdentityVerification } from '@/lib/identity/client';
 
 const inputClass =
-  'w-full rounded-xl border border-gray-300 p-3 text-base focus:border-blue-500 focus:outline-none';
+  'w-full rounded-xl border border-neutral-300 bg-white p-3 text-base text-fg placeholder:text-muted focus:border-brand-500 focus:ring-2 focus:ring-brand-500/15 focus:outline-none';
 
 type EmploymentType = 'DAILY' | 'PERMANENT';
 
@@ -130,23 +130,20 @@ export default function TechSignupPage() {
   if (done) {
     return (
       <main className="flex min-h-screen flex-col items-center justify-center p-6">
-        <div className="flex w-full flex-col items-center gap-5 text-center md:max-w-lg md:rounded-3xl md:bg-white md:p-12 md:shadow-card">
+        <div className="flex w-full flex-col items-center gap-5 text-center md:max-w-lg md:rounded-3xl md:border md:border-border md:bg-white md:p-12 md:shadow-card">
           <div className="text-6xl">🎉</div>
-          <h1 className="text-2xl font-bold">가입이 완료되었습니다</h1>
-          <p className="text-gray-500">
+          <h1 className="text-2xl font-bold text-fg">가입이 완료되었습니다</h1>
+          <p className="text-muted">
             자동으로 로그인되었습니다.
             <br />
             이어서 <b>근로계약서에 서명</b>하면
             <br />
             바로 배정(일)을 받을 수 있습니다.
           </p>
-          <Link
-            href="/tech/contract"
-            className="w-full rounded-2xl bg-blue-600 p-4 text-center font-bold text-white transition-colors hover:bg-blue-700"
-          >
+          <Link href="/tech/contract" className={buttonClasses('primary', 'lg', 'w-full')}>
             근로계약서 작성하러 가기
           </Link>
-          <Link href="/tech" className="text-sm font-medium text-gray-400 hover:text-gray-600">
+          <Link href="/tech" className="text-sm font-medium text-neutral-400 hover:text-neutral-600">
             나중에 하기 (기술자 포털로)
           </Link>
         </div>
@@ -162,7 +159,7 @@ export default function TechSignupPage() {
         onSubmit={submit}
         className="mx-auto w-full max-w-2xl space-y-5 p-4 pb-10 md:py-8 md:pb-16"
       >
-        <section className="space-y-2 md:rounded-2xl md:bg-white md:p-6 md:shadow-card">
+        <section className="space-y-2 md:rounded-2xl md:border md:border-border md:bg-white md:p-6 md:shadow-card">
           <h2 className="text-sm font-semibold">계정 정보</h2>
           <input
             type="text"
@@ -186,7 +183,7 @@ export default function TechSignupPage() {
           />
         </section>
 
-        <section className="space-y-3 md:rounded-2xl md:bg-white md:p-6 md:shadow-card">
+        <section className="space-y-3 md:rounded-2xl md:border md:border-border md:bg-white md:p-6 md:shadow-card">
           <h2 className="text-sm font-semibold">근로 형태</h2>
           <div className="grid grid-cols-2 gap-2">
             {EMPLOYMENT_OPTIONS.map((opt) => (
@@ -196,18 +193,18 @@ export default function TechSignupPage() {
                 onClick={() => setEmploymentType(opt.value)}
                 className={`rounded-xl border p-3 text-left transition-colors ${
                   employmentType === opt.value
-                    ? 'border-blue-500 bg-blue-50'
-                    : 'border-gray-300 bg-white'
+                    ? 'border-brand-500 bg-brand-50'
+                    : 'border-neutral-300 bg-white'
                 }`}
               >
-                <p className="font-bold">{opt.label}</p>
-                <p className="mt-0.5 text-xs text-gray-500">{opt.desc}</p>
+                <p className="font-bold text-fg">{opt.label}</p>
+                <p className="mt-0.5 text-xs text-muted">{opt.desc}</p>
               </button>
             ))}
           </div>
         </section>
 
-        <section className="space-y-2 md:rounded-2xl md:bg-white md:p-6 md:shadow-card">
+        <section className="space-y-2 md:rounded-2xl md:border md:border-border md:bg-white md:p-6 md:shadow-card">
           <h2 className="text-sm font-semibold">기술자 정보</h2>
           <input
             type="text"
@@ -217,7 +214,7 @@ export default function TechSignupPage() {
             placeholder="성명"
             autoComplete="name"
             readOnly={!!verificationId}
-            className={`${inputClass} ${verificationId ? 'bg-gray-100 text-gray-500' : ''}`}
+            className={`${inputClass} ${verificationId ? 'bg-neutral-100 text-muted' : ''}`}
           />
           <div className="flex gap-2">
             <input
@@ -229,13 +226,13 @@ export default function TechSignupPage() {
               aria-label="전화번호"
               placeholder="전화번호 (본인인증 후 배정 안내 문자 수신)"
               readOnly={!!verificationId}
-              className={`${inputClass} flex-1 ${verificationId ? 'bg-gray-100 text-gray-500' : ''}`}
+              className={`${inputClass} flex-1 ${verificationId ? 'bg-neutral-100 text-muted' : ''}`}
             />
             {verificationId ? (
               <button
                 type="button"
                 onClick={resetVerification}
-                className="shrink-0 rounded-xl border border-gray-300 px-4 text-sm font-semibold text-gray-600"
+                className="shrink-0 rounded-xl border border-neutral-300 px-4 text-sm font-semibold text-neutral-600"
               >
                 변경
               </button>
@@ -244,7 +241,7 @@ export default function TechSignupPage() {
                 type="button"
                 onClick={verifyPhone}
                 disabled={verifying || !name.trim() || !phone.trim()}
-                className="shrink-0 rounded-xl bg-gray-900 px-4 text-sm font-bold text-white transition-colors enabled:hover:bg-black disabled:opacity-50"
+                className="shrink-0 rounded-xl bg-neutral-900 px-4 text-sm font-bold text-white transition-colors enabled:hover:bg-neutral-950 disabled:opacity-50"
               >
                 {verifying ? '인증 중…' : '본인인증'}
               </button>
@@ -255,7 +252,7 @@ export default function TechSignupPage() {
               ✅ 휴대폰 본인인증 완료
             </p>
           ) : (
-            <p className="text-xs text-gray-400">
+            <p className="text-xs text-neutral-400">
               성명·전화번호 입력 후 <b>본인인증</b>을 완료해야 가입할 수 있습니다.
             </p>
           )}
@@ -272,21 +269,21 @@ export default function TechSignupPage() {
           />
         </section>
 
-        <section className="space-y-2 md:rounded-2xl md:bg-white md:p-6 md:shadow-card">
+        <section className="space-y-2 md:rounded-2xl md:border md:border-border md:bg-white md:p-6 md:shadow-card">
           <h2 className="text-sm font-semibold">서비스 가능 지역</h2>
-          <p className="text-xs text-gray-500">
+          <p className="text-xs text-muted">
             일(배정)을 받을 지역을 여러 곳 선택할 수 있습니다. 선택한 지역의 요청만
             받으며, 그 안에서 가까운 순으로 배정됩니다.
           </p>
           <RegionMultiSelect value={regions} onChange={setRegions} />
         </section>
 
-        <label className="flex items-start gap-2 text-sm text-gray-600">
+        <label className="flex items-start gap-2 text-sm text-neutral-600">
           <input
             type="checkbox"
             checked={agreed}
             onChange={(e) => setAgreed(e.target.checked)}
-            className="mt-0.5 h-4 w-4"
+            className="mt-0.5 h-4 w-4 accent-brand-600"
           />
           <span>
             가입 심사 및 근로계약을 위한 개인정보(성명, 연락처, 주소) 수집·이용에
@@ -295,7 +292,7 @@ export default function TechSignupPage() {
         </label>
 
         {error && (
-          <p className="rounded-xl bg-red-50 p-3 text-sm font-medium text-red-600">
+          <p className="rounded-xl border border-red-100 bg-red-50 p-3 text-sm font-medium text-red-600">
             {error}
           </p>
         )}

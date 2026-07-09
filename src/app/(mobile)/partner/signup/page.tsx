@@ -9,7 +9,7 @@ import RegionMultiSelect from '@/components/RegionMultiSelect';
 import { hasSigungu } from '@/lib/regions';
 
 const inputClass =
-  'w-full rounded-xl border border-gray-300 p-3 text-base focus:border-blue-500 focus:outline-none';
+  'w-full rounded-xl border border-neutral-300 bg-white p-3 text-base text-fg placeholder:text-muted focus:border-brand-500 focus:ring-2 focus:ring-brand-500/15 focus:outline-none';
 
 export default function PartnerSignupPage() {
   const [loginId, setLoginId] = useState('');
@@ -68,10 +68,10 @@ export default function PartnerSignupPage() {
   if (done) {
     return (
       <main className="flex min-h-screen flex-col items-center justify-center p-6">
-        <div className="flex w-full flex-col items-center gap-5 text-center md:max-w-lg md:rounded-3xl md:bg-white md:p-12 md:shadow-card">
+        <div className="flex w-full flex-col items-center gap-5 text-center md:max-w-lg md:rounded-3xl md:border md:border-border md:bg-white md:p-12 md:shadow-card">
           <div className="text-6xl">📨</div>
           <h1 className="text-2xl font-bold">가입 신청이 접수되었습니다</h1>
-          <p className="text-gray-500">
+          <p className="text-muted">
             관리자가 사업자등록증을 확인한 뒤 승인합니다.
             <br />
             승인 후 로그인할 수 있으며, 승인 여부는
@@ -80,7 +80,7 @@ export default function PartnerSignupPage() {
           </p>
           <Link
             href="/partner/login"
-            className="w-full rounded-2xl bg-blue-600 p-4 text-center font-bold text-white transition-colors hover:bg-blue-700"
+            className={buttonClasses('primary', 'lg', 'w-full')}
           >
             로그인 화면으로
           </Link>
@@ -97,7 +97,7 @@ export default function PartnerSignupPage() {
         onSubmit={submit}
         className="mx-auto w-full max-w-2xl space-y-5 p-4 pb-10 md:py-8 md:pb-16"
       >
-        <section className="space-y-2 md:rounded-2xl md:bg-white md:p-6 md:shadow-card">
+        <section className="space-y-2 md:rounded-2xl md:border md:border-border md:bg-white md:p-6 md:shadow-card">
           <h2 className="text-sm font-semibold">계정 정보</h2>
           <input
             type="text"
@@ -119,7 +119,7 @@ export default function PartnerSignupPage() {
           />
         </section>
 
-        <section className="space-y-2 md:rounded-2xl md:bg-white md:p-6 md:shadow-card">
+        <section className="space-y-2 md:rounded-2xl md:border md:border-border md:bg-white md:p-6 md:shadow-card">
           <h2 className="text-sm font-semibold">업체 정보</h2>
           <input
             type="text"
@@ -151,16 +151,16 @@ export default function PartnerSignupPage() {
           />
         </section>
 
-        <section className="space-y-2 md:rounded-2xl md:bg-white md:p-6 md:shadow-card">
+        <section className="space-y-2 md:rounded-2xl md:border md:border-border md:bg-white md:p-6 md:shadow-card">
           <h2 className="text-sm font-semibold">서비스 가능 지역</h2>
-          <p className="text-xs text-gray-500">
+          <p className="text-xs text-muted">
             출동 가능한 지역을 여러 곳 선택할 수 있습니다. 선택한 지역의 요청만
             받으며, 그 안에서 가까운 순으로 배정됩니다.
           </p>
           <RegionMultiSelect value={regions} onChange={setRegions} />
         </section>
 
-        <section className="space-y-2 md:rounded-2xl md:bg-white md:p-6 md:shadow-card">
+        <section className="space-y-2 md:rounded-2xl md:border md:border-border md:bg-white md:p-6 md:shadow-card">
           <h2 className="text-sm font-semibold">사업자 인증</h2>
           <input
             type="text"
@@ -175,7 +175,7 @@ export default function PartnerSignupPage() {
             className={`flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl border p-3 text-base font-medium ${
               file
                 ? 'border-green-300 bg-green-50 text-green-700'
-                : 'border-blue-300 bg-blue-50 text-blue-700'
+                : 'border-brand-300 bg-brand-50 text-brand-700'
             }`}
           >
             {file ? `✓ ${file.name}` : '📎 사업자등록증 사진 첨부'}
@@ -186,17 +186,17 @@ export default function PartnerSignupPage() {
               onChange={(e) => setFile(e.target.files?.[0] ?? null)}
             />
           </label>
-          <p className="text-xs text-gray-400">
+          <p className="text-xs text-muted">
             JPG/PNG/PDF, 8MB 이하. 관리자 확인 용도로만 사용됩니다.
           </p>
         </section>
 
-        <label className="flex items-start gap-2 text-sm text-gray-600">
+        <label className="flex items-start gap-2 text-sm text-neutral-600">
           <input
             type="checkbox"
             checked={agreed}
             onChange={(e) => setAgreed(e.target.checked)}
-            className="mt-0.5 h-4 w-4"
+            className="mt-0.5 h-4 w-4 accent-brand-600"
           />
           <span>
             가입 심사를 위한 개인정보(사업자등록증, 연락처) 수집·이용에 동의합니다.

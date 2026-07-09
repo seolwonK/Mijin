@@ -8,7 +8,7 @@ export default function PartnerLoginPage() {
       footer={
         <p>
           아직 계정이 없나요?{' '}
-          <Link href="/partner/signup" className="font-bold text-blue-600 underline">
+          <Link href="/partner/signup" className="font-bold text-brand-700 underline">
             업체 가입 신청
           </Link>
         </p>

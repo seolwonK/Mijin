@@ -27,7 +27,7 @@ function JobCard({ job, highlight }: { job: Job; highlight?: boolean }) {
     <Link
       href={`/partner/jobs/${job.id}`}
       className={`block rounded-2xl border p-4 transition-shadow hover:shadow-md ${
-        highlight ? 'border-blue-400 bg-blue-50' : 'border-slate-200 bg-white'
+        highlight ? 'border-brand-400 bg-brand-50' : 'border-border bg-white'
       }`}
     >
       <div className="flex items-center justify-between">
@@ -36,16 +36,16 @@ function JobCard({ job, highlight }: { job: Job; highlight?: boolean }) {
           <StatusBadge status={job.request.status} />
         </div>
         {job.distanceKm != null && (
-          <span className="text-sm font-medium text-gray-500">
+          <span className="text-sm font-medium text-muted">
             {job.distanceKm.toFixed(1)}km
           </span>
         )}
       </div>
-      <p className="mt-2 line-clamp-2 text-sm text-gray-800">{job.request.description}</p>
+      <p className="mt-2 line-clamp-2 text-sm text-fg">{job.request.description}</p>
       {job.request.address && (
-        <p className="mt-1 text-sm text-gray-500">📍 {job.request.address}</p>
+        <p className="mt-1 text-sm text-muted">📍 {job.request.address}</p>
       )}
-      <p className="mt-1 text-xs text-gray-500">
+      <p className="mt-1 text-xs text-muted">
         배정 {new Date(job.createdAt).toLocaleString('ko-KR')}
       </p>
     </Link>
@@ -74,7 +74,7 @@ export default function PartnerHomePage() {
           <>
             <Link
               href="/partner/profile"
-              className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-50"
+              className="rounded-lg border border-border bg-white px-3 py-2 text-sm font-medium text-muted transition-colors hover:bg-neutral-50"
             >
               내 정보
             </Link>
@@ -87,13 +87,13 @@ export default function PartnerHomePage() {
         {error && <p className="text-sm text-red-600">{error}</p>}
 
         <section>
-          <h2 className="mb-2 font-semibold text-blue-700">
+          <h2 className="mb-2 font-semibold text-brand-700">
             🔔 응답 대기 {waiting.length > 0 && `(${waiting.length})`}
           </h2>
           {loading ? (
             <CardSkeletonGrid count={2} />
           ) : waiting.length === 0 ? (
-            <p className="rounded-xl bg-gray-50 p-4 text-center text-sm text-gray-500">
+            <p className="rounded-xl bg-neutral-50 p-4 text-center text-sm text-muted">
               새로 배정된 건이 없습니다
             </p>
           ) : (
@@ -108,7 +108,7 @@ export default function PartnerHomePage() {
         <section>
           <h2 className="mb-2 font-semibold">🔧 진행중</h2>
           {loading ? null : inProgress.length === 0 ? (
-            <p className="rounded-xl bg-gray-50 p-4 text-center text-sm text-gray-500">
+            <p className="rounded-xl bg-neutral-50 p-4 text-center text-sm text-muted">
               진행중인 건이 없습니다
             </p>
           ) : (
@@ -122,7 +122,7 @@ export default function PartnerHomePage() {
 
         {past.length > 0 && (
           <section>
-            <h2 className="mb-2 font-semibold text-gray-500">지난 내역</h2>
+            <h2 className="mb-2 font-semibold text-muted">지난 내역</h2>
             <div className="space-y-2 opacity-70 md:grid md:grid-cols-2 md:gap-3 md:space-y-0 xl:grid-cols-3">
               {past.slice(0, 20).map((j) => (
                 <JobCard key={j.id} job={j} />

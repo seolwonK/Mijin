@@ -25,7 +25,7 @@ type ProviderDetail = {
 const APPROVAL_BADGE: Record<string, { label: string; className: string }> = {
   PENDING: { label: '승인 대기', className: 'bg-amber-500 text-white' },
   APPROVED: { label: '승인됨', className: 'bg-green-600 text-white' },
-  REJECTED: { label: '거절됨', className: 'bg-gray-400 text-white' },
+  REJECTED: { label: '거절됨', className: 'bg-neutral-400 text-white' },
 };
 
 export default function EditProviderPage({
@@ -137,7 +137,7 @@ export default function EditProviderPage({
 
   if (!detail) {
     return (
-      <main className="p-6 text-center text-gray-400">{error ?? '불러오는 중…'}</main>
+      <main className="p-6 text-center text-neutral-400">{error ?? '불러오는 중…'}</main>
     );
   }
 
@@ -157,14 +157,14 @@ export default function EditProviderPage({
         }
       />
 
-      <section className="mx-auto max-w-2xl space-y-3 border-b border-gray-100 p-4">
-        <h2 className="text-sm font-semibold text-gray-500">사업자 인증</h2>
-        <div className="rounded-2xl border border-slate-200 p-4 text-sm">
+      <section className="mx-auto max-w-2xl space-y-3 border-b border-neutral-100 p-4">
+        <h2 className="text-sm font-semibold text-muted">사업자 인증</h2>
+        <div className="rounded-2xl border border-border p-4 text-sm">
           <p>
             사업자등록번호:{' '}
             <span className="font-bold">{detail.bizRegNo ?? '미입력'}</span>
           </p>
-          <p className="mt-1 text-xs text-gray-400">
+          <p className="mt-1 text-xs text-neutral-400">
             신청 {new Date(detail.appliedAt).toLocaleString('ko-KR')}
           </p>
           {detail.rejectReason && (
@@ -172,7 +172,7 @@ export default function EditProviderPage({
           )}
         </div>
         {detail.hasCert ? (
-          <div className="overflow-hidden rounded-2xl border border-slate-200">
+          <div className="overflow-hidden rounded-2xl border border-border">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={`/api/admin/providers/${id}/cert`}
@@ -183,13 +183,13 @@ export default function EditProviderPage({
               href={`/api/admin/providers/${id}/cert`}
               target="_blank"
               rel="noreferrer"
-              className="block border-t border-gray-100 p-2 text-center text-sm text-blue-600 underline"
+              className="block border-t border-neutral-100 p-2 text-center text-sm text-brand-600 underline"
             >
               원본 크게 보기
             </a>
           </div>
         ) : (
-          <p className="rounded-xl bg-gray-50 p-3 text-sm text-gray-400">
+          <p className="rounded-xl bg-neutral-50 p-3 text-sm text-neutral-400">
             첨부된 사업자등록증이 없습니다 (관리자 직접 등록 업체)
           </p>
         )}
@@ -223,7 +223,7 @@ export default function EditProviderPage({
               value={reason}
               onChange={(e) => setReason(e.target.value)}
               placeholder="거절 사유 (신청자가 로그인 시 확인합니다)"
-              className="w-full rounded-xl border border-gray-300 p-3 text-base focus:border-blue-500 focus:outline-none"
+              className="w-full rounded-xl border border-border p-3 text-base focus:border-brand-500 focus:outline-none"
             />
             <div className="flex gap-2">
               <button
@@ -238,7 +238,7 @@ export default function EditProviderPage({
                 type="button"
                 onClick={() => setRejecting(false)}
                 disabled={busy}
-                className="h-12 flex-1 rounded-2xl border border-gray-300 font-bold text-gray-600"
+                className="h-12 flex-1 rounded-2xl border border-border font-bold text-muted"
               >
                 취소
               </button>
@@ -246,7 +246,7 @@ export default function EditProviderPage({
           </div>
         )}
         {(detail.lat == null || detail.lng == null) && (
-          <p className="rounded-xl bg-blue-50 p-3 text-sm text-blue-700">
+          <p className="rounded-xl bg-brand-50 p-3 text-sm text-brand-700">
             좌표가 없어 거리순 정렬은 안 되지만, 서비스 지역이 설정돼 있으면 지역
             기준으로 자동배정됩니다. 정확한 거리 배정을 원하면 아래에서 좌표를 입력하세요.
           </p>

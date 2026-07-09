@@ -22,7 +22,7 @@ type Settings = {
 };
 
 const inputClass =
-  'w-24 rounded-xl border border-gray-300 p-3 text-center text-base focus:border-blue-500 focus:outline-none';
+  'w-24 rounded-xl border border-border p-3 text-center text-base focus:border-brand-500 focus:outline-none';
 
 export default function AdminSettingsPage() {
   const [settings, setSettings] = useState<Settings | null>(null);
@@ -79,13 +79,13 @@ export default function AdminSettingsPage() {
   }
 
   if (!settings) {
-    return <main className="p-6 text-center text-gray-400">{error ?? '불러오는 중…'}</main>;
+    return <main className="p-6 text-center text-muted">{error ?? '불러오는 중…'}</main>;
   }
 
   const rows: { key: keyof Settings; label: string; badge: string }[] = [
     { key: 'waitMinutesCritical', label: '초긴급 (1시간 내)', badge: 'bg-red-600' },
     { key: 'waitMinutesUrgent', label: '긴급 (2시간 내)', badge: 'bg-orange-500' },
-    { key: 'waitMinutesNormal', label: '일반', badge: 'bg-gray-500' },
+    { key: 'waitMinutesNormal', label: '일반', badge: 'bg-neutral-500' },
   ];
 
   return (
@@ -93,11 +93,11 @@ export default function AdminSettingsPage() {
       <PageHeader title="설정" back="/admin" />
 
       <div className="mx-auto max-w-2xl space-y-6 p-4">
-        <section className="rounded-2xl border border-slate-200 p-4">
+        <section className="rounded-2xl border border-border p-4">
           <div className="flex items-center justify-between">
             <div>
               <p className="font-bold">자동배정 사용</p>
-              <p className="mt-1 text-sm text-gray-500">
+              <p className="mt-1 text-sm text-muted">
                 수동 배정이 기본입니다. 켜면 아래 대기시간 안에 수동 배정이 없을 때
                 가장 가까운 활성 업체에 자동 배정됩니다.
               </p>
@@ -108,7 +108,7 @@ export default function AdminSettingsPage() {
                 setSettings({ ...settings, autoAssignEnabled: !settings.autoAssignEnabled })
               }
               className={`relative h-8 w-14 shrink-0 rounded-full transition-colors ${
-                settings.autoAssignEnabled ? 'bg-blue-600' : 'bg-gray-300'
+                settings.autoAssignEnabled ? 'bg-brand-600' : 'bg-neutral-300'
               }`}
               aria-label="자동배정 토글"
             >
@@ -121,7 +121,7 @@ export default function AdminSettingsPage() {
           </div>
         </section>
 
-        <section className="rounded-2xl border border-slate-200 p-4">
+        <section className="rounded-2xl border border-border p-4">
           <p className="mb-3 font-bold">긴급도별 자동배정 대기시간 (분)</p>
           <div className="space-y-3">
             {rows.map((row) => (
@@ -145,42 +145,42 @@ export default function AdminSettingsPage() {
                     aria-label={`${row.label} 자동배정 대기시간(분)`}
                     className={inputClass}
                   />
-                  <span className="text-sm text-gray-500">분</span>
+                  <span className="text-sm text-muted">분</span>
                 </div>
               </div>
             ))}
           </div>
         </section>
 
-        <section className="rounded-2xl border border-slate-200 p-4">
+        <section className="rounded-2xl border border-border p-4">
           <p className="mb-1 font-bold">근로계약서 사업주(고용주) 정보</p>
-          <p className="mb-3 text-sm text-gray-500">
+          <p className="mb-3 text-sm text-muted">
             개인기술자 근로계약서에 자동 기입됩니다.
           </p>
           <div className="space-y-2">
             <div>
-              <label className="mb-1 block text-xs text-gray-500">사업체명</label>
+              <label className="mb-1 block text-xs text-muted">사업체명</label>
               <input
                 type="text"
                 value={settings.employerName ?? ''}
                 onChange={(e) => setSettings({ ...settings, employerName: e.target.value })}
                 placeholder="미진전기"
                 aria-label="사업체명"
-                className="w-full rounded-xl border border-gray-300 p-3 text-base focus:border-blue-500 focus:outline-none"
+                className="w-full rounded-xl border border-border p-3 text-base focus:border-brand-500 focus:outline-none"
               />
             </div>
             <div>
-              <label className="mb-1 block text-xs text-gray-500">대표자</label>
+              <label className="mb-1 block text-xs text-muted">대표자</label>
               <input
                 type="text"
                 value={settings.employerCeo ?? ''}
                 onChange={(e) => setSettings({ ...settings, employerCeo: e.target.value })}
                 aria-label="대표자"
-                className="w-full rounded-xl border border-gray-300 p-3 text-base focus:border-blue-500 focus:outline-none"
+                className="w-full rounded-xl border border-border p-3 text-base focus:border-brand-500 focus:outline-none"
               />
             </div>
             <div>
-              <label className="mb-1 block text-xs text-gray-500">주소</label>
+              <label className="mb-1 block text-xs text-muted">주소</label>
               <input
                 type="text"
                 value={settings.employerAddress ?? ''}
@@ -188,12 +188,12 @@ export default function AdminSettingsPage() {
                   setSettings({ ...settings, employerAddress: e.target.value })
                 }
                 aria-label="주소"
-                className="w-full rounded-xl border border-gray-300 p-3 text-base focus:border-blue-500 focus:outline-none"
+                className="w-full rounded-xl border border-border p-3 text-base focus:border-brand-500 focus:outline-none"
               />
             </div>
             <div className="flex gap-2">
               <div className="flex-1">
-                <label className="mb-1 block text-xs text-gray-500">전화</label>
+                <label className="mb-1 block text-xs text-muted">전화</label>
                 <input
                   type="tel"
                   value={settings.employerPhone ?? ''}
@@ -201,11 +201,11 @@ export default function AdminSettingsPage() {
                     setSettings({ ...settings, employerPhone: e.target.value })
                   }
                   aria-label="전화"
-                  className="w-full rounded-xl border border-gray-300 p-3 text-base focus:border-blue-500 focus:outline-none"
+                  className="w-full rounded-xl border border-border p-3 text-base focus:border-brand-500 focus:outline-none"
                 />
               </div>
               <div className="flex-1">
-                <label className="mb-1 block text-xs text-gray-500">사업자등록번호</label>
+                <label className="mb-1 block text-xs text-muted">사업자등록번호</label>
                 <input
                   type="text"
                   value={settings.employerBizRegNo ?? ''}
@@ -213,23 +213,23 @@ export default function AdminSettingsPage() {
                     setSettings({ ...settings, employerBizRegNo: e.target.value })
                   }
                   aria-label="사업자등록번호"
-                  className="w-full rounded-xl border border-gray-300 p-3 text-base focus:border-blue-500 focus:outline-none"
+                  className="w-full rounded-xl border border-border p-3 text-base focus:border-brand-500 focus:outline-none"
                 />
               </div>
             </div>
           </div>
         </section>
 
-        <section className="rounded-2xl border border-slate-200 p-4">
+        <section className="rounded-2xl border border-border p-4">
           <p className="mb-1 font-bold">근로계약서 기본값</p>
-          <p className="mb-3 text-sm text-gray-500">
+          <p className="mb-3 text-sm text-muted">
             계약서 생성 시 자동 기입됩니다. 비워두면 계약서에 &ldquo;추후 협의&rdquo;로
             표기됩니다.
           </p>
           <div className="space-y-2">
             <div className="flex gap-2">
               <div className="flex-1">
-                <label className="mb-1 block text-xs text-gray-500">
+                <label className="mb-1 block text-xs text-muted">
                   일용 기본 일급 (원)
                 </label>
                 <input
@@ -243,11 +243,11 @@ export default function AdminSettingsPage() {
                     })
                   }
                   aria-label="일용 기본 일급 (원)"
-                  className="w-full rounded-xl border border-gray-300 p-3 text-base focus:border-blue-500 focus:outline-none"
+                  className="w-full rounded-xl border border-border p-3 text-base focus:border-brand-500 focus:outline-none"
                 />
               </div>
               <div className="flex-1">
-                <label className="mb-1 block text-xs text-gray-500">
+                <label className="mb-1 block text-xs text-muted">
                   상시 기본 월급 (원)
                 </label>
                 <input
@@ -261,12 +261,12 @@ export default function AdminSettingsPage() {
                     })
                   }
                   aria-label="상시 기본 월급 (원)"
-                  className="w-full rounded-xl border border-gray-300 p-3 text-base focus:border-blue-500 focus:outline-none"
+                  className="w-full rounded-xl border border-border p-3 text-base focus:border-brand-500 focus:outline-none"
                 />
               </div>
             </div>
             <div>
-              <label className="mb-1 block text-xs text-gray-500">임금지급일</label>
+              <label className="mb-1 block text-xs text-muted">임금지급일</label>
               <input
                 type="text"
                 value={settings.defaultPayDate ?? ''}
@@ -275,11 +275,11 @@ export default function AdminSettingsPage() {
                 }
                 placeholder="예: 매월 25일"
                 aria-label="임금지급일"
-                className="w-full rounded-xl border border-gray-300 p-3 text-base focus:border-blue-500 focus:outline-none"
+                className="w-full rounded-xl border border-border p-3 text-base focus:border-brand-500 focus:outline-none"
               />
             </div>
             <div>
-              <label className="mb-1 block text-xs text-gray-500">지급방법</label>
+              <label className="mb-1 block text-xs text-muted">지급방법</label>
               <div className="grid grid-cols-2 gap-2">
                 {[
                   { value: 'BANK_TRANSFER', label: '예금통장 입금' },
@@ -299,8 +299,8 @@ export default function AdminSettingsPage() {
                     }
                     className={`rounded-xl border p-3 text-sm font-medium ${
                       settings.defaultPayMethod === m.value
-                        ? 'border-blue-500 bg-blue-50'
-                        : 'border-gray-300 bg-white'
+                        ? 'border-brand-500 bg-brand-50'
+                        : 'border-border bg-white'
                     }`}
                   >
                     {m.label}
@@ -310,10 +310,10 @@ export default function AdminSettingsPage() {
             </div>
 
             <div>
-              <label className="mb-1 block text-xs text-gray-500">
+              <label className="mb-1 block text-xs text-muted">
                 회사 서명/직인 이미지
               </label>
-              <p className="mb-2 text-xs text-gray-400">
+              <p className="mb-2 text-xs text-muted">
                 한 번 등록하면 모든 계약서 사업주 서명란에 자동 삽입됩니다.
               </p>
               {settings.employerSignatureDataUrl ? (
@@ -322,20 +322,20 @@ export default function AdminSettingsPage() {
                   <img
                     src={settings.employerSignatureDataUrl}
                     alt="회사 서명"
-                    className="h-20 rounded-lg border border-gray-200 bg-white object-contain p-1"
+                    className="h-20 rounded-lg border border-border bg-white object-contain p-1"
                   />
                   <button
                     type="button"
                     onClick={() =>
                       setSettings({ ...settings, employerSignatureDataUrl: null })
                     }
-                    className="rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium text-gray-600"
+                    className="rounded-lg border border-border px-3 py-2 text-sm font-medium text-muted"
                   >
                     삭제
                   </button>
                 </div>
               ) : (
-                <label className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl border border-blue-300 bg-blue-50 p-3 text-sm font-medium text-blue-700">
+                <label className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl border border-brand-300 bg-brand-50 p-3 text-sm font-medium text-brand-700">
                   📎 서명/직인 이미지 첨부 (PNG 권장)
                   <input
                     type="file"

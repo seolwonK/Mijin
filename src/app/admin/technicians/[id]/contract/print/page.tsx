@@ -123,10 +123,10 @@ export default function ContractPrintPage({
   }, [id]);
 
   if (err) return <main className="p-6 text-red-600">{err}</main>;
-  if (!d) return <main className="p-6 text-center text-gray-400">불러오는 중…</main>;
+  if (!d) return <main className="p-6 text-center text-muted">불러오는 중…</main>;
   if (!d.contract) {
     return (
-      <main className="p-6 text-center text-gray-500">
+      <main className="p-6 text-center text-muted">
         기술자가 아직 근로계약서를 작성하지 않았습니다.
       </main>
     );
@@ -140,12 +140,12 @@ export default function ContractPrintPage({
       {/* 화면 전용 인쇄 버튼 (인쇄물에는 제외) */}
       <div
         data-print-hide
-        className="sticky top-0 z-10 flex justify-end gap-2 border-b border-gray-200 bg-white/95 p-3 backdrop-blur"
+        className="sticky top-0 z-10 flex justify-end gap-2 border-b border-border bg-surface/95 p-3 backdrop-blur"
       >
         <button
           type="button"
           onClick={() => window.print()}
-          className="rounded-xl bg-gray-800 px-5 py-2.5 text-sm font-bold text-white"
+          className="rounded-xl bg-brand-600 px-5 py-2.5 text-sm font-bold text-white transition-colors hover:bg-brand-700"
         >
           🖨 인쇄 / PDF 저장
         </button>

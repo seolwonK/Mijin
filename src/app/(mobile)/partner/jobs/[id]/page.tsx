@@ -107,42 +107,42 @@ export default function PartnerJobDetailPage({
           <UrgencyBadge urgency={r.urgency} />
           <StatusBadge status={r.status} />
           {job.distanceKm != null && (
-            <span className="ml-auto text-sm text-gray-500">
+            <span className="ml-auto text-sm text-muted">
               {job.distanceKm.toFixed(1)}km
             </span>
           )}
         </div>
 
-        <section className="rounded-2xl border border-slate-200 bg-white p-4 md:col-span-2 md:p-5">
-          <h2 className="mb-1 text-sm text-gray-500">고장 내용</h2>
+        <section className="rounded-2xl border border-border bg-white p-4 md:col-span-2 md:p-5">
+          <h2 className="mb-1 text-sm text-muted">고장 내용</h2>
           <p className="whitespace-pre-wrap">{r.description}</p>
-          <p className="mt-2 text-xs text-gray-400">
+          <p className="mt-2 text-xs text-muted">
             접수 {new Date(r.createdAt).toLocaleString('ko-KR')}
           </p>
         </section>
 
-        <section className="rounded-2xl border border-slate-200 bg-white p-4 md:p-5">
-          <h2 className="mb-1 text-sm text-gray-500">위치</h2>
+        <section className="rounded-2xl border border-border bg-white p-4 md:p-5">
+          <h2 className="mb-1 text-sm text-muted">위치</h2>
           <p>{r.address ?? '주소 미확인'}</p>
           {r.lat != null && r.lng != null && (
             <a
               href={`https://map.kakao.com/link/map/고객위치,${r.lat},${r.lng}`}
               target="_blank"
               rel="noreferrer"
-              className="mt-2 inline-block rounded-lg bg-yellow-400 px-3 py-1.5 text-sm font-bold text-gray-900"
+              className="mt-2 inline-block rounded-lg bg-yellow-400 px-3 py-1.5 text-sm font-bold text-neutral-900"
             >
               🗺 카카오맵에서 보기
             </a>
           )}
         </section>
 
-        <section className="rounded-2xl border border-slate-200 bg-white p-4 md:p-5">
-          <h2 className="mb-1 text-sm text-gray-500">고객</h2>
+        <section className="rounded-2xl border border-border bg-white p-4 md:p-5">
+          <h2 className="mb-1 text-sm text-muted">고객</h2>
           <div className="flex items-center justify-between">
             <span className="font-bold">{r.customerName}</span>
             <a
               href={`tel:${r.customerPhone}`}
-              className="rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-bold text-white"
+              className="rounded-lg bg-brand-600 px-3 py-1.5 text-sm font-bold text-white"
             >
               📞 {r.customerPhone}
             </a>
@@ -150,7 +150,7 @@ export default function PartnerJobDetailPage({
         </section>
 
         {job.status === 'REJECTED' && (
-          <p className="rounded-xl bg-gray-100 p-3 text-sm text-gray-600 md:col-span-2">
+          <p className="rounded-xl bg-neutral-100 p-3 text-sm text-neutral-600 md:col-span-2">
             거절한 배정입니다{job.rejectReason ? ` — ${job.rejectReason}` : ''}
           </p>
         )}
@@ -167,14 +167,14 @@ export default function PartnerJobDetailPage({
       </div>
 
       {(canRespond || canDispatch || canComplete) && (
-        <div className="fixed bottom-0 left-1/2 w-full max-w-md -translate-x-1/2 space-y-2 border-t border-slate-200 bg-white px-4 pt-4 pb-[calc(1rem+env(safe-area-inset-bottom))] md:static md:left-auto md:mx-auto md:max-w-3xl md:translate-x-0 md:border-t-0 md:bg-transparent md:px-4 md:pt-2 md:pb-0">
+        <div className="fixed bottom-0 left-1/2 w-full max-w-md -translate-x-1/2 space-y-2 border-t border-border bg-white px-4 pt-4 pb-[calc(1rem+env(safe-area-inset-bottom))] md:static md:left-auto md:mx-auto md:max-w-3xl md:translate-x-0 md:border-t-0 md:bg-transparent md:px-4 md:pt-2 md:pb-0">
           {canRespond && !rejecting && (
             <div className="flex gap-2">
               <button
                 type="button"
                 onClick={() => act('accept')}
                 disabled={busy}
-                className="h-14 flex-[2] rounded-2xl bg-blue-600 text-lg font-bold text-white disabled:opacity-60"
+                className="h-14 flex-[2] rounded-2xl bg-brand-600 text-lg font-bold text-white disabled:opacity-60"
               >
                 ✅ 수락하기
               </button>
@@ -182,7 +182,7 @@ export default function PartnerJobDetailPage({
                 type="button"
                 onClick={() => setRejecting(true)}
                 disabled={busy}
-                className="h-14 flex-1 rounded-2xl border border-gray-300 font-bold text-gray-600 disabled:opacity-60"
+                className="h-14 flex-1 rounded-2xl border border-neutral-300 font-bold text-neutral-600 disabled:opacity-60"
               >
                 거절
               </button>
@@ -195,7 +195,7 @@ export default function PartnerJobDetailPage({
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
                 placeholder="거절 사유 (선택)"
-                className="w-full rounded-xl border border-gray-300 p-3 text-base focus:border-blue-500 focus:outline-none"
+                className="w-full rounded-xl border border-neutral-300 p-3 text-base focus:border-brand-500 focus:ring-2 focus:ring-brand-500/15 focus:outline-none"
               />
               <div className="flex gap-2">
                 <button
@@ -210,7 +210,7 @@ export default function PartnerJobDetailPage({
                   type="button"
                   onClick={() => setRejecting(false)}
                   disabled={busy}
-                  className="h-12 flex-1 rounded-2xl border border-gray-300 font-bold text-gray-600"
+                  className="h-12 flex-1 rounded-2xl border border-neutral-300 font-bold text-neutral-600"
                 >
                   취소
                 </button>
@@ -220,7 +220,7 @@ export default function PartnerJobDetailPage({
           {canDispatch &&
             (confirming === 'DISPATCHED' ? (
               <div className="space-y-2">
-                <p className="text-center text-sm font-medium text-gray-600">
+                <p className="text-center text-sm font-medium text-neutral-600">
                   출동을 시작할까요?
                 </p>
                 <div className="flex gap-2">
@@ -236,7 +236,7 @@ export default function PartnerJobDetailPage({
                     type="button"
                     onClick={() => setConfirming(null)}
                     disabled={busy}
-                    className="h-12 flex-1 rounded-2xl border border-gray-300 font-bold text-gray-600"
+                    className="h-12 flex-1 rounded-2xl border border-neutral-300 font-bold text-neutral-600"
                   >
                     취소
                   </button>
@@ -255,7 +255,7 @@ export default function PartnerJobDetailPage({
           {canComplete &&
             (confirming === 'COMPLETED' ? (
               <div className="space-y-2">
-                <p className="text-center text-sm font-medium text-gray-600">
+                <p className="text-center text-sm font-medium text-neutral-600">
                   완료 처리할까요? 되돌릴 수 없습니다.
                 </p>
                 <div className="flex gap-2">
@@ -271,7 +271,7 @@ export default function PartnerJobDetailPage({
                     type="button"
                     onClick={() => setConfirming(null)}
                     disabled={busy}
-                    className="h-12 flex-1 rounded-2xl border border-gray-300 font-bold text-gray-600"
+                    className="h-12 flex-1 rounded-2xl border border-neutral-300 font-bold text-neutral-600"
                   >
                     취소
                   </button>

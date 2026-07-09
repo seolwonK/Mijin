@@ -26,7 +26,7 @@ type TechnicianDetail = {
 const APPROVAL_BADGE: Record<string, { label: string; className: string }> = {
   PENDING: { label: '승인 대기', className: 'bg-amber-500 text-white' },
   APPROVED: { label: '승인됨', className: 'bg-green-600 text-white' },
-  REJECTED: { label: '거절됨', className: 'bg-gray-400 text-white' },
+  REJECTED: { label: '거절됨', className: 'bg-neutral-400 text-white' },
 };
 const EMPLOYMENT_LABEL: Record<string, string> = {
   DAILY: '일일 근로자',
@@ -148,7 +148,7 @@ export default function EditTechnicianPage({
 
   if (!detail) {
     return (
-      <main className="p-6 text-center text-gray-400">{error ?? '불러오는 중…'}</main>
+      <main className="p-6 text-center text-neutral-400">{error ?? '불러오는 중…'}</main>
     );
   }
 
@@ -168,12 +168,12 @@ export default function EditTechnicianPage({
         }
       />
 
-      <section className="mx-auto max-w-2xl space-y-3 border-b border-gray-100 p-4">
-        <div className="rounded-2xl border border-slate-200 p-4 text-sm">
+      <section className="mx-auto max-w-2xl space-y-3 border-b border-neutral-100 p-4">
+        <div className="rounded-2xl border border-border p-4 text-sm">
           <p>
             근로형태: <span className="font-bold">{EMPLOYMENT_LABEL[detail.employmentType]}</span>
           </p>
-          <p className="mt-1 text-xs text-gray-400">
+          <p className="mt-1 text-xs text-neutral-400">
             신청 {new Date(detail.appliedAt).toLocaleString('ko-KR')}
           </p>
           {detail.rejectReason && (
@@ -184,17 +184,17 @@ export default function EditTechnicianPage({
         {/* 근로계약서 */}
         <Link
           href={`/admin/technicians/${id}/contract`}
-          className="flex items-center justify-between rounded-2xl border border-blue-200 bg-blue-50 p-4"
+          className="flex items-center justify-between rounded-2xl border border-brand-200 bg-brand-50 p-4"
         >
           <div>
-            <p className="font-bold text-blue-800">📄 근로계약서</p>
-            <p className="mt-0.5 text-sm text-blue-600">
+            <p className="font-bold text-brand-800">📄 근로계약서</p>
+            <p className="mt-0.5 text-sm text-brand-600">
               {detail.contractStatus
                 ? CONTRACT_LABEL[detail.contractStatus]
                 : '기술자 미작성'}
             </p>
           </div>
-          <span className="text-sm font-bold text-blue-600">열기 →</span>
+          <span className="text-sm font-bold text-brand-600">열기 →</span>
         </Link>
 
         {detail.approvalStatus !== 'APPROVED' && !rejecting && (
@@ -226,7 +226,7 @@ export default function EditTechnicianPage({
               value={reason}
               onChange={(e) => setReason(e.target.value)}
               placeholder="거절 사유 (신청자가 로그인 시 확인합니다)"
-              className="w-full rounded-xl border border-gray-300 p-3 text-base focus:border-blue-500 focus:outline-none"
+              className="w-full rounded-xl border border-border p-3 text-base focus:border-brand-500 focus:outline-none"
             />
             <div className="flex gap-2">
               <button
@@ -241,7 +241,7 @@ export default function EditTechnicianPage({
                 type="button"
                 onClick={() => setRejecting(false)}
                 disabled={busy}
-                className="h-12 flex-1 rounded-2xl border border-gray-300 font-bold text-gray-600"
+                className="h-12 flex-1 rounded-2xl border border-border font-bold text-muted"
               >
                 취소
               </button>
@@ -249,7 +249,7 @@ export default function EditTechnicianPage({
           </div>
         )}
         {(detail.lat == null || detail.lng == null) && (
-          <p className="rounded-xl bg-blue-50 p-3 text-sm text-blue-700">
+          <p className="rounded-xl bg-brand-50 p-3 text-sm text-brand-700">
             좌표가 없어 거리순 정렬은 안 되지만, 서비스 지역이 설정돼 있으면 지역
             기준으로 자동배정됩니다. 정확한 거리 배정을 원하면 아래에서 좌표를 입력하세요.
           </p>

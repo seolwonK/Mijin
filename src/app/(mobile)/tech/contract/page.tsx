@@ -6,7 +6,7 @@ import { buttonClasses } from '@/components/Button';
 import SignaturePad from '@/components/SignaturePad';
 
 const inputClass =
-  'w-full rounded-xl border border-gray-300 p-3 text-base focus:border-blue-500 focus:outline-none';
+  'w-full rounded-xl border border-neutral-300 bg-white p-3 text-base text-fg placeholder:text-muted focus:border-brand-500 focus:ring-2 focus:ring-brand-500/15 focus:outline-none disabled:bg-neutral-100 disabled:text-muted';
 
 const EMPLOYMENT_LABEL: Record<string, string> = {
   DAILY: '일일 근로자',
@@ -59,8 +59,8 @@ function hoursText(c: Contract): string {
 function ReadOnlyRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex justify-between gap-4 py-1.5 text-sm">
-      <span className="shrink-0 text-gray-500">{label}</span>
-      <span className="text-right font-medium text-gray-800">{value}</span>
+      <span className="shrink-0 text-muted">{label}</span>
+      <span className="text-right font-medium text-fg">{value}</span>
     </div>
   );
 }
@@ -155,7 +155,7 @@ export default function TechContractPage() {
     );
   }
   if (!c) {
-    return <main className="p-6 text-center text-gray-400">불러오는 중…</main>;
+    return <main className="p-6 text-center text-neutral-400">불러오는 중…</main>;
   }
 
   const confirmed = c.status === 'CONFIRMED';
@@ -176,40 +176,40 @@ export default function TechContractPage() {
               <img
                 src={c.workerSignatureDataUrl}
                 alt="내 서명"
-                className="mt-2 h-16 rounded border border-gray-200 bg-white object-contain p-1"
+                className="mt-2 h-16 rounded border border-border bg-white object-contain p-1"
               />
             )}
-            <p className="mt-1 text-xs font-normal text-gray-500">
+            <p className="mt-1 text-xs font-normal text-muted">
               수정이 필요하면 관리자에게 문의해 주세요.
             </p>
           </div>
         ) : (
-          <p className="rounded-xl bg-blue-50 p-3 text-sm font-medium text-blue-700">
+          <p className="rounded-xl bg-brand-50 p-3 text-sm font-medium text-brand-700">
             아래 내용을 확인하고 서명하면 계약이 바로 완료됩니다.
           </p>
         )}
 
         {/* 근로형태 + 근무조건 (읽기전용, 서버 확정) */}
-        <section className="space-y-1 rounded-2xl border border-slate-200 bg-gray-50 p-4">
+        <section className="space-y-1 rounded-2xl border border-border bg-neutral-50 p-4">
           <div className="mb-1 flex items-center justify-between">
             <h2 className="text-sm font-semibold">근무 조건</h2>
-            <span className="rounded bg-gray-200 px-2 py-0.5 text-xs font-medium text-gray-700">
+            <span className="rounded bg-neutral-200 px-2 py-0.5 text-xs font-medium text-neutral-700">
               {EMPLOYMENT_LABEL[c.employmentType]}
             </span>
           </div>
           <ReadOnlyRow label="소정근로시간" value={hoursText(c)} />
           <ReadOnlyRow label="근무일" value={c.workDays} />
           {c.weeklyHoliday && <ReadOnlyRow label="주휴일" value={c.weeklyHoliday} />}
-          <p className="pt-1 text-xs text-gray-500">
+          <p className="pt-1 text-xs text-muted">
             근무 조건은 근로형태에 따라 자동 설정되며 수정할 수 없습니다.
           </p>
         </section>
 
         {/* 기술자 작성 항목 */}
-        <section className="space-y-3 md:rounded-2xl md:bg-white md:p-6 md:shadow-card">
+        <section className="space-y-3 md:rounded-2xl md:border md:border-border md:bg-white md:p-6 md:shadow-card">
           <h2 className="text-sm font-semibold">계약 내용</h2>
           <div>
-            <label className="mb-1 block text-xs text-gray-500">근로개시일</label>
+            <label className="mb-1 block text-xs text-muted">근로개시일</label>
             <input
               type="date"
               id="ct-start"
@@ -220,7 +220,7 @@ export default function TechContractPage() {
             />
           </div>
           <div>
-            <label className="mb-1 block text-xs text-gray-500">근무장소</label>
+            <label className="mb-1 block text-xs text-muted">근무장소</label>
             <input
               type="text"
               id="ct-loc"
@@ -232,7 +232,7 @@ export default function TechContractPage() {
             />
           </div>
           <div>
-            <label className="mb-1 block text-xs text-gray-500">업무의 내용</label>
+            <label className="mb-1 block text-xs text-muted">업무의 내용</label>
             <textarea
               id="ct-job"
               value={jobDescription}
@@ -244,10 +244,10 @@ export default function TechContractPage() {
           </div>
         </section>
 
-        <section className="space-y-3 md:rounded-2xl md:bg-white md:p-6 md:shadow-card">
+        <section className="space-y-3 md:rounded-2xl md:border md:border-border md:bg-white md:p-6 md:shadow-card">
           <h2 className="text-sm font-semibold">근로자(본인) 정보</h2>
           <div>
-            <label className="mb-1 block text-xs text-gray-500">성명</label>
+            <label className="mb-1 block text-xs text-muted">성명</label>
             <input
               type="text"
               id="ct-name"
@@ -258,7 +258,7 @@ export default function TechContractPage() {
             />
           </div>
           <div>
-            <label className="mb-1 block text-xs text-gray-500">주소</label>
+            <label className="mb-1 block text-xs text-muted">주소</label>
             <input
               type="text"
               id="ct-addr"
@@ -271,7 +271,7 @@ export default function TechContractPage() {
         </section>
 
         {/* 임금 (관리자 설정, 읽기전용) */}
-        <section className="space-y-1 rounded-2xl border border-slate-200 bg-gray-50 p-4">
+        <section className="space-y-1 rounded-2xl border border-border bg-neutral-50 p-4">
           <h2 className="mb-1 text-sm font-semibold">임금</h2>
           {c.wageAmount != null ? (
             <>
@@ -289,7 +289,7 @@ export default function TechContractPage() {
               관리자가 임금을 확정하면 서명할 수 있습니다.
             </p>
           )}
-          <p className="pt-1 text-xs text-gray-400">
+          <p className="pt-1 text-xs text-neutral-400">
             임금은 기본값으로 설정되어 바로 서명할 수 있으며, 이후 관리자가 실제
             조건으로 조정할 수 있습니다.
           </p>
@@ -297,14 +297,14 @@ export default function TechContractPage() {
 
         {/* 서명 → 계약 완료 */}
         {!confirmed && c.wageAmount != null && (
-          <section className="space-y-2 md:rounded-2xl md:bg-white md:p-6 md:shadow-card">
+          <section className="space-y-2 md:rounded-2xl md:border md:border-border md:bg-white md:p-6 md:shadow-card">
             <h2 className="text-sm font-semibold">근로자 서명</h2>
             <SignaturePad onChange={setSignature} />
           </section>
         )}
 
         {error && (
-          <p className="rounded-xl bg-red-50 p-3 text-sm font-medium text-red-600">
+          <p className="rounded-xl border border-red-100 bg-red-50 p-3 text-sm font-medium text-red-600">
             {error}
           </p>
         )}

@@ -6,7 +6,7 @@ import RegionMultiSelect from '@/components/RegionMultiSelect';
 import { buttonClasses } from '@/components/Button';
 
 const inputClass =
-  'w-full rounded-xl border border-gray-300 p-3 text-base focus:border-blue-500 focus:outline-none';
+  'w-full rounded-xl border border-neutral-300 bg-white p-3 text-base text-fg placeholder:text-muted focus:border-brand-500 focus:ring-2 focus:ring-brand-500/15 focus:outline-none';
 
 type Profile = {
   loginId: string;
@@ -28,8 +28,8 @@ const APPROVAL: Record<string, { label: string; className: string }> = {
 function InfoRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex justify-between gap-4 py-1.5 text-sm">
-      <span className="shrink-0 text-slate-500">{label}</span>
-      <span className="text-right font-medium text-slate-800">{value}</span>
+      <span className="shrink-0 text-muted">{label}</span>
+      <span className="text-right font-medium text-fg">{value}</span>
     </div>
   );
 }
@@ -107,7 +107,7 @@ export default function PartnerProfilePage() {
     return (
       <main className="min-h-screen">
         <PageHeader title="내 정보" back="/partner" />
-        <p className="p-6 text-center text-slate-400">불러오는 중…</p>
+        <p className="p-6 text-center text-muted">불러오는 중…</p>
       </main>
     );
   }
@@ -120,7 +120,7 @@ export default function PartnerProfilePage() {
 
       <form onSubmit={save} className="mx-auto w-full max-w-2xl space-y-5 p-4 pb-10 md:py-8">
         {/* 신원 정보 (읽기전용) */}
-        <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-card md:p-6">
+        <section className="rounded-2xl border border-border bg-white p-4 shadow-card md:p-6">
           <div className="mb-2 flex items-center justify-between">
             <h2 className="text-sm font-semibold">업체 정보</h2>
             <span className={`rounded-full px-2.5 py-0.5 text-xs font-bold ${status.className}`}>
@@ -130,16 +130,16 @@ export default function PartnerProfilePage() {
           <InfoRow label="업체명" value={p.name} />
           <InfoRow label="아이디" value={p.loginId} />
           {p.bizRegNo && <InfoRow label="사업자등록번호" value={p.bizRegNo} />}
-          <p className="pt-1 text-xs text-slate-400">
+          <p className="pt-1 text-xs text-muted">
             업체명·아이디·사업자번호 변경은 관리자에게 문의해 주세요.
           </p>
         </section>
 
         {/* 편집 항목 */}
-        <section className="space-y-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-card md:p-6">
+        <section className="space-y-3 rounded-2xl border border-border bg-white p-4 shadow-card md:p-6">
           <h2 className="text-sm font-semibold">연락처 · 위치</h2>
           <div>
-            <label htmlFor="phone" className="mb-1 block text-xs font-medium text-slate-600">
+            <label htmlFor="phone" className="mb-1 block text-xs font-medium text-muted">
               전화번호
             </label>
             <input
@@ -153,7 +153,7 @@ export default function PartnerProfilePage() {
             />
           </div>
           <div>
-            <label htmlFor="address" className="mb-1 block text-xs font-medium text-slate-600">
+            <label htmlFor="address" className="mb-1 block text-xs font-medium text-muted">
               주소
             </label>
             <input
@@ -164,25 +164,25 @@ export default function PartnerProfilePage() {
               onChange={(e) => setAddress(e.target.value)}
               className={inputClass}
             />
-            <p className="mt-1 text-xs text-slate-400">
+            <p className="mt-1 text-xs text-muted">
               주소를 바꾸면 좌표가 다시 계산되어 배정 거리 산정에 반영됩니다.
             </p>
           </div>
         </section>
 
-        <section className="space-y-2 rounded-2xl border border-slate-200 bg-white p-4 shadow-card md:p-6">
+        <section className="space-y-2 rounded-2xl border border-border bg-white p-4 shadow-card md:p-6">
           <h2 className="text-sm font-semibold">서비스 가능 지역</h2>
-          <p className="text-xs text-slate-500">
+          <p className="text-xs text-muted">
             선택한 지역의 요청만 받습니다. 비워두면 전 지역을 받습니다.
           </p>
           <RegionMultiSelect value={regions} onChange={setRegions} />
         </section>
 
-        <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-card md:p-6">
+        <section className="rounded-2xl border border-border bg-white p-4 shadow-card md:p-6">
           <label className="flex items-center justify-between gap-4">
             <span>
               <span className="block text-sm font-semibold">영업 상태</span>
-              <span className="mt-0.5 block text-xs text-slate-500">
+              <span className="mt-0.5 block text-xs text-muted">
                 끄면 새 배정을 받지 않습니다(진행 중인 건은 유지).
               </span>
             </span>
@@ -192,7 +192,7 @@ export default function PartnerProfilePage() {
               aria-checked={isActive}
               onClick={() => setIsActive((v) => !v)}
               className={`relative h-7 w-12 shrink-0 rounded-full transition-colors ${
-                isActive ? 'bg-blue-600' : 'bg-gray-300'
+                isActive ? 'bg-brand-600' : 'bg-neutral-300'
               }`}
             >
               <span

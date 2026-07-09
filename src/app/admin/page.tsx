@@ -67,8 +67,8 @@ export default function AdminDashboardPage() {
 
   return (
     <main className="min-h-screen">
-      <div className="sticky top-0 z-20 bg-white/95 backdrop-blur">
-        <header className="border-b border-gray-100 p-4 pb-3">
+      <div className="sticky top-0 z-20 bg-surface/85 backdrop-blur">
+        <header className="border-b border-border p-4 pb-3">
           <div className="flex items-center justify-between">
             <h1 className="text-lg font-bold">관리자 대시보드</h1>
             <span className="md:hidden">
@@ -78,7 +78,7 @@ export default function AdminDashboardPage() {
           <div className="mt-3 flex flex-wrap gap-2 md:hidden">
             <Link
               href="/admin/providers"
-              className="relative rounded-xl border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-50 active:bg-gray-50"
+              className="relative rounded-xl border border-border bg-white px-4 py-2 text-sm font-semibold text-neutral-700 transition-colors hover:bg-neutral-50 active:bg-neutral-50"
             >
               업체 관리
               {pendingProviders > 0 && (
@@ -89,7 +89,7 @@ export default function AdminDashboardPage() {
             </Link>
             <Link
               href="/admin/technicians"
-              className="relative rounded-xl border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-50 active:bg-gray-50"
+              className="relative rounded-xl border border-border bg-white px-4 py-2 text-sm font-semibold text-neutral-700 transition-colors hover:bg-neutral-50 active:bg-neutral-50"
             >
               기술자 관리
               {pendingTechnicians > 0 && (
@@ -100,14 +100,14 @@ export default function AdminDashboardPage() {
             </Link>
             <Link
               href="/admin/settings"
-              className="rounded-xl border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-50 active:bg-gray-50"
+              className="rounded-xl border border-border bg-white px-4 py-2 text-sm font-semibold text-neutral-700 transition-colors hover:bg-neutral-50 active:bg-neutral-50"
             >
               설정
             </Link>
           </div>
         </header>
 
-        <div className="scrollbar-none flex gap-1 overflow-x-auto border-b border-slate-200 p-2">
+        <div className="scrollbar-none flex gap-1 overflow-x-auto border-b border-border p-2">
         {TABS.map((t) => {
           const count = t.statuses
             ? all.filter((r) => t.statuses!.includes(r.status)).length
@@ -118,7 +118,7 @@ export default function AdminDashboardPage() {
               type="button"
               onClick={() => setTab(t.key)}
               className={`whitespace-nowrap rounded-full px-3 py-1.5 text-sm font-medium ${
-                tab === t.key ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600'
+                tab === t.key ? 'bg-brand-600 text-white' : 'bg-neutral-100 text-neutral-600'
               }`}
             >
               {t.label} {count > 0 && count}
@@ -134,7 +134,7 @@ export default function AdminDashboardPage() {
             onChange={(e) => setQ(e.target.value)}
             placeholder="접수번호 · 이름 · 전화 · 내용 검색"
             aria-label="접수 검색"
-            className="w-full rounded-xl border border-gray-300 p-2.5 text-sm focus:border-blue-500 focus:outline-none"
+            className="w-full rounded-xl border border-border p-2.5 text-sm focus:border-brand-500 focus:outline-none"
           />
         </div>
       </div>
@@ -149,7 +149,7 @@ export default function AdminDashboardPage() {
           </div>
         )}
         {!loading && rows.length === 0 && (
-          <p className="rounded-xl bg-gray-50 p-6 text-center text-sm text-gray-500">
+          <p className="rounded-xl bg-neutral-50 p-6 text-center text-sm text-muted">
             해당하는 접수가 없습니다
           </p>
         )}
@@ -161,7 +161,7 @@ export default function AdminDashboardPage() {
             className={`block rounded-2xl border p-4 transition-shadow hover:shadow-card-hover ${
               r.needsAttention
                 ? 'border-red-400 bg-red-50'
-                : 'border-slate-200 bg-white'
+                : 'border-border bg-white'
             }`}
           >
             <div className="flex items-center justify-between">
@@ -170,20 +170,20 @@ export default function AdminDashboardPage() {
                 <UrgencyBadge urgency={r.urgency} />
                 <StatusBadge status={r.status} />
               </div>
-              <span className="text-xs text-gray-500">#{r.lookupCode}</span>
+              <span className="text-xs text-muted">#{r.lookupCode}</span>
             </div>
-            <p className="mt-2 line-clamp-2 text-sm text-gray-800">{r.description}</p>
-            <div className="mt-1 flex items-center justify-between text-xs text-gray-500">
+            <p className="mt-2 line-clamp-2 text-sm text-fg">{r.description}</p>
+            <div className="mt-1 flex items-center justify-between text-xs text-muted">
               <span>
                 {r.customerName} · {r.customerPhone}
               </span>
               <span>{new Date(r.createdAt).toLocaleString('ko-KR')}</span>
             </div>
             {r.assigneeName && (
-              <p className="mt-1 text-xs font-medium text-blue-600">
+              <p className="mt-1 text-xs font-medium text-brand-600">
                 → {r.assigneeName}
                 {r.assigneeKind === 'TECHNICIAN' && (
-                  <span className="ml-1 text-gray-500">(기술자)</span>
+                  <span className="ml-1 text-muted">(기술자)</span>
                 )}
               </p>
             )}
