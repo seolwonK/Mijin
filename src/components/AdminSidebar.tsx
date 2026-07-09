@@ -16,12 +16,15 @@ const NAV = [
 
 export default function AdminSidebar() {
   const pathname = usePathname();
+  // 로그인 화면(미인증)에서는 폴링하면 401 → usePolling이 window.location.reload()를
+  // 반복해 화면이 깜빡이고 입력 중 키보드가 닫힌다. 로그인 화면에선 폴링·렌더 모두 끈다.
+  const isLoginPage = pathname === '/admin/login';
   const { data: provData } = usePolling<{
     providers: { approvalStatus: string }[];
-  }>('/api/admin/providers', 30_000);
+  }>(isLoginPage ? null : '/api/admin/providers', 30_000);
   const { data: techData } = usePolling<{
     technicians: { approvalStatus: string }[];
-  }>('/api/admin/technicians', 30_000);
+  }>(isLoginPage ? null : '/api/admin/technicians', 30_000);
   const badge: Record<string, number> = {
     '/admin/providers': (provData?.providers ?? []).filter(
       (p) => p.approvalStatus === 'PENDING',
@@ -30,6 +33,8 @@ export default function AdminSidebar() {
       (t) => t.approvalStatus === 'PENDING',
     ).length,
   };
+
+  if (isLoginPage) return null;
 
   return (
     <aside className="sticky top-0 hidden h-screen w-56 shrink-0 flex-col border-r border-gray-200 bg-white md:flex">
