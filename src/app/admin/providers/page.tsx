@@ -2,7 +2,8 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import BackButton from '@/components/BackButton';
+import PageHeader from '@/components/PageHeader';
+import { buttonClasses } from '@/components/Button';
 import { usePolling } from '@/components/usePolling';
 import { CardSkeletonGrid } from '@/components/Skeleton';
 
@@ -66,16 +67,16 @@ export default function AdminProvidersPage() {
 
   return (
     <main className="min-h-screen">
-      <header className="sticky top-0 z-20 flex items-center gap-2 border-b border-gray-200 bg-white/95 px-4 py-2 backdrop-blur">
-        <BackButton fallback="/admin" />
-        <h1 className="text-lg font-bold">업체 관리</h1>
-        <Link
-          href="/admin/providers/new"
-          className="ml-auto rounded-lg bg-blue-600 px-3 py-2 text-sm font-bold text-white active:bg-blue-700"
-        >
-          + 직접 등록
-        </Link>
-      </header>
+      <PageHeader
+        title="업체 관리"
+        back="/admin"
+        width="max-w-none"
+        right={
+          <Link href="/admin/providers/new" className={buttonClasses('primary', 'sm')}>
+            + 직접 등록
+          </Link>
+        }
+      />
 
       <div className="space-y-6 p-4">
         {error && <p className="text-sm text-red-600">{error}</p>}
@@ -127,10 +128,10 @@ export default function AdminProvidersPage() {
             {approved.map((p) => (
               <div
                 key={p.id}
-                className={`relative rounded-2xl border p-4 transition-colors hover:border-blue-300 hover:shadow-sm ${
+                className={`relative rounded-2xl border p-4 transition-colors hover:border-blue-300 hover:shadow-card-hover ${
                   p.isActive
-                    ? 'border-gray-200 bg-white'
-                    : 'border-gray-200 bg-gray-50 opacity-70'
+                    ? 'border-slate-200 bg-white'
+                    : 'border-slate-200 bg-gray-50 opacity-70'
                 }`}
               >
                 <Link
@@ -170,7 +171,7 @@ export default function AdminProvidersPage() {
                 <Link
                   key={p.id}
                   href={`/admin/providers/${p.id}`}
-                  className="block rounded-2xl border border-gray-200 bg-gray-50 p-4"
+                  className="block rounded-2xl border border-slate-200 bg-gray-50 p-4"
                 >
                   <div className="flex items-center justify-between">
                     <span className="font-bold">{p.name}</span>

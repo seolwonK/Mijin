@@ -3,7 +3,7 @@
 import { use, useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import BackButton from '@/components/BackButton';
+import PageHeader from '@/components/PageHeader';
 import TechnicianForm, { type TechnicianFormValue } from '@/components/TechnicianForm';
 
 type TechnicianDetail = {
@@ -156,18 +156,20 @@ export default function EditTechnicianPage({
 
   return (
     <main className="min-h-screen">
-      <header className="sticky top-0 z-20 flex items-center gap-2 border-b border-gray-200 bg-white/95 px-4 py-2 backdrop-blur">
-        <BackButton fallback="/admin/technicians" />
-        <h1 className="text-lg font-bold">{detail.name}</h1>
-        <span
-          className={`ml-auto rounded-full px-2 py-0.5 text-xs font-bold ${badge.className}`}
-        >
-          {badge.label}
-        </span>
-      </header>
+      <PageHeader
+        title={detail.name}
+        back="/admin/technicians"
+        right={
+          <span
+            className={`rounded-full px-2 py-0.5 text-xs font-bold ${badge.className}`}
+          >
+            {badge.label}
+          </span>
+        }
+      />
 
       <section className="mx-auto max-w-2xl space-y-3 border-b border-gray-100 p-4">
-        <div className="rounded-2xl border border-gray-200 p-4 text-sm">
+        <div className="rounded-2xl border border-slate-200 p-4 text-sm">
           <p>
             근로형태: <span className="font-bold">{EMPLOYMENT_LABEL[detail.employmentType]}</span>
           </p>

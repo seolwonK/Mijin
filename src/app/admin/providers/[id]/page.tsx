@@ -2,7 +2,7 @@
 
 import { use, useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import BackButton from '@/components/BackButton';
+import PageHeader from '@/components/PageHeader';
 import ProviderForm, { type ProviderFormValue } from '@/components/ProviderForm';
 
 type ProviderDetail = {
@@ -145,19 +145,21 @@ export default function EditProviderPage({
 
   return (
     <main className="min-h-screen">
-      <header className="sticky top-0 z-20 flex items-center gap-2 border-b border-gray-200 bg-white/95 px-4 py-2 backdrop-blur">
-        <BackButton fallback="/admin/providers" />
-        <h1 className="text-lg font-bold">{detail.name}</h1>
-        <span
-          className={`ml-auto rounded-full px-2 py-0.5 text-xs font-bold ${badge.className}`}
-        >
-          {badge.label}
-        </span>
-      </header>
+      <PageHeader
+        title={detail.name}
+        back="/admin/providers"
+        right={
+          <span
+            className={`rounded-full px-2 py-0.5 text-xs font-bold ${badge.className}`}
+          >
+            {badge.label}
+          </span>
+        }
+      />
 
       <section className="mx-auto max-w-2xl space-y-3 border-b border-gray-100 p-4">
         <h2 className="text-sm font-semibold text-gray-500">사업자 인증</h2>
-        <div className="rounded-2xl border border-gray-200 p-4 text-sm">
+        <div className="rounded-2xl border border-slate-200 p-4 text-sm">
           <p>
             사업자등록번호:{' '}
             <span className="font-bold">{detail.bizRegNo ?? '미입력'}</span>
@@ -170,7 +172,7 @@ export default function EditProviderPage({
           )}
         </div>
         {detail.hasCert ? (
-          <div className="overflow-hidden rounded-2xl border border-gray-200">
+          <div className="overflow-hidden rounded-2xl border border-slate-200">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={`/api/admin/providers/${id}/cert`}

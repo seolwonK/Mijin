@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { buttonClasses } from '@/components/Button';
 
 export type TechnicianFormValue = {
   loginId: string;
@@ -87,6 +88,7 @@ export default function TechnicianForm({
           value={v.loginId}
           onChange={(e) => set('loginId', e.target.value)}
           placeholder="로그인 아이디"
+          aria-label="로그인 아이디"
           disabled={isEdit}
           className={`${inputClass} disabled:bg-gray-100 disabled:text-gray-500`}
         />
@@ -95,6 +97,7 @@ export default function TechnicianForm({
           value={v.password}
           onChange={(e) => set('password', e.target.value)}
           placeholder={isEdit ? '새 비밀번호 (변경 시에만 입력)' : '비밀번호 (8자 이상)'}
+          aria-label="비밀번호"
           className={inputClass}
         />
       </div>
@@ -126,6 +129,7 @@ export default function TechnicianForm({
           value={v.name}
           onChange={(e) => set('name', e.target.value)}
           placeholder="성명"
+          aria-label="성명"
           className={inputClass}
         />
         <input
@@ -133,6 +137,7 @@ export default function TechnicianForm({
           value={v.phone}
           onChange={(e) => set('phone', e.target.value)}
           placeholder="전화번호"
+          aria-label="전화번호"
           className={inputClass}
         />
       </div>
@@ -145,6 +150,7 @@ export default function TechnicianForm({
             value={v.address}
             onChange={(e) => set('address', e.target.value)}
             placeholder="주소"
+            aria-label="주소"
             className={inputClass}
           />
           <button
@@ -163,6 +169,7 @@ export default function TechnicianForm({
             value={v.lat}
             onChange={(e) => set('lat', e.target.value)}
             placeholder="위도 (예: 37.5006)"
+            aria-label="위도"
             className={inputClass}
           />
           <input
@@ -171,6 +178,7 @@ export default function TechnicianForm({
             value={v.lng}
             onChange={(e) => set('lng', e.target.value)}
             placeholder="경도 (예: 127.0364)"
+            aria-label="경도"
             className={inputClass}
           />
         </div>
@@ -183,6 +191,7 @@ export default function TechnicianForm({
           value={v.memo}
           onChange={(e) => set('memo', e.target.value)}
           placeholder="메모"
+          aria-label="메모"
           className={inputClass}
         />
       </div>
@@ -194,7 +203,7 @@ export default function TechnicianForm({
       <button
         type="submit"
         disabled={busy}
-        className="h-14 w-full rounded-2xl bg-blue-600 text-lg font-bold text-white disabled:opacity-60"
+        className={buttonClasses('primary', 'lg', 'w-full')}
       >
         {busy ? '저장 중…' : isEdit ? '수정 저장' : '기술자 등록'}
       </button>

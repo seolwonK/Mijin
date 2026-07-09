@@ -1,7 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import BackButton from '@/components/BackButton';
+import PageHeader from '@/components/PageHeader';
+import { buttonClasses } from '@/components/Button';
 import SignaturePad from '@/components/SignaturePad';
 
 const inputClass =
@@ -148,12 +149,7 @@ export default function TechContractPage() {
 
   return (
     <main className="min-h-screen">
-      <header className="sticky top-0 z-20 border-b border-gray-200 bg-white/95 backdrop-blur">
-        <div className="mx-auto flex w-full max-w-2xl items-center gap-2 px-4 py-2 md:py-3">
-          <BackButton fallback="/tech" />
-          <h1 className="text-lg font-bold">근로계약서 작성</h1>
-        </div>
-      </header>
+      <PageHeader title="근로계약서 작성" back="/tech" />
 
       <form
         onSubmit={submit}
@@ -181,7 +177,7 @@ export default function TechContractPage() {
         )}
 
         {/* 근로형태 + 근무조건 (읽기전용, 서버 확정) */}
-        <section className="space-y-1 rounded-2xl border border-gray-200 bg-gray-50 p-4">
+        <section className="space-y-1 rounded-2xl border border-slate-200 bg-gray-50 p-4">
           <div className="mb-1 flex items-center justify-between">
             <h2 className="text-sm font-semibold">근무 조건</h2>
             <span className="rounded bg-gray-200 px-2 py-0.5 text-xs font-medium text-gray-700">
@@ -197,7 +193,7 @@ export default function TechContractPage() {
         </section>
 
         {/* 기술자 작성 항목 */}
-        <section className="space-y-3 md:rounded-2xl md:bg-white md:p-6 md:shadow-sm">
+        <section className="space-y-3 md:rounded-2xl md:bg-white md:p-6 md:shadow-card">
           <h2 className="text-sm font-semibold">계약 내용</h2>
           <div>
             <label className="mb-1 block text-xs text-gray-500">근로개시일</label>
@@ -232,7 +228,7 @@ export default function TechContractPage() {
           </div>
         </section>
 
-        <section className="space-y-3 md:rounded-2xl md:bg-white md:p-6 md:shadow-sm">
+        <section className="space-y-3 md:rounded-2xl md:bg-white md:p-6 md:shadow-card">
           <h2 className="text-sm font-semibold">근로자(본인) 정보</h2>
           <div>
             <label className="mb-1 block text-xs text-gray-500">성명</label>
@@ -257,7 +253,7 @@ export default function TechContractPage() {
         </section>
 
         {/* 임금 (관리자 설정, 읽기전용) */}
-        <section className="space-y-1 rounded-2xl border border-gray-200 bg-gray-50 p-4">
+        <section className="space-y-1 rounded-2xl border border-slate-200 bg-gray-50 p-4">
           <h2 className="mb-1 text-sm font-semibold">임금</h2>
           {c.wageAmount != null ? (
             <>
@@ -283,7 +279,7 @@ export default function TechContractPage() {
 
         {/* 서명 → 계약 완료 */}
         {!confirmed && c.wageAmount != null && (
-          <section className="space-y-2 md:rounded-2xl md:bg-white md:p-6 md:shadow-sm">
+          <section className="space-y-2 md:rounded-2xl md:bg-white md:p-6 md:shadow-card">
             <h2 className="text-sm font-semibold">근로자 서명</h2>
             <SignaturePad onChange={setSignature} />
           </section>
@@ -307,7 +303,7 @@ export default function TechContractPage() {
               !workerSignatureName.trim() ||
               !workerAddress.trim()
             }
-            className="h-14 w-full rounded-2xl bg-blue-600 text-lg font-bold text-white transition-colors enabled:hover:bg-blue-700 disabled:opacity-50"
+            className={buttonClasses('primary', 'lg', 'w-full')}
           >
             {busy ? '처리 중…' : '서명하고 완료'}
           </button>

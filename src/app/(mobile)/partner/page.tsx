@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import PageHeader from '@/components/PageHeader';
 import { usePolling } from '@/components/usePolling';
 import { StatusBadge, UrgencyBadge } from '@/components/StatusBadge';
 import LogoutButton from '@/components/LogoutButton';
@@ -26,7 +27,7 @@ function JobCard({ job, highlight }: { job: Job; highlight?: boolean }) {
     <Link
       href={`/partner/jobs/${job.id}`}
       className={`block rounded-2xl border p-4 transition-shadow hover:shadow-md ${
-        highlight ? 'border-blue-400 bg-blue-50' : 'border-gray-200 bg-white'
+        highlight ? 'border-blue-400 bg-blue-50' : 'border-slate-200 bg-white'
       }`}
     >
       <div className="flex items-center justify-between">
@@ -66,12 +67,11 @@ export default function PartnerHomePage() {
 
   return (
     <main className="min-h-screen">
-      <header className="sticky top-0 z-20 border-b border-gray-200 bg-white/95 backdrop-blur">
-        <div className="mx-auto flex w-full max-w-5xl items-center justify-between p-4">
-          <h1 className="text-lg font-bold">업체 포털</h1>
-          <LogoutButton loginPath="/partner/login" />
-        </div>
-      </header>
+      <PageHeader
+        title="업체 포털"
+        width="max-w-5xl"
+        right={<LogoutButton loginPath="/partner/login" />}
+      />
 
       <div className="mx-auto w-full max-w-5xl space-y-6 p-4 md:space-y-8 md:py-8">
         {error && <p className="text-sm text-red-600">{error}</p>}

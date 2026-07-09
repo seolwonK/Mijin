@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePolling } from '@/components/usePolling';
 import { StatusBadge, UrgencyBadge } from '@/components/StatusBadge';
 import LogoutButton from '@/components/LogoutButton';
+import PageHeader from '@/components/PageHeader';
 import { Skeleton, CardSkeletonGrid } from '@/components/Skeleton';
 
 type Job = {
@@ -25,8 +26,8 @@ function JobCard({ job, highlight }: { job: Job; highlight?: boolean }) {
   return (
     <Link
       href={`/tech/jobs/${job.id}`}
-      className={`block rounded-2xl border p-4 transition-shadow hover:shadow-md ${
-        highlight ? 'border-blue-400 bg-blue-50' : 'border-gray-200 bg-white'
+      className={`block rounded-2xl border p-4 transition-shadow hover:shadow-card-hover ${
+        highlight ? 'border-blue-400 bg-blue-50' : 'border-slate-200 bg-white'
       }`}
     >
       <div className="flex items-center justify-between">
@@ -72,18 +73,17 @@ export default function TechHomePage() {
 
   return (
     <main className="min-h-screen">
-      <header className="sticky top-0 z-20 border-b border-gray-200 bg-white/95 backdrop-blur">
-        <div className="mx-auto flex w-full max-w-5xl items-center justify-between p-4">
-          <h1 className="text-lg font-bold">기술자 포털</h1>
-          <LogoutButton loginPath="/tech/login" />
-        </div>
-      </header>
+      <PageHeader
+        title="기술자 포털"
+        width="max-w-5xl"
+        right={<LogoutButton loginPath="/tech/login" />}
+      />
 
       <div className="mx-auto w-full max-w-5xl space-y-6 p-4 md:space-y-8 md:py-8">
         {error && <p className="text-sm text-red-600">{error}</p>}
 
         {contractLoading ? (
-          <div className="flex items-center justify-between rounded-2xl border border-gray-200 bg-gray-50 p-4">
+          <div className="flex items-center justify-between rounded-2xl border border-slate-200 bg-gray-50 p-4">
             <Skeleton className="h-5 w-40" />
             <Skeleton className="h-5 w-12" />
           </div>

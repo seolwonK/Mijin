@@ -2,7 +2,8 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import BackButton from '@/components/BackButton';
+import PageHeader from '@/components/PageHeader';
+import { buttonClasses } from '@/components/Button';
 import RegionSelect, { type RegionValue } from '@/components/RegionSelect';
 import RegionMultiSelect from '@/components/RegionMultiSelect';
 import { hasSigungu } from '@/lib/regions';
@@ -67,7 +68,7 @@ export default function PartnerSignupPage() {
   if (done) {
     return (
       <main className="flex min-h-screen flex-col items-center justify-center p-6">
-        <div className="flex w-full flex-col items-center gap-5 text-center md:max-w-lg md:rounded-3xl md:bg-white md:p-12 md:shadow-sm">
+        <div className="flex w-full flex-col items-center gap-5 text-center md:max-w-lg md:rounded-3xl md:bg-white md:p-12 md:shadow-card">
           <div className="text-6xl">📨</div>
           <h1 className="text-2xl font-bold">가입 신청이 접수되었습니다</h1>
           <p className="text-gray-500">
@@ -90,18 +91,13 @@ export default function PartnerSignupPage() {
 
   return (
     <main className="min-h-screen">
-      <header className="sticky top-0 z-20 border-b border-gray-200 bg-white/95 backdrop-blur">
-        <div className="mx-auto flex w-full max-w-2xl items-center gap-2 px-4 py-2 md:py-3">
-          <BackButton fallback="/partner/login" />
-          <h1 className="text-lg font-bold">업체 가입 신청</h1>
-        </div>
-      </header>
+      <PageHeader title="업체 가입 신청" back="/partner/login" width="max-w-2xl" />
 
       <form
         onSubmit={submit}
         className="mx-auto w-full max-w-2xl space-y-5 p-4 pb-10 md:py-8 md:pb-16"
       >
-        <section className="space-y-2 md:rounded-2xl md:bg-white md:p-6 md:shadow-sm">
+        <section className="space-y-2 md:rounded-2xl md:bg-white md:p-6 md:shadow-card">
           <h2 className="text-sm font-semibold">계정 정보</h2>
           <input
             type="text"
@@ -123,7 +119,7 @@ export default function PartnerSignupPage() {
           />
         </section>
 
-        <section className="space-y-2 md:rounded-2xl md:bg-white md:p-6 md:shadow-sm">
+        <section className="space-y-2 md:rounded-2xl md:bg-white md:p-6 md:shadow-card">
           <h2 className="text-sm font-semibold">업체 정보</h2>
           <input
             type="text"
@@ -155,7 +151,7 @@ export default function PartnerSignupPage() {
           />
         </section>
 
-        <section className="space-y-2 md:rounded-2xl md:bg-white md:p-6 md:shadow-sm">
+        <section className="space-y-2 md:rounded-2xl md:bg-white md:p-6 md:shadow-card">
           <h2 className="text-sm font-semibold">서비스 가능 지역</h2>
           <p className="text-xs text-gray-500">
             출동 가능한 지역을 여러 곳 선택할 수 있습니다. 선택한 지역의 요청만
@@ -164,7 +160,7 @@ export default function PartnerSignupPage() {
           <RegionMultiSelect value={regions} onChange={setRegions} />
         </section>
 
-        <section className="space-y-2 md:rounded-2xl md:bg-white md:p-6 md:shadow-sm">
+        <section className="space-y-2 md:rounded-2xl md:bg-white md:p-6 md:shadow-card">
           <h2 className="text-sm font-semibold">사업자 인증</h2>
           <input
             type="text"
@@ -226,7 +222,7 @@ export default function PartnerSignupPage() {
             !addrDetail.trim() ||
             !bizRegNo
           }
-          className="h-14 w-full rounded-2xl bg-blue-600 text-lg font-bold text-white transition-colors enabled:hover:bg-blue-700 disabled:opacity-50"
+          className={buttonClasses('primary', 'lg', 'w-full')}
         >
           {busy ? '신청 중…' : '가입 신청하기'}
         </button>

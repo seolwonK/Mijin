@@ -1,7 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import BackButton from '@/components/BackButton';
+import PageHeader from '@/components/PageHeader';
+import { buttonClasses } from '@/components/Button';
 
 type Settings = {
   autoAssignEnabled: boolean;
@@ -89,13 +90,10 @@ export default function AdminSettingsPage() {
 
   return (
     <main className="min-h-screen">
-      <header className="sticky top-0 z-20 flex items-center gap-2 border-b border-gray-200 bg-white/95 px-4 py-2 backdrop-blur">
-        <BackButton fallback="/admin" />
-        <h1 className="text-lg font-bold">설정</h1>
-      </header>
+      <PageHeader title="설정" back="/admin" />
 
       <div className="mx-auto max-w-2xl space-y-6 p-4">
-        <section className="rounded-2xl border border-gray-200 p-4">
+        <section className="rounded-2xl border border-slate-200 p-4">
           <div className="flex items-center justify-between">
             <div>
               <p className="font-bold">자동배정 사용</p>
@@ -123,7 +121,7 @@ export default function AdminSettingsPage() {
           </div>
         </section>
 
-        <section className="rounded-2xl border border-gray-200 p-4">
+        <section className="rounded-2xl border border-slate-200 p-4">
           <p className="mb-3 font-bold">긴급도별 자동배정 대기시간 (분)</p>
           <div className="space-y-3">
             {rows.map((row) => (
@@ -144,6 +142,7 @@ export default function AdminSettingsPage() {
                     onChange={(e) =>
                       setSettings({ ...settings, [row.key]: Number(e.target.value) })
                     }
+                    aria-label={`${row.label} 자동배정 대기시간(분)`}
                     className={inputClass}
                   />
                   <span className="text-sm text-gray-500">분</span>
@@ -153,7 +152,7 @@ export default function AdminSettingsPage() {
           </div>
         </section>
 
-        <section className="rounded-2xl border border-gray-200 p-4">
+        <section className="rounded-2xl border border-slate-200 p-4">
           <p className="mb-1 font-bold">근로계약서 사업주(고용주) 정보</p>
           <p className="mb-3 text-sm text-gray-500">
             개인기술자 근로계약서에 자동 기입됩니다.
@@ -166,6 +165,7 @@ export default function AdminSettingsPage() {
                 value={settings.employerName ?? ''}
                 onChange={(e) => setSettings({ ...settings, employerName: e.target.value })}
                 placeholder="미진전기"
+                aria-label="사업체명"
                 className="w-full rounded-xl border border-gray-300 p-3 text-base focus:border-blue-500 focus:outline-none"
               />
             </div>
@@ -175,6 +175,7 @@ export default function AdminSettingsPage() {
                 type="text"
                 value={settings.employerCeo ?? ''}
                 onChange={(e) => setSettings({ ...settings, employerCeo: e.target.value })}
+                aria-label="대표자"
                 className="w-full rounded-xl border border-gray-300 p-3 text-base focus:border-blue-500 focus:outline-none"
               />
             </div>
@@ -186,6 +187,7 @@ export default function AdminSettingsPage() {
                 onChange={(e) =>
                   setSettings({ ...settings, employerAddress: e.target.value })
                 }
+                aria-label="주소"
                 className="w-full rounded-xl border border-gray-300 p-3 text-base focus:border-blue-500 focus:outline-none"
               />
             </div>
@@ -198,6 +200,7 @@ export default function AdminSettingsPage() {
                   onChange={(e) =>
                     setSettings({ ...settings, employerPhone: e.target.value })
                   }
+                  aria-label="전화"
                   className="w-full rounded-xl border border-gray-300 p-3 text-base focus:border-blue-500 focus:outline-none"
                 />
               </div>
@@ -209,6 +212,7 @@ export default function AdminSettingsPage() {
                   onChange={(e) =>
                     setSettings({ ...settings, employerBizRegNo: e.target.value })
                   }
+                  aria-label="사업자등록번호"
                   className="w-full rounded-xl border border-gray-300 p-3 text-base focus:border-blue-500 focus:outline-none"
                 />
               </div>
@@ -216,7 +220,7 @@ export default function AdminSettingsPage() {
           </div>
         </section>
 
-        <section className="rounded-2xl border border-gray-200 p-4">
+        <section className="rounded-2xl border border-slate-200 p-4">
           <p className="mb-1 font-bold">근로계약서 기본값</p>
           <p className="mb-3 text-sm text-gray-500">
             계약서 생성 시 자동 기입됩니다. 비워두면 계약서에 &ldquo;추후 협의&rdquo;로
@@ -238,6 +242,7 @@ export default function AdminSettingsPage() {
                       defaultDailyWage: e.target.value ? Number(e.target.value) : null,
                     })
                   }
+                  aria-label="일용 기본 일급 (원)"
                   className="w-full rounded-xl border border-gray-300 p-3 text-base focus:border-blue-500 focus:outline-none"
                 />
               </div>
@@ -255,6 +260,7 @@ export default function AdminSettingsPage() {
                       defaultMonthlyWage: e.target.value ? Number(e.target.value) : null,
                     })
                   }
+                  aria-label="상시 기본 월급 (원)"
                   className="w-full rounded-xl border border-gray-300 p-3 text-base focus:border-blue-500 focus:outline-none"
                 />
               </div>
@@ -268,6 +274,7 @@ export default function AdminSettingsPage() {
                   setSettings({ ...settings, defaultPayDate: e.target.value })
                 }
                 placeholder="예: 매월 25일"
+                aria-label="임금지급일"
                 className="w-full rounded-xl border border-gray-300 p-3 text-base focus:border-blue-500 focus:outline-none"
               />
             </div>
@@ -366,7 +373,7 @@ export default function AdminSettingsPage() {
           type="button"
           onClick={save}
           disabled={busy}
-          className="h-14 w-full rounded-2xl bg-blue-600 text-lg font-bold text-white disabled:opacity-60"
+          className={buttonClasses('primary', 'lg', 'w-full')}
         >
           {busy ? '저장 중…' : '저장'}
         </button>

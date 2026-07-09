@@ -1,7 +1,7 @@
 'use client';
 
 import { use, useState } from 'react';
-import BackButton from '@/components/BackButton';
+import PageHeader from '@/components/PageHeader';
 import { usePolling } from '@/components/usePolling';
 import { StatusBadge, UrgencyBadge } from '@/components/StatusBadge';
 import { Skeleton, CardSkeleton } from '@/components/Skeleton';
@@ -75,12 +75,7 @@ export default function TechJobDetailPage({
   if (error || !job) {
     return (
       <main className="min-h-screen">
-        <header className="sticky top-0 z-20 border-b border-gray-200 bg-white/95 backdrop-blur">
-          <div className="mx-auto flex w-full max-w-3xl items-center gap-2 px-4 py-2 md:py-3">
-            <BackButton fallback="/tech" />
-            <h1 className="text-lg font-bold">배정 상세</h1>
-          </div>
-        </header>
+        <PageHeader title="배정 상세" back="/tech" width="max-w-3xl" />
         <div className="mx-auto w-full max-w-3xl space-y-4 p-4 md:py-8">
           {error ? (
             <p role="alert" className="rounded-xl bg-red-50 p-4 text-sm font-medium text-red-600">
@@ -105,12 +100,7 @@ export default function TechJobDetailPage({
 
   return (
     <main className="min-h-screen pb-40 md:pb-16">
-      <header className="sticky top-0 z-20 border-b border-gray-200 bg-white/95 backdrop-blur">
-        <div className="mx-auto flex w-full max-w-3xl items-center gap-2 px-4 py-2 md:py-3">
-          <BackButton fallback="/tech" />
-          <h1 className="text-lg font-bold">배정 상세</h1>
-        </div>
-      </header>
+      <PageHeader title="배정 상세" back="/tech" width="max-w-3xl" />
 
       <div className="mx-auto w-full max-w-3xl space-y-4 p-4 md:grid md:grid-cols-2 md:items-start md:gap-4 md:space-y-0 md:py-8">
         <div className="flex items-center gap-1 md:col-span-2">
@@ -123,7 +113,7 @@ export default function TechJobDetailPage({
           )}
         </div>
 
-        <section className="rounded-2xl border border-gray-200 bg-white p-4 md:col-span-2 md:p-5">
+        <section className="rounded-2xl border border-slate-200 bg-white p-4 md:col-span-2 md:p-5">
           <h2 className="mb-1 text-sm text-gray-500">고장 내용</h2>
           <p className="whitespace-pre-wrap">{r.description}</p>
           <p className="mt-2 text-xs text-gray-400">
@@ -131,7 +121,7 @@ export default function TechJobDetailPage({
           </p>
         </section>
 
-        <section className="rounded-2xl border border-gray-200 bg-white p-4 md:p-5">
+        <section className="rounded-2xl border border-slate-200 bg-white p-4 md:p-5">
           <h2 className="mb-1 text-sm text-gray-500">위치</h2>
           <p>{r.address ?? '주소 미확인'}</p>
           {r.lat != null && r.lng != null && (
@@ -146,7 +136,7 @@ export default function TechJobDetailPage({
           )}
         </section>
 
-        <section className="rounded-2xl border border-gray-200 bg-white p-4 md:p-5">
+        <section className="rounded-2xl border border-slate-200 bg-white p-4 md:p-5">
           <h2 className="mb-1 text-sm text-gray-500">고객</h2>
           <div className="flex items-center justify-between">
             <span className="font-bold">{r.customerName}</span>
@@ -177,7 +167,7 @@ export default function TechJobDetailPage({
       </div>
 
       {(canRespond || canDispatch || canComplete) && (
-        <div className="fixed bottom-0 left-1/2 w-full max-w-md -translate-x-1/2 space-y-2 border-t border-gray-200 bg-white px-4 pt-4 pb-[calc(1rem+env(safe-area-inset-bottom))] md:static md:left-auto md:mx-auto md:max-w-3xl md:translate-x-0 md:border-t-0 md:bg-transparent md:px-4 md:pt-2 md:pb-0">
+        <div className="fixed bottom-0 left-1/2 w-full max-w-md -translate-x-1/2 space-y-2 border-t border-slate-200 bg-white px-4 pt-4 pb-[calc(1rem+env(safe-area-inset-bottom))] md:static md:left-auto md:mx-auto md:max-w-3xl md:translate-x-0 md:border-t-0 md:bg-transparent md:px-4 md:pt-2 md:pb-0">
           {canRespond && !rejecting && (
             <div className="flex gap-2">
               <button

@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import BackButton from '@/components/BackButton';
+import PageHeader from '@/components/PageHeader';
 import TechnicianForm, { type TechnicianFormValue } from '@/components/TechnicianForm';
 
 export default function NewTechnicianPage() {
@@ -50,10 +50,7 @@ export default function NewTechnicianPage() {
 
   return (
     <main className="min-h-screen">
-      <header className="sticky top-0 z-20 flex items-center gap-2 border-b border-gray-200 bg-white/95 px-4 py-2 backdrop-blur">
-        <BackButton fallback="/admin/technicians" />
-        <h1 className="text-lg font-bold">개인기술자 직접 등록</h1>
-      </header>
+      <PageHeader title="개인기술자 직접 등록" back="/admin/technicians" />
 
       <TechnicianForm
         initial={{

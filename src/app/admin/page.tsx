@@ -107,7 +107,7 @@ export default function AdminDashboardPage() {
           </div>
         </header>
 
-        <div className="scrollbar-none flex gap-1 overflow-x-auto border-b border-gray-200 p-2">
+        <div className="scrollbar-none flex gap-1 overflow-x-auto border-b border-slate-200 p-2">
         {TABS.map((t) => {
           const count = t.statuses
             ? all.filter((r) => t.statuses!.includes(r.status)).length
@@ -158,10 +158,10 @@ export default function AdminDashboardPage() {
           <Link
             key={r.id}
             href={`/admin/requests/${r.id}`}
-            className={`block rounded-2xl border p-4 transition-shadow hover:shadow-md ${
+            className={`block rounded-2xl border p-4 transition-shadow hover:shadow-card-hover ${
               r.needsAttention
                 ? 'border-red-400 bg-red-50'
-                : 'border-gray-200 bg-white'
+                : 'border-slate-200 bg-white'
             }`}
           >
             <div className="flex items-center justify-between">
