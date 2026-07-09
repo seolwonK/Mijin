@@ -43,20 +43,6 @@
   --color-muted: var(--color-neutral-500);
   --color-border: var(--color-neutral-200);
 
-  /* 임시 마이그레이션 브리지 — TODO(remove-alias): Phase C4에서 `grep -rEn "blue-[0-9]|#2563eb" src/`
-     가 0을 반환하도록 전부 시맨틱 토큰으로 옮긴 뒤 이 블록을 삭제할 것
-     (.omc/plans/design-refactor-flow-simplify.md §4 B3/C4, R3). 아직 손대지 못한 raw blue-*
-     유틸(코드베이스 실사용 shade: 50~800, 139건)이 롤아웃 중에도 새 브랜드 톤으로 렌더링되게 한다. */
-  --color-blue-50: var(--color-brand-50);
-  --color-blue-100: var(--color-brand-100);
-  --color-blue-200: var(--color-brand-200);
-  --color-blue-300: var(--color-brand-300);
-  --color-blue-400: var(--color-brand-400);
-  --color-blue-500: var(--color-brand-500);
-  --color-blue-600: var(--color-brand-600);
-  --color-blue-700: var(--color-brand-700);
-  --color-blue-800: var(--color-brand-800);
-
   /* 라디우스 — 코너 언어를 한 단계 절제(소비자앱풍 → 전문 툴풍, `/admin` 밀도 테이블 개선 효과 겸함).
      기존 rounded-xl/2xl/3xl 리터럴은 코드 수정 없이 이 값을 그대로 상속한다(B1 실증 확인).
      rounded-full(배지/아바타 pill)은 대상 아님 — 그대로 유지. */

@@ -237,7 +237,7 @@ export default function SpeechInput({
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder ?? '예) 안방 콘센트에서 타는 냄새가 나고 전기가 나갔어요'}
         rows={4}
-        className="w-full rounded-xl border border-gray-300 p-3 text-base focus:border-blue-500 focus:outline-none"
+        className="w-full rounded-xl border border-neutral-300 p-3 text-base focus:border-brand-500 focus:outline-none"
       />
       {voiceAvailable && (
         <button
@@ -247,7 +247,7 @@ export default function SpeechInput({
           className={`mt-2 flex w-full items-center justify-center gap-2 rounded-xl border p-3 text-base font-medium disabled:opacity-60 ${
             listening
               ? 'animate-pulse border-red-300 bg-red-50 text-red-600'
-              : 'border-gray-300 bg-white text-gray-700'
+              : 'border-neutral-300 bg-white text-neutral-700'
           }`}
         >
           {preparing
@@ -260,19 +260,19 @@ export default function SpeechInput({
         </button>
       )}
       {voiceBlocked && (
-        <p className="mt-2 text-xs text-gray-500">
+        <p className="mt-2 text-xs text-neutral-500">
           아이폰·아이패드에서는 <b className="font-semibold">Safari</b>에서만 음성 입력이 됩니다.
           Safari로 열거나 위 칸에 직접 입력해 주세요.
         </p>
       )}
       {listening && recSupported && (
-        <p className="mt-1 text-xs text-gray-400">
+        <p className="mt-1 text-xs text-neutral-400">
           말씀이 끝나면 종료를 눌러 주세요. 녹음본이 접수와 함께 전달됩니다.
         </p>
       )}
       {micError && <p className="mt-1 text-xs text-red-500">{micError}</p>}
       {voice && previewUrl && !listening && (
-        <div className="mt-2 flex items-center gap-2 rounded-xl border border-gray-200 bg-gray-50 p-2">
+        <div className="mt-2 flex items-center gap-2 rounded-xl border border-neutral-200 bg-neutral-50 p-2">
           <audio controls src={previewUrl} className="h-10 min-w-0 flex-1" />
           <button
             type="button"
