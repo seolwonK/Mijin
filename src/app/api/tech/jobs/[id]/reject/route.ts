@@ -49,6 +49,7 @@ export async function POST(
     const candidates = (await getCandidates(a.request)).filter(
       (c) =>
         !c.rejectedThisRequest &&
+        c.coversRegion &&
         !(c.kind === 'TECHNICIAN' && c.id === a.technicianId) &&
         c.distanceKm != null,
     );

@@ -13,7 +13,7 @@ export async function GET(
   const { id } = await params;
   const request = await prisma.serviceRequest.findUnique({
     where: { id },
-    select: { id: true, lat: true, lng: true },
+    select: { id: true, lat: true, lng: true, address: true },
   });
   if (!request) {
     return NextResponse.json({ error: '접수를 찾을 수 없습니다' }, { status: 404 });

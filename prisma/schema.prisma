@@ -95,6 +95,7 @@ model Provider {
   lng            Float?
   isActive       Boolean          @default(true) // 비활성 업체는 배정 제외 (승인된 업체의 영업 on/off)
   memo           String?
+  regions        String[]         @default([]) // 서비스 가능 지역 키 목록 ("시도"/"시도 구"). 빈 배열 = 전 지역
   bizRegNo       String?          @unique // 사업자등록번호 (숫자 10자리)
   bizCertPath    String? // (레거시) 파일시스템 저장 경로 — 신규 가입은 bizCertFileId 사용
   bizCertFileId  String? // 사업자등록증 StoredFile id (DB 저장, 관리자만 열람)
@@ -115,6 +116,7 @@ model Technician {
   lng            Float?
   isActive       Boolean             @default(true) // 비활성 기술자는 배정 제외
   memo           String?
+  regions        String[]            @default([]) // 서비스 가능 지역 키 목록 ("시도"/"시도 구"). 빈 배열 = 전 지역
   employmentType EmploymentType // 일일(DAILY) / 상시(PERMANENT)
   approvalStatus ProviderApproval    @default(PENDING) // 업체와 동일한 승인 흐름 재사용
   rejectReason   String?

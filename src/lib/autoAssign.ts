@@ -36,9 +36,9 @@ export async function runAutoAssign(): Promise<{ assigned: number }> {
       continue;
     }
 
-    // 좌표 미등록 대상(distanceKm null)은 "가장 가까운 대상" 판단이 불가하므로 자동배정에서 제외
+    // 담당 지역이 아니거나(coversRegion=false), 좌표 미등록(distanceKm null)인 대상은 자동배정 제외
     const candidates = (await getCandidates(req)).filter(
-      (c) => !c.rejectedThisRequest && c.distanceKm != null,
+      (c) => !c.rejectedThisRequest && c.coversRegion && c.distanceKm != null,
     );
     const best = candidates[0];
     if (!best) {

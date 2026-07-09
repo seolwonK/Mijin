@@ -63,3 +63,81 @@ export const REGIONS: Record<string, string[]> = {
 export function hasSigungu(sido: string): boolean {
   return (REGIONS[sido]?.length ?? 0) > 0;
 }
+
+// ── 커버 지역(서비스 가능 지역) 키 ──────────────────────────────────────
+// 업체/기술자가 여러 지역을 선택해 저장할 때 쓰는 문자열 키.
+//   "서울특별시 강남구" = 특정 시/군/구,  "서울특별시" = 해당 시/도 전체.
+// 시/도·시/군/구 모두 공백을 포함하지 않으므로 첫 공백으로 안전하게 분리된다.
+
+export function regionKey(sido: string, sigungu: string): string {
+  return sigungu ? `${sido} ${sigungu}` : sido;
+}
+
+export function parseRegionKey(key: string): { sido: string; sigungu: string } {
+  const i = key.indexOf(' ');
+  return i === -1
+    ? { sido: key, sigungu: '' }
+    : { sido: key.slice(0, i), sigungu: key.slice(i + 1) };
+}
+
+// 키가 실제 존재하는 시/도(전체) 또는 시/도+시/군/구인지 검증
+export function isValidRegionKey(key: string): boolean {
+  const { sido, sigungu } = parseRegionKey(key);
+  const list = REGIONS[sido];
+  if (!list) return false;
+  return sigungu === '' || list.includes(sigungu);
+}
+
+// 화면 표시용 라벨 (시/도 전체는 "… 전체")
+export function regionLabel(key: string): string {
+  const { sido, sigungu } = parseRegionKey(key);
+  if (sigungu) return `${sido} ${sigungu}`;
+  return hasSigungu(sido) ? `${sido} 전체` : sido;
+}
+
+// 입력 배열에서 유효한 키만 남기고 중복 제거 (최대 개수 제한)
+export function sanitizeRegionKeys(input: unknown, max = 50): string[] {
+  if (!Array.isArray(input)) return [];
+  const out: string[] = [];
+  for (const v of input) {
+    if (typeof v !== 'string') continue;
+    const key = v.trim();
+    if (key && isValidRegionKey(key) && !out.includes(key)) out.push(key);
+    if (out.length >= max) break;
+  }
+  return out;
+}
+
+// 주소 문자열에서 시/도·시/군/구를 판별. 카카오 역지오코딩 주소는 풀네임
+// ("서울특별시 강남구 …")이라 풀 시/도명이 포함된 지역으로 한정해 시/군/구를 찾는다.
+// 판별 불가 시 null (호출부는 지역 필터를 적용하지 않고 거리만으로 처리).
+export function regionFromAddress(
+  address: string | null | undefined,
+): { sido: string; sigungu: string } | null {
+  if (!address) return null;
+  for (const [sido, sigungus] of Object.entries(REGIONS)) {
+    if (!address.includes(sido)) continue;
+    for (const g of sigungus) {
+      if (address.includes(g)) return { sido, sigungu: g };
+    }
+    return { sido, sigungu: '' }; // 시/도만 확인됨
+  }
+  return null;
+}
+
+// 커버 지역 목록이 특정 요청 지역을 포함하는지.
+//   - 빈 목록      = 전 지역 담당 (하위호환)
+//   - 지역 판별불가 = 필터 불가 → 담당으로 간주 (배차를 막지 않음)
+//   - "시/도"      = 그 시/도의 모든 시/군/구 담당
+//   - "시/도 구"   = 해당 시/군/구만 담당
+export function coversRegion(
+  regions: string[],
+  reqRegion: { sido: string; sigungu: string } | null,
+): boolean {
+  if (regions.length === 0) return true;
+  if (!reqRegion) return true;
+  if (regions.includes(reqRegion.sido)) return true;
+  if (reqRegion.sigungu && regions.includes(`${reqRegion.sido} ${reqRegion.sigungu}`))
+    return true;
+  return false;
+}

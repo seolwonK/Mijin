@@ -3,6 +3,7 @@ import bcrypt from 'bcryptjs';
 import { z } from 'zod';
 import { prisma } from '@/lib/db';
 import { requireSession } from '@/lib/auth';
+import { sanitizeRegionKeys } from '@/lib/regions';
 
 const patchSchema = z.object({
   name: z.string().trim().min(1).max(50).optional(),
@@ -16,6 +17,7 @@ const patchSchema = z.object({
   lng: z.number().min(-180).max(180).nullable().optional(),
   isActive: z.boolean().optional(),
   memo: z.string().trim().max(500).nullable().optional(),
+  regions: z.array(z.string()).optional(),
   password: z.string().min(8, '비밀번호는 8자 이상').optional(),
 });
 
@@ -42,6 +44,7 @@ export async function GET(
     lng: p.lng,
     isActive: p.isActive,
     memo: p.memo,
+    regions: p.regions,
     approvalStatus: p.approvalStatus,
     bizRegNo: p.bizRegNo,
     hasCert: !!(p.bizCertFileId || p.bizCertPath),
@@ -84,6 +87,7 @@ export async function PATCH(
   if (data.lng !== undefined) providerData.lng = data.lng;
   if (data.isActive !== undefined) providerData.isActive = data.isActive;
   if (data.memo !== undefined) providerData.memo = data.memo;
+  if (data.regions !== undefined) providerData.regions = sanitizeRegionKeys(data.regions);
 
   const userData: Record<string, unknown> = {};
   if (data.name !== undefined) userData.name = data.name;

@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { prisma } from '@/lib/db';
 import { geocode } from '@/lib/geo/kakao';
 import { isValidBizRegNo, normalizeBizRegNo } from '@/lib/bizRegNo';
+import { sanitizeRegionKeys } from '@/lib/regions';
 
 // 업체 셀프 가입 신청. PENDING 상태로 생성되며 관리자 승인 후 이용 가능.
 // multipart/form-data: 텍스트 필드 + bizCert(사업자등록증 이미지/PDF)
@@ -122,6 +123,15 @@ export async function POST(req: NextRequest) {
   // 좌표는 지오코딩 시도만 (키 없거나 실패해도 신청은 진행 — 승인 시 관리자가 보완)
   const geo = await geocode(data.address);
 
+  // 서비스 가능 지역 (JSON 문자열로 전달, 유효 키만 저장). 비면 전 지역 담당.
+  let regions: string[] = [];
+  try {
+    const raw = form.get('regions');
+    if (typeof raw === 'string' && raw) regions = sanitizeRegionKeys(JSON.parse(raw));
+  } catch {
+    regions = [];
+  }
+
   const user = await prisma.user.create({
     data: {
       loginId: data.loginId,
@@ -134,6 +144,7 @@ export async function POST(req: NextRequest) {
           address: data.address,
           lat: geo?.lat ?? null,
           lng: geo?.lng ?? null,
+          regions,
           bizRegNo,
           approvalStatus: 'PENDING',
         },
