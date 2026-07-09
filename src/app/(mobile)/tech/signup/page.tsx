@@ -5,6 +5,7 @@ import Link from 'next/link';
 import BackButton from '@/components/BackButton';
 import RegionSelect, { type RegionValue } from '@/components/RegionSelect';
 import { hasSigungu } from '@/lib/regions';
+import { startIdentityVerification } from '@/lib/identity/client';
 
 const inputClass =
   'w-full rounded-xl border border-gray-300 p-3 text-base focus:border-blue-500 focus:outline-none';
@@ -28,6 +29,9 @@ export default function TechSignupPage() {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState(false);
+  // 휴대폰 본인인증 완료 시 발급받은 토큰. 이 값이 있어야 가입 가능하다.
+  const [verificationId, setVerificationId] = useState<string | null>(null);
+  const [verifying, setVerifying] = useState(false);
 
   // 지역 선택 + 상세 주소를 합쳐 하나의 주소로 (지오코딩·거리계산에 사용)
   const regionComplete =
@@ -36,9 +40,46 @@ export default function TechSignupPage() {
     .filter(Boolean)
     .join(' ');
 
+  // 휴대폰 본인인증 시작 → 서버 검증 → verificationId 확보.
+  // mock 환경에서는 입력한 이름/번호가 그대로 인증되고, portone 환경에서는 PASS 팝업이 뜬다.
+  async function verifyPhone() {
+    setError(null);
+    if (!name.trim()) return setError('성명을 입력해 주세요');
+    if (!phone.trim()) return setError('전화번호를 입력해 주세요');
+
+    setVerifying(true);
+    try {
+      const raw = await startIdentityVerification({ name, phone });
+      const res = await fetch('/api/identity/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(raw),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error ?? '본인인증에 실패했습니다');
+        return;
+      }
+      // 대행사가 검증한 실명·번호로 확정하고 입력칸을 잠근다.
+      setName(data.name);
+      setPhone(data.phone);
+      setVerificationId(data.verificationId);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : '본인인증에 실패했습니다');
+    } finally {
+      setVerifying(false);
+    }
+  }
+
+  // 본인인증을 다시 하려면 잠금을 풀고 토큰을 버린다.
+  function resetVerification() {
+    setVerificationId(null);
+  }
+
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
+    if (!verificationId) return setError('휴대폰 본인인증을 완료해 주세요');
     if (!employmentType) return setError('근로 형태를 선택해 주세요');
     if (!regionComplete) return setError('거주 지역을 선택해 주세요');
     if (!agreed) return setError('개인정보 수집·이용에 동의해 주세요');
@@ -55,6 +96,7 @@ export default function TechSignupPage() {
           phone,
           address: fullAddress,
           employmentType,
+          verificationId,
         }),
       });
       const data = await res.json();
@@ -156,17 +198,48 @@ export default function TechSignupPage() {
             onChange={(e) => setName(e.target.value)}
             placeholder="성명"
             autoComplete="name"
-            className={inputClass}
+            readOnly={!!verificationId}
+            className={`${inputClass} ${verificationId ? 'bg-gray-100 text-gray-500' : ''}`}
           />
-          <input
-            type="tel"
-            inputMode="tel"
-            autoComplete="tel"
-            value={phone}
-            onChange={(e) => setPhone(e.target.value)}
-            placeholder="전화번호 (배정 안내 문자 수신)"
-            className={inputClass}
-          />
+          <div className="flex gap-2">
+            <input
+              type="tel"
+              inputMode="tel"
+              autoComplete="tel"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              placeholder="전화번호 (본인인증 후 배정 안내 문자 수신)"
+              readOnly={!!verificationId}
+              className={`${inputClass} flex-1 ${verificationId ? 'bg-gray-100 text-gray-500' : ''}`}
+            />
+            {verificationId ? (
+              <button
+                type="button"
+                onClick={resetVerification}
+                className="shrink-0 rounded-xl border border-gray-300 px-4 text-sm font-semibold text-gray-600"
+              >
+                변경
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={verifyPhone}
+                disabled={verifying || !name.trim() || !phone.trim()}
+                className="shrink-0 rounded-xl bg-gray-900 px-4 text-sm font-bold text-white transition-colors enabled:hover:bg-black disabled:opacity-50"
+              >
+                {verifying ? '인증 중…' : '본인인증'}
+              </button>
+            )}
+          </div>
+          {verificationId ? (
+            <p className="flex items-center gap-1 text-sm font-medium text-green-600">
+              ✅ 휴대폰 본인인증 완료
+            </p>
+          ) : (
+            <p className="text-xs text-gray-400">
+              성명·전화번호 입력 후 <b>본인인증</b>을 완료해야 가입할 수 있습니다.
+            </p>
+          )}
           <RegionSelect value={region} onChange={setRegion} />
           <input
             type="text"
@@ -201,6 +274,7 @@ export default function TechSignupPage() {
           type="submit"
           disabled={
             busy ||
+            !verificationId ||
             !loginId ||
             !password ||
             !name ||

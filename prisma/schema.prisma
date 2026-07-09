@@ -276,3 +276,25 @@ model StoredFile {
   data      Bytes
   createdAt DateTime @default(now())
 }
+
+// 휴대폰 본인인증(PASS 등 통신사 본인확인) 완료 기록. 개인기술자 셀프 가입 게이트에 사용.
+// provider=mock(개발) | portone(실서비스). 발급된 id 를 10분 내 가입 요청에 동봉해야 하며,
+// 한 번 가입에 사용되면(consumedAt) 재사용 불가. name/phone 은 대행사가 검증한 실제 값.
+model IdentityVerification {
+  id          String    @id @default(cuid())
+  provider    String // "mock" | "portone"
+  providerRef String? // PortOne identityVerificationId 등 대행사측 식별자
+  name        String // 인증된 실명
+  phone       String // 숫자만 정규화 저장
+  birthDate   String? // "YYYY-MM-DD"
+  gender      String? // "MALE" | "FEMALE"
+  ci          String? // 연계정보(개인 고유) — 중복가입 방지 등에 활용
+  di          String? // 중복가입확인정보(사이트별)
+  verifiedAt  DateTime  @default(now())
+  expiresAt   DateTime // 이 시각까지 가입을 완료해야 유효
+  consumedAt  DateTime? // 가입에 사용된 시각 (재사용 방지)
+  createdAt   DateTime  @default(now())
+
+  @@index([phone])
+  @@index([ci])
+}
