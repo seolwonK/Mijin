@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import BackButton from '@/components/BackButton';
 import RegionSelect, { type RegionValue } from '@/components/RegionSelect';
+import RegionMultiSelect from '@/components/RegionMultiSelect';
 import { hasSigungu } from '@/lib/regions';
 import { startIdentityVerification } from '@/lib/identity/client';
 
@@ -25,6 +26,7 @@ export default function TechSignupPage() {
   const [employmentType, setEmploymentType] = useState<EmploymentType | null>(null);
   const [region, setRegion] = useState<RegionValue>({ sido: '', sigungu: '' });
   const [addrDetail, setAddrDetail] = useState('');
+  const [regions, setRegions] = useState<string[]>([]);
   const [agreed, setAgreed] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -96,6 +98,7 @@ export default function TechSignupPage() {
           phone,
           address: fullAddress,
           employmentType,
+          regions,
           verificationId,
         }),
       });
@@ -119,17 +122,20 @@ export default function TechSignupPage() {
           <div className="text-6xl">🎉</div>
           <h1 className="text-2xl font-bold">가입이 완료되었습니다</h1>
           <p className="text-gray-500">
-            바로 로그인할 수 있습니다.
+            자동으로 로그인되었습니다.
             <br />
-            로그인 후 <b>근로계약서를 작성·서명</b>하면
+            이어서 <b>근로계약서에 서명</b>하면
             <br />
-            배정(일)을 받을 수 있습니다.
+            바로 배정(일)을 받을 수 있습니다.
           </p>
           <Link
-            href="/tech/login"
+            href="/tech/contract"
             className="w-full rounded-2xl bg-blue-600 p-4 text-center font-bold text-white transition-colors hover:bg-blue-700"
           >
-            로그인 하러 가기
+            근로계약서 작성하러 가기
+          </Link>
+          <Link href="/tech" className="text-sm font-medium text-gray-400 hover:text-gray-600">
+            나중에 하기 (기술자 포털로)
           </Link>
         </div>
       </main>
@@ -249,6 +255,15 @@ export default function TechSignupPage() {
             autoComplete="street-address"
             className={inputClass}
           />
+        </section>
+
+        <section className="space-y-2 md:rounded-2xl md:bg-white md:p-6 md:shadow-sm">
+          <h2 className="text-sm font-semibold">서비스 가능 지역</h2>
+          <p className="text-xs text-gray-500">
+            일(배정)을 받을 지역을 여러 곳 선택할 수 있습니다. 선택한 지역의 요청만
+            받으며, 그 안에서 가까운 순으로 배정됩니다.
+          </p>
+          <RegionMultiSelect value={regions} onChange={setRegions} />
         </section>
 
         <label className="flex items-start gap-2 text-sm text-gray-600">

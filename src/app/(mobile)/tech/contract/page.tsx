@@ -274,7 +274,8 @@ export default function TechContractPage() {
             </p>
           )}
           <p className="pt-1 text-xs text-gray-400">
-            임금·4대보험은 관리자가 설정합니다.
+            임금은 기본값으로 설정되어 바로 서명할 수 있으며, 이후 관리자가 실제
+            조건으로 조정할 수 있습니다.
           </p>
         </section>
 

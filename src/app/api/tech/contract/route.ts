@@ -37,9 +37,19 @@ async function loadOrCreate(technicianId: string) {
       },
     });
   } else if (contract.status === 'DRAFT') {
+    // 임금이 아직 비어 있는 기존 DRAFT 계약(관리자 대기 상태)에도 기본 임금을
+    // 소급 적용해, 관리자 확정을 기다리지 않고 바로 서명할 수 있게 한다.
+    // 이미 임금이 채워져 있으면(관리자 설정 포함) 덮어쓰지 않는다.
+    const wage =
+      contract.wageAmount == null
+        ? wageDefaultsFor(
+            tech.employmentType,
+            await prisma.appSettings.findUnique({ where: { id: 1 } }),
+          )
+        : {};
     contract = await prisma.employmentContract.update({
       where: { technicianId },
-      data: { employmentType: tech.employmentType, ...d },
+      data: { employmentType: tech.employmentType, ...d, ...wage },
     });
   }
   return { contract, employmentType: tech.employmentType };

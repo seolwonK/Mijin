@@ -3,6 +3,8 @@ import bcrypt from 'bcryptjs';
 import { z } from 'zod';
 import { prisma } from '@/lib/db';
 import { geocode } from '@/lib/geo/kakao';
+import { sanitizeRegionKeys } from '@/lib/regions';
+import { createSessionToken, SESSION_COOKIE } from '@/lib/auth';
 
 // 개인기술자 셀프 가입. 가입 즉시 자동 승인(APPROVED)되어 바로 로그인할 수 있다.
 // 단, 실제 배정(일)은 근로계약서 서명 완료 후에만 가능하다 (matching 에서 게이트).
@@ -18,6 +20,8 @@ const fieldsSchema = z.object({
     .pipe(z.string().regex(/^0\d{8,10}$/, '전화번호 형식이 올바르지 않습니다')),
   address: z.string().trim().min(1, '주소를 입력해 주세요').max(200),
   employmentType: z.enum(['DAILY', 'PERMANENT']),
+  // 서비스 가능 지역 키 목록 (선택). 빈 배열 = 전 지역. 유효 키만 서버에서 다시 거른다.
+  regions: z.array(z.string()).optional(),
   // 휴대폰 본인인증(/api/identity/verify) 발급 토큰 — 가입 필수 게이트
   verificationId: z
     .string({ error: '휴대폰 본인인증을 완료해 주세요' })
@@ -107,10 +111,12 @@ export async function POST(req: NextRequest) {
   // 좌표는 지오코딩 시도만 (키 없거나 실패해도 신청은 진행 — 승인 시 관리자가 보완)
   const geo = await geocode(data.address);
   const passwordHash = await bcrypt.hash(data.password, 10);
+  const regions = sanitizeRegionKeys(data.regions);
 
+  let created: { id: string; name: string; technicianId?: string };
   try {
     // 인증 소비(CAS)와 가입을 한 트랜잭션으로 — 동시 요청의 인증 재사용을 막는다.
-    await prisma.$transaction(async (tx) => {
+    created = await prisma.$transaction(async (tx) => {
       const consumed = await tx.identityVerification.updateMany({
         where: { id: iv.id, consumedAt: null, expiresAt: { gt: new Date() } },
         data: { consumedAt: new Date() },
@@ -118,7 +124,7 @@ export async function POST(req: NextRequest) {
       if (consumed.count === 0) {
         throw new Error('IDENTITY_ALREADY_USED');
       }
-      await tx.user.create({
+      const user = await tx.user.create({
         data: {
           loginId: data.loginId,
           passwordHash,
@@ -130,13 +136,16 @@ export async function POST(req: NextRequest) {
               address: data.address,
               lat: geo?.lat ?? null,
               lng: geo?.lng ?? null,
+              regions,
               employmentType: data.employmentType,
               approvalStatus: 'APPROVED',
               approvedAt: new Date(),
             },
           },
         },
+        select: { id: true, name: true, technician: { select: { id: true } } },
       });
+      return { id: user.id, name: user.name, technicianId: user.technician?.id };
     });
   } catch (e) {
     if (e instanceof Error && e.message === 'IDENTITY_ALREADY_USED') {
@@ -148,5 +157,20 @@ export async function POST(req: NextRequest) {
     throw e;
   }
 
-  return NextResponse.json({ ok: true });
+  // 가입 즉시 자동 로그인 — 세션 쿠키를 심어 로그인 재입력 없이 바로 이용하게 한다.
+  const token = await createSessionToken({
+    userId: created.id,
+    role: 'TECHNICIAN',
+    name: created.name,
+    technicianId: created.technicianId,
+  });
+  const res = NextResponse.json({ ok: true });
+  res.cookies.set(SESSION_COOKIE, token, {
+    httpOnly: true,
+    sameSite: 'lax',
+    secure: process.env.NODE_ENV === 'production',
+    path: '/',
+    maxAge: 60 * 60 * 24 * 7,
+  });
+  return res;
 }
