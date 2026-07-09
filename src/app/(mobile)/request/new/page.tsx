@@ -48,17 +48,25 @@ export default function NewRequestPage() {
     }
   }, [description, name, phone]);
 
+  // 유효성 실패 시 안내 + 해당 위치로 스크롤·포커스
+  function fail(msg: string, id?: string) {
+    setError(msg);
+    const el = id ? (document.getElementById(id) as HTMLElement | null) : null;
+    el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    el?.focus();
+  }
+
   async function submit() {
     setError(null);
     if (!description.trim() && !voice)
-      return setError('고장 내용을 입력하거나 음성으로 남겨 주세요');
-    if (!urgency) return setError('긴급도를 선택해 주세요');
+      return fail('고장 내용을 입력하거나 음성으로 남겨 주세요', 'req-desc');
+    if (!urgency) return fail('긴급도를 선택해 주세요', 'req-urgency');
     if (!location.lat && !location.address.trim())
-      return setError('위치 확인 버튼을 누르거나 주소를 입력해 주세요');
-    if (!name.trim()) return setError('이름을 입력해 주세요');
+      return fail('위치 확인 버튼을 누르거나 주소를 입력해 주세요', 'req-loc');
+    if (!name.trim()) return fail('이름을 입력해 주세요', 'req-name');
     if (!/^0\d{8,10}$/.test(phone.replace(/\D/g, '')))
-      return setError('전화번호를 확인해 주세요');
-    if (!agreed) return setError('개인정보 수집·이용에 동의해 주세요');
+      return fail('전화번호를 확인해 주세요', 'req-phone');
+    if (!agreed) return fail('개인정보 수집·이용에 동의해 주세요');
 
     setBusy(true);
     try {
@@ -110,7 +118,7 @@ export default function NewRequestPage() {
 
       <form onSubmit={(e) => { e.preventDefault(); submit(); }} className="contents">
       <div className="mx-auto w-full max-w-2xl flex-1 space-y-6 p-4 pb-32 md:space-y-5 md:py-8 md:pb-6">
-        <section className="md:rounded-2xl md:bg-white md:p-6 md:shadow-card">
+        <section id="req-desc" className="md:rounded-2xl md:bg-white md:p-6 md:shadow-card">
           <h2 className="mb-2 font-semibold md:mb-3">
             1. 어떤 고장인가요? <span className="text-red-500">*</span>
             <span className="sr-only"> 필수</span>
@@ -123,7 +131,7 @@ export default function NewRequestPage() {
           />
         </section>
 
-        <section className="md:rounded-2xl md:bg-white md:p-6 md:shadow-card">
+        <section id="req-urgency" className="md:rounded-2xl md:bg-white md:p-6 md:shadow-card">
           <h2 className="mb-2 font-semibold md:mb-3">
             2. 얼마나 급한가요? <span className="text-red-500">*</span>
             <span className="sr-only"> 필수</span>
@@ -131,7 +139,7 @@ export default function NewRequestPage() {
           <UrgencySelect value={urgency} onChange={setUrgency} />
         </section>
 
-        <section className="md:rounded-2xl md:bg-white md:p-6 md:shadow-card">
+        <section id="req-loc" className="md:rounded-2xl md:bg-white md:p-6 md:shadow-card">
           <h2 className="mb-2 font-semibold md:mb-3">
             3. 어디로 가야 하나요? <span className="text-red-500">*</span>
             <span className="sr-only"> 필수</span>
@@ -148,6 +156,7 @@ export default function NewRequestPage() {
             <input
               type="text"
               autoComplete="name"
+              id="req-name"
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="이름"
@@ -157,6 +166,7 @@ export default function NewRequestPage() {
               type="tel"
               inputMode="tel"
               autoComplete="tel"
+              id="req-phone"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
               placeholder="전화번호 (예: 01012345678)"

@@ -103,10 +103,23 @@ export default function TechContractPage() {
     })();
   }, []);
 
+  // 유효성 실패 시 안내 + 해당 필드로 스크롤·포커스
+  function fail(msg: string, id?: string) {
+    setError(msg);
+    const el = id ? (document.getElementById(id) as HTMLElement | null) : null;
+    el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    el?.focus();
+  }
+
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
-    if (!signature) return setError('서명을 해 주세요');
+    if (!startDate) return fail('근로개시일을 입력해 주세요', 'ct-start');
+    if (!workLocation.trim()) return fail('근무장소를 입력해 주세요', 'ct-loc');
+    if (!jobDescription.trim()) return fail('업무 내용을 입력해 주세요', 'ct-job');
+    if (!workerSignatureName.trim()) return fail('성명을 입력해 주세요', 'ct-name');
+    if (!workerAddress.trim()) return fail('주소를 입력해 주세요', 'ct-addr');
+    if (!signature) return fail('서명을 해 주세요');
     setBusy(true);
     try {
       const res = await fetch('/api/tech/contract', {
@@ -199,6 +212,7 @@ export default function TechContractPage() {
             <label className="mb-1 block text-xs text-gray-500">근로개시일</label>
             <input
               type="date"
+              id="ct-start"
               value={startDate}
               onChange={(e) => setStartDate(e.target.value)}
               disabled={confirmed}
@@ -209,6 +223,7 @@ export default function TechContractPage() {
             <label className="mb-1 block text-xs text-gray-500">근무장소</label>
             <input
               type="text"
+              id="ct-loc"
               value={workLocation}
               onChange={(e) => setWorkLocation(e.target.value)}
               placeholder="예: 고객 현장 (출동), 미진전기 사업장 등"
@@ -219,6 +234,7 @@ export default function TechContractPage() {
           <div>
             <label className="mb-1 block text-xs text-gray-500">업무의 내용</label>
             <textarea
+              id="ct-job"
               value={jobDescription}
               onChange={(e) => setJobDescription(e.target.value)}
               rows={2}
@@ -234,6 +250,7 @@ export default function TechContractPage() {
             <label className="mb-1 block text-xs text-gray-500">성명</label>
             <input
               type="text"
+              id="ct-name"
               value={workerSignatureName}
               onChange={(e) => setWorkerSignatureName(e.target.value)}
               disabled={confirmed}
@@ -244,6 +261,7 @@ export default function TechContractPage() {
             <label className="mb-1 block text-xs text-gray-500">주소</label>
             <input
               type="text"
+              id="ct-addr"
               value={workerAddress}
               onChange={(e) => setWorkerAddress(e.target.value)}
               disabled={confirmed}
@@ -294,15 +312,7 @@ export default function TechContractPage() {
         {!confirmed && c.wageAmount != null && (
           <button
             type="submit"
-            disabled={
-              busy ||
-              !signature ||
-              !startDate ||
-              !workLocation.trim() ||
-              !jobDescription.trim() ||
-              !workerSignatureName.trim() ||
-              !workerAddress.trim()
-            }
+            disabled={busy}
             className={buttonClasses('primary', 'lg', 'w-full')}
           >
             {busy ? '처리 중…' : '서명하고 완료'}

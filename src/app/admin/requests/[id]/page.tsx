@@ -4,6 +4,7 @@ import { use, useState } from 'react';
 import BackButton from '@/components/BackButton';
 import { usePolling } from '@/components/usePolling';
 import { StatusBadge, UrgencyBadge } from '@/components/StatusBadge';
+import { useConfirm } from '@/components/useConfirm';
 
 type Assignee = { kind: 'PROVIDER' | 'TECHNICIAN'; name: string; phone: string };
 
@@ -68,6 +69,7 @@ export default function AdminRequestDetailPage({
   }>(req?.status === 'RECEIVED' ? `/api/admin/requests/${id}/candidates` : null, 15_000);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [confirm, confirmUI] = useConfirm();
 
   async function assign(assigneeKind: 'PROVIDER' | 'TECHNICIAN', assigneeId: string) {
     setBusy(true);
@@ -93,9 +95,13 @@ export default function AdminRequestDetailPage({
 
   async function unassign() {
     if (
-      !window.confirm(
-        '현재 배정을 회수하고 배정 대기로 되돌릴까요?\n업체에는 회수 안내 문자가 발송됩니다.',
-      )
+      !(await confirm({
+        title: '배정 회수',
+        message:
+          '현재 배정을 회수하고 배정 대기로 되돌릴까요?\n업체에는 회수 안내 문자가 발송됩니다.',
+        confirmText: '회수',
+        danger: true,
+      }))
     )
       return;
     setBusy(true);
@@ -118,7 +124,15 @@ export default function AdminRequestDetailPage({
   }
 
   async function cancel() {
-    if (!window.confirm('이 접수를 취소할까요?')) return;
+    if (
+      !(await confirm({
+        title: '접수 취소',
+        message: '이 접수를 취소할까요?',
+        confirmText: '접수 취소',
+        danger: true,
+      }))
+    )
+      return;
     setBusy(true);
     setError(null);
     try {
@@ -349,6 +363,7 @@ export default function AdminRequestDetailPage({
           </button>
         )}
       </div>
+      {confirmUI}
     </main>
   );
 }

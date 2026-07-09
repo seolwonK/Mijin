@@ -7,6 +7,7 @@ import { buttonClasses } from '@/components/Button';
 import { usePolling } from '@/components/usePolling';
 import { CardSkeletonGrid } from '@/components/Skeleton';
 import { SortTh, type SortState } from '@/components/SortTh';
+import { useConfirm } from '@/components/useConfirm';
 
 type TechnicianRow = {
   id: string;
@@ -39,6 +40,7 @@ export default function AdminTechniciansPage() {
   );
   const [togglingId, setTogglingId] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
+  const [confirm, confirmUI] = useConfirm();
   const all = data?.technicians ?? [];
   const loading = !data && !error;
   const pending = all.filter((t) => t.approvalStatus === 'PENDING');
@@ -55,9 +57,12 @@ export default function AdminTechniciansPage() {
   async function toggleActive(t: TechnicianRow) {
     if (
       t.isActive &&
-      !window.confirm(
-        `${t.name}을(를) 비활성으로 바꿀까요?\n비활성 기술자는 배정 대상에서 제외됩니다.`,
-      )
+      !(await confirm({
+        title: '기술자 비활성',
+        message: `${t.name}을(를) 비활성으로 바꿀까요?\n비활성 기술자는 배정 대상에서 제외됩니다.`,
+        confirmText: '비활성으로',
+        danger: true,
+      }))
     )
       return;
     setTogglingId(t.id);
@@ -226,6 +231,7 @@ export default function AdminTechniciansPage() {
           </section>
         )}
       </div>
+      {confirmUI}
     </main>
   );
 }

@@ -7,6 +7,7 @@ import { buttonClasses } from '@/components/Button';
 import { usePolling } from '@/components/usePolling';
 import { CardSkeletonGrid } from '@/components/Skeleton';
 import { SortTh, type SortState } from '@/components/SortTh';
+import { useConfirm } from '@/components/useConfirm';
 
 type ProviderRow = {
   id: string;
@@ -28,6 +29,7 @@ export default function AdminProvidersPage() {
   );
   const [togglingId, setTogglingId] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
+  const [confirm, confirmUI] = useConfirm();
   const all = data?.providers ?? [];
   const loading = !data && !error;
   const pending = all.filter((p) => p.approvalStatus === 'PENDING');
@@ -45,9 +47,12 @@ export default function AdminProvidersPage() {
     // 비활성 전환은 배정 대상 제외라 실수 방지용 확인
     if (
       p.isActive &&
-      !window.confirm(
-        `${p.name}을(를) 비활성으로 바꿀까요?\n비활성 업체는 배정 대상에서 제외됩니다.`,
-      )
+      !(await confirm({
+        title: '업체 비활성',
+        message: `${p.name}을(를) 비활성으로 바꿀까요?\n비활성 업체는 배정 대상에서 제외됩니다.`,
+        confirmText: '비활성으로',
+        danger: true,
+      }))
     )
       return;
     setTogglingId(p.id);
@@ -207,6 +212,7 @@ export default function AdminProvidersPage() {
           </section>
         )}
       </div>
+      {confirmUI}
     </main>
   );
 }

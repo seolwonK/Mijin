@@ -79,13 +79,24 @@ export default function TechSignupPage() {
     setVerificationId(null);
   }
 
+  // 유효성 실패 시 안내 + 해당 필드로 스크롤·포커스
+  function fail(msg: string, id?: string) {
+    setError(msg);
+    const el = id ? (document.getElementById(id) as HTMLElement | null) : null;
+    el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    el?.focus();
+  }
+
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
-    if (!verificationId) return setError('휴대폰 본인인증을 완료해 주세요');
-    if (!employmentType) return setError('근로 형태를 선택해 주세요');
-    if (!regionComplete) return setError('거주 지역을 선택해 주세요');
-    if (!agreed) return setError('개인정보 수집·이용에 동의해 주세요');
+    if (!verificationId) return fail('휴대폰 본인인증을 완료해 주세요');
+    if (!loginId.trim()) return fail('로그인 아이디를 입력해 주세요', 'tech-loginId');
+    if (!password) return fail('비밀번호를 입력해 주세요', 'tech-password');
+    if (!employmentType) return fail('근로 형태를 선택해 주세요');
+    if (!regionComplete) return fail('거주 지역을 선택해 주세요');
+    if (!addrDetail.trim()) return fail('상세 주소를 입력해 주세요', 'tech-addr');
+    if (!agreed) return fail('개인정보 수집·이용에 동의해 주세요');
 
     setBusy(true);
     try {
@@ -157,6 +168,7 @@ export default function TechSignupPage() {
             type="text"
             value={loginId}
             onChange={(e) => setLoginId(e.target.value)}
+            id="tech-loginId"
             aria-label="로그인 아이디"
             placeholder="로그인 아이디 (3자 이상)"
             autoComplete="username"
@@ -166,6 +178,7 @@ export default function TechSignupPage() {
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            id="tech-password"
             aria-label="비밀번호"
             placeholder="비밀번호 (8자 이상)"
             autoComplete="new-password"
@@ -251,6 +264,7 @@ export default function TechSignupPage() {
             type="text"
             value={addrDetail}
             onChange={(e) => setAddrDetail(e.target.value)}
+            id="tech-addr"
             aria-label="상세 주소"
             placeholder="상세 주소 (도로명, 건물명 등)"
             autoComplete="street-address"
@@ -288,17 +302,7 @@ export default function TechSignupPage() {
 
         <button
           type="submit"
-          disabled={
-            busy ||
-            !verificationId ||
-            !loginId ||
-            !password ||
-            !name ||
-            !phone ||
-            !employmentType ||
-            !regionComplete ||
-            !addrDetail.trim()
-          }
+          disabled={busy}
           className={buttonClasses('primary', 'lg', 'w-full')}
         >
           {busy ? '신청 중…' : '가입 신청하기'}
