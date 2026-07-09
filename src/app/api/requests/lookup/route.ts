@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/db';
+import { ASSIGNEE_INCLUDE, resolveAssignee } from '@/lib/assignee';
 
 // 인메모리 레이트리밋: IP당 분당 10회. 전화번호 무차별 조회 방지용.
 const hits = new Map<string, { count: number; resetAt: number }>();
@@ -58,9 +59,7 @@ export async function POST(req: NextRequest) {
         where: { status: { in: ['REQUESTED', 'ACCEPTED'] } },
         orderBy: { createdAt: 'desc' },
         take: 1,
-        include: {
-          provider: { include: { user: { select: { name: true, phone: true } } } },
-        },
+        include: ASSIGNEE_INCLUDE,
       },
     },
   });
@@ -68,6 +67,7 @@ export async function POST(req: NextRequest) {
   return NextResponse.json({
     requests: requests.map((r) => {
       const active = r.assignments[0];
+      const assignee = active ? resolveAssignee(active) : null;
       return {
         id: r.id,
         lookupCode: r.lookupCode,
@@ -78,8 +78,8 @@ export async function POST(req: NextRequest) {
         address: r.address,
         createdAt: r.createdAt,
         completedAt: r.completedAt,
-        provider: active
-          ? { name: active.provider.user.name, phone: active.provider.user.phone }
+        assignee: assignee
+          ? { kind: assignee.kind, name: assignee.name, phone: assignee.phone }
           : null,
       };
     }),

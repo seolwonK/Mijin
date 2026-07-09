@@ -31,7 +31,13 @@ export default function LoginForm({
         setError(data.error ?? '로그인에 실패했습니다');
         return;
       }
-      router.replace(data.role === 'ADMIN' ? '/admin' : '/partner');
+      const home =
+        data.role === 'ADMIN'
+          ? '/admin'
+          : data.role === 'TECHNICIAN'
+            ? '/tech'
+            : '/partner';
+      router.replace(home);
     } catch {
       setError('네트워크 오류가 발생했습니다');
     } finally {

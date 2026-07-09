@@ -16,3 +16,17 @@ body {
     "Malgun Gothic",
     sans-serif;
 }
+
+/* 근로계약서 인쇄 — A4, 화면 전용 요소(헤더·버튼)는 숨긴다 */
+@media print {
+  @page {
+    size: A4;
+    margin: 12mm;
+  }
+  body {
+    background: #fff !important;
+  }
+  [data-print-hide] {
+    display: none !important;
+  }
+}

@@ -14,7 +14,7 @@ type LookupRequest = {
   address: string | null;
   createdAt: string;
   completedAt: string | null;
-  provider: { name: string; phone: string } | null;
+  assignee: { kind: 'PROVIDER' | 'TECHNICIAN'; name: string; phone: string } | null;
 };
 
 const STEPS = ['접수', '배정', '수락', '출동', '완료'];
@@ -87,13 +87,15 @@ function RequestCard({ r }: { r: LookupRequest }) {
         <p>접수 시각: {new Date(r.createdAt).toLocaleString('ko-KR')}</p>
       </div>
 
-      {r.provider && (
+      {r.assignee && (
         <div className="rounded-xl bg-blue-50 p-3">
-          <p className="text-sm text-gray-600">배정 업체</p>
+          <p className="text-sm text-gray-600">
+            배정 {r.assignee.kind === 'TECHNICIAN' ? '기술자' : '업체'}
+          </p>
           <div className="mt-1 flex items-center justify-between">
-            <span className="font-bold">{r.provider.name}</span>
+            <span className="font-bold">{r.assignee.name}</span>
             <a
-              href={`tel:${r.provider.phone}`}
+              href={`tel:${r.assignee.phone}`}
               className="rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-bold text-white"
             >
               📞 전화하기

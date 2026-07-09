@@ -36,7 +36,7 @@ export async function runAutoAssign(): Promise<{ assigned: number }> {
       continue;
     }
 
-    // 좌표 미등록 업체(distanceKm null)는 "가장 가까운 업체" 판단이 불가하므로 자동배정에서 제외
+    // 좌표 미등록 대상(distanceKm null)은 "가장 가까운 대상" 판단이 불가하므로 자동배정에서 제외
     const candidates = (await getCandidates(req)).filter(
       (c) => !c.rejectedThisRequest && c.distanceKm != null,
     );
@@ -46,13 +46,13 @@ export async function runAutoAssign(): Promise<{ assigned: number }> {
         where: { id: req.id },
         data: { needsAttention: true, assignBaseAt: now },
       });
-      console.warn(`[autoAssign] 배정 가능 업체 없음 → 관리자 반환: ${req.id}`);
+      console.warn(`[autoAssign] 배정 가능 대상 없음 → 관리자 반환: ${req.id}`);
       continue;
     }
 
     const ok = await claimAndAssign({
       requestId: req.id,
-      providerId: best.providerId,
+      target: { kind: best.kind, id: best.id },
       assignedBy: 'AUTO',
       distanceKm: best.distanceKm,
     });

@@ -28,9 +28,12 @@ export default function Home() {
         </Link>
       </div>
 
-      <div className="mt-4 flex justify-center gap-6 pb-6 text-sm text-gray-400 md:mt-10 md:pb-0">
+      <div className="mt-4 flex flex-wrap justify-center gap-x-6 gap-y-2 pb-6 text-sm text-gray-400 md:mt-10 md:pb-0">
         <Link href="/partner/login" className="underline hover:text-gray-600">
           업체 로그인
+        </Link>
+        <Link href="/tech/login" className="underline hover:text-gray-600">
+          개인기술자 로그인
         </Link>
         <Link href="/admin/login" className="underline hover:text-gray-600">
           관리자 로그인

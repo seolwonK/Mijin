@@ -5,7 +5,10 @@ import { requireSession } from '@/lib/auth';
 import { claimAndAssign } from '@/lib/assignment';
 import { haversineKm } from '@/lib/geo/distance';
 
-const assignSchema = z.object({ providerId: z.string().min(1) });
+const assignSchema = z.object({
+  assigneeKind: z.enum(['PROVIDER', 'TECHNICIAN']),
+  assigneeId: z.string().min(1),
+});
 
 export async function POST(
   req: NextRequest,
@@ -23,19 +26,23 @@ export async function POST(
   }
   const parsed = assignSchema.safeParse(body);
   if (!parsed.success) {
-    return NextResponse.json({ error: '업체를 선택해 주세요' }, { status: 400 });
+    return NextResponse.json({ error: '배정 대상을 선택해 주세요' }, { status: 400 });
   }
+  const { assigneeKind, assigneeId } = parsed.data;
 
   const request = await prisma.serviceRequest.findUnique({ where: { id } });
   if (!request) {
     return NextResponse.json({ error: '접수를 찾을 수 없습니다' }, { status: 404 });
   }
-  const provider = await prisma.provider.findUnique({
-    where: { id: parsed.data.providerId },
-  });
-  if (!provider || !provider.isActive || provider.approvalStatus !== 'APPROVED') {
+
+  // 업체/기술자 각 테이블에서 활성·승인 여부와 좌표를 확인
+  const target =
+    assigneeKind === 'PROVIDER'
+      ? await prisma.provider.findUnique({ where: { id: assigneeId } })
+      : await prisma.technician.findUnique({ where: { id: assigneeId } });
+  if (!target || !target.isActive || target.approvalStatus !== 'APPROVED') {
     return NextResponse.json(
-      { error: '배정할 수 없는 업체입니다 (미등록·비활성·미승인)' },
+      { error: '배정할 수 없는 대상입니다 (미등록·비활성·미승인)' },
       { status: 400 },
     );
   }
@@ -43,14 +50,14 @@ export async function POST(
   const distanceKm =
     request.lat != null &&
     request.lng != null &&
-    provider.lat != null &&
-    provider.lng != null
-      ? haversineKm(request.lat, request.lng, provider.lat, provider.lng)
+    target.lat != null &&
+    target.lng != null
+      ? haversineKm(request.lat, request.lng, target.lat, target.lng)
       : null;
 
   const ok = await claimAndAssign({
     requestId: id,
-    providerId: provider.id,
+    target: { kind: assigneeKind, id: target.id },
     assignedBy: 'ADMIN',
     distanceKm,
   });

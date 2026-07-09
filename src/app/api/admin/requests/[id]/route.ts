@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { requireSession } from '@/lib/auth';
+import { ASSIGNEE_INCLUDE, resolveAssignee } from '@/lib/assignee';
 
 export async function GET(
   _req: NextRequest,
@@ -15,9 +16,7 @@ export async function GET(
     include: {
       assignments: {
         orderBy: { createdAt: 'desc' },
-        include: {
-          provider: { include: { user: { select: { name: true, phone: true } } } },
-        },
+        include: ASSIGNEE_INCLUDE,
       },
     },
   });
@@ -50,7 +49,7 @@ export async function GET(
       rejectReason: a.rejectReason,
       respondedAt: a.respondedAt,
       createdAt: a.createdAt,
-      provider: { name: a.provider.user.name, phone: a.provider.user.phone },
+      assignee: resolveAssignee(a),
     })),
   });
 }

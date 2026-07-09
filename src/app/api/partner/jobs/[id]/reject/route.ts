@@ -44,19 +44,19 @@ export async function POST(
     return NextResponse.json({ error: '이미 처리된 배정입니다' }, { status: 409 });
   }
 
-  // 자동배정 건이면 즉시 다음 순위 업체로 재배정 시도 (접수는 ASSIGNED 유지)
+  // 자동배정 건이면 즉시 다음 순위 대상으로 재배정 시도 (접수는 ASSIGNED 유지)
   if (a.assignedBy === 'AUTO') {
     const candidates = (await getCandidates(a.request)).filter(
       (c) =>
         !c.rejectedThisRequest &&
-        c.providerId !== a.providerId &&
+        !(c.kind === 'PROVIDER' && c.id === a.providerId) &&
         c.distanceKm != null,
     );
     const best = candidates[0];
     if (best) {
       await createAssignment({
         requestId: a.requestId,
-        providerId: best.providerId,
+        target: { kind: best.kind, id: best.id },
         assignedBy: 'AUTO',
         distanceKm: best.distanceKm,
       });

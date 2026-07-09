@@ -5,6 +5,8 @@ import BackButton from '@/components/BackButton';
 import { usePolling } from '@/components/usePolling';
 import { StatusBadge, UrgencyBadge } from '@/components/StatusBadge';
 
+type Assignee = { kind: 'PROVIDER' | 'TECHNICIAN'; name: string; phone: string };
+
 type AssignmentRow = {
   id: string;
   status: string;
@@ -13,7 +15,7 @@ type AssignmentRow = {
   rejectReason: string | null;
   respondedAt: string | null;
   createdAt: string;
-  provider: { name: string; phone: string };
+  assignee: Assignee | null;
 };
 
 type RequestDetail = {
@@ -35,7 +37,8 @@ type RequestDetail = {
 };
 
 type Candidate = {
-  providerId: string;
+  kind: 'PROVIDER' | 'TECHNICIAN';
+  id: string;
   name: string;
   phone: string;
   address: string;
@@ -66,14 +69,14 @@ export default function AdminRequestDetailPage({
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
-  async function assign(providerId: string) {
+  async function assign(assigneeKind: 'PROVIDER' | 'TECHNICIAN', assigneeId: string) {
     setBusy(true);
     setError(null);
     try {
       const res = await fetch(`/api/admin/requests/${id}/assign`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ providerId }),
+        body: JSON.stringify({ assigneeKind, assigneeId }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -226,21 +229,32 @@ export default function AdminRequestDetailPage({
 
         {req.status === 'RECEIVED' && (
           <section className="rounded-2xl border border-blue-200 p-4">
-            <h2 className="mb-2 font-semibold text-blue-700">거리순 추천 업체</h2>
+            <h2 className="mb-2 font-semibold text-blue-700">거리순 추천 (업체·기술자)</h2>
             {!candData ? (
               <p className="text-sm text-gray-400">불러오는 중…</p>
             ) : candData.candidates.length === 0 ? (
-              <p className="text-sm text-gray-500">배정 가능한 활성 업체가 없습니다</p>
+              <p className="text-sm text-gray-500">
+                배정 가능한 활성 업체·기술자가 없습니다
+              </p>
             ) : (
               <div className="grid gap-2 sm:grid-cols-2">
                 {candData.candidates.map((c) => (
                   <div
-                    key={c.providerId}
+                    key={`${c.kind}:${c.id}`}
                     className="flex items-center justify-between rounded-xl border border-gray-200 p-3"
                   >
                     <div>
                       <p className="font-bold">
                         {c.name}{' '}
+                        <span
+                          className={`ml-1 rounded px-1.5 py-0.5 text-xs font-medium ${
+                            c.kind === 'TECHNICIAN'
+                              ? 'bg-emerald-100 text-emerald-700'
+                              : 'bg-gray-100 text-gray-600'
+                          }`}
+                        >
+                          {c.kind === 'TECHNICIAN' ? '기술자' : '업체'}
+                        </span>{' '}
                         {c.rejectedThisRequest && (
                           <span className="text-xs font-medium text-red-500">
                             (이 건 거절함)
@@ -256,7 +270,7 @@ export default function AdminRequestDetailPage({
                     </div>
                     <button
                       type="button"
-                      onClick={() => assign(c.providerId)}
+                      onClick={() => assign(c.kind, c.id)}
                       disabled={busy}
                       className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-bold text-white disabled:opacity-60"
                     >
@@ -277,13 +291,20 @@ export default function AdminRequestDetailPage({
                 <div key={a.id} className="rounded-xl bg-gray-50 p-3 text-sm">
                   <div className="flex items-center justify-between gap-2">
                     <span className="min-w-0 font-bold">
-                      {a.provider.name}{' '}
-                      <a
-                        href={`tel:${a.provider.phone}`}
-                        className="whitespace-nowrap text-xs font-medium text-blue-600 underline"
-                      >
-                        📞 {a.provider.phone}
-                      </a>
+                      {a.assignee?.name ?? '—'}
+                      {a.assignee?.kind === 'TECHNICIAN' && (
+                        <span className="ml-1 text-xs font-medium text-emerald-600">
+                          (기술자)
+                        </span>
+                      )}{' '}
+                      {a.assignee && (
+                        <a
+                          href={`tel:${a.assignee.phone}`}
+                          className="whitespace-nowrap text-xs font-medium text-blue-600 underline"
+                        >
+                          📞 {a.assignee.phone}
+                        </a>
+                      )}
                     </span>
                     <span
                       className={

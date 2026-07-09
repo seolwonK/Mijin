@@ -8,6 +8,12 @@ const settingsSchema = z.object({
   waitMinutesCritical: z.number().int().min(1).max(1440),
   waitMinutesUrgent: z.number().int().min(1).max(1440),
   waitMinutesNormal: z.number().int().min(1).max(1440),
+  // 근로계약서 사업주(고용주) 정보 — 미진전기
+  employerName: z.string().trim().min(1).max(100),
+  employerCeo: z.string().trim().max(50).nullish(),
+  employerAddress: z.string().trim().max(200).nullish(),
+  employerPhone: z.string().trim().max(30).nullish(),
+  employerBizRegNo: z.string().trim().max(20).nullish(),
 });
 
 export async function GET() {

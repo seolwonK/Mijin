@@ -10,6 +10,33 @@ datasource db {
 enum Role {
   ADMIN
   PROVIDER
+  TECHNICIAN
+}
+
+// 개인기술자 근로형태: 일일 근로자 / 상시 근로자
+enum EmploymentType {
+  DAILY
+  PERMANENT
+}
+
+// 임금 지급 형태 (월급/일급/시급)
+enum WageType {
+  MONTHLY
+  DAILY
+  HOURLY
+}
+
+// 임금 지급 방법
+enum PayMethod {
+  BANK_TRANSFER // 예금통장 입금
+  DIRECT // 직접 지급
+}
+
+// 근로계약서 상태: 기술자 작성중 → 제출 → 관리자 확정
+enum ContractStatus {
+  DRAFT
+  SUBMITTED
+  CONFIRMED
 }
 
 // 초긴급(1시간) / 긴급(2시간) / 일반
@@ -48,14 +75,15 @@ enum ProviderApproval {
 }
 
 model User {
-  id           String    @id @default(cuid())
-  loginId      String    @unique
+  id           String      @id @default(cuid())
+  loginId      String      @unique
   passwordHash String
   name         String
   phone        String
   role         Role
   provider     Provider?
-  createdAt    DateTime  @default(now())
+  technician   Technician?
+  createdAt    DateTime    @default(now())
 }
 
 model Provider {
@@ -75,6 +103,83 @@ model Provider {
   appliedAt      DateTime         @default(now())
   approvedAt     DateTime?
   assignments    Assignment[]
+}
+
+// 개인기술자 — 업체(Provider)와 병렬로 배정 대상. 사업자 필드 대신 근로형태·근로계약서를 가진다.
+model Technician {
+  id             String              @id @default(cuid())
+  user           User                @relation(fields: [userId], references: [id])
+  userId         String              @unique
+  address        String
+  lat            Float? // 셀프 가입 시 좌표를 모를 수 있음 — 좌표 없으면 거리계산·자동배정 제외
+  lng            Float?
+  isActive       Boolean             @default(true) // 비활성 기술자는 배정 제외
+  memo           String?
+  employmentType EmploymentType // 일일(DAILY) / 상시(PERMANENT)
+  approvalStatus ProviderApproval    @default(PENDING) // 업체와 동일한 승인 흐름 재사용
+  rejectReason   String?
+  appliedAt      DateTime            @default(now())
+  approvedAt     DateTime?
+  assignments    Assignment[]
+  contract       EmploymentContract?
+
+  @@index([approvalStatus])
+}
+
+// 표준 근로계약서 앞장. 기술자 1인당 1건(v1). 근무조건은 서버가 근로형태에 따라 강제 세팅,
+// 임금 항목은 관리자가 입력·확정한다. 사업주(고용주) 정보는 AppSettings(미진전기)에서 가져온다.
+model EmploymentContract {
+  id             String         @id @default(cuid())
+  technician     Technician     @relation(fields: [technicianId], references: [id])
+  technicianId   String         @unique
+  employmentType EmploymentType // 인쇄 무결성용 스냅샷
+
+  // 근로개시일 / 계약기간 (null = 기간의 정함이 없음 — 상시 근로자)
+  contractStartDate DateTime?
+  contractEndDate   DateTime?
+
+  // 근무장소 / 업무의 내용 (기술자 작성)
+  workLocation   String
+  jobDescription String
+
+  // 소정근로시간·휴게시간 (근로형태에 따라 서버가 세팅, 기술자 읽기전용)
+  workStartTime  String? // "09:00" — DAILY 는 null + hoursNote 로 대체
+  workEndTime    String? // "18:00"
+  breakStartTime String? // "12:00"
+  breakEndTime   String? // "13:00"
+  hoursNote      String? // "추후 협의 변동 가능" (상시) / "소정근로시간 1일 8시간" (일일)
+
+  // 근무일 / 주휴일
+  workDays      String // "월~금(주5일)" / "근로개시일 당일"
+  weeklyHoliday String? // "일요일"
+
+  // 임금 (관리자 입력)
+  wageType       WageType?
+  wageAmount     Int?
+  bonusExists    Boolean    @default(false)
+  bonusAmount    Int?
+  otherPayExists Boolean    @default(false)
+  otherPayDesc   String?
+  otherPayAmount Int?
+  payDate        String? // "매월 25일"
+  payMethod      PayMethod?
+
+  // 연차유급휴가 / 4대보험
+  annualLeaveNote     String?  @default("근로기준법에 따라 부여")
+  insuranceEmployment Boolean  @default(true) // 고용보험
+  insuranceAccident   Boolean  @default(true) // 산재보험
+  insurancePension    Boolean  @default(true) // 국민연금
+  insuranceHealth     Boolean  @default(true) // 건강보험
+
+  // 근로자(을) 기재란
+  workerAddress       String?
+  workerSignatureName String?
+
+  status      ContractStatus @default(DRAFT)
+  submittedAt DateTime?
+  confirmedAt DateTime?
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
 }
 
 model ServiceRequest {
@@ -104,12 +209,16 @@ model ServiceRequest {
 }
 
 // 배정 이력 보존 — 재배정 추적. 현재 유효 배정 = REQUESTED/ACCEPTED 상태의 최신 1건
+// 배정 대상은 업체(provider) 또는 개인기술자(technician) 중 정확히 하나.
+// XOR 불변식은 앱(createAssignment) + DB CHECK 제약(마이그레이션 SQL)으로 강제한다.
 model Assignment {
   id           String           @id @default(cuid())
   request      ServiceRequest   @relation(fields: [requestId], references: [id])
   requestId    String
-  provider     Provider         @relation(fields: [providerId], references: [id])
-  providerId   String
+  provider     Provider?        @relation(fields: [providerId], references: [id])
+  providerId   String?
+  technician   Technician?      @relation(fields: [technicianId], references: [id])
+  technicianId String?
   status       AssignmentStatus @default(REQUESTED)
   assignedBy   AssignedBy
   distanceKm   Float?
@@ -118,6 +227,7 @@ model Assignment {
   createdAt    DateTime         @default(now())
 
   @@index([providerId, status])
+  @@index([technicianId, status])
   @@index([requestId])
 }
 
@@ -128,6 +238,12 @@ model AppSettings {
   waitMinutesCritical Int      @default(10)
   waitMinutesUrgent   Int      @default(20)
   waitMinutesNormal   Int      @default(60)
+  // 근로계약서 사업주(고용주) 정보 — 미진전기 고정, 모든 계약서에 자동 기입
+  employerName        String   @default("미진전기")
+  employerCeo         String? // 대표자
+  employerAddress     String?
+  employerPhone       String?
+  employerBizRegNo    String? // 사업자등록번호
   updatedAt           DateTime @updatedAt
 }
 

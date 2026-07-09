@@ -8,6 +8,11 @@ type Settings = {
   waitMinutesCritical: number;
   waitMinutesUrgent: number;
   waitMinutesNormal: number;
+  employerName: string;
+  employerCeo: string | null;
+  employerAddress: string | null;
+  employerPhone: string | null;
+  employerBizRegNo: string | null;
 };
 
 const inputClass =
@@ -41,6 +46,11 @@ export default function AdminSettingsPage() {
           waitMinutesCritical: Number(settings.waitMinutesCritical),
           waitMinutesUrgent: Number(settings.waitMinutesUrgent),
           waitMinutesNormal: Number(settings.waitMinutesNormal),
+          employerName: settings.employerName?.trim() || '미진전기',
+          employerCeo: settings.employerCeo?.trim() || null,
+          employerAddress: settings.employerAddress?.trim() || null,
+          employerPhone: settings.employerPhone?.trim() || null,
+          employerBizRegNo: settings.employerBizRegNo?.trim() || null,
         }),
       });
       const data = await res.json();
@@ -71,7 +81,7 @@ export default function AdminSettingsPage() {
     <main className="min-h-screen">
       <header className="sticky top-0 z-20 flex items-center gap-2 border-b border-gray-200 bg-white/95 px-4 py-2 backdrop-blur">
         <BackButton fallback="/admin" />
-        <h1 className="text-lg font-bold">자동배정 설정</h1>
+        <h1 className="text-lg font-bold">설정</h1>
       </header>
 
       <div className="mx-auto max-w-2xl space-y-6 p-4">
@@ -130,6 +140,69 @@ export default function AdminSettingsPage() {
                 </div>
               </div>
             ))}
+          </div>
+        </section>
+
+        <section className="rounded-2xl border border-gray-200 p-4">
+          <p className="mb-1 font-bold">근로계약서 사업주(고용주) 정보</p>
+          <p className="mb-3 text-sm text-gray-500">
+            개인기술자 근로계약서에 자동 기입됩니다.
+          </p>
+          <div className="space-y-2">
+            <div>
+              <label className="mb-1 block text-xs text-gray-500">사업체명</label>
+              <input
+                type="text"
+                value={settings.employerName ?? ''}
+                onChange={(e) => setSettings({ ...settings, employerName: e.target.value })}
+                placeholder="미진전기"
+                className="w-full rounded-xl border border-gray-300 p-3 text-base focus:border-blue-500 focus:outline-none"
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs text-gray-500">대표자</label>
+              <input
+                type="text"
+                value={settings.employerCeo ?? ''}
+                onChange={(e) => setSettings({ ...settings, employerCeo: e.target.value })}
+                className="w-full rounded-xl border border-gray-300 p-3 text-base focus:border-blue-500 focus:outline-none"
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs text-gray-500">주소</label>
+              <input
+                type="text"
+                value={settings.employerAddress ?? ''}
+                onChange={(e) =>
+                  setSettings({ ...settings, employerAddress: e.target.value })
+                }
+                className="w-full rounded-xl border border-gray-300 p-3 text-base focus:border-blue-500 focus:outline-none"
+              />
+            </div>
+            <div className="flex gap-2">
+              <div className="flex-1">
+                <label className="mb-1 block text-xs text-gray-500">전화</label>
+                <input
+                  type="tel"
+                  value={settings.employerPhone ?? ''}
+                  onChange={(e) =>
+                    setSettings({ ...settings, employerPhone: e.target.value })
+                  }
+                  className="w-full rounded-xl border border-gray-300 p-3 text-base focus:border-blue-500 focus:outline-none"
+                />
+              </div>
+              <div className="flex-1">
+                <label className="mb-1 block text-xs text-gray-500">사업자등록번호</label>
+                <input
+                  type="text"
+                  value={settings.employerBizRegNo ?? ''}
+                  onChange={(e) =>
+                    setSettings({ ...settings, employerBizRegNo: e.target.value })
+                  }
+                  className="w-full rounded-xl border border-gray-300 p-3 text-base focus:border-blue-500 focus:outline-none"
+                />
+              </div>
+            </div>
           </div>
         </section>
 

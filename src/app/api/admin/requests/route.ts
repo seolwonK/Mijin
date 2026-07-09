@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import type { RequestStatus, Urgency } from '@prisma/client';
 import { prisma } from '@/lib/db';
 import { requireSession } from '@/lib/auth';
+import { ASSIGNEE_INCLUDE, resolveAssignee } from '@/lib/assignee';
 
 const STATUSES = ['RECEIVED', 'ASSIGNED', 'ACCEPTED', 'DISPATCHED', 'COMPLETED', 'CANCELED'];
 const URGENCIES = ['CRITICAL', 'URGENT', 'NORMAL'];
@@ -26,7 +27,7 @@ export async function GET(req: NextRequest) {
         where: { status: { in: ['REQUESTED', 'ACCEPTED'] } },
         orderBy: { createdAt: 'desc' },
         take: 1,
-        include: { provider: { include: { user: { select: { name: true } } } } },
+        include: ASSIGNEE_INCLUDE,
       },
     },
   });
@@ -44,7 +45,8 @@ export async function GET(req: NextRequest) {
       needsAttention: r.needsAttention,
       createdAt: r.createdAt,
       assignBaseAt: r.assignBaseAt,
-      providerName: r.assignments[0]?.provider.user.name ?? null,
+      assigneeName: r.assignments[0] ? resolveAssignee(r.assignments[0])?.name ?? null : null,
+      assigneeKind: r.assignments[0] ? resolveAssignee(r.assignments[0])?.kind ?? null : null,
     })),
   });
 }

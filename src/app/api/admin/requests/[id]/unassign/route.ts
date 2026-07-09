@@ -3,6 +3,7 @@ import { prisma } from '@/lib/db';
 import { requireSession } from '@/lib/auth';
 import { sendSms } from '@/lib/sms';
 import { smsAssignmentRecalled } from '@/lib/sms/templates';
+import { ASSIGNEE_INCLUDE, resolveAssignee } from '@/lib/assignee';
 
 // 응답 대기(REQUESTED) 중인 배정을 회수하고 접수를 배정 대기로 되돌린다.
 // 업체 수락/거절과의 경합은 assignment 상태 CAS 로 해소된다 (한쪽만 성공).
@@ -17,11 +18,11 @@ export async function POST(
   const pending = await prisma.assignment.findFirst({
     where: { requestId: id, status: 'REQUESTED' },
     orderBy: { createdAt: 'desc' },
-    include: { provider: { include: { user: { select: { phone: true } } } } },
+    include: ASSIGNEE_INCLUDE,
   });
   if (!pending) {
     return NextResponse.json(
-      { error: '회수할 응답 대기 배정이 없습니다 (업체가 이미 응답했을 수 있습니다)' },
+      { error: '회수할 응답 대기 배정이 없습니다 (담당자가 이미 응답했을 수 있습니다)' },
       { status: 409 },
     );
   }
@@ -32,7 +33,7 @@ export async function POST(
   });
   if (claimed.count === 0) {
     return NextResponse.json(
-      { error: '업체가 방금 응답하여 회수할 수 없습니다' },
+      { error: '담당자가 방금 응답하여 회수할 수 없습니다' },
       { status: 409 },
     );
   }
@@ -43,8 +44,9 @@ export async function POST(
     data: { status: 'RECEIVED', assignBaseAt: new Date() },
   });
 
-  // 회수 안내 문자 — 업체가 배정 문자만 보고 출동하는 일을 방지 (실패해도 회수는 유지)
-  void sendSms(pending.provider.user.phone, smsAssignmentRecalled(), id);
+  // 회수 안내 문자 — 담당자가 배정 문자만 보고 출동하는 일을 방지 (실패해도 회수는 유지)
+  const assignee = resolveAssignee(pending);
+  if (assignee) void sendSms(assignee.phone, smsAssignmentRecalled(), id);
 
   return NextResponse.json({ ok: true });
 }

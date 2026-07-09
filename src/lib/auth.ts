@@ -3,13 +3,14 @@ import { cookies } from 'next/headers';
 
 export const SESSION_COOKIE = 'mijin_session';
 
-export type SessionRole = 'ADMIN' | 'PROVIDER';
+export type SessionRole = 'ADMIN' | 'PROVIDER' | 'TECHNICIAN';
 
 export type Session = {
   userId: string;
   role: SessionRole;
   name: string;
   providerId?: string;
+  technicianId?: string;
 };
 
 function secretKey(): Uint8Array {

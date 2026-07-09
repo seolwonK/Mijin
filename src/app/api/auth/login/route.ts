@@ -28,6 +28,7 @@ export async function POST(req: NextRequest) {
     where: { loginId: parsed.data.loginId },
     include: {
       provider: { select: { id: true, approvalStatus: true, rejectReason: true } },
+      technician: { select: { id: true, approvalStatus: true, rejectReason: true } },
     },
   });
   if (!user || !(await bcrypt.compare(parsed.data.password, user.passwordHash))) {
@@ -37,17 +38,22 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  // 승인 전 업체는 로그인 차단
-  if (user.role === 'PROVIDER') {
-    const status = user.provider?.approvalStatus;
-    if (status === 'PENDING') {
+  // 승인 전 업체·기술자는 로그인 차단 (관리자는 승인 대상 아님)
+  const profile =
+    user.role === 'PROVIDER'
+      ? user.provider
+      : user.role === 'TECHNICIAN'
+        ? user.technician
+        : null;
+  if (profile) {
+    if (profile.approvalStatus === 'PENDING') {
       return NextResponse.json(
         { error: '가입 승인 대기 중입니다. 승인 완료 후 다시 로그인해 주세요.' },
         { status: 403 },
       );
     }
-    if (status === 'REJECTED') {
-      const reason = user.provider?.rejectReason;
+    if (profile.approvalStatus === 'REJECTED') {
+      const reason = profile.rejectReason;
       return NextResponse.json(
         {
           error: `가입이 승인되지 않았습니다.${reason ? ` 사유: ${reason}` : ''} 관리자에게 문의해 주세요.`,
@@ -62,6 +68,7 @@ export async function POST(req: NextRequest) {
     role: user.role,
     name: user.name,
     providerId: user.provider?.id,
+    technicianId: user.technician?.id,
   });
   const res = NextResponse.json({ role: user.role, name: user.name });
   res.cookies.set(SESSION_COOKIE, token, {
