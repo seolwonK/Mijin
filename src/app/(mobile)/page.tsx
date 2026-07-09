@@ -28,15 +28,12 @@ export default function Home() {
         </Link>
       </div>
 
-      <div className="mt-4 flex flex-wrap justify-center gap-x-6 gap-y-2 pb-6 text-sm text-gray-400 md:mt-10 md:pb-0">
-        <Link href="/partner/login" className="underline hover:text-gray-600">
-          업체 로그인
-        </Link>
-        <Link href="/tech/login" className="underline hover:text-gray-600">
-          개인기술자 로그인
-        </Link>
-        <Link href="/admin/login" className="underline hover:text-gray-600">
-          관리자 로그인
+      <div className="mt-6 pb-6 text-center md:mt-10 md:pb-0">
+        <Link
+          href="/login"
+          className="text-sm font-medium text-gray-400 underline-offset-4 hover:text-gray-600 hover:underline"
+        >
+          업체 · 개인기술자 · 관리자 로그인 →
         </Link>
       </div>
     </main>
