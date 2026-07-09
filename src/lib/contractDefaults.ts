@@ -16,12 +16,13 @@ export type ContractDefaults = {
 
 export function contractDefaults(type: EmploymentType): ContractDefaults {
   if (type === 'DAILY') {
+    // 1일 8시간 = 09:00~18:00 중 휴게 1시간 (근로기준법 제54조: 8시간 근로 시 1시간 휴게)
     return {
-      workStartTime: null,
-      workEndTime: null,
-      breakStartTime: null,
-      breakEndTime: null,
-      hoursNote: '소정근로시간 1일 8시간',
+      workStartTime: '09:00',
+      workEndTime: '18:00',
+      breakStartTime: '12:00',
+      breakEndTime: '13:00',
+      hoursNote: '1일 소정근로 8시간',
       workDays: '근로개시일 당일',
       weeklyHoliday: null,
     };

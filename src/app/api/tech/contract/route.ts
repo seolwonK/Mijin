@@ -64,6 +64,10 @@ function serialize(contract: EmploymentContract) {
     hoursNote: contract.hoursNote,
     workDays: contract.workDays,
     weeklyHoliday: contract.weeklyHoliday,
+    wageType: contract.wageType,
+    wageAmount: contract.wageAmount,
+    payDate: contract.payDate,
+    payMethod: contract.payMethod,
     workerAddress: contract.workerAddress,
     workerSignatureName: contract.workerSignatureName,
     workerSignatureDataUrl: contract.workerSignatureDataUrl,
@@ -112,6 +116,14 @@ export async function PUT(req: NextRequest) {
   if (loaded.contract.status === 'CONFIRMED') {
     return NextResponse.json(
       { error: '이미 확정된 계약서는 수정할 수 없습니다. 관리자에게 문의해 주세요.' },
+      { status: 409 },
+    );
+  }
+
+  // 임금은 근로기준법 제17조상 필수 명시사항 — 금액 없이 서명(확정)할 수 없다
+  if (loaded.contract.wageAmount == null) {
+    return NextResponse.json(
+      { error: '임금이 확정되지 않았습니다. 관리자가 임금을 입력한 뒤 서명할 수 있습니다.' },
       { status: 409 },
     );
   }

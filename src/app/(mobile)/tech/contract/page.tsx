@@ -11,6 +11,15 @@ const EMPLOYMENT_LABEL: Record<string, string> = {
   DAILY: '일일 근로자',
   PERMANENT: '상시 근로자',
 };
+const WAGE_TYPE_LABEL: Record<string, string> = {
+  MONTHLY: '월급',
+  DAILY: '일급',
+  HOURLY: '시급',
+};
+const PAY_METHOD_LABEL: Record<string, string> = {
+  BANK_TRANSFER: '예금통장 입금',
+  DIRECT: '직접 지급',
+};
 
 type Contract = {
   status: 'DRAFT' | 'SUBMITTED' | 'CONFIRMED';
@@ -26,6 +35,10 @@ type Contract = {
   hoursNote: string | null;
   workDays: string;
   weeklyHoliday: string | null;
+  wageType: 'MONTHLY' | 'DAILY' | 'HOURLY' | null;
+  wageAmount: number | null;
+  payDate: string | null;
+  payMethod: 'BANK_TRANSFER' | 'DIRECT' | null;
   workerAddress: string | null;
   workerSignatureName: string | null;
   workerSignatureDataUrl: string | null;
@@ -241,17 +254,32 @@ export default function TechContractPage() {
           </div>
         </section>
 
-        {/* 관리자 입력 영역 안내 */}
-        <section className="rounded-2xl border border-dashed border-gray-300 bg-gray-50 p-4 text-sm text-gray-500">
-          <h2 className="mb-1 font-semibold text-gray-600">임금 · 4대보험</h2>
-          <p>
-            임금(월급/일급/시급)·4대보험은 관리자가 설정한 값이 적용됩니다. 금액이
-            정해지지 않은 경우 &ldquo;추후 협의&rdquo;로 표기됩니다.
+        {/* 임금 (관리자 설정, 읽기전용) */}
+        <section className="space-y-1 rounded-2xl border border-gray-200 bg-gray-50 p-4">
+          <h2 className="mb-1 text-sm font-semibold">임금</h2>
+          {c.wageAmount != null ? (
+            <>
+              <ReadOnlyRow
+                label={c.wageType ? WAGE_TYPE_LABEL[c.wageType] : '임금'}
+                value={`${c.wageAmount.toLocaleString('ko-KR')}원`}
+              />
+              {c.payDate && <ReadOnlyRow label="임금지급일" value={c.payDate} />}
+              {c.payMethod && (
+                <ReadOnlyRow label="지급방법" value={PAY_METHOD_LABEL[c.payMethod]} />
+              )}
+            </>
+          ) : (
+            <p className="text-sm text-amber-700">
+              관리자가 임금을 확정하면 서명할 수 있습니다.
+            </p>
+          )}
+          <p className="pt-1 text-xs text-gray-400">
+            임금·4대보험은 관리자가 설정합니다.
           </p>
         </section>
 
         {/* 서명 → 계약 완료 */}
-        {!confirmed && (
+        {!confirmed && c.wageAmount != null && (
           <section className="space-y-2 md:rounded-2xl md:bg-white md:p-6 md:shadow-sm">
             <h2 className="text-sm font-semibold">근로자 서명</h2>
             <SignaturePad onChange={setSignature} />
@@ -264,7 +292,7 @@ export default function TechContractPage() {
           </p>
         )}
 
-        {!confirmed && (
+        {!confirmed && c.wageAmount != null && (
           <button
             type="submit"
             disabled={
