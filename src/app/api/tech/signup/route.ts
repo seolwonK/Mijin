@@ -4,7 +4,8 @@ import { z } from 'zod';
 import { prisma } from '@/lib/db';
 import { geocode } from '@/lib/geo/kakao';
 
-// 개인기술자 셀프 가입 신청. PENDING 상태로 생성되며 관리자 승인 후 이용 가능.
+// 개인기술자 셀프 가입. 가입 즉시 자동 승인(APPROVED)되어 바로 로그인할 수 있다.
+// 단, 실제 배정(일)은 근로계약서 서명 완료 후에만 가능하다 (matching 에서 게이트).
 // 업체 가입과 달리 사업자등록번호·증빙 파일이 없으므로 JSON 으로 받는다.
 
 const fieldsSchema = z.object({
@@ -84,7 +85,8 @@ export async function POST(req: NextRequest) {
           lat: geo?.lat ?? null,
           lng: geo?.lng ?? null,
           employmentType: data.employmentType,
-          approvalStatus: 'PENDING',
+          approvalStatus: 'APPROVED',
+          approvedAt: new Date(),
         },
       },
     },

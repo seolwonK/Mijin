@@ -12,9 +12,9 @@ const EMPLOYMENT_LABEL: Record<string, string> = {
   PERMANENT: '상시 근로자',
 };
 const STATUS_LABEL: Record<string, string> = {
-  DRAFT: '서명 대기',
-  SUBMITTED: '서명 대기',
-  CONFIRMED: '서명 완료',
+  DRAFT: '서명 전 (배정 불가)',
+  SUBMITTED: '서명 전 (배정 불가)',
+  CONFIRMED: '서명 완료 (배정 가능)',
 };
 const WAGE_TYPES: { value: string; label: string }[] = [
   { value: 'MONTHLY', label: '월급' },

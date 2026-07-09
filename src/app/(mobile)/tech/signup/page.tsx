@@ -74,20 +74,20 @@ export default function TechSignupPage() {
     return (
       <main className="flex min-h-screen flex-col items-center justify-center p-6">
         <div className="flex w-full flex-col items-center gap-5 text-center md:max-w-lg md:rounded-3xl md:bg-white md:p-12 md:shadow-sm">
-          <div className="text-6xl">📨</div>
-          <h1 className="text-2xl font-bold">가입 신청이 접수되었습니다</h1>
+          <div className="text-6xl">🎉</div>
+          <h1 className="text-2xl font-bold">가입이 완료되었습니다</h1>
           <p className="text-gray-500">
-            관리자가 확인한 뒤 승인합니다.
+            바로 로그인할 수 있습니다.
             <br />
-            승인 후 로그인할 수 있으며, 승인 여부는
+            로그인 후 <b>근로계약서를 작성·서명</b>하면
             <br />
-            로그인 화면에서 확인해 주세요.
+            배정(일)을 받을 수 있습니다.
           </p>
           <Link
             href="/tech/login"
             className="w-full rounded-2xl bg-blue-600 p-4 text-center font-bold text-white transition-colors hover:bg-blue-700"
           >
-            로그인 화면으로
+            로그인 하러 가기
           </Link>
         </div>
       </main>

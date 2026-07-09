@@ -47,6 +47,20 @@ export async function POST(
     );
   }
 
+  // 기술자는 근로계약서 서명 완료 후에만 배정 가능
+  if (assigneeKind === 'TECHNICIAN') {
+    const contract = await prisma.employmentContract.findUnique({
+      where: { technicianId: assigneeId },
+      select: { status: true },
+    });
+    if (contract?.status !== 'CONFIRMED') {
+      return NextResponse.json(
+        { error: '근로계약서 서명이 완료되지 않은 기술자입니다' },
+        { status: 400 },
+      );
+    }
+  }
+
   const distanceKm =
     request.lat != null &&
     request.lng != null &&

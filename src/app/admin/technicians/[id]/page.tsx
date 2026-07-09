@@ -33,9 +33,9 @@ const EMPLOYMENT_LABEL: Record<string, string> = {
   PERMANENT: '상시 근로자',
 };
 const CONTRACT_LABEL: Record<string, string> = {
-  DRAFT: '작성 중',
-  SUBMITTED: '제출됨 (임금 입력 대기)',
-  CONFIRMED: '확정',
+  DRAFT: '서명 전 (배정 불가)',
+  SUBMITTED: '서명 전 (배정 불가)',
+  CONFIRMED: '서명 완료 (배정 가능)',
 };
 
 export default function EditTechnicianPage({

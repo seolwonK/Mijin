@@ -25,9 +25,9 @@ const EMPLOYMENT_LABEL: Record<string, string> = {
   PERMANENT: '상시',
 };
 const CONTRACT_LABEL: Record<string, string> = {
-  DRAFT: '작성 중',
-  SUBMITTED: '제출됨',
-  CONFIRMED: '확정',
+  DRAFT: '서명 전',
+  SUBMITTED: '서명 전',
+  CONFIRMED: '서명 완료 (배정 가능)',
 };
 
 export default function AdminTechniciansPage() {

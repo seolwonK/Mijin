@@ -26,8 +26,13 @@ export async function getCandidates(request: {
       where: { isActive: true, approvalStatus: 'APPROVED' },
       include: { user: { select: { name: true, phone: true } } },
     }),
+    // 기술자는 근로계약서 서명 완료(CONFIRMED) 후에만 배정 대상이 된다
     prisma.technician.findMany({
-      where: { isActive: true, approvalStatus: 'APPROVED' },
+      where: {
+        isActive: true,
+        approvalStatus: 'APPROVED',
+        contract: { status: 'CONFIRMED' },
+      },
       include: { user: { select: { name: true, phone: true } } },
     }),
     prisma.assignment.findMany({

@@ -52,6 +52,11 @@ function JobCard({ job, highlight }: { job: Job; highlight?: boolean }) {
 
 export default function TechHomePage() {
   const { data, error } = usePolling<{ jobs: Job[] }>('/api/tech/jobs', 5_000);
+  const { data: contractData } = usePolling<{ contract: { status: string } }>(
+    '/api/tech/contract',
+    30_000,
+  );
+  const contractSigned = contractData?.contract?.status === 'CONFIRMED';
   const jobs = data?.jobs ?? [];
 
   const waiting = jobs.filter((j) => j.status === 'REQUESTED');
@@ -76,10 +81,29 @@ export default function TechHomePage() {
 
         <Link
           href="/tech/contract"
-          className="flex items-center justify-between rounded-2xl border border-blue-200 bg-blue-50 p-4 transition-colors hover:bg-blue-100"
+          className={`flex items-center justify-between rounded-2xl border p-4 transition-colors ${
+            contractSigned
+              ? 'border-green-200 bg-green-50 hover:bg-green-100'
+              : 'border-amber-300 bg-amber-50 hover:bg-amber-100'
+          }`}
         >
-          <span className="font-bold text-blue-800">📄 근로계약서 작성</span>
-          <span className="text-sm text-blue-600">작성하기 →</span>
+          <span className="min-w-0">
+            <span
+              className={`block font-bold ${contractSigned ? 'text-green-800' : 'text-amber-800'}`}
+            >
+              📄 근로계약서 {contractSigned ? '서명 완료' : '작성 필요'}
+            </span>
+            {!contractSigned && (
+              <span className="mt-0.5 block text-xs text-amber-700">
+                서명을 완료해야 배정(일)을 받을 수 있습니다.
+              </span>
+            )}
+          </span>
+          <span
+            className={`shrink-0 text-sm ${contractSigned ? 'text-green-600' : 'text-amber-600'}`}
+          >
+            {contractSigned ? '보기 →' : '작성하기 →'}
+          </span>
         </Link>
 
         <section>
