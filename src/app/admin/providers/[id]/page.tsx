@@ -59,7 +59,7 @@ export default function EditProviderPage({
       detail &&
       (detail.lat == null || detail.lng == null) &&
       !window.confirm(
-        '좌표가 없는 업체입니다. 승인해도 거리 계산·자동배정에서 제외됩니다.\n(아래 수정 폼에서 좌표를 입력할 수 있습니다) 그래도 승인할까요?',
+        '좌표가 없는 업체입니다. 서비스 지역이 설정돼 있으면 지역 기준으로 자동배정되며, 좌표를 입력하면 거리순 배정까지 됩니다.\n그래도 승인할까요?',
       )
     )
       return;
@@ -246,9 +246,9 @@ export default function EditProviderPage({
           </div>
         )}
         {(detail.lat == null || detail.lng == null) && (
-          <p className="rounded-xl bg-amber-50 p-3 text-sm text-amber-700">
-            ⚠️ 좌표가 없어 거리 계산·자동배정에서 제외됩니다. 아래 폼에서 좌표를
-            입력해 주세요.
+          <p className="rounded-xl bg-blue-50 p-3 text-sm text-blue-700">
+            좌표가 없어 거리순 정렬은 안 되지만, 서비스 지역이 설정돼 있으면 지역
+            기준으로 자동배정됩니다. 정확한 거리 배정을 원하면 아래에서 좌표를 입력하세요.
           </p>
         )}
         {error && (
