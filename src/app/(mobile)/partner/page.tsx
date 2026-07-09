@@ -70,7 +70,17 @@ export default function PartnerHomePage() {
       <PageHeader
         title="업체 포털"
         width="max-w-5xl"
-        right={<LogoutButton loginPath="/partner/login" />}
+        right={
+          <>
+            <Link
+              href="/partner/profile"
+              className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-50"
+            >
+              내 정보
+            </Link>
+            <LogoutButton loginPath="/partner/login" />
+          </>
+        }
       />
 
       <div className="mx-auto w-full max-w-5xl space-y-6 p-4 md:space-y-8 md:py-8">

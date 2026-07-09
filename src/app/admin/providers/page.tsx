@@ -6,6 +6,7 @@ import PageHeader from '@/components/PageHeader';
 import { buttonClasses } from '@/components/Button';
 import { usePolling } from '@/components/usePolling';
 import { CardSkeletonGrid } from '@/components/Skeleton';
+import { SortTh, type SortState } from '@/components/SortTh';
 
 type ProviderRow = {
   id: string;
@@ -32,6 +33,13 @@ export default function AdminProvidersPage() {
   const pending = all.filter((p) => p.approvalStatus === 'PENDING');
   const approved = all.filter((p) => p.approvalStatus === 'APPROVED');
   const rejected = all.filter((p) => p.approvalStatus === 'REJECTED');
+  const [sort, setSort] = useState<SortState<'name' | 'phone'>>({ key: 'name', dir: 1 });
+  const sortedApproved = [...approved].sort(
+    (a, b) =>
+      (sort.key === 'name'
+        ? a.name.localeCompare(b.name, 'ko')
+        : a.phone.localeCompare(b.phone, 'ko')) * sort.dir,
+  );
 
   async function toggleActive(p: ProviderRow) {
     // 비활성 전환은 배정 대상 제외라 실수 방지용 확인
@@ -124,43 +132,54 @@ export default function AdminProvidersPage() {
               운영 중인 업체가 없습니다
             </p>
           )}
-          <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
-            {approved.map((p) => (
-              <div
-                key={p.id}
-                className={`relative rounded-2xl border p-4 transition-colors hover:border-blue-300 hover:shadow-card-hover ${
-                  p.isActive
-                    ? 'border-slate-200 bg-white'
-                    : 'border-slate-200 bg-gray-50 opacity-70'
-                }`}
-              >
-                <Link
-                  href={`/admin/providers/${p.id}`}
-                  aria-label={`${p.name} 상세 보기`}
-                  className="absolute inset-0 z-[1] rounded-2xl focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
-                />
-                <div className="flex items-center justify-between">
-                  <span className="font-bold">{p.name}</span>
-                  <button
-                    type="button"
-                    onClick={() => toggleActive(p)}
-                    disabled={togglingId === p.id}
-                    className={`relative z-[2] rounded-full px-3 py-1.5 text-xs font-bold disabled:opacity-50 ${
-                      p.isActive
-                        ? 'bg-green-100 text-green-700'
-                        : 'bg-gray-200 text-gray-500'
-                    }`}
-                  >
-                    {togglingId === p.id ? '변경 중…' : p.isActive ? '활성' : '비활성'}
-                  </button>
-                </div>
-                <p className="mt-1 text-sm text-gray-500">
-                  {p.loginId} · {p.phone}
-                </p>
-                <p className="text-sm text-gray-500">📍 {p.address}</p>
-              </div>
-            ))}
-          </div>
+          {!loading && approved.length > 0 && (
+            <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-card">
+              <table className="w-full min-w-[680px] text-sm">
+                <thead>
+                  <tr className="border-b border-slate-200 bg-slate-50 text-left text-xs text-slate-500">
+                    <SortTh label="업체명" col="name" sort={sort} onSort={setSort} />
+                    <th className="px-4 py-2.5 font-semibold">아이디</th>
+                    <SortTh label="전화" col="phone" sort={sort} onSort={setSort} />
+                    <th className="px-4 py-2.5 font-semibold">주소</th>
+                    <th className="px-4 py-2.5 text-right font-semibold">상태</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {sortedApproved.map((p) => (
+                    <tr
+                      key={p.id}
+                      className={`border-b border-slate-100 last:border-0 hover:bg-slate-50 ${
+                        p.isActive ? '' : 'opacity-60'
+                      }`}
+                    >
+                      <td className="px-4 py-2.5 font-bold">
+                        <Link href={`/admin/providers/${p.id}`} className="text-blue-700 hover:underline">
+                          {p.name}
+                        </Link>
+                      </td>
+                      <td className="px-4 py-2.5 text-slate-600">{p.loginId}</td>
+                      <td className="px-4 py-2.5 text-slate-600">{p.phone}</td>
+                      <td className="max-w-xs truncate px-4 py-2.5 text-slate-600">📍 {p.address}</td>
+                      <td className="px-4 py-2.5 text-right">
+                        <button
+                          type="button"
+                          onClick={() => toggleActive(p)}
+                          disabled={togglingId === p.id}
+                          className={`rounded-full px-3 py-1.5 text-xs font-bold disabled:opacity-50 ${
+                            p.isActive
+                              ? 'bg-green-100 text-green-700'
+                              : 'bg-gray-200 text-gray-500'
+                          }`}
+                        >
+                          {togglingId === p.id ? '변경 중…' : p.isActive ? '활성' : '비활성'}
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </section>
 
         {rejected.length > 0 && (

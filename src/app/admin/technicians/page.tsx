@@ -6,6 +6,7 @@ import PageHeader from '@/components/PageHeader';
 import { buttonClasses } from '@/components/Button';
 import { usePolling } from '@/components/usePolling';
 import { CardSkeletonGrid } from '@/components/Skeleton';
+import { SortTh, type SortState } from '@/components/SortTh';
 
 type TechnicianRow = {
   id: string;
@@ -43,6 +44,13 @@ export default function AdminTechniciansPage() {
   const pending = all.filter((t) => t.approvalStatus === 'PENDING');
   const approved = all.filter((t) => t.approvalStatus === 'APPROVED');
   const rejected = all.filter((t) => t.approvalStatus === 'REJECTED');
+  const [sort, setSort] = useState<SortState<'name' | 'phone'>>({ key: 'name', dir: 1 });
+  const sortedApproved = [...approved].sort(
+    (a, b) =>
+      (sort.key === 'name'
+        ? a.name.localeCompare(b.name, 'ko')
+        : a.phone.localeCompare(b.phone, 'ko')) * sort.dir,
+  );
 
   async function toggleActive(t: TechnicianRow) {
     if (
@@ -135,52 +143,60 @@ export default function AdminTechniciansPage() {
               운영 중인 기술자가 없습니다
             </p>
           )}
-          <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
-            {approved.map((t) => (
-              <div
-                key={t.id}
-                className={`relative rounded-2xl border p-4 transition-colors hover:border-blue-300 hover:shadow-card-hover ${
-                  t.isActive
-                    ? 'border-slate-200 bg-white'
-                    : 'border-slate-200 bg-gray-50 opacity-70'
-                }`}
-              >
-                <Link
-                  href={`/admin/technicians/${t.id}`}
-                  aria-label={`${t.name} 상세 보기`}
-                  className="absolute inset-0 z-[1] rounded-2xl focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
-                />
-                <div className="flex items-center justify-between">
-                  <span className="font-bold">
-                    {t.name}{' '}
-                    <span className="text-xs font-medium text-gray-500">
-                      ({EMPLOYMENT_LABEL[t.employmentType]})
-                    </span>
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => toggleActive(t)}
-                    disabled={togglingId === t.id}
-                    className={`relative z-[2] rounded-full px-3 py-1.5 text-xs font-bold disabled:opacity-50 ${
-                      t.isActive
-                        ? 'bg-green-100 text-green-700'
-                        : 'bg-gray-200 text-gray-500'
-                    }`}
-                  >
-                    {togglingId === t.id ? '변경 중…' : t.isActive ? '활성' : '비활성'}
-                  </button>
-                </div>
-                <p className="mt-1 text-sm text-gray-500">
-                  {t.loginId} · {t.phone}
-                </p>
-                <p className="text-sm text-gray-500">📍 {t.address}</p>
-                <p className="mt-1 text-xs text-gray-500">
-                  근로계약서:{' '}
-                  {t.contractStatus ? CONTRACT_LABEL[t.contractStatus] : '미작성'}
-                </p>
-              </div>
-            ))}
-          </div>
+          {!loading && approved.length > 0 && (
+            <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-card">
+              <table className="w-full min-w-[720px] text-sm">
+                <thead>
+                  <tr className="border-b border-slate-200 bg-slate-50 text-left text-xs text-slate-500">
+                    <SortTh label="이름" col="name" sort={sort} onSort={setSort} />
+                    <th className="px-4 py-2.5 font-semibold">형태</th>
+                    <th className="px-4 py-2.5 font-semibold">아이디</th>
+                    <SortTh label="전화" col="phone" sort={sort} onSort={setSort} />
+                    <th className="px-4 py-2.5 font-semibold">근로계약</th>
+                    <th className="px-4 py-2.5 text-right font-semibold">상태</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {sortedApproved.map((t) => (
+                    <tr
+                      key={t.id}
+                      className={`border-b border-slate-100 last:border-0 hover:bg-slate-50 ${
+                        t.isActive ? '' : 'opacity-60'
+                      }`}
+                    >
+                      <td className="px-4 py-2.5 font-bold">
+                        <Link href={`/admin/technicians/${t.id}`} className="text-blue-700 hover:underline">
+                          {t.name}
+                        </Link>
+                      </td>
+                      <td className="px-4 py-2.5 text-slate-600">
+                        {EMPLOYMENT_LABEL[t.employmentType]}
+                      </td>
+                      <td className="px-4 py-2.5 text-slate-600">{t.loginId}</td>
+                      <td className="px-4 py-2.5 text-slate-600">{t.phone}</td>
+                      <td className="px-4 py-2.5 text-slate-600">
+                        {t.contractStatus ? CONTRACT_LABEL[t.contractStatus] : '미작성'}
+                      </td>
+                      <td className="px-4 py-2.5 text-right">
+                        <button
+                          type="button"
+                          onClick={() => toggleActive(t)}
+                          disabled={togglingId === t.id}
+                          className={`rounded-full px-3 py-1.5 text-xs font-bold disabled:opacity-50 ${
+                            t.isActive
+                              ? 'bg-green-100 text-green-700'
+                              : 'bg-gray-200 text-gray-500'
+                          }`}
+                        >
+                          {togglingId === t.id ? '변경 중…' : t.isActive ? '활성' : '비활성'}
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </section>
 
         {rejected.length > 0 && (
