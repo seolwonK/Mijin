@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePolling } from '@/components/usePolling';
 import { StatusBadge, UrgencyBadge } from '@/components/StatusBadge';
 import LogoutButton from '@/components/LogoutButton';
+import { CardSkeletonGrid } from '@/components/Skeleton';
 
 type Job = {
   id: string;
@@ -43,7 +44,7 @@ function JobCard({ job, highlight }: { job: Job; highlight?: boolean }) {
       {job.request.address && (
         <p className="mt-1 text-sm text-gray-500">📍 {job.request.address}</p>
       )}
-      <p className="mt-1 text-xs text-gray-400">
+      <p className="mt-1 text-xs text-gray-500">
         배정 {new Date(job.createdAt).toLocaleString('ko-KR')}
       </p>
     </Link>
@@ -53,6 +54,7 @@ function JobCard({ job, highlight }: { job: Job; highlight?: boolean }) {
 export default function PartnerHomePage() {
   const { data, error } = usePolling<{ jobs: Job[] }>('/api/partner/jobs', 5_000);
   const jobs = data?.jobs ?? [];
+  const loading = !data && !error;
 
   const waiting = jobs.filter((j) => j.status === 'REQUESTED');
   const inProgress = jobs.filter(
@@ -78,8 +80,10 @@ export default function PartnerHomePage() {
           <h2 className="mb-2 font-semibold text-blue-700">
             🔔 응답 대기 {waiting.length > 0 && `(${waiting.length})`}
           </h2>
-          {waiting.length === 0 ? (
-            <p className="rounded-xl bg-gray-50 p-4 text-center text-sm text-gray-400">
+          {loading ? (
+            <CardSkeletonGrid count={2} />
+          ) : waiting.length === 0 ? (
+            <p className="rounded-xl bg-gray-50 p-4 text-center text-sm text-gray-500">
               새로 배정된 건이 없습니다
             </p>
           ) : (
@@ -93,8 +97,8 @@ export default function PartnerHomePage() {
 
         <section>
           <h2 className="mb-2 font-semibold">🔧 진행중</h2>
-          {inProgress.length === 0 ? (
-            <p className="rounded-xl bg-gray-50 p-4 text-center text-sm text-gray-400">
+          {loading ? null : inProgress.length === 0 ? (
+            <p className="rounded-xl bg-gray-50 p-4 text-center text-sm text-gray-500">
               진행중인 건이 없습니다
             </p>
           ) : (

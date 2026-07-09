@@ -19,20 +19,27 @@ export async function middleware(req: NextRequest) {
       ? '/tech/login'
       : '/partner/login';
   const loginUrl = new URL(loginPath, req.url);
+  // 로그인 후 원래 가려던 화면으로 돌아오도록 현재 경로를 returnTo 로 넘긴다.
+  const withReturn = () => {
+    const u = new URL(loginPath, req.url);
+    u.searchParams.set('returnTo', pathname + req.nextUrl.search);
+    return u;
+  };
   const token = req.cookies.get(SESSION_COOKIE)?.value;
-  if (!token) return NextResponse.redirect(loginUrl);
+  if (!token) return NextResponse.redirect(withReturn());
 
   try {
     const { payload } = await jwtVerify(
       token,
       new TextEncoder().encode(process.env.AUTH_SECRET!),
     );
+    // 역할 불일치는 계정 문제라 returnTo 없이 로그인으로 보낸다.
     if (isAdminArea && payload.role !== 'ADMIN') return NextResponse.redirect(loginUrl);
     if (isPartnerArea && payload.role !== 'PROVIDER') return NextResponse.redirect(loginUrl);
     if (isTechArea && payload.role !== 'TECHNICIAN') return NextResponse.redirect(loginUrl);
     return NextResponse.next();
   } catch {
-    return NextResponse.redirect(loginUrl);
+    return NextResponse.redirect(withReturn());
   }
 }
 

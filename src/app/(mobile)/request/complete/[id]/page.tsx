@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { prisma } from '@/lib/db';
+import CopyButton from '@/components/CopyButton';
 
 export default async function RequestCompletePage({
   params,
@@ -24,6 +25,9 @@ export default async function RequestCompletePage({
           <p className="text-5xl font-extrabold tracking-widest text-blue-600">
             {request.lookupCode}
           </p>
+          <div className="mt-3 flex justify-center">
+            <CopyButton value={request.lookupCode} label="접수번호 복사" />
+          </div>
         </div>
         <p className="text-gray-500">
           접수 확인 문자가 발송되었습니다.
@@ -34,7 +38,7 @@ export default async function RequestCompletePage({
         </p>
         <div className="mt-4 flex w-full flex-col gap-3">
           <Link
-            href="/lookup"
+            href={`/lookup?phone=${encodeURIComponent(request.customerPhone)}`}
             className="rounded-2xl bg-blue-600 p-4 text-center font-bold text-white transition-colors hover:bg-blue-700"
           >
             진행 상황 조회하기

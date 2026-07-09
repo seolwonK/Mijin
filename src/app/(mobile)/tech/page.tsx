@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePolling } from '@/components/usePolling';
 import { StatusBadge, UrgencyBadge } from '@/components/StatusBadge';
 import LogoutButton from '@/components/LogoutButton';
+import { Skeleton, CardSkeletonGrid } from '@/components/Skeleton';
 
 type Job = {
   id: string;
@@ -43,7 +44,7 @@ function JobCard({ job, highlight }: { job: Job; highlight?: boolean }) {
       {job.request.address && (
         <p className="mt-1 text-sm text-gray-500">📍 {job.request.address}</p>
       )}
-      <p className="mt-1 text-xs text-gray-400">
+      <p className="mt-1 text-xs text-gray-500">
         배정 {new Date(job.createdAt).toLocaleString('ko-KR')}
       </p>
     </Link>
@@ -57,7 +58,9 @@ export default function TechHomePage() {
     30_000,
   );
   const contractSigned = contractData?.contract?.status === 'CONFIRMED';
+  const contractLoading = !contractData;
   const jobs = data?.jobs ?? [];
+  const loading = !data && !error;
 
   const waiting = jobs.filter((j) => j.status === 'REQUESTED');
   const inProgress = jobs.filter(
@@ -79,39 +82,48 @@ export default function TechHomePage() {
       <div className="mx-auto w-full max-w-5xl space-y-6 p-4 md:space-y-8 md:py-8">
         {error && <p className="text-sm text-red-600">{error}</p>}
 
-        <Link
-          href="/tech/contract"
-          className={`flex items-center justify-between rounded-2xl border p-4 transition-colors ${
-            contractSigned
-              ? 'border-green-200 bg-green-50 hover:bg-green-100'
-              : 'border-amber-300 bg-amber-50 hover:bg-amber-100'
-          }`}
-        >
-          <span className="min-w-0">
-            <span
-              className={`block font-bold ${contractSigned ? 'text-green-800' : 'text-amber-800'}`}
-            >
-              📄 근로계약서 {contractSigned ? '서명 완료' : '작성 필요'}
-            </span>
-            {!contractSigned && (
-              <span className="mt-0.5 block text-xs text-amber-700">
-                서명을 완료해야 배정(일)을 받을 수 있습니다.
-              </span>
-            )}
-          </span>
-          <span
-            className={`shrink-0 text-sm ${contractSigned ? 'text-green-600' : 'text-amber-600'}`}
+        {contractLoading ? (
+          <div className="flex items-center justify-between rounded-2xl border border-gray-200 bg-gray-50 p-4">
+            <Skeleton className="h-5 w-40" />
+            <Skeleton className="h-5 w-12" />
+          </div>
+        ) : (
+          <Link
+            href="/tech/contract"
+            className={`flex items-center justify-between rounded-2xl border p-4 transition-colors ${
+              contractSigned
+                ? 'border-green-200 bg-green-50 hover:bg-green-100'
+                : 'border-amber-300 bg-amber-50 hover:bg-amber-100'
+            }`}
           >
-            {contractSigned ? '보기 →' : '작성하기 →'}
-          </span>
-        </Link>
+            <span className="min-w-0">
+              <span
+                className={`block font-bold ${contractSigned ? 'text-green-800' : 'text-amber-800'}`}
+              >
+                📄 근로계약서 {contractSigned ? '서명 완료' : '작성 필요'}
+              </span>
+              {!contractSigned && (
+                <span className="mt-0.5 block text-xs text-amber-700">
+                  서명을 완료해야 배정(일)을 받을 수 있습니다.
+                </span>
+              )}
+            </span>
+            <span
+              className={`shrink-0 text-sm ${contractSigned ? 'text-green-600' : 'text-amber-600'}`}
+            >
+              {contractSigned ? '보기 →' : '작성하기 →'}
+            </span>
+          </Link>
+        )}
 
         <section>
           <h2 className="mb-2 font-semibold text-blue-700">
             🔔 응답 대기 {waiting.length > 0 && `(${waiting.length})`}
           </h2>
-          {waiting.length === 0 ? (
-            <p className="rounded-xl bg-gray-50 p-4 text-center text-sm text-gray-400">
+          {loading ? (
+            <CardSkeletonGrid count={2} />
+          ) : waiting.length === 0 ? (
+            <p className="rounded-xl bg-gray-50 p-4 text-center text-sm text-gray-500">
               새로 배정된 건이 없습니다
             </p>
           ) : (
@@ -125,8 +137,8 @@ export default function TechHomePage() {
 
         <section>
           <h2 className="mb-2 font-semibold">🔧 진행중</h2>
-          {inProgress.length === 0 ? (
-            <p className="rounded-xl bg-gray-50 p-4 text-center text-sm text-gray-400">
+          {loading ? null : inProgress.length === 0 ? (
+            <p className="rounded-xl bg-gray-50 p-4 text-center text-sm text-gray-500">
               진행중인 건이 없습니다
             </p>
           ) : (

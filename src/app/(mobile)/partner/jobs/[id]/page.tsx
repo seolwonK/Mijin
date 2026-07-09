@@ -4,6 +4,7 @@ import { use, useState } from 'react';
 import BackButton from '@/components/BackButton';
 import { usePolling } from '@/components/usePolling';
 import { StatusBadge, UrgencyBadge } from '@/components/StatusBadge';
+import { Skeleton, CardSkeleton } from '@/components/Skeleton';
 
 type JobDetail = {
   id: string;
@@ -39,8 +40,11 @@ export default function PartnerJobDetailPage({
   const [busy, setBusy] = useState(false);
   const [rejecting, setRejecting] = useState(false);
   const [reason, setReason] = useState('');
+  // 되돌릴 수 없는 액션(출동/완료)은 2단계 확인. flash 는 처리 후 잠깐 뜨는 성공 안내.
+  const [confirming, setConfirming] = useState<'DISPATCHED' | 'COMPLETED' | null>(null);
+  const [flash, setFlash] = useState<string | null>(null);
 
-  async function act(path: string, body?: unknown) {
+  async function act(path: string, body?: unknown, successMsg?: string) {
     setBusy(true);
     setActionError(null);
     try {
@@ -55,6 +59,11 @@ export default function PartnerJobDetailPage({
         return;
       }
       setRejecting(false);
+      setConfirming(null);
+      if (successMsg) {
+        setFlash(successMsg);
+        setTimeout(() => setFlash(null), 3000);
+      }
       await refresh();
     } catch {
       setActionError('네트워크 오류가 발생했습니다');
@@ -63,16 +72,29 @@ export default function PartnerJobDetailPage({
     }
   }
 
-  if (error) {
+  if (error || !job) {
     return (
-      <main className="p-6">
-        <p className="text-red-600">{error}</p>
+      <main className="min-h-screen">
+        <header className="sticky top-0 z-20 border-b border-gray-200 bg-white/95 backdrop-blur">
+          <div className="mx-auto flex w-full max-w-3xl items-center gap-2 px-4 py-2 md:py-3">
+            <BackButton fallback="/partner" />
+            <h1 className="text-lg font-bold">배정 상세</h1>
+          </div>
+        </header>
+        <div className="mx-auto w-full max-w-3xl space-y-4 p-4 md:py-8">
+          {error ? (
+            <p role="alert" className="rounded-xl bg-red-50 p-4 text-sm font-medium text-red-600">
+              불러오지 못했습니다 — {error}
+            </p>
+          ) : (
+            <>
+              <Skeleton className="h-8 w-40" />
+              <CardSkeleton />
+              <CardSkeleton />
+            </>
+          )}
+        </div>
       </main>
-    );
-  }
-  if (!job) {
-    return (
-      <main className="p-6 text-center text-gray-400">불러오는 중…</main>
     );
   }
 
@@ -142,8 +164,13 @@ export default function PartnerJobDetailPage({
             거절한 배정입니다{job.rejectReason ? ` — ${job.rejectReason}` : ''}
           </p>
         )}
+        {flash && (
+          <p className="rounded-xl bg-green-50 p-3 text-sm font-medium text-green-700 md:col-span-2">
+            ✅ {flash}
+          </p>
+        )}
         {actionError && (
-          <p className="rounded-xl bg-red-50 p-3 text-sm font-medium text-red-600 md:col-span-2">
+          <p role="alert" className="rounded-xl bg-red-50 p-3 text-sm font-medium text-red-600 md:col-span-2">
             {actionError}
           </p>
         )}
@@ -200,26 +227,76 @@ export default function PartnerJobDetailPage({
               </div>
             </div>
           )}
-          {canDispatch && (
-            <button
-              type="button"
-              onClick={() => act('status', { status: 'DISPATCHED' })}
-              disabled={busy}
-              className="h-14 w-full rounded-2xl bg-amber-500 text-lg font-bold text-white disabled:opacity-60"
-            >
-              🚚 출동 시작
-            </button>
-          )}
-          {canComplete && (
-            <button
-              type="button"
-              onClick={() => act('status', { status: 'COMPLETED' })}
-              disabled={busy}
-              className="h-14 w-full rounded-2xl bg-green-600 text-lg font-bold text-white disabled:opacity-60"
-            >
-              ✅ 완료 처리
-            </button>
-          )}
+          {canDispatch &&
+            (confirming === 'DISPATCHED' ? (
+              <div className="space-y-2">
+                <p className="text-center text-sm font-medium text-gray-600">
+                  출동을 시작할까요?
+                </p>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => act('status', { status: 'DISPATCHED' }, '출동을 시작했습니다')}
+                    disabled={busy}
+                    className="h-12 flex-1 rounded-2xl bg-amber-500 font-bold text-white disabled:opacity-60"
+                  >
+                    출동 시작
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setConfirming(null)}
+                    disabled={busy}
+                    className="h-12 flex-1 rounded-2xl border border-gray-300 font-bold text-gray-600"
+                  >
+                    취소
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setConfirming('DISPATCHED')}
+                disabled={busy}
+                className="h-14 w-full rounded-2xl bg-amber-500 text-lg font-bold text-white disabled:opacity-60"
+              >
+                🚚 출동 시작
+              </button>
+            ))}
+          {canComplete &&
+            (confirming === 'COMPLETED' ? (
+              <div className="space-y-2">
+                <p className="text-center text-sm font-medium text-gray-600">
+                  완료 처리할까요? 되돌릴 수 없습니다.
+                </p>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => act('status', { status: 'COMPLETED' }, '완료 처리했습니다')}
+                    disabled={busy}
+                    className="h-12 flex-1 rounded-2xl bg-green-600 font-bold text-white disabled:opacity-60"
+                  >
+                    완료 확정
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setConfirming(null)}
+                    disabled={busy}
+                    className="h-12 flex-1 rounded-2xl border border-gray-300 font-bold text-gray-600"
+                  >
+                    취소
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setConfirming('COMPLETED')}
+                disabled={busy}
+                className="h-14 w-full rounded-2xl bg-green-600 text-lg font-bold text-white disabled:opacity-60"
+              >
+                ✅ 완료 처리
+              </button>
+            ))}
         </div>
       )}
     </main>

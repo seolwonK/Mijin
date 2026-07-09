@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { buttonClasses } from '@/components/Button';
 
 export default function LoginForm({
   title,
@@ -31,13 +32,19 @@ export default function LoginForm({
         setError(data.error ?? '로그인에 실패했습니다');
         return;
       }
-      const home =
+      const rolePrefix =
         data.role === 'ADMIN'
           ? '/admin'
           : data.role === 'TECHNICIAN'
             ? '/tech'
             : '/partner';
-      router.replace(home);
+      // 로그인 전 가려던 화면(returnTo)이 이 역할의 경로면 그곳으로, 아니면 포털 홈으로.
+      const returnTo = new URLSearchParams(window.location.search).get('returnTo');
+      const dest =
+        returnTo && (returnTo === rolePrefix || returnTo.startsWith(`${rolePrefix}/`))
+          ? returnTo
+          : rolePrefix;
+      router.replace(dest);
     } catch {
       setError('네트워크 오류가 발생했습니다');
     } finally {
@@ -47,30 +54,46 @@ export default function LoginForm({
 
   return (
     <main className="flex min-h-screen w-full flex-col items-center justify-center p-6">
-      <div className="w-full max-w-sm md:max-w-md md:rounded-3xl md:border md:border-gray-200 md:bg-white md:p-10 md:shadow-sm">
+      <div className="w-full max-w-sm md:max-w-md md:rounded-3xl md:border md:border-slate-200 md:bg-white md:p-10 md:shadow-card">
         <h1 className="mb-6 text-center text-2xl font-bold">{title}</h1>
         <form onSubmit={submit} className="space-y-3">
-          <input
-            type="text"
-            value={loginId}
-            onChange={(e) => setLoginId(e.target.value)}
-            placeholder="아이디"
-            autoComplete="username"
-            className="w-full rounded-xl border border-gray-300 p-3 text-base focus:border-blue-500 focus:outline-none"
-          />
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="비밀번호"
-            autoComplete="current-password"
-            className="w-full rounded-xl border border-gray-300 p-3 text-base focus:border-blue-500 focus:outline-none"
-          />
-          {error && <p className="text-sm text-red-600">{error}</p>}
+          <div>
+            <label htmlFor="loginId" className="mb-1 block text-xs font-medium text-gray-600">
+              아이디
+            </label>
+            <input
+              id="loginId"
+              type="text"
+              value={loginId}
+              onChange={(e) => setLoginId(e.target.value)}
+              placeholder="아이디"
+              autoComplete="username"
+              className="w-full rounded-xl border border-gray-300 p-3 text-base focus:border-blue-500 focus:outline-none"
+            />
+          </div>
+          <div>
+            <label htmlFor="password" className="mb-1 block text-xs font-medium text-gray-600">
+              비밀번호
+            </label>
+            <input
+              id="password"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="비밀번호"
+              autoComplete="current-password"
+              className="w-full rounded-xl border border-gray-300 p-3 text-base focus:border-blue-500 focus:outline-none"
+            />
+          </div>
+          {error && (
+            <p role="alert" className="rounded-xl bg-red-50 p-3 text-sm font-medium text-red-600">
+              {error}
+            </p>
+          )}
           <button
             type="submit"
             disabled={busy || !loginId || !password}
-            className="w-full rounded-xl bg-blue-600 p-4 text-base font-bold text-white transition-colors enabled:hover:bg-blue-700 disabled:opacity-50"
+            className={buttonClasses('primary', 'lg', 'w-full')}
           >
             {busy ? '로그인 중…' : '로그인'}
           </button>

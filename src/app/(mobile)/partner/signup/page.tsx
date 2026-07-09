@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import BackButton from '@/components/BackButton';
 import RegionSelect, { type RegionValue } from '@/components/RegionSelect';
+import RegionMultiSelect from '@/components/RegionMultiSelect';
 import { hasSigungu } from '@/lib/regions';
 
 const inputClass =
@@ -16,6 +17,7 @@ export default function PartnerSignupPage() {
   const [phone, setPhone] = useState('');
   const [region, setRegion] = useState<RegionValue>({ sido: '', sigungu: '' });
   const [addrDetail, setAddrDetail] = useState('');
+  const [regions, setRegions] = useState<string[]>([]);
   const [bizRegNo, setBizRegNo] = useState('');
   const [file, setFile] = useState<File | null>(null);
   const [agreed, setAgreed] = useState(false);
@@ -45,6 +47,7 @@ export default function PartnerSignupPage() {
       form.set('name', name);
       form.set('phone', phone);
       form.set('address', fullAddress);
+      form.set('regions', JSON.stringify(regions));
       form.set('bizRegNo', bizRegNo);
       form.set('bizCert', file);
       const res = await fetch('/api/partner/signup', { method: 'POST', body: form });
@@ -104,6 +107,7 @@ export default function PartnerSignupPage() {
             type="text"
             value={loginId}
             onChange={(e) => setLoginId(e.target.value)}
+            aria-label="로그인 아이디"
             placeholder="로그인 아이디 (3자 이상)"
             autoComplete="username"
             className={inputClass}
@@ -112,6 +116,7 @@ export default function PartnerSignupPage() {
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            aria-label="비밀번호"
             placeholder="비밀번호 (8자 이상)"
             autoComplete="new-password"
             className={inputClass}
@@ -124,6 +129,7 @@ export default function PartnerSignupPage() {
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
+            aria-label="업체명"
             placeholder="업체명"
             className={inputClass}
           />
@@ -133,6 +139,7 @@ export default function PartnerSignupPage() {
             autoComplete="tel"
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
+            aria-label="전화번호"
             placeholder="전화번호 (배정 안내 문자 수신)"
             className={inputClass}
           />
@@ -141,10 +148,20 @@ export default function PartnerSignupPage() {
             type="text"
             value={addrDetail}
             onChange={(e) => setAddrDetail(e.target.value)}
+            aria-label="상세 주소"
             placeholder="상세 주소 (도로명, 건물명 등)"
             autoComplete="street-address"
             className={inputClass}
           />
+        </section>
+
+        <section className="space-y-2 md:rounded-2xl md:bg-white md:p-6 md:shadow-sm">
+          <h2 className="text-sm font-semibold">서비스 가능 지역</h2>
+          <p className="text-xs text-gray-500">
+            출동 가능한 지역을 여러 곳 선택할 수 있습니다. 선택한 지역의 요청만
+            받으며, 그 안에서 가까운 순으로 배정됩니다.
+          </p>
+          <RegionMultiSelect value={regions} onChange={setRegions} />
         </section>
 
         <section className="space-y-2 md:rounded-2xl md:bg-white md:p-6 md:shadow-sm">
@@ -154,6 +171,7 @@ export default function PartnerSignupPage() {
             inputMode="numeric"
             value={bizRegNo}
             onChange={(e) => setBizRegNo(e.target.value)}
+            aria-label="사업자등록번호"
             placeholder="사업자등록번호 (예: 123-45-67890)"
             className={inputClass}
           />

@@ -89,7 +89,9 @@ export default function TechContractPage() {
         }
         const ct: Contract = data.contract;
         setC(ct);
-        setStartDate(ct.contractStartDate ?? '');
+        // 근로개시일이 비어 있으면 오늘 날짜(로컬)를 기본값으로 채워 바로 서명 가능하게 한다.
+        const today = new Date().toLocaleDateString('sv-SE'); // YYYY-MM-DD (로컬)
+        setStartDate(ct.contractStartDate || today);
         setWorkLocation(ct.workLocation ?? '');
         setJobDescription(ct.jobDescription ?? '');
         setWorkerAddress(ct.workerAddress ?? '');
@@ -189,7 +191,7 @@ export default function TechContractPage() {
           <ReadOnlyRow label="소정근로시간" value={hoursText(c)} />
           <ReadOnlyRow label="근무일" value={c.workDays} />
           {c.weeklyHoliday && <ReadOnlyRow label="주휴일" value={c.weeklyHoliday} />}
-          <p className="pt-1 text-xs text-gray-400">
+          <p className="pt-1 text-xs text-gray-500">
             근무 조건은 근로형태에 따라 자동 설정되며 수정할 수 없습니다.
           </p>
         </section>

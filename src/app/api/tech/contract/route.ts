@@ -28,7 +28,9 @@ async function loadOrCreate(technicianId: string) {
       data: {
         technicianId,
         employmentType: tech.employmentType,
-        workLocation: '',
+        // 근무장소·근로개시일을 기본값으로 미리 채워 가입 직후 바로 서명할 수 있게 한다.
+        workLocation: '고객 현장 (출동)',
+        contractStartDate: new Date(),
         jobDescription: '전기 설비 점검 및 출동 업무',
         workerAddress: tech.address,
         workerSignatureName: tech.user.name,
@@ -47,9 +49,14 @@ async function loadOrCreate(technicianId: string) {
             await prisma.appSettings.findUnique({ where: { id: 1 } }),
           )
         : {};
+    // 근무장소·근로개시일이 아직 비어 있으면 기본값을 채워 바로 서명 가능하게 한다.
+    const prefill = {
+      ...(contract.workLocation ? {} : { workLocation: '고객 현장 (출동)' }),
+      ...(contract.contractStartDate ? {} : { contractStartDate: new Date() }),
+    };
     contract = await prisma.employmentContract.update({
       where: { technicianId },
-      data: { employmentType: tech.employmentType, ...d, ...wage },
+      data: { employmentType: tech.employmentType, ...d, ...wage, ...prefill },
     });
   }
   return { contract, employmentType: tech.employmentType };

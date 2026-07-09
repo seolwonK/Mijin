@@ -2,9 +2,9 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import BackButton from '@/components/BackButton';
 import { usePolling } from '@/components/usePolling';
+import { CardSkeletonGrid } from '@/components/Skeleton';
 
 type TechnicianRow = {
   id: string;
@@ -31,7 +31,6 @@ const CONTRACT_LABEL: Record<string, string> = {
 };
 
 export default function AdminTechniciansPage() {
-  const router = useRouter();
   const { data, error, refresh } = usePolling<{ technicians: TechnicianRow[] }>(
     '/api/admin/technicians',
     15_000,
@@ -39,6 +38,7 @@ export default function AdminTechniciansPage() {
   const [togglingId, setTogglingId] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
   const all = data?.technicians ?? [];
+  const loading = !data && !error;
   const pending = all.filter((t) => t.approvalStatus === 'PENDING');
   const approved = all.filter((t) => t.approvalStatus === 'APPROVED');
   const rejected = all.filter((t) => t.approvalStatus === 'REJECTED');
@@ -88,7 +88,7 @@ export default function AdminTechniciansPage() {
       <div className="space-y-6 p-4">
         {error && <p className="text-sm text-red-600">{error}</p>}
         {actionError && (
-          <p className="rounded-xl bg-red-50 p-3 text-sm font-medium text-red-600">
+          <p role="alert" className="rounded-xl bg-red-50 p-3 text-sm font-medium text-red-600">
             {actionError}
           </p>
         )}
@@ -117,7 +117,7 @@ export default function AdminTechniciansPage() {
                     </span>
                   </div>
                   <p className="mt-1 text-sm text-gray-600">{t.phone}</p>
-                  <p className="text-xs text-gray-400">
+                  <p className="text-xs text-gray-500">
                     신청 {new Date(t.appliedAt).toLocaleString('ko-KR')}
                   </p>
                 </Link>
@@ -128,8 +128,9 @@ export default function AdminTechniciansPage() {
 
         <section>
           <h2 className="mb-2 font-semibold">운영 중 기술자 ({approved.length})</h2>
-          {approved.length === 0 && (
-            <p className="rounded-xl bg-gray-50 p-6 text-center text-sm text-gray-400">
+          {loading && <CardSkeletonGrid count={3} />}
+          {!loading && approved.length === 0 && (
+            <p className="rounded-xl bg-gray-50 p-6 text-center text-sm text-gray-500">
               운영 중인 기술자가 없습니다
             </p>
           )}
@@ -137,13 +138,17 @@ export default function AdminTechniciansPage() {
             {approved.map((t) => (
               <div
                 key={t.id}
-                onClick={() => router.push(`/admin/technicians/${t.id}`)}
-                className={`cursor-pointer rounded-2xl border p-4 active:bg-gray-50 ${
+                className={`relative rounded-2xl border p-4 transition-colors hover:border-blue-300 hover:shadow-sm ${
                   t.isActive
                     ? 'border-gray-200 bg-white'
                     : 'border-gray-200 bg-gray-50 opacity-70'
                 }`}
               >
+                <Link
+                  href={`/admin/technicians/${t.id}`}
+                  aria-label={`${t.name} 상세 보기`}
+                  className="absolute inset-0 z-[1] rounded-2xl focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                />
                 <div className="flex items-center justify-between">
                   <span className="font-bold">
                     {t.name}{' '}
@@ -153,12 +158,9 @@ export default function AdminTechniciansPage() {
                   </span>
                   <button
                     type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      toggleActive(t);
-                    }}
+                    onClick={() => toggleActive(t)}
                     disabled={togglingId === t.id}
-                    className={`rounded-full px-3 py-1.5 text-xs font-bold disabled:opacity-50 ${
+                    className={`relative z-[2] rounded-full px-3 py-1.5 text-xs font-bold disabled:opacity-50 ${
                       t.isActive
                         ? 'bg-green-100 text-green-700'
                         : 'bg-gray-200 text-gray-500'
@@ -171,7 +173,7 @@ export default function AdminTechniciansPage() {
                   {t.loginId} · {t.phone}
                 </p>
                 <p className="text-sm text-gray-500">📍 {t.address}</p>
-                <p className="mt-1 text-xs text-gray-400">
+                <p className="mt-1 text-xs text-gray-500">
                   근로계약서:{' '}
                   {t.contractStatus ? CONTRACT_LABEL[t.contractStatus] : '미작성'}
                 </p>
@@ -182,7 +184,7 @@ export default function AdminTechniciansPage() {
 
         {rejected.length > 0 && (
           <section>
-            <h2 className="mb-2 font-semibold text-gray-400">
+            <h2 className="mb-2 font-semibold text-gray-500">
               거절된 신청 ({rejected.length})
             </h2>
             <div className="grid gap-2 opacity-60 sm:grid-cols-2 xl:grid-cols-3">

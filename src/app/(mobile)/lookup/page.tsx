@@ -113,7 +113,9 @@ export default function LookupPage() {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
-  async function lookup(silent = false) {
+  async function lookup(silent = false, override?: string) {
+    const p = (override ?? phone).trim();
+    if (!p) return;
     if (!silent) {
       setBusy(true);
       setError(null);
@@ -122,7 +124,7 @@ export default function LookupPage() {
       const res = await fetch('/api/requests/lookup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone }),
+        body: JSON.stringify({ phone: p }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -130,12 +132,37 @@ export default function LookupPage() {
         return;
       }
       setResults(data.requests);
+      // 다음 방문 때 재입력하지 않도록 마지막 조회 번호를 기억한다.
+      try {
+        localStorage.setItem('lookup_phone', p);
+      } catch {
+        // 저장 실패(프라이빗 모드 등)는 무시
+      }
     } catch {
       if (!silent) setError('네트워크 오류가 발생했습니다');
     } finally {
       if (!silent) setBusy(false);
     }
   }
+
+  // 접수완료 화면에서 넘어온 ?phone= 또는 지난 조회 번호가 있으면 자동으로 채우고 바로 조회한다.
+  useEffect(() => {
+    let initial: string | null = null;
+    try {
+      initial =
+        new URLSearchParams(window.location.search).get('phone') ||
+        localStorage.getItem('lookup_phone');
+    } catch {
+      initial = null;
+    }
+    if (initial) {
+      // 마운트 시 1회 자동 채움·조회 (앱 전반의 usePolling 패턴과 동일)
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setPhone(initial);
+      lookup(false, initial);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // 진행중인 건이 있으면 15초 폴링
   const hasActive = (results ?? []).some(
@@ -183,11 +210,15 @@ export default function LookupPage() {
               {busy ? '조회 중…' : '조회하기'}
             </button>
           </div>
-          {error && <p className="text-sm text-red-600">{error}</p>}
+          {error && (
+            <p role="alert" className="text-sm font-medium text-red-600">
+              {error}
+            </p>
+          )}
         </form>
 
         {results && results.length === 0 && (
-          <p className="rounded-xl bg-gray-50 p-6 text-center text-sm text-gray-400 md:bg-white md:py-10 md:shadow-sm">
+          <p className="rounded-xl bg-gray-50 p-6 text-center text-sm text-gray-500 md:bg-white md:py-10 md:shadow-sm">
             이 번호로 접수된 내역이 없습니다
           </p>
         )}

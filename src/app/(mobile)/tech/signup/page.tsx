@@ -161,6 +161,7 @@ export default function TechSignupPage() {
             type="text"
             value={loginId}
             onChange={(e) => setLoginId(e.target.value)}
+            aria-label="로그인 아이디"
             placeholder="로그인 아이디 (3자 이상)"
             autoComplete="username"
             className={inputClass}
@@ -169,6 +170,7 @@ export default function TechSignupPage() {
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            aria-label="비밀번호"
             placeholder="비밀번호 (8자 이상)"
             autoComplete="new-password"
             className={inputClass}
@@ -202,6 +204,7 @@ export default function TechSignupPage() {
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
+            aria-label="성명"
             placeholder="성명"
             autoComplete="name"
             readOnly={!!verificationId}
@@ -214,6 +217,7 @@ export default function TechSignupPage() {
               autoComplete="tel"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
+              aria-label="전화번호"
               placeholder="전화번호 (본인인증 후 배정 안내 문자 수신)"
               readOnly={!!verificationId}
               className={`${inputClass} flex-1 ${verificationId ? 'bg-gray-100 text-gray-500' : ''}`}
@@ -251,6 +255,7 @@ export default function TechSignupPage() {
             type="text"
             value={addrDetail}
             onChange={(e) => setAddrDetail(e.target.value)}
+            aria-label="상세 주소"
             placeholder="상세 주소 (도로명, 건물명 등)"
             autoComplete="street-address"
             className={inputClass}

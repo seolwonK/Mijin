@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import BackButton from '@/components/BackButton';
 import SpeechInput, { type VoiceNote } from '@/components/SpeechInput';
@@ -19,8 +19,33 @@ export default function NewRequestPage() {
   });
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
+  const [agreed, setAgreed] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+
+  // 새로고침/뒤로가기로 작성분이 사라지지 않도록 텍스트 입력을 임시저장한다.
+  useEffect(() => {
+    try {
+      const raw = sessionStorage.getItem('req_draft');
+      if (!raw) return;
+      const d = JSON.parse(raw) as { description?: string; name?: string; phone?: string };
+      queueMicrotask(() => {
+        if (d.description) setDescription(d.description);
+        if (d.name) setName(d.name);
+        if (d.phone) setPhone(d.phone);
+      });
+    } catch {
+      /* 무시 */
+    }
+  }, []);
+  useEffect(() => {
+    try {
+      if (description || name || phone)
+        sessionStorage.setItem('req_draft', JSON.stringify({ description, name, phone }));
+    } catch {
+      /* 무시 */
+    }
+  }, [description, name, phone]);
 
   async function submit() {
     setError(null);
@@ -32,6 +57,7 @@ export default function NewRequestPage() {
     if (!name.trim()) return setError('이름을 입력해 주세요');
     if (!/^0\d{8,10}$/.test(phone.replace(/\D/g, '')))
       return setError('전화번호를 확인해 주세요');
+    if (!agreed) return setError('개인정보 수집·이용에 동의해 주세요');
 
     setBusy(true);
     try {
@@ -68,6 +94,7 @@ export default function NewRequestPage() {
         setError(data.error ?? '접수에 실패했습니다');
         return;
       }
+      sessionStorage.removeItem('req_draft');
       router.replace(`/request/complete/${data.id}`);
     } catch {
       setError('네트워크 오류가 발생했습니다. 다시 시도해 주세요.');
@@ -85,10 +112,12 @@ export default function NewRequestPage() {
         </div>
       </header>
 
+      <form onSubmit={(e) => { e.preventDefault(); submit(); }} className="contents">
       <div className="mx-auto w-full max-w-2xl flex-1 space-y-6 p-4 pb-32 md:space-y-5 md:py-8 md:pb-6">
         <section className="md:rounded-2xl md:bg-white md:p-6 md:shadow-sm">
           <h2 className="mb-2 font-semibold md:mb-3">
             1. 어떤 고장인가요? <span className="text-red-500">*</span>
+            <span className="sr-only"> 필수</span>
           </h2>
           <SpeechInput
             value={description}
@@ -101,6 +130,7 @@ export default function NewRequestPage() {
         <section className="md:rounded-2xl md:bg-white md:p-6 md:shadow-sm">
           <h2 className="mb-2 font-semibold md:mb-3">
             2. 얼마나 급한가요? <span className="text-red-500">*</span>
+            <span className="sr-only"> 필수</span>
           </h2>
           <UrgencySelect value={urgency} onChange={setUrgency} />
         </section>
@@ -108,6 +138,7 @@ export default function NewRequestPage() {
         <section className="md:rounded-2xl md:bg-white md:p-6 md:shadow-sm">
           <h2 className="mb-2 font-semibold md:mb-3">
             3. 어디로 가야 하나요? <span className="text-red-500">*</span>
+            <span className="sr-only"> 필수</span>
           </h2>
           <LocationPicker value={location} onChange={setLocation} />
         </section>
@@ -115,6 +146,7 @@ export default function NewRequestPage() {
         <section className="md:rounded-2xl md:bg-white md:p-6 md:shadow-sm">
           <h2 className="mb-2 font-semibold md:mb-3">
             4. 연락처 <span className="text-red-500">*</span>
+            <span className="sr-only"> 필수</span>
           </h2>
           <div className="space-y-2">
             <input
@@ -137,8 +169,21 @@ export default function NewRequestPage() {
           </div>
         </section>
 
+        <label className="flex items-start gap-2 text-sm text-gray-600">
+          <input
+            type="checkbox"
+            checked={agreed}
+            onChange={(e) => setAgreed(e.target.checked)}
+            className="mt-0.5 h-4 w-4"
+          />
+          <span>
+            접수 처리 및 업체 연결을 위한 개인정보(이름, 연락처, 위치)의 수집·이용에
+            동의합니다.
+          </span>
+        </label>
+
         {error && (
-          <p className="rounded-xl bg-red-50 p-3 text-sm font-medium text-red-600">
+          <p role="alert" className="rounded-xl bg-red-50 p-3 text-sm font-medium text-red-600">
             {error}
           </p>
         )}
@@ -146,14 +191,14 @@ export default function NewRequestPage() {
 
       <div className="fixed bottom-0 left-1/2 w-full max-w-md -translate-x-1/2 border-t border-gray-200 bg-white px-4 pt-4 pb-[calc(1rem+env(safe-area-inset-bottom))] md:static md:left-auto md:mx-auto md:max-w-2xl md:translate-x-0 md:border-t-0 md:bg-transparent md:px-4 md:pt-0 md:pb-12">
         <button
-          type="button"
-          onClick={submit}
+          type="submit"
           disabled={busy}
           className="h-14 w-full rounded-2xl bg-blue-600 text-lg font-bold text-white transition-colors enabled:hover:bg-blue-700 active:bg-blue-700 disabled:opacity-60"
         >
           {busy ? '접수 중…' : '접수하기'}
         </button>
       </div>
+      </form>
     </main>
   );
 }

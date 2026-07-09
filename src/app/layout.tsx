@@ -23,7 +23,7 @@ export default function RootLayout({
   // (mobile) 그룹: 고객·업체용 모바일 프레임 / admin: 데스크톱 대응 넓은 프레임
   return (
     <html lang="ko" className="h-full antialiased">
-      <body className="min-h-full bg-slate-100 text-gray-900">{children}</body>
+      <body className="min-h-full bg-[#f4f7fc] text-slate-900">{children}</body>
     </html>
   );
 }

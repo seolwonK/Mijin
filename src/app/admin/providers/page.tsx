@@ -2,9 +2,9 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import BackButton from '@/components/BackButton';
 import { usePolling } from '@/components/usePolling';
+import { CardSkeletonGrid } from '@/components/Skeleton';
 
 type ProviderRow = {
   id: string;
@@ -20,7 +20,6 @@ type ProviderRow = {
 };
 
 export default function AdminProvidersPage() {
-  const router = useRouter();
   const { data, error, refresh } = usePolling<{ providers: ProviderRow[] }>(
     '/api/admin/providers',
     15_000,
@@ -28,6 +27,7 @@ export default function AdminProvidersPage() {
   const [togglingId, setTogglingId] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
   const all = data?.providers ?? [];
+  const loading = !data && !error;
   const pending = all.filter((p) => p.approvalStatus === 'PENDING');
   const approved = all.filter((p) => p.approvalStatus === 'APPROVED');
   const rejected = all.filter((p) => p.approvalStatus === 'REJECTED');
@@ -80,7 +80,7 @@ export default function AdminProvidersPage() {
       <div className="space-y-6 p-4">
         {error && <p className="text-sm text-red-600">{error}</p>}
         {actionError && (
-          <p className="rounded-xl bg-red-50 p-3 text-sm font-medium text-red-600">
+          <p role="alert" className="rounded-xl bg-red-50 p-3 text-sm font-medium text-red-600">
             {actionError}
           </p>
         )}
@@ -106,7 +106,7 @@ export default function AdminProvidersPage() {
                   <p className="mt-1 text-sm text-gray-600">
                     사업자번호 {p.bizRegNo ?? '-'} · {p.phone}
                   </p>
-                  <p className="text-xs text-gray-400">
+                  <p className="text-xs text-gray-500">
                     신청 {new Date(p.appliedAt).toLocaleString('ko-KR')}
                   </p>
                 </Link>
@@ -117,8 +117,9 @@ export default function AdminProvidersPage() {
 
         <section>
           <h2 className="mb-2 font-semibold">운영 중 업체 ({approved.length})</h2>
-          {approved.length === 0 && (
-            <p className="rounded-xl bg-gray-50 p-6 text-center text-sm text-gray-400">
+          {loading && <CardSkeletonGrid count={3} />}
+          {!loading && approved.length === 0 && (
+            <p className="rounded-xl bg-gray-50 p-6 text-center text-sm text-gray-500">
               운영 중인 업체가 없습니다
             </p>
           )}
@@ -126,23 +127,24 @@ export default function AdminProvidersPage() {
             {approved.map((p) => (
               <div
                 key={p.id}
-                onClick={() => router.push(`/admin/providers/${p.id}`)}
-                className={`cursor-pointer rounded-2xl border p-4 active:bg-gray-50 ${
+                className={`relative rounded-2xl border p-4 transition-colors hover:border-blue-300 hover:shadow-sm ${
                   p.isActive
                     ? 'border-gray-200 bg-white'
                     : 'border-gray-200 bg-gray-50 opacity-70'
                 }`}
               >
+                <Link
+                  href={`/admin/providers/${p.id}`}
+                  aria-label={`${p.name} 상세 보기`}
+                  className="absolute inset-0 z-[1] rounded-2xl focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                />
                 <div className="flex items-center justify-between">
                   <span className="font-bold">{p.name}</span>
                   <button
                     type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      toggleActive(p);
-                    }}
+                    onClick={() => toggleActive(p)}
                     disabled={togglingId === p.id}
-                    className={`rounded-full px-3 py-1.5 text-xs font-bold disabled:opacity-50 ${
+                    className={`relative z-[2] rounded-full px-3 py-1.5 text-xs font-bold disabled:opacity-50 ${
                       p.isActive
                         ? 'bg-green-100 text-green-700'
                         : 'bg-gray-200 text-gray-500'
@@ -162,7 +164,7 @@ export default function AdminProvidersPage() {
 
         {rejected.length > 0 && (
           <section>
-            <h2 className="mb-2 font-semibold text-gray-400">거절된 신청 ({rejected.length})</h2>
+            <h2 className="mb-2 font-semibold text-gray-500">거절된 신청 ({rejected.length})</h2>
             <div className="grid gap-2 opacity-60 sm:grid-cols-2 xl:grid-cols-3">
               {rejected.map((p) => (
                 <Link

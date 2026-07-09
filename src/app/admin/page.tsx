@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { usePolling } from '@/components/usePolling';
 import { StatusBadge, UrgencyBadge } from '@/components/StatusBadge';
 import LogoutButton from '@/components/LogoutButton';
+import { CardSkeleton } from '@/components/Skeleton';
 
 type RequestRow = {
   id: string;
@@ -31,6 +32,7 @@ const TABS: { key: string; label: string; statuses: string[] | null }[] = [
 
 export default function AdminDashboardPage() {
   const [tab, setTab] = useState('ALL');
+  const [q, setQ] = useState('');
   const { data, error } = usePolling<{ requests: RequestRow[] }>(
     '/api/admin/requests',
     8_000,
@@ -49,8 +51,19 @@ export default function AdminDashboardPage() {
     (t) => t.approvalStatus === 'PENDING',
   ).length;
   const all = data?.requests ?? [];
+  const loading = !data && !error;
   const statuses = TABS.find((t) => t.key === tab)?.statuses ?? null;
-  const rows = statuses ? all.filter((r) => statuses.includes(r.status)) : all;
+  const byTab = statuses ? all.filter((r) => statuses.includes(r.status)) : all;
+  const query = q.trim().toLowerCase();
+  const rows = query
+    ? byTab.filter(
+        (r) =>
+          r.lookupCode.toLowerCase().includes(query) ||
+          r.customerName.toLowerCase().includes(query) ||
+          r.customerPhone.includes(q.trim()) ||
+          r.description.toLowerCase().includes(query),
+      )
+    : byTab;
 
   return (
     <main className="min-h-screen">
@@ -58,12 +71,14 @@ export default function AdminDashboardPage() {
         <header className="border-b border-gray-100 p-4 pb-3">
           <div className="flex items-center justify-between">
             <h1 className="text-lg font-bold">관리자 대시보드</h1>
-            <LogoutButton loginPath="/admin/login" />
+            <span className="md:hidden">
+              <LogoutButton loginPath="/admin/login" />
+            </span>
           </div>
-          <div className="mt-3 flex flex-wrap gap-2">
+          <div className="mt-3 flex flex-wrap gap-2 md:hidden">
             <Link
               href="/admin/providers"
-              className="relative rounded-xl border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 active:bg-gray-50"
+              className="relative rounded-xl border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-50 active:bg-gray-50"
             >
               업체 관리
               {pendingProviders > 0 && (
@@ -74,7 +89,7 @@ export default function AdminDashboardPage() {
             </Link>
             <Link
               href="/admin/technicians"
-              className="relative rounded-xl border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 active:bg-gray-50"
+              className="relative rounded-xl border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-50 active:bg-gray-50"
             >
               기술자 관리
               {pendingTechnicians > 0 && (
@@ -85,7 +100,7 @@ export default function AdminDashboardPage() {
             </Link>
             <Link
               href="/admin/settings"
-              className="rounded-xl border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 active:bg-gray-50"
+              className="rounded-xl border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-50 active:bg-gray-50"
             >
               설정
             </Link>
@@ -111,12 +126,30 @@ export default function AdminDashboardPage() {
           );
         })}
         </div>
+
+        <div className="px-2 pb-2">
+          <input
+            type="search"
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder="접수번호 · 이름 · 전화 · 내용 검색"
+            aria-label="접수 검색"
+            className="w-full rounded-xl border border-gray-300 p-2.5 text-sm focus:border-blue-500 focus:outline-none"
+          />
+        </div>
       </div>
 
       <div className="p-4">
         {error && <p className="mb-2 text-sm text-red-600">{error}</p>}
-        {rows.length === 0 && (
-          <p className="rounded-xl bg-gray-50 p-6 text-center text-sm text-gray-400">
+        {loading && (
+          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+            <CardSkeleton />
+            <CardSkeleton />
+            <CardSkeleton />
+          </div>
+        )}
+        {!loading && rows.length === 0 && (
+          <p className="rounded-xl bg-gray-50 p-6 text-center text-sm text-gray-500">
             해당하는 접수가 없습니다
           </p>
         )}
@@ -125,7 +158,7 @@ export default function AdminDashboardPage() {
           <Link
             key={r.id}
             href={`/admin/requests/${r.id}`}
-            className={`block rounded-2xl border p-4 ${
+            className={`block rounded-2xl border p-4 transition-shadow hover:shadow-md ${
               r.needsAttention
                 ? 'border-red-400 bg-red-50'
                 : 'border-gray-200 bg-white'
@@ -137,7 +170,7 @@ export default function AdminDashboardPage() {
                 <UrgencyBadge urgency={r.urgency} />
                 <StatusBadge status={r.status} />
               </div>
-              <span className="text-xs text-gray-400">#{r.lookupCode}</span>
+              <span className="text-xs text-gray-500">#{r.lookupCode}</span>
             </div>
             <p className="mt-2 line-clamp-2 text-sm text-gray-800">{r.description}</p>
             <div className="mt-1 flex items-center justify-between text-xs text-gray-500">
@@ -150,7 +183,7 @@ export default function AdminDashboardPage() {
               <p className="mt-1 text-xs font-medium text-blue-600">
                 → {r.assigneeName}
                 {r.assigneeKind === 'TECHNICIAN' && (
-                  <span className="ml-1 text-gray-400">(기술자)</span>
+                  <span className="ml-1 text-gray-500">(기술자)</span>
                 )}
               </p>
             )}
