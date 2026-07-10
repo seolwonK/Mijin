@@ -3,9 +3,12 @@
 import Link from 'next/link';
 import PageHeader from '@/components/PageHeader';
 import { usePolling } from '@/components/usePolling';
-import { StatusBadge, UrgencyBadge } from '@/components/StatusBadge';
+import { StatusPill, UrgencyPill } from '@/components/StatusPill';
+import Surface from '@/components/Surface';
+import { buttonClasses } from '@/components/Button';
 import LogoutButton from '@/components/LogoutButton';
 import { CardSkeletonGrid } from '@/components/Skeleton';
+import { BellIcon, WrenchIcon, MapPinIcon } from '@/components/icons';
 
 type Job = {
   id: string;
@@ -24,31 +27,35 @@ type Job = {
 
 function JobCard({ job, highlight }: { job: Job; highlight?: boolean }) {
   return (
-    <Link
-      href={`/partner/jobs/${job.id}`}
-      className={`block rounded-2xl border p-4 transition-shadow hover:shadow-md ${
-        highlight ? 'border-brand-400 bg-brand-50' : 'border-border bg-white'
-      }`}
+    <Surface
+      as="section"
+      tint={highlight}
+      className="rounded-2xl transition-transform hover:-translate-y-0.5 active:translate-y-0"
     >
-      <div className="flex items-center justify-between">
-        <div className="flex gap-1">
-          <UrgencyBadge urgency={job.request.urgency} />
-          <StatusBadge status={job.request.status} />
+      <Link href={`/partner/jobs/${job.id}`} className="block p-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <UrgencyPill urgency={job.request.urgency} />
+            <StatusPill status={job.request.status} />
+          </div>
+          {job.distanceKm != null && (
+            <span className="text-sm font-medium text-muted">
+              {job.distanceKm.toFixed(1)}km
+            </span>
+          )}
         </div>
-        {job.distanceKm != null && (
-          <span className="text-sm font-medium text-muted">
-            {job.distanceKm.toFixed(1)}km
-          </span>
+        <p className="mt-2 line-clamp-2 text-sm text-fg">{job.request.description}</p>
+        {job.request.address && (
+          <p className="mt-1 flex items-center gap-1 text-sm text-muted">
+            <MapPinIcon className="h-3.5 w-3.5 shrink-0" />
+            {job.request.address}
+          </p>
         )}
-      </div>
-      <p className="mt-2 line-clamp-2 text-sm text-fg">{job.request.description}</p>
-      {job.request.address && (
-        <p className="mt-1 text-sm text-muted">📍 {job.request.address}</p>
-      )}
-      <p className="mt-1 text-xs text-muted">
-        배정 {new Date(job.createdAt).toLocaleString('ko-KR')}
-      </p>
-    </Link>
+        <p className="mt-1 text-xs text-muted">
+          배정 {new Date(job.createdAt).toLocaleString('ko-KR')}
+        </p>
+      </Link>
+    </Surface>
   );
 }
 
@@ -72,10 +79,7 @@ export default function PartnerHomePage() {
         width="max-w-5xl"
         right={
           <>
-            <Link
-              href="/partner/profile"
-              className="rounded-lg border border-border bg-white px-3 py-2 text-sm font-medium text-muted transition-colors hover:bg-neutral-50"
-            >
+            <Link href="/partner/profile" className={buttonClasses('secondary', 'sm')}>
               내 정보
             </Link>
             <LogoutButton loginPath="/partner/login" />
@@ -87,8 +91,9 @@ export default function PartnerHomePage() {
         {error && <p className="text-sm text-red-600">{error}</p>}
 
         <section>
-          <h2 className="mb-2 font-semibold text-brand-700">
-            🔔 응답 대기 {waiting.length > 0 && `(${waiting.length})`}
+          <h2 className="mb-2 flex items-center gap-1.5 font-semibold text-brand-700">
+            <BellIcon className="h-4 w-4" />
+            응답 대기{waiting.length > 0 && ` (${waiting.length})`}
           </h2>
           {loading ? (
             <CardSkeletonGrid count={2} />
@@ -106,7 +111,10 @@ export default function PartnerHomePage() {
         </section>
 
         <section>
-          <h2 className="mb-2 font-semibold">🔧 진행중</h2>
+          <h2 className="mb-2 flex items-center gap-1.5 font-semibold">
+            <WrenchIcon className="h-4 w-4 text-muted" />
+            진행중
+          </h2>
           {loading ? null : inProgress.length === 0 ? (
             <p className="rounded-xl bg-neutral-50 p-4 text-center text-sm text-muted">
               진행중인 건이 없습니다

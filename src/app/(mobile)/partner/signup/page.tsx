@@ -3,13 +3,15 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import PageHeader from '@/components/PageHeader';
+import Surface from '@/components/Surface';
 import { buttonClasses } from '@/components/Button';
 import RegionSelect, { type RegionValue } from '@/components/RegionSelect';
 import RegionMultiSelect from '@/components/RegionMultiSelect';
 import { hasSigungu } from '@/lib/regions';
+import { CheckIcon, ClipboardIcon } from '@/components/icons';
 
 const inputClass =
-  'w-full rounded-xl border border-neutral-300 bg-white p-3 text-base text-fg placeholder:text-muted focus:border-brand-500 focus:ring-2 focus:ring-brand-500/15 focus:outline-none';
+  'w-full rounded-xl border border-border bg-white p-3 text-base text-fg placeholder:text-muted focus:border-brand-500 focus:ring-2 focus:ring-brand-500/15 focus:outline-none';
 
 export default function PartnerSignupPage() {
   const [loginId, setLoginId] = useState('');
@@ -68,8 +70,13 @@ export default function PartnerSignupPage() {
   if (done) {
     return (
       <main className="flex min-h-screen flex-col items-center justify-center p-6">
-        <div className="flex w-full flex-col items-center gap-5 text-center md:max-w-lg md:rounded-3xl md:border md:border-border md:bg-white md:p-12 md:shadow-card">
-          <div className="text-6xl">📨</div>
+        <Surface
+          tint
+          className="flex w-full flex-col items-center gap-5 rounded-3xl p-7 text-center md:max-w-lg md:p-12"
+        >
+          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-brand-600">
+            <CheckIcon className="h-8 w-8 text-white" />
+          </div>
           <h1 className="text-2xl font-bold">가입 신청이 접수되었습니다</h1>
           <p className="text-muted">
             관리자가 사업자등록증을 확인한 뒤 승인합니다.
@@ -84,7 +91,7 @@ export default function PartnerSignupPage() {
           >
             로그인 화면으로
           </Link>
-        </div>
+        </Surface>
       </main>
     );
   }
@@ -97,7 +104,7 @@ export default function PartnerSignupPage() {
         onSubmit={submit}
         className="mx-auto w-full max-w-2xl space-y-5 p-4 pb-10 md:py-8 md:pb-16"
       >
-        <section className="space-y-2 md:rounded-2xl md:border md:border-border md:bg-white md:p-6 md:shadow-card">
+        <Surface as="section" className="space-y-2 rounded-2xl p-4 md:p-6">
           <h2 className="text-sm font-semibold">계정 정보</h2>
           <input
             type="text"
@@ -117,9 +124,9 @@ export default function PartnerSignupPage() {
             autoComplete="new-password"
             className={inputClass}
           />
-        </section>
+        </Surface>
 
-        <section className="space-y-2 md:rounded-2xl md:border md:border-border md:bg-white md:p-6 md:shadow-card">
+        <Surface as="section" className="space-y-2 rounded-2xl p-4 md:p-6">
           <h2 className="text-sm font-semibold">업체 정보</h2>
           <input
             type="text"
@@ -149,18 +156,18 @@ export default function PartnerSignupPage() {
             autoComplete="street-address"
             className={inputClass}
           />
-        </section>
+        </Surface>
 
-        <section className="space-y-2 md:rounded-2xl md:border md:border-border md:bg-white md:p-6 md:shadow-card">
+        <Surface as="section" className="space-y-2 rounded-2xl p-4 md:p-6">
           <h2 className="text-sm font-semibold">서비스 가능 지역</h2>
           <p className="text-xs text-muted">
             출동 가능한 지역을 여러 곳 선택할 수 있습니다. 선택한 지역의 요청만
             받으며, 그 안에서 가까운 순으로 배정됩니다.
           </p>
           <RegionMultiSelect value={regions} onChange={setRegions} />
-        </section>
+        </Surface>
 
-        <section className="space-y-2 md:rounded-2xl md:border md:border-border md:bg-white md:p-6 md:shadow-card">
+        <Surface as="section" className="space-y-2 rounded-2xl p-4 md:p-6">
           <h2 className="text-sm font-semibold">사업자 인증</h2>
           <input
             type="text"
@@ -178,7 +185,12 @@ export default function PartnerSignupPage() {
                 : 'border-brand-300 bg-brand-50 text-brand-700'
             }`}
           >
-            {file ? `✓ ${file.name}` : '📎 사업자등록증 사진 첨부'}
+            {file ? (
+              <CheckIcon className="h-4 w-4 shrink-0" />
+            ) : (
+              <ClipboardIcon className="h-4 w-4 shrink-0" />
+            )}
+            {file ? file.name : '사업자등록증 사진 첨부'}
             <input
               type="file"
               accept="image/*,application/pdf"
@@ -189,7 +201,7 @@ export default function PartnerSignupPage() {
           <p className="text-xs text-muted">
             JPG/PNG/PDF, 8MB 이하. 관리자 확인 용도로만 사용됩니다.
           </p>
-        </section>
+        </Surface>
 
         <label className="flex items-start gap-2 text-sm text-neutral-600">
           <input

@@ -2,11 +2,13 @@
 
 import { useEffect, useState } from 'react';
 import PageHeader from '@/components/PageHeader';
+import Surface from '@/components/Surface';
 import RegionMultiSelect from '@/components/RegionMultiSelect';
 import { buttonClasses } from '@/components/Button';
+import { CheckIcon } from '@/components/icons';
 
 const inputClass =
-  'w-full rounded-xl border border-neutral-300 bg-white p-3 text-base text-fg placeholder:text-muted focus:border-brand-500 focus:ring-2 focus:ring-brand-500/15 focus:outline-none';
+  'w-full rounded-xl border border-border bg-white p-3 text-base text-fg placeholder:text-muted focus:border-brand-500 focus:ring-2 focus:ring-brand-500/15 focus:outline-none';
 
 type Profile = {
   loginId: string;
@@ -19,10 +21,10 @@ type Profile = {
   bizRegNo: string | null;
 };
 
-const APPROVAL: Record<string, { label: string; className: string }> = {
-  APPROVED: { label: '승인 완료', className: 'bg-green-100 text-green-700' },
-  PENDING: { label: '승인 대기', className: 'bg-amber-100 text-amber-700' },
-  REJECTED: { label: '승인 거절', className: 'bg-red-100 text-red-700' },
+const APPROVAL: Record<string, { label: string; dot: string; bg: string; text: string }> = {
+  APPROVED: { label: '승인 완료', dot: 'bg-emerald-600', bg: 'bg-emerald-50', text: 'text-emerald-700' },
+  PENDING: { label: '승인 대기', dot: 'bg-amber-600', bg: 'bg-amber-50', text: 'text-amber-700' },
+  REJECTED: { label: '승인 거절', dot: 'bg-red-600', bg: 'bg-red-50', text: 'text-red-600' },
 };
 
 function InfoRow({ label, value }: { label: string; value: string }) {
@@ -120,10 +122,13 @@ export default function PartnerProfilePage() {
 
       <form onSubmit={save} className="mx-auto w-full max-w-2xl space-y-5 p-4 pb-10 md:py-8">
         {/* 신원 정보 (읽기전용) */}
-        <section className="rounded-2xl border border-border bg-white p-4 shadow-card md:p-6">
+        <Surface as="section" className="rounded-2xl p-4 md:p-6">
           <div className="mb-2 flex items-center justify-between">
             <h2 className="text-sm font-semibold">업체 정보</h2>
-            <span className={`rounded-full px-2.5 py-0.5 text-xs font-bold ${status.className}`}>
+            <span
+              className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ${status.bg} ${status.text}`}
+            >
+              <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${status.dot}`} />
               {status.label}
             </span>
           </div>
@@ -133,10 +138,10 @@ export default function PartnerProfilePage() {
           <p className="pt-1 text-xs text-muted">
             업체명·아이디·사업자번호 변경은 관리자에게 문의해 주세요.
           </p>
-        </section>
+        </Surface>
 
         {/* 편집 항목 */}
-        <section className="space-y-3 rounded-2xl border border-border bg-white p-4 shadow-card md:p-6">
+        <Surface as="section" className="space-y-3 rounded-2xl p-4 md:p-6">
           <h2 className="text-sm font-semibold">연락처 · 위치</h2>
           <div>
             <label htmlFor="phone" className="mb-1 block text-xs font-medium text-muted">
@@ -168,17 +173,17 @@ export default function PartnerProfilePage() {
               주소를 바꾸면 좌표가 다시 계산되어 배정 거리 산정에 반영됩니다.
             </p>
           </div>
-        </section>
+        </Surface>
 
-        <section className="space-y-2 rounded-2xl border border-border bg-white p-4 shadow-card md:p-6">
+        <Surface as="section" className="space-y-2 rounded-2xl p-4 md:p-6">
           <h2 className="text-sm font-semibold">서비스 가능 지역</h2>
           <p className="text-xs text-muted">
             선택한 지역의 요청만 받습니다. 비워두면 전 지역을 받습니다.
           </p>
           <RegionMultiSelect value={regions} onChange={setRegions} />
-        </section>
+        </Surface>
 
-        <section className="rounded-2xl border border-border bg-white p-4 shadow-card md:p-6">
+        <Surface as="section" className="rounded-2xl p-4 md:p-6">
           <label className="flex items-center justify-between gap-4">
             <span>
               <span className="block text-sm font-semibold">영업 상태</span>
@@ -202,11 +207,12 @@ export default function PartnerProfilePage() {
               />
             </button>
           </label>
-        </section>
+        </Surface>
 
         {flash && (
-          <p className="rounded-xl bg-green-50 p-3 text-sm font-medium text-green-700">
-            ✅ {flash}
+          <p className="flex items-center gap-1.5 rounded-xl bg-green-50 p-3 text-sm font-medium text-green-700">
+            <CheckIcon className="h-4 w-4 shrink-0" />
+            {flash}
           </p>
         )}
         {error && (
