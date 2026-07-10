@@ -79,15 +79,23 @@ export default function TechContractPage() {
   const [workerSignatureName, setWorkerSignatureName] = useState('');
   const [signature, setSignature] = useState<string | null>(null);
 
+  const [reloadTick, setReloadTick] = useState(0);
+
   useEffect(() => {
+    // 개발 모드(React Strict Mode)는 마운트 시 effect를 2회 실행해 이 fetch를 거의
+    // 동시에 2번 발사할 수 있다. 늦게 도착하는 응답(성공이든 실패든)이 먼저 도착한
+    // 응답을 덮어쓰지 않도록, 이 effect 인스턴스가 취소됐는지 확인 후에만 상태를 반영한다.
+    let cancelled = false;
     (async () => {
       try {
         const res = await fetch('/api/tech/contract', { cache: 'no-store' });
         const data = await res.json();
+        if (cancelled) return;
         if (!res.ok) {
           setLoadError(data.error ?? '불러오지 못했습니다');
           return;
         }
+        setLoadError(null);
         const ct: Contract = data.contract;
         setC(ct);
         // 근로개시일이 비어 있으면 오늘 날짜(로컬)를 기본값으로 채워 바로 서명 가능하게 한다.
@@ -98,10 +106,13 @@ export default function TechContractPage() {
         setWorkerAddress(ct.workerAddress ?? '');
         setWorkerSignatureName(ct.workerSignatureName ?? '');
       } catch {
-        setLoadError('네트워크 오류가 발생했습니다');
+        if (!cancelled) setLoadError('네트워크 오류가 발생했습니다');
       }
     })();
-  }, []);
+    return () => {
+      cancelled = true;
+    };
+  }, [reloadTick]);
 
   // 유효성 실패 시 안내 + 해당 필드로 스크롤·포커스
   function fail(msg: string, id?: string) {
@@ -151,6 +162,13 @@ export default function TechContractPage() {
     return (
       <main className="p-6">
         <p className="text-red-600">{loadError}</p>
+        <button
+          type="button"
+          onClick={() => setReloadTick((t) => t + 1)}
+          className={buttonClasses('secondary', 'md', 'mt-3')}
+        >
+          다시 시도
+        </button>
       </main>
     );
   }

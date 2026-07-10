@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import type { EmploymentContract } from '@prisma/client';
+import { Prisma, type EmploymentContract } from '@prisma/client';
 import { prisma } from '@/lib/db';
 import { requireSession } from '@/lib/auth';
 import { contractDefaults, wageDefaultsFor } from '@/lib/contractDefaults';
@@ -24,21 +24,34 @@ async function loadOrCreate(technicianId: string) {
     // 근로형태별 기본 임금(설정)을 생성 시 자동 기입 — 이후 관리자가 수정 가능
     const settings = await prisma.appSettings.findUnique({ where: { id: 1 } });
     const wage = wageDefaultsFor(tech.employmentType, settings);
-    contract = await prisma.employmentContract.create({
-      data: {
-        technicianId,
-        employmentType: tech.employmentType,
-        // 근무장소·근로개시일을 기본값으로 미리 채워 가입 직후 바로 서명할 수 있게 한다.
-        workLocation: '고객 현장 (출동)',
-        contractStartDate: new Date(),
-        jobDescription: '전기 설비 점검 및 출동 업무',
-        workerAddress: tech.address,
-        workerSignatureName: tech.user.name,
-        ...d,
-        ...wage,
-      },
-    });
-  } else if (contract.status === 'DRAFT') {
+    try {
+      contract = await prisma.employmentContract.create({
+        data: {
+          technicianId,
+          employmentType: tech.employmentType,
+          // 근무장소·근로개시일을 기본값으로 미리 채워 가입 직후 바로 서명할 수 있게 한다.
+          workLocation: '고객 현장 (출동)',
+          contractStartDate: new Date(),
+          jobDescription: '전기 설비 점검 및 출동 업무',
+          workerAddress: tech.address,
+          workerSignatureName: tech.user.name,
+          ...d,
+          ...wage,
+        },
+      });
+    } catch (err) {
+      // 동시 요청(예: React 개발 모드의 effect 이중 실행)이 같은 technicianId로
+      // 거의 동시에 create를 시도하면 @unique 제약(P2002)에 걸린다. 이 경우 진짜
+      // 오류가 아니라 다른 요청이 먼저 만든 행이 이미 존재한다는 뜻이므로,
+      // 그 행을 읽어 계속 진행한다(그대로 500을 던지지 않는다).
+      if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2002') {
+        contract = await prisma.employmentContract.findUnique({ where: { technicianId } });
+      } else {
+        throw err;
+      }
+    }
+  }
+  if (contract && contract.status === 'DRAFT') {
     // 임금이 아직 비어 있는 기존 DRAFT 계약(관리자 대기 상태)에도 기본 임금을
     // 소급 적용해, 관리자 확정을 기다리지 않고 바로 서명할 수 있게 한다.
     // 이미 임금이 채워져 있으면(관리자 설정 포함) 덮어쓰지 않는다.
@@ -59,6 +72,9 @@ async function loadOrCreate(technicianId: string) {
       data: { employmentType: tech.employmentType, ...d, ...wage, ...prefill },
     });
   }
+  // P2002 폴백 재조회조차 실패하는 극단적인 경우(이론상 레이스 승자의 트랜잭션이
+  // 롤백된 경우 등)에만 도달 — 존재하지 않는 것과 동일하게 처리.
+  if (!contract) return null;
   return { contract, employmentType: tech.employmentType };
 }
 
