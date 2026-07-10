@@ -96,7 +96,11 @@ export default function AdminProvidersPage() {
       sortValue: (p) => p.phone,
       render: (p) => <span className="font-mono text-muted">{p.phone}</span>,
     },
-    { key: 'address', label: '주소', render: (p) => <span className="truncate text-muted">{p.address}</span> },
+    {
+      key: 'address',
+      label: '주소',
+      render: (p) => <span className="block max-w-xs truncate text-muted">{p.address}</span>,
+    },
     {
       key: 'status',
       label: '상태',
@@ -119,18 +123,29 @@ export default function AdminProvidersPage() {
 
   return (
     <main className="min-h-screen">
-      <PageHeader
-        title="업체 관리"
-        back="/admin"
-        width="max-w-none"
-        right={
-          <Link href="/admin/providers/new" className={buttonClasses('primary', 'sm')}>
-            + 직접 등록
-          </Link>
-        }
-      />
+      {/* 모바일: 기존 PageHeader(뒤로가기+제목+등록) 그대로. 데스크톱: AdminShell 상단 탭이 이미
+          "업체 관리"를 표시하므로 PageHeader 대신 더 얇은 바로 교체 — AC-1 밀도 가드(가시 ≥15행)
+          회복을 위해 상단 크롬을 줄인 것. 뒤로가기는 AdminShell의 상시 내비로 대체됨(데스크톱 전용). */}
+      <div className="md:hidden">
+        <PageHeader
+          title="업체 관리"
+          back="/admin"
+          width="max-w-none"
+          right={
+            <Link href="/admin/providers/new" className={buttonClasses('primary', 'sm')}>
+              + 직접 등록
+            </Link>
+          }
+        />
+      </div>
+      <div className="hidden items-center justify-between border-b border-border px-4 py-1.5 md:flex">
+        <h1 className="text-sm font-bold text-fg">업체 관리</h1>
+        <Link href="/admin/providers/new" className={buttonClasses('primary', 'sm')}>
+          + 직접 등록
+        </Link>
+      </div>
 
-      <div className="space-y-6 p-4">
+      <div className="space-y-6 px-4 pt-2 pb-4">
         {error && <p className="text-sm text-red-600">{error}</p>}
         {actionError && (
           <p role="alert" className="rounded-admin-md border border-red-100 bg-red-50 p-3 text-sm font-medium text-red-600">
@@ -169,7 +184,7 @@ export default function AdminProvidersPage() {
         )}
 
         <section>
-          <h2 className="mb-2 text-base font-bold text-fg">
+          <h2 className="mb-1.5 text-sm font-bold text-fg">
             운영 중 업체 <span className="font-normal text-muted">({approved.length})</span>
           </h2>
           {loading && <CardSkeletonGrid count={3} />}

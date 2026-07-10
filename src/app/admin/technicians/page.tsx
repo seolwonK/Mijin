@@ -136,18 +136,29 @@ export default function AdminTechniciansPage() {
 
   return (
     <main className="min-h-screen">
-      <PageHeader
-        title="개인기술자 관리"
-        back="/admin"
-        width="max-w-none"
-        right={
-          <Link href="/admin/technicians/new" className={buttonClasses('primary', 'sm')}>
-            + 직접 등록
-          </Link>
-        }
-      />
+      {/* 모바일: 기존 PageHeader 그대로. 데스크톱: AdminShell 상단 탭이 이미 "기술자 관리"를
+          표시하므로 PageHeader 대신 더 얇은 바로 교체 — AC-1 밀도 가드 회복(providers/page.tsx와
+          동일 근거). */}
+      <div className="md:hidden">
+        <PageHeader
+          title="개인기술자 관리"
+          back="/admin"
+          width="max-w-none"
+          right={
+            <Link href="/admin/technicians/new" className={buttonClasses('primary', 'sm')}>
+              + 직접 등록
+            </Link>
+          }
+        />
+      </div>
+      <div className="hidden items-center justify-between border-b border-border px-4 py-1.5 md:flex">
+        <h1 className="text-sm font-bold text-fg">개인기술자 관리</h1>
+        <Link href="/admin/technicians/new" className={buttonClasses('primary', 'sm')}>
+          + 직접 등록
+        </Link>
+      </div>
 
-      <div className="space-y-6 p-4">
+      <div className="space-y-6 px-4 pt-2 pb-4">
         {error && <p className="text-sm text-red-600">{error}</p>}
         {actionError && (
           <p role="alert" className="rounded-admin-md bg-red-50 p-3 text-sm font-medium text-red-600">
@@ -189,7 +200,7 @@ export default function AdminTechniciansPage() {
         )}
 
         <section>
-          <h2 className="mb-2 font-semibold">운영 중 기술자 ({approved.length})</h2>
+          <h2 className="mb-1.5 text-sm font-semibold">운영 중 기술자 ({approved.length})</h2>
           {loading && <CardSkeletonGrid count={3} />}
           {!loading && approved.length === 0 && (
             <p className="rounded-admin-md border border-border bg-neutral-50 p-6 text-center text-sm text-muted">

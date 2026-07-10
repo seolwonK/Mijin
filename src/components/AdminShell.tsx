@@ -43,7 +43,7 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
   return (
     <div className="min-h-screen bg-white md:flex md:flex-col">
       <div data-print-hide className="hidden border-b border-admin-border bg-admin-bg md:block">
-        <header className="flex h-13 items-center gap-1 px-4 text-admin-ink">
+        <header className="flex h-11 items-center gap-1 px-4 text-admin-ink">
           <span className="mr-3 flex items-center gap-2 text-sm font-bold">
             <span className="flex h-6 w-6 items-center justify-center rounded-admin-sm bg-admin-cyan/15 text-admin-cyan">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-3.5 w-3.5">
@@ -52,7 +52,7 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
             </span>
             관제탑
           </span>
-          <nav className="flex h-13 items-center gap-0.5" aria-label="관리자 이동">
+          <nav className="flex h-11 items-center gap-0.5" aria-label="관리자 이동">
             {NAV.map((n) => {
               const active =
                 n.href === '/admin'
@@ -64,7 +64,7 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
                   key={n.href}
                   href={n.href}
                   aria-current={active ? 'page' : undefined}
-                  className={`flex h-13 items-center gap-2 border-b-2 px-3 text-[13px] font-semibold transition-colors ${
+                  className={`flex h-11 items-center gap-2 border-b-2 px-3 text-[13px] font-semibold transition-colors ${
                     active
                       ? 'border-admin-cyan text-admin-ink'
                       : 'border-transparent text-admin-dim hover:text-admin-ink'
@@ -90,7 +90,7 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
         <nav
           data-print-hide
           aria-label="관리자 빠른 이동"
-          className="sticky top-13 hidden h-[calc(100vh-3.25rem)] w-13 shrink-0 flex-col items-center gap-2 border-r border-admin-border bg-admin-bg py-3 md:flex"
+          className="sticky top-11 hidden h-[calc(100vh-2.75rem)] w-13 shrink-0 flex-col items-center gap-2 border-r border-admin-border bg-admin-bg py-3 md:flex"
         >
           {NAV.map((n) => {
             const active =

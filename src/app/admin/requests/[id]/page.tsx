@@ -5,6 +5,7 @@ import BackButton from '@/components/BackButton';
 import { usePolling } from '@/components/usePolling';
 import { AdminStatusTag, AdminUrgencyTag } from '@/components/AdminStatusTag';
 import { useConfirm } from '@/components/useConfirm';
+import { AlertIcon } from '@/components/icons';
 
 type Assignee = { kind: 'PROVIDER' | 'TECHNICIAN'; name: string; phone: string };
 
@@ -172,8 +173,9 @@ export default function AdminRequestDetailPage({
 
       <div className="mx-auto max-w-5xl space-y-4 p-4">
         {req.needsAttention && (
-          <p className="rounded-admin-md bg-red-50 p-3 text-sm font-medium text-red-600">
-            ⟟ 관리자 확인이 필요합니다 (자동배정 실패 또는 업체 거절)
+          <p className="flex items-center gap-1.5 rounded-admin-md bg-red-50 p-3 text-sm font-medium text-red-600">
+            <AlertIcon className="h-4 w-4 shrink-0" />
+            관리자 확인이 필요합니다 (자동배정 실패 또는 업체 거절)
           </p>
         )}
 

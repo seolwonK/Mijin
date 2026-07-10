@@ -20,7 +20,7 @@ export default function AdminInspector({
 }: {
   eyebrow: string;
   title?: string;
-  flag?: string;
+  flag?: React.ReactNode;
   fields?: InspectorField[];
   description?: string;
   primaryHref?: string;
@@ -39,7 +39,7 @@ export default function AdminInspector({
         <>
           <p className="mt-2 font-mono text-lg font-bold text-admin-cyan">{title}</p>
           {flag && (
-            <p className="mt-2 rounded-admin-md border border-admin-red/30 bg-admin-red/10 p-2.5 text-[11.5px] text-admin-red">
+            <p className="mt-2 flex items-start gap-1.5 rounded-admin-md border border-admin-red/30 bg-admin-red/10 p-2.5 text-[11.5px] text-admin-red">
               {flag}
             </p>
           )}

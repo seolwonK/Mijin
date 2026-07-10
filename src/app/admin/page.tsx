@@ -10,6 +10,7 @@ import AdminMetricStrip from '@/components/AdminMetricStrip';
 import AdminDataTable, { type Column } from '@/components/AdminDataTable';
 import AdminInspector from '@/components/AdminInspector';
 import { AdminStatusTag, AdminUrgencyTag } from '@/components/AdminStatusTag';
+import { AlertIcon } from '@/components/icons';
 
 type RequestRow = {
   id: string;
@@ -103,7 +104,10 @@ export default function AdminDashboardPage() {
         <span className="line-clamp-1">
           {r.description}
           {r.needsAttention && (
-            <span className="ml-2 font-mono text-[10.5px] text-admin-red">⟟ 확인요망</span>
+            <span className="ml-2 inline-flex items-center gap-1 font-mono text-[10.5px] text-admin-red">
+              <AlertIcon className="h-3 w-3 shrink-0" />
+              확인요망
+            </span>
           )}
         </span>
       ),
@@ -243,7 +247,11 @@ export default function AdminDashboardPage() {
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-1">
-                    {r.needsAttention && <span title="관리자 확인 필요">⚠️</span>}
+                    {r.needsAttention && (
+                      <span title="관리자 확인 필요">
+                        <AlertIcon className="h-4 w-4 text-red-600" />
+                      </span>
+                    )}
                     <UrgencyBadge urgency={r.urgency} />
                     <StatusBadge status={r.status} />
                   </div>
@@ -340,9 +348,12 @@ export default function AdminDashboardPage() {
             eyebrow="SELECTED REQUEST"
             title={selected?.lookupCode}
             flag={
-              selected?.needsAttention
-                ? '⟟ 관리자 확인 필요 — 자동배정 실패 또는 업체 거절'
-                : undefined
+              selected?.needsAttention ? (
+                <>
+                  <AlertIcon className="h-4 w-4 shrink-0 translate-y-px" />
+                  관리자 확인 필요 — 자동배정 실패 또는 업체 거절
+                </>
+              ) : undefined
             }
             fields={
               selected

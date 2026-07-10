@@ -25,6 +25,7 @@ const TONE = {
     row: 'border-admin-border text-admin-ink',
     rowHover: 'hover:bg-admin-surface',
     rowSelected: 'bg-admin-cyan/10',
+    focusRing: 'focus-visible:outline-admin-cyan',
   },
   light: {
     head: 'border-border bg-neutral-50 text-muted',
@@ -32,6 +33,7 @@ const TONE = {
     row: 'border-border text-fg',
     rowHover: 'hover:bg-neutral-50',
     rowSelected: 'bg-admin-cyan-ink/10',
+    focusRing: 'focus-visible:outline-admin-cyan-ink',
   },
 } as const;
 
@@ -64,6 +66,11 @@ export default function AdminDataTable<T, K extends string>({
     return [...rows].sort((a, b) => {
       const av = col.sortValue!(a);
       const bv = col.sortValue!(b);
+      // 문자열은 한글 정렬 규칙(localeCompare 'ko')로, 숫자는 수치 비교로 — 문자열 분기를
+      // 범용 </>로 처리하면 코드포인트 순이 돼 한글 가나다순이 깨진다.
+      if (typeof av === 'string' && typeof bv === 'string') {
+        return av.localeCompare(bv, 'ko') * sort.dir;
+      }
       if (av < bv) return -1 * sort.dir;
       if (av > bv) return 1 * sort.dir;
       return 0;
@@ -114,9 +121,26 @@ export default function AdminDataTable<T, K extends string>({
               <tr
                 key={key}
                 onClick={() => onRowClick?.(row)}
-                className={`border-b ${t.row} ${onRowClick ? 'cursor-pointer' : ''} ${
-                  selected ? t.rowSelected : t.rowHover
-                } ${rowClassName?.(row) ?? ''}`}
+                tabIndex={onRowClick ? 0 : undefined}
+                role={onRowClick ? 'button' : undefined}
+                aria-pressed={onRowClick ? selected : undefined}
+                onKeyDown={
+                  onRowClick
+                    ? (e) => {
+                        // 행의 동작은 선택(인스펙터 갱신)이지 페이지 이동이 아니므로 Enter·Space
+                        // 둘 다 선택으로 취급한다 — Space는 기본 스크롤 동작을 막아야 한다.
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          onRowClick(row);
+                        }
+                      }
+                    : undefined
+                }
+                className={`border-b ${t.row} ${
+                  onRowClick
+                    ? `cursor-pointer focus-visible:outline-2 focus-visible:-outline-offset-2 ${t.focusRing}`
+                    : ''
+                } ${selected ? t.rowSelected : t.rowHover} ${rowClassName?.(row) ?? ''}`}
               >
                 {columns.map((col) => (
                   <td
