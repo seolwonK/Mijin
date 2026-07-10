@@ -6,8 +6,8 @@ import PageHeader from '@/components/PageHeader';
 import { buttonClasses } from '@/components/Button';
 import { usePolling } from '@/components/usePolling';
 import { CardSkeletonGrid } from '@/components/Skeleton';
-import { SortTh, type SortState } from '@/components/SortTh';
 import { useConfirm } from '@/components/useConfirm';
+import AdminDataTable, { type Column } from '@/components/AdminDataTable';
 
 type TechnicianRow = {
   id: string;
@@ -33,6 +33,9 @@ const CONTRACT_LABEL: Record<string, string> = {
   CONFIRMED: '서명 완료 (배정 가능)',
 };
 
+type Col = 'name' | 'employmentType' | 'loginId' | 'phone' | 'contractStatus' | 'status';
+
+// "관제탑"(B) B-라이트 롤아웃 — providers/page.tsx와 동일 패턴(AdminDataTable tone="light").
 export default function AdminTechniciansPage() {
   const { data, error, refresh } = usePolling<{ technicians: TechnicianRow[] }>(
     '/api/admin/technicians',
@@ -46,13 +49,6 @@ export default function AdminTechniciansPage() {
   const pending = all.filter((t) => t.approvalStatus === 'PENDING');
   const approved = all.filter((t) => t.approvalStatus === 'APPROVED');
   const rejected = all.filter((t) => t.approvalStatus === 'REJECTED');
-  const [sort, setSort] = useState<SortState<'name' | 'phone'>>({ key: 'name', dir: 1 });
-  const sortedApproved = [...approved].sort(
-    (a, b) =>
-      (sort.key === 'name'
-        ? a.name.localeCompare(b.name, 'ko')
-        : a.phone.localeCompare(b.phone, 'ko')) * sort.dir,
-  );
 
   async function toggleActive(t: TechnicianRow) {
     if (
@@ -86,6 +82,58 @@ export default function AdminTechniciansPage() {
     }
   }
 
+  const columns: Column<TechnicianRow, Col>[] = [
+    {
+      key: 'name',
+      label: '이름',
+      sortable: true,
+      sortValue: (t) => t.name,
+      render: (t) => (
+        <Link href={`/admin/technicians/${t.id}`} className="font-bold text-admin-cyan-ink hover:underline">
+          {t.name}
+        </Link>
+      ),
+    },
+    { key: 'employmentType', label: '형태', width: '76px', render: (t) => <span className="text-muted">{EMPLOYMENT_LABEL[t.employmentType]}</span> },
+    { key: 'loginId', label: '아이디', width: '150px', render: (t) => <span className="font-mono text-muted">{t.loginId}</span> },
+    {
+      key: 'phone',
+      label: '전화',
+      width: '140px',
+      sortable: true,
+      sortValue: (t) => t.phone,
+      render: (t) => <span className="font-mono text-muted">{t.phone}</span>,
+    },
+    {
+      key: 'contractStatus',
+      label: '근로계약',
+      width: '180px',
+      render: (t) => (
+        <span className={t.contractStatus === 'CONFIRMED' ? 'font-medium text-green-700' : 'text-muted'}>
+          {t.contractStatus ? CONTRACT_LABEL[t.contractStatus] : '미작성'}
+        </span>
+      ),
+    },
+    {
+      key: 'status',
+      label: '상태',
+      width: '110px',
+      align: 'right',
+      render: (t) => (
+        <button
+          type="button"
+          onClick={() => toggleActive(t)}
+          disabled={togglingId === t.id}
+          className={`rounded-full px-3 py-1.5 text-xs font-bold disabled:opacity-50 ${
+            t.isActive ? 'bg-green-100 text-green-700' : 'bg-neutral-200 text-neutral-600'
+          }`}
+        >
+          {togglingId === t.id ? '변경 중…' : t.isActive ? '활성' : '비활성'}
+        </button>
+      ),
+    },
+  ];
+
   return (
     <main className="min-h-screen">
       <PageHeader
@@ -102,7 +150,7 @@ export default function AdminTechniciansPage() {
       <div className="space-y-6 p-4">
         {error && <p className="text-sm text-red-600">{error}</p>}
         {actionError && (
-          <p role="alert" className="rounded-xl bg-red-50 p-3 text-sm font-medium text-red-600">
+          <p role="alert" className="rounded-admin-md bg-red-50 p-3 text-sm font-medium text-red-600">
             {actionError}
           </p>
         )}
@@ -110,14 +158,14 @@ export default function AdminTechniciansPage() {
         {pending.length > 0 && (
           <section>
             <h2 className="mb-2 font-semibold text-amber-700">
-              🕐 승인 대기 ({pending.length})
+              승인 대기 ({pending.length})
             </h2>
             <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
               {pending.map((t) => (
                 <Link
                   key={t.id}
                   href={`/admin/technicians/${t.id}`}
-                  className="block rounded-2xl border border-amber-400 bg-amber-50 p-4"
+                  className="block rounded-admin-md border border-amber-400 bg-amber-50 p-4"
                 >
                   <div className="flex items-center justify-between">
                     <span className="font-bold">
@@ -130,7 +178,7 @@ export default function AdminTechniciansPage() {
                       심사 필요
                     </span>
                   </div>
-                  <p className="mt-1 text-sm text-neutral-600">{t.phone}</p>
+                  <p className="mt-1 font-mono text-sm text-neutral-600">{t.phone}</p>
                   <p className="text-xs text-muted">
                     신청 {new Date(t.appliedAt).toLocaleString('ko-KR')}
                   </p>
@@ -144,62 +192,20 @@ export default function AdminTechniciansPage() {
           <h2 className="mb-2 font-semibold">운영 중 기술자 ({approved.length})</h2>
           {loading && <CardSkeletonGrid count={3} />}
           {!loading && approved.length === 0 && (
-            <p className="rounded-xl border border-border bg-neutral-50 p-6 text-center text-sm text-muted">
+            <p className="rounded-admin-md border border-border bg-neutral-50 p-6 text-center text-sm text-muted">
               운영 중인 기술자가 없습니다
             </p>
           )}
           {!loading && approved.length > 0 && (
-            <div className="overflow-x-auto rounded-2xl border border-border bg-white shadow-card">
-              <table className="w-full min-w-[720px] text-sm">
-                <thead>
-                  <tr className="border-b border-border bg-neutral-50 text-left text-xs tracking-wide text-muted">
-                    <SortTh label="이름" col="name" sort={sort} onSort={setSort} />
-                    <th className="px-4 py-2.5 font-semibold">형태</th>
-                    <th className="px-4 py-2.5 font-semibold">아이디</th>
-                    <SortTh label="전화" col="phone" sort={sort} onSort={setSort} />
-                    <th className="px-4 py-2.5 font-semibold">근로계약</th>
-                    <th className="px-4 py-2.5 text-right font-semibold">상태</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {sortedApproved.map((t) => (
-                    <tr
-                      key={t.id}
-                      className={`border-b border-border/60 last:border-0 hover:bg-brand-50/50 ${
-                        t.isActive ? '' : 'opacity-60'
-                      }`}
-                    >
-                      <td className="px-4 py-2.5 font-bold">
-                        <Link href={`/admin/technicians/${t.id}`} className="text-brand-700 hover:underline">
-                          {t.name}
-                        </Link>
-                      </td>
-                      <td className="px-4 py-2.5 text-neutral-600">
-                        {EMPLOYMENT_LABEL[t.employmentType]}
-                      </td>
-                      <td className="px-4 py-2.5 text-neutral-600">{t.loginId}</td>
-                      <td className="px-4 py-2.5 text-neutral-600">{t.phone}</td>
-                      <td className="px-4 py-2.5 text-neutral-600">
-                        {t.contractStatus ? CONTRACT_LABEL[t.contractStatus] : '미작성'}
-                      </td>
-                      <td className="px-4 py-2.5 text-right">
-                        <button
-                          type="button"
-                          onClick={() => toggleActive(t)}
-                          disabled={togglingId === t.id}
-                          className={`rounded-full px-3 py-1.5 text-xs font-bold disabled:opacity-50 ${
-                            t.isActive
-                              ? 'bg-green-100 text-green-700'
-                              : 'bg-neutral-200 text-neutral-600'
-                          }`}
-                        >
-                          {togglingId === t.id ? '변경 중…' : t.isActive ? '활성' : '비활성'}
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+            <div className="rounded-admin-md border border-border bg-white">
+              <AdminDataTable
+                tone="light"
+                columns={columns}
+                rows={approved}
+                rowKey={(t) => t.id}
+                defaultSort={{ key: 'name', dir: 1 }}
+                rowClassName={(t) => (t.isActive ? '' : 'opacity-60')}
+              />
             </div>
           )}
         </section>
@@ -214,7 +220,7 @@ export default function AdminTechniciansPage() {
                 <Link
                   key={t.id}
                   href={`/admin/technicians/${t.id}`}
-                  className="block rounded-2xl border border-border bg-neutral-50 p-4"
+                  className="block rounded-admin-md border border-border bg-neutral-50 p-4"
                 >
                   <div className="flex items-center justify-between">
                     <span className="font-bold">{t.name}</span>

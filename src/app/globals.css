@@ -77,6 +77,11 @@
   --color-admin-emerald: oklch(0.72 0.13 155);
   --color-admin-red: oklch(0.68 0.17 25);
   --color-admin-slate: oklch(0.62 0.02 250);
+  /* admin-cyan(L 0.78)은 다크 배경 전용 — 흰 배경 위 텍스트/링크로 쓰면 WCAG 대비 미달이라
+     폼 화면("B-라이트" 변형: providers/technicians 폼, requests 상세, settings, 계약서)에서
+     쓸 짙은 사이언 잉크를 별도로 둔다. 배경은 기존 라이트 뉴트럴(neutral-* 및 border, surface)을
+     그대로 재사용 — "라이트"는 새 뉴트럴 스케일이 아니라 이 잉크 색 + 절제된 라디우스가 만든다. */
+  --color-admin-cyan-ink: oklch(0.46 0.12 200);
   --radius-admin-sm: 0.375rem;
   --radius-admin-md: 0.5rem;
 }

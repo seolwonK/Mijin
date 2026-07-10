@@ -3,7 +3,7 @@
 import { use, useState } from 'react';
 import BackButton from '@/components/BackButton';
 import { usePolling } from '@/components/usePolling';
-import { StatusBadge, UrgencyBadge } from '@/components/StatusBadge';
+import { AdminStatusTag, AdminUrgencyTag } from '@/components/AdminStatusTag';
 import { useConfirm } from '@/components/useConfirm';
 
 type Assignee = { kind: 'PROVIDER' | 'TECHNICIAN'; name: string; phone: string };
@@ -54,6 +54,7 @@ const ASSIGNMENT_STATUS_LABEL: Record<string, string> = {
   CANCELED: '취소',
 };
 
+// "관제탑"(B) B-라이트 — 거리순 추천/배정/회수/취소 로직은 완전히 동일, 표현만 재도색.
 export default function AdminRequestDetailPage({
   params,
 }: {
@@ -162,26 +163,26 @@ export default function AdminRequestDetailPage({
     <main className="min-h-screen pb-10">
       <header className="sticky top-0 z-20 flex items-center gap-2 border-b border-border bg-surface/85 px-4 py-2 backdrop-blur">
         <BackButton fallback="/admin" />
-        <h1 className="text-lg font-bold">접수 #{req.lookupCode}</h1>
-        <div className="ml-auto flex gap-1">
-          <UrgencyBadge urgency={req.urgency} />
-          <StatusBadge status={req.status} />
+        <h1 className="font-mono text-lg font-bold">접수 #{req.lookupCode}</h1>
+        <div className="ml-auto flex items-center gap-3">
+          <AdminUrgencyTag urgency={req.urgency} tone="light" />
+          <AdminStatusTag status={req.status} tone="light" />
         </div>
       </header>
 
       <div className="mx-auto max-w-5xl space-y-4 p-4">
         {req.needsAttention && (
-          <p className="rounded-xl bg-red-50 p-3 text-sm font-medium text-red-600">
-            ⚠️ 관리자 확인이 필요합니다 (자동배정 실패 또는 업체 거절)
+          <p className="rounded-admin-md bg-red-50 p-3 text-sm font-medium text-red-600">
+            ⟟ 관리자 확인이 필요합니다 (자동배정 실패 또는 업체 거절)
           </p>
         )}
 
-        <section className="rounded-2xl border border-border p-4">
+        <section className="rounded-admin-md border border-border p-4">
           <h2 className="mb-1 text-sm text-muted">고장 내용</h2>
           <p className="whitespace-pre-wrap">{req.description}</p>
           {req.hasVoice && (
-            <div className="mt-3 rounded-xl bg-neutral-50 p-3">
-              <p className="mb-1 text-sm font-medium text-neutral-600">🎤 고객 음성 녹음</p>
+            <div className="mt-3 rounded-admin-md bg-neutral-50 p-3">
+              <p className="mb-1 text-sm font-medium text-neutral-600">고객 음성 녹음</p>
               <audio
                 controls
                 preload="none"
@@ -198,18 +199,18 @@ export default function AdminRequestDetailPage({
           )}
           <div className="mt-3 space-y-1 text-sm text-neutral-600">
             <p>
-              👤 {req.customerName} ·{' '}
-              <a href={`tel:${req.customerPhone}`} className="text-brand-600 underline">
+              {req.customerName} ·{' '}
+              <a href={`tel:${req.customerPhone}`} className="font-mono text-admin-cyan-ink underline">
                 {req.customerPhone}
               </a>
             </p>
-            <p>📍 {req.address ?? '주소 미확인'}</p>
+            <p>{req.address ?? '주소 미확인'}</p>
             {req.lat != null && req.lng != null && (
               <a
                 href={`https://map.kakao.com/link/map/고객위치,${req.lat},${req.lng}`}
                 target="_blank"
                 rel="noreferrer"
-                className="inline-block text-brand-600 underline"
+                className="inline-block text-admin-cyan-ink underline"
               >
                 지도에서 보기
               </a>
@@ -221,10 +222,10 @@ export default function AdminRequestDetailPage({
         </section>
 
         {req.status === 'ASSIGNED' && (
-          <section className="rounded-2xl border border-cyan-200 bg-cyan-50/50 p-4">
+          <section className="rounded-admin-md border border-admin-cyan-ink/25 bg-admin-cyan-ink/5 p-4">
             <div className="flex items-center justify-between gap-3">
               <div>
-                <p className="font-semibold text-cyan-700">업체 응답 대기 중</p>
+                <p className="font-semibold text-admin-cyan-ink">업체 응답 대기 중</p>
                 <p className="mt-0.5 text-sm text-muted">
                   응답이 없으면 배정을 회수하고 다른 업체에 다시 배정할 수 있습니다.
                 </p>
@@ -233,7 +234,7 @@ export default function AdminRequestDetailPage({
                 type="button"
                 onClick={unassign}
                 disabled={busy}
-                className="h-11 shrink-0 rounded-xl border border-red-300 bg-white px-4 text-sm font-bold text-red-600 active:bg-red-50 disabled:opacity-60"
+                className="h-11 shrink-0 rounded-admin-md border border-red-300 bg-white px-4 text-sm font-bold text-red-600 active:bg-red-50 disabled:opacity-60"
               >
                 배정 회수
               </button>
@@ -242,8 +243,8 @@ export default function AdminRequestDetailPage({
         )}
 
         {req.status === 'RECEIVED' && (
-          <section className="rounded-2xl border border-sky-200 p-4">
-            <h2 className="mb-2 font-semibold text-sky-700">거리순 추천 (업체·기술자)</h2>
+          <section className="rounded-admin-md border border-admin-cyan-ink/25 p-4">
+            <h2 className="mb-2 font-semibold text-admin-cyan-ink">거리순 추천 (업체·기술자)</h2>
             {!candData ? (
               <p className="text-sm text-muted">불러오는 중…</p>
             ) : candData.candidates.length === 0 ? (
@@ -255,13 +256,13 @@ export default function AdminRequestDetailPage({
                 {candData.candidates.map((c) => (
                   <div
                     key={`${c.kind}:${c.id}`}
-                    className="flex items-center justify-between rounded-xl border border-border p-3"
+                    className="flex items-center justify-between rounded-admin-md border border-border p-3"
                   >
                     <div>
                       <p className="font-bold">
                         {c.name}{' '}
                         <span
-                          className={`ml-1 rounded px-1.5 py-0.5 text-xs font-medium ${
+                          className={`ml-1 rounded-admin-sm px-1.5 py-0.5 text-xs font-medium ${
                             c.kind === 'TECHNICIAN'
                               ? 'bg-emerald-100 text-emerald-700'
                               : 'bg-neutral-100 text-neutral-600'
@@ -275,7 +276,7 @@ export default function AdminRequestDetailPage({
                           </span>
                         )}
                       </p>
-                      <p className="text-xs text-muted">
+                      <p className="font-mono text-xs text-muted">
                         {c.distanceKm != null
                           ? `${c.distanceKm.toFixed(1)}km`
                           : '거리 미확인'}{' '}
@@ -286,7 +287,7 @@ export default function AdminRequestDetailPage({
                       type="button"
                       onClick={() => assign(c.kind, c.id)}
                       disabled={busy}
-                      className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-bold text-white disabled:opacity-60"
+                      className="rounded-admin-sm bg-admin-cyan-ink px-4 py-2 text-sm font-bold text-white disabled:opacity-60"
                     >
                       배정
                     </button>
@@ -298,11 +299,11 @@ export default function AdminRequestDetailPage({
         )}
 
         {req.assignments.length > 0 && (
-          <section className="rounded-2xl border border-border p-4">
+          <section className="rounded-admin-md border border-border p-4">
             <h2 className="mb-2 text-sm text-muted">배정 이력</h2>
             <div className="grid gap-2 sm:grid-cols-2">
               {req.assignments.map((a) => (
-                <div key={a.id} className="rounded-xl bg-neutral-50 p-3 text-sm">
+                <div key={a.id} className="rounded-admin-md bg-neutral-50 p-3 text-sm">
                   <div className="flex items-center justify-between gap-2">
                     <span className="min-w-0 font-bold">
                       {a.assignee?.name ?? '—'}
@@ -314,9 +315,9 @@ export default function AdminRequestDetailPage({
                       {a.assignee && (
                         <a
                           href={`tel:${a.assignee.phone}`}
-                          className="whitespace-nowrap text-xs font-medium text-brand-600 underline"
+                          className="font-mono text-xs font-medium whitespace-nowrap text-admin-cyan-ink underline"
                         >
-                          📞 {a.assignee.phone}
+                          {a.assignee.phone}
                         </a>
                       )}
                     </span>
@@ -332,7 +333,7 @@ export default function AdminRequestDetailPage({
                       {ASSIGNMENT_STATUS_LABEL[a.status] ?? a.status}
                     </span>
                   </div>
-                  <p className="mt-1 text-xs text-muted">
+                  <p className="mt-1 font-mono text-xs text-muted">
                     {a.assignedBy === 'AUTO' ? '자동배정' : '수동배정'}
                     {a.distanceKm != null && ` · ${a.distanceKm.toFixed(1)}km`} ·{' '}
                     {new Date(a.createdAt).toLocaleString('ko-KR')}
@@ -347,7 +348,7 @@ export default function AdminRequestDetailPage({
         )}
 
         {error && (
-          <p className="rounded-xl bg-red-50 p-3 text-sm font-medium text-red-600">
+          <p className="rounded-admin-md bg-red-50 p-3 text-sm font-medium text-red-600">
             {error}
           </p>
         )}
@@ -357,7 +358,7 @@ export default function AdminRequestDetailPage({
             type="button"
             onClick={cancel}
             disabled={busy}
-            className="w-full rounded-2xl border border-red-300 p-3 font-bold text-red-600 disabled:opacity-60"
+            className="w-full rounded-admin-md border border-red-300 p-3 font-bold text-red-600 disabled:opacity-60"
           >
             접수 취소
           </button>

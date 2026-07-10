@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { buttonClasses } from '@/components/Button';
 
 export type ProviderFormValue = {
   loginId: string;
@@ -14,8 +13,10 @@ export type ProviderFormValue = {
   memo: string;
 };
 
+// "관제탑"(B) B-라이트 — 절제된 라디우스(admin-md) + 사이언 잉크 포커스로 고객용 브랜드 톤과
+// 관리자 폼을 구분한다(배경은 기존 라이트 뉴트럴 그대로).
 const inputClass =
-  'w-full rounded-xl border border-border p-3 text-base focus:border-brand-500 focus:outline-none';
+  'w-full rounded-admin-md border border-border p-3 text-base focus:border-admin-cyan-ink focus:outline-none';
 
 export default function ProviderForm({
   initial,
@@ -130,7 +131,7 @@ export default function ProviderForm({
           <button
             type="button"
             onClick={convertAddress}
-            className="shrink-0 rounded-xl border border-brand-300 bg-brand-50 px-3 text-sm font-bold text-brand-700"
+            className="shrink-0 rounded-admin-md border border-admin-cyan-ink/30 bg-admin-cyan-ink/5 px-3 text-sm font-bold text-admin-cyan-ink"
           >
             좌표 변환
           </button>
@@ -171,13 +172,13 @@ export default function ProviderForm({
       </div>
 
       {error && (
-        <p className="rounded-xl bg-red-50 p-3 text-sm font-medium text-red-600">{error}</p>
+        <p className="rounded-admin-md bg-red-50 p-3 text-sm font-medium text-red-600">{error}</p>
       )}
 
       <button
         type="submit"
         disabled={busy}
-        className={buttonClasses('primary', 'lg', 'w-full')}
+        className="flex h-14 w-full items-center justify-center rounded-admin-md bg-admin-cyan-ink text-lg font-bold text-white transition-opacity enabled:hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
       >
         {busy ? '저장 중…' : isEdit ? '수정 저장' : '업체 등록'}
       </button>

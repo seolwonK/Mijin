@@ -138,23 +138,24 @@ export default function ContractPrintPage({
 
   return (
     <main className="bg-white">
-      {/* 화면 전용 상단바 (인쇄물에는 제외) */}
+      {/* 화면 전용 상단바 (인쇄물에는 제외) — "관제탑"(B) 스크린 전용 크롬.
+          아래 계약서 본문은 인쇄 뉴트럴(black-on-white) 원칙상 절대 건드리지 않는다. */}
       <div
         data-print-hide
-        className="sticky top-0 z-10 flex items-center justify-between gap-2 border-b border-border bg-surface/95 p-3 backdrop-blur"
+        className="sticky top-0 z-10 flex items-center justify-between gap-2 border-b border-admin-border bg-admin-bg p-3"
       >
         <Link
           href={`/admin/technicians/${id}/contract`}
-          className="text-sm font-semibold text-brand-700 hover:text-brand-800"
+          className="text-sm font-semibold text-admin-cyan hover:opacity-80"
         >
           ← 계약서로 돌아가기
         </Link>
         <button
           type="button"
           onClick={() => window.print()}
-          className="rounded-xl bg-brand-600 px-5 py-2.5 text-sm font-bold text-white transition-colors hover:bg-brand-700"
+          className="rounded-admin-md bg-admin-cyan px-5 py-2.5 text-sm font-bold text-admin-bg transition-opacity hover:opacity-90"
         >
-          🖨 인쇄 / PDF 저장
+          인쇄 / PDF 저장
         </button>
       </div>
 

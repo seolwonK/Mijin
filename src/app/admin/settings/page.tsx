@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import PageHeader from '@/components/PageHeader';
-import { buttonClasses } from '@/components/Button';
 
 type Settings = {
   autoAssignEnabled: boolean;
@@ -21,8 +20,11 @@ type Settings = {
   defaultPayMethod: 'BANK_TRANSFER' | 'DIRECT' | null;
 };
 
+// "관제탑"(B) B-라이트 — admin-md 라디우스 + 사이언 잉크 액센트. 설정 저장 로직은 불변.
 const inputClass =
-  'w-24 rounded-xl border border-border p-3 text-center text-base focus:border-brand-500 focus:outline-none';
+  'w-24 rounded-admin-md border border-border p-3 text-center text-base focus:border-admin-cyan-ink focus:outline-none';
+const fieldClass =
+  'w-full rounded-admin-md border border-border p-3 text-base focus:border-admin-cyan-ink focus:outline-none';
 
 export default function AdminSettingsPage() {
   const [settings, setSettings] = useState<Settings | null>(null);
@@ -93,7 +95,7 @@ export default function AdminSettingsPage() {
       <PageHeader title="설정" back="/admin" />
 
       <div className="mx-auto max-w-2xl space-y-6 p-4">
-        <section className="rounded-2xl border border-border p-4">
+        <section className="rounded-admin-md border border-border p-4">
           <div className="flex items-center justify-between">
             <div>
               <p className="font-bold">자동배정 사용</p>
@@ -108,7 +110,7 @@ export default function AdminSettingsPage() {
                 setSettings({ ...settings, autoAssignEnabled: !settings.autoAssignEnabled })
               }
               className={`relative h-8 w-14 shrink-0 rounded-full transition-colors ${
-                settings.autoAssignEnabled ? 'bg-brand-600' : 'bg-neutral-300'
+                settings.autoAssignEnabled ? 'bg-admin-cyan-ink' : 'bg-neutral-300'
               }`}
               aria-label="자동배정 토글"
             >
@@ -121,7 +123,7 @@ export default function AdminSettingsPage() {
           </div>
         </section>
 
-        <section className="rounded-2xl border border-border p-4">
+        <section className="rounded-admin-md border border-border p-4">
           <p className="mb-3 font-bold">긴급도별 자동배정 대기시간 (분)</p>
           <div className="space-y-3">
             {rows.map((row) => (
@@ -152,7 +154,7 @@ export default function AdminSettingsPage() {
           </div>
         </section>
 
-        <section className="rounded-2xl border border-border p-4">
+        <section className="rounded-admin-md border border-border p-4">
           <p className="mb-1 font-bold">근로계약서 사업주(고용주) 정보</p>
           <p className="mb-3 text-sm text-muted">
             개인기술자 근로계약서에 자동 기입됩니다.
@@ -166,7 +168,7 @@ export default function AdminSettingsPage() {
                 onChange={(e) => setSettings({ ...settings, employerName: e.target.value })}
                 placeholder="미진전기"
                 aria-label="사업체명"
-                className="w-full rounded-xl border border-border p-3 text-base focus:border-brand-500 focus:outline-none"
+                className={fieldClass}
               />
             </div>
             <div>
@@ -176,7 +178,7 @@ export default function AdminSettingsPage() {
                 value={settings.employerCeo ?? ''}
                 onChange={(e) => setSettings({ ...settings, employerCeo: e.target.value })}
                 aria-label="대표자"
-                className="w-full rounded-xl border border-border p-3 text-base focus:border-brand-500 focus:outline-none"
+                className={fieldClass}
               />
             </div>
             <div>
@@ -188,7 +190,7 @@ export default function AdminSettingsPage() {
                   setSettings({ ...settings, employerAddress: e.target.value })
                 }
                 aria-label="주소"
-                className="w-full rounded-xl border border-border p-3 text-base focus:border-brand-500 focus:outline-none"
+                className={fieldClass}
               />
             </div>
             <div className="flex gap-2">
@@ -201,7 +203,7 @@ export default function AdminSettingsPage() {
                     setSettings({ ...settings, employerPhone: e.target.value })
                   }
                   aria-label="전화"
-                  className="w-full rounded-xl border border-border p-3 text-base focus:border-brand-500 focus:outline-none"
+                  className={fieldClass}
                 />
               </div>
               <div className="flex-1">
@@ -213,14 +215,14 @@ export default function AdminSettingsPage() {
                     setSettings({ ...settings, employerBizRegNo: e.target.value })
                   }
                   aria-label="사업자등록번호"
-                  className="w-full rounded-xl border border-border p-3 text-base focus:border-brand-500 focus:outline-none"
+                  className={fieldClass}
                 />
               </div>
             </div>
           </div>
         </section>
 
-        <section className="rounded-2xl border border-border p-4">
+        <section className="rounded-admin-md border border-border p-4">
           <p className="mb-1 font-bold">근로계약서 기본값</p>
           <p className="mb-3 text-sm text-muted">
             계약서 생성 시 자동 기입됩니다. 비워두면 계약서에 &ldquo;추후 협의&rdquo;로
@@ -243,7 +245,7 @@ export default function AdminSettingsPage() {
                     })
                   }
                   aria-label="일용 기본 일급 (원)"
-                  className="w-full rounded-xl border border-border p-3 text-base focus:border-brand-500 focus:outline-none"
+                  className={fieldClass}
                 />
               </div>
               <div className="flex-1">
@@ -261,7 +263,7 @@ export default function AdminSettingsPage() {
                     })
                   }
                   aria-label="상시 기본 월급 (원)"
-                  className="w-full rounded-xl border border-border p-3 text-base focus:border-brand-500 focus:outline-none"
+                  className={fieldClass}
                 />
               </div>
             </div>
@@ -275,7 +277,7 @@ export default function AdminSettingsPage() {
                 }
                 placeholder="예: 매월 25일"
                 aria-label="임금지급일"
-                className="w-full rounded-xl border border-border p-3 text-base focus:border-brand-500 focus:outline-none"
+                className={fieldClass}
               />
             </div>
             <div>
@@ -297,9 +299,9 @@ export default function AdminSettingsPage() {
                             : (m.value as 'BANK_TRANSFER' | 'DIRECT'),
                       })
                     }
-                    className={`rounded-xl border p-3 text-sm font-medium ${
+                    className={`rounded-admin-md border p-3 text-sm font-medium ${
                       settings.defaultPayMethod === m.value
-                        ? 'border-brand-500 bg-brand-50'
+                        ? 'border-admin-cyan-ink bg-admin-cyan-ink/5 text-admin-cyan-ink'
                         : 'border-border bg-white'
                     }`}
                   >
@@ -322,21 +324,21 @@ export default function AdminSettingsPage() {
                   <img
                     src={settings.employerSignatureDataUrl}
                     alt="회사 서명"
-                    className="h-20 rounded-lg border border-border bg-white object-contain p-1"
+                    className="h-20 rounded-admin-sm border border-border bg-white object-contain p-1"
                   />
                   <button
                     type="button"
                     onClick={() =>
                       setSettings({ ...settings, employerSignatureDataUrl: null })
                     }
-                    className="rounded-lg border border-border px-3 py-2 text-sm font-medium text-muted"
+                    className="rounded-admin-sm border border-border px-3 py-2 text-sm font-medium text-muted"
                   >
                     삭제
                   </button>
                 </div>
               ) : (
-                <label className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl border border-brand-300 bg-brand-50 p-3 text-sm font-medium text-brand-700">
-                  📎 서명/직인 이미지 첨부 (PNG 권장)
+                <label className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-admin-md border border-admin-cyan-ink/30 bg-admin-cyan-ink/5 p-3 text-sm font-medium text-admin-cyan-ink">
+                  서명/직인 이미지 첨부 (PNG 권장)
                   <input
                     type="file"
                     accept="image/png,image/jpeg,image/webp"
@@ -361,10 +363,10 @@ export default function AdminSettingsPage() {
         </section>
 
         {error && (
-          <p className="rounded-xl bg-red-50 p-3 text-sm font-medium text-red-600">{error}</p>
+          <p className="rounded-admin-md bg-red-50 p-3 text-sm font-medium text-red-600">{error}</p>
         )}
         {message && (
-          <p className="rounded-xl bg-green-50 p-3 text-sm font-medium text-green-700">
+          <p className="rounded-admin-md bg-green-50 p-3 text-sm font-medium text-green-700">
             {message}
           </p>
         )}
@@ -373,7 +375,7 @@ export default function AdminSettingsPage() {
           type="button"
           onClick={save}
           disabled={busy}
-          className={buttonClasses('primary', 'lg', 'w-full')}
+          className="flex h-14 w-full items-center justify-center rounded-admin-md bg-admin-cyan-ink text-lg font-bold text-white transition-opacity enabled:hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
         >
           {busy ? '저장 중…' : '저장'}
         </button>

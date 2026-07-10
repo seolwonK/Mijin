@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { buttonClasses } from '@/components/Button';
 
 export type TechnicianFormValue = {
   loginId: string;
@@ -15,8 +14,9 @@ export type TechnicianFormValue = {
   memo: string;
 };
 
+// "관제탑"(B) B-라이트 — ProviderForm.tsx와 동일 원칙(admin-md 라디우스 + 사이언 잉크 포커스).
 const inputClass =
-  'w-full rounded-xl border border-border p-3 text-base focus:border-brand-500 focus:outline-none';
+  'w-full rounded-admin-md border border-border p-3 text-base focus:border-admin-cyan-ink focus:outline-none';
 
 const EMPLOYMENT_OPTIONS: { value: 'DAILY' | 'PERMANENT'; label: string }[] = [
   { value: 'DAILY', label: '일일 근로자' },
@@ -110,9 +110,9 @@ export default function TechnicianForm({
               key={opt.value}
               type="button"
               onClick={() => set('employmentType', opt.value)}
-              className={`rounded-xl border p-3 text-sm font-bold ${
+              className={`rounded-admin-md border p-3 text-sm font-bold ${
                 v.employmentType === opt.value
-                  ? 'border-brand-500 bg-brand-50'
+                  ? 'border-admin-cyan-ink bg-admin-cyan-ink/5 text-admin-cyan-ink'
                   : 'border-border bg-white'
               }`}
             >
@@ -156,7 +156,7 @@ export default function TechnicianForm({
           <button
             type="button"
             onClick={convertAddress}
-            className="shrink-0 rounded-xl border border-brand-300 bg-brand-50 px-3 text-sm font-bold text-brand-700"
+            className="shrink-0 rounded-admin-md border border-admin-cyan-ink/30 bg-admin-cyan-ink/5 px-3 text-sm font-bold text-admin-cyan-ink"
           >
             좌표 변환
           </button>
@@ -197,13 +197,13 @@ export default function TechnicianForm({
       </div>
 
       {error && (
-        <p className="rounded-xl bg-red-50 p-3 text-sm font-medium text-red-600">{error}</p>
+        <p className="rounded-admin-md bg-red-50 p-3 text-sm font-medium text-red-600">{error}</p>
       )}
 
       <button
         type="submit"
         disabled={busy}
-        className={buttonClasses('primary', 'lg', 'w-full')}
+        className="flex h-14 w-full items-center justify-center rounded-admin-md bg-admin-cyan-ink text-lg font-bold text-white transition-opacity enabled:hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
       >
         {busy ? '저장 중…' : isEdit ? '수정 저장' : '기술자 등록'}
       </button>

@@ -173,7 +173,7 @@ export default function EditTechnicianPage({
       />
 
       <section className="mx-auto max-w-2xl space-y-3 border-b border-neutral-100 p-4">
-        <div className="rounded-2xl border border-border p-4 text-sm">
+        <div className="rounded-admin-md border border-border p-4 text-sm">
           <p>
             근로형태: <span className="font-bold">{EMPLOYMENT_LABEL[detail.employmentType]}</span>
           </p>
@@ -188,17 +188,17 @@ export default function EditTechnicianPage({
         {/* 근로계약서 */}
         <Link
           href={`/admin/technicians/${id}/contract`}
-          className="flex items-center justify-between rounded-2xl border border-brand-200 bg-brand-50 p-4"
+          className="flex items-center justify-between rounded-admin-md border border-admin-cyan-ink/25 bg-admin-cyan-ink/5 p-4"
         >
           <div>
-            <p className="font-bold text-brand-800">📄 근로계약서</p>
-            <p className="mt-0.5 text-sm text-brand-600">
+            <p className="font-bold text-admin-cyan-ink">근로계약서</p>
+            <p className="mt-0.5 text-sm text-admin-cyan-ink/80">
               {detail.contractStatus
                 ? CONTRACT_LABEL[detail.contractStatus]
                 : '기술자 미작성'}
             </p>
           </div>
-          <span className="text-sm font-bold text-brand-600">열기 →</span>
+          <span className="text-sm font-bold text-admin-cyan-ink">열기 →</span>
         </Link>
 
         {detail.approvalStatus !== 'APPROVED' && !rejecting && (
@@ -207,16 +207,16 @@ export default function EditTechnicianPage({
               type="button"
               onClick={approve}
               disabled={busy}
-              className="h-12 flex-[2] rounded-2xl bg-green-600 font-bold text-white disabled:opacity-60"
+              className="h-12 flex-[2] rounded-admin-md bg-green-600 font-bold text-white disabled:opacity-60"
             >
-              ✅ 가입 승인
+              가입 승인
             </button>
             {detail.approvalStatus === 'PENDING' && (
               <button
                 type="button"
                 onClick={() => setRejecting(true)}
                 disabled={busy}
-                className="h-12 flex-1 rounded-2xl border border-red-300 font-bold text-red-600 disabled:opacity-60"
+                className="h-12 flex-1 rounded-admin-md border border-red-300 font-bold text-red-600 disabled:opacity-60"
               >
                 거절
               </button>
@@ -230,14 +230,14 @@ export default function EditTechnicianPage({
               value={reason}
               onChange={(e) => setReason(e.target.value)}
               placeholder="거절 사유 (신청자가 로그인 시 확인합니다)"
-              className="w-full rounded-xl border border-border p-3 text-base focus:border-brand-500 focus:outline-none"
+              className="w-full rounded-admin-md border border-border p-3 text-base focus:border-admin-cyan-ink focus:outline-none"
             />
             <div className="flex gap-2">
               <button
                 type="button"
                 onClick={reject}
                 disabled={busy}
-                className="h-12 flex-1 rounded-2xl bg-red-600 font-bold text-white disabled:opacity-60"
+                className="h-12 flex-1 rounded-admin-md bg-red-600 font-bold text-white disabled:opacity-60"
               >
                 거절 확정
               </button>
@@ -245,7 +245,7 @@ export default function EditTechnicianPage({
                 type="button"
                 onClick={() => setRejecting(false)}
                 disabled={busy}
-                className="h-12 flex-1 rounded-2xl border border-border font-bold text-muted"
+                className="h-12 flex-1 rounded-admin-md border border-border font-bold text-muted"
               >
                 취소
               </button>
@@ -253,13 +253,13 @@ export default function EditTechnicianPage({
           </div>
         )}
         {(detail.lat == null || detail.lng == null) && (
-          <p className="rounded-xl bg-brand-50 p-3 text-sm text-brand-700">
+          <p className="rounded-admin-md bg-admin-cyan-ink/5 p-3 text-sm text-admin-cyan-ink">
             좌표가 없어 거리순 정렬은 안 되지만, 서비스 지역이 설정돼 있으면 지역
             기준으로 자동배정됩니다. 정확한 거리 배정을 원하면 아래에서 좌표를 입력하세요.
           </p>
         )}
         {error && (
-          <p className="rounded-xl bg-red-50 p-3 text-sm font-medium text-red-600">
+          <p className="rounded-admin-md bg-red-50 p-3 text-sm font-medium text-red-600">
             {error}
           </p>
         )}

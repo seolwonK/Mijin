@@ -3,10 +3,10 @@
 import { use, useEffect, useState } from 'react';
 import Link from 'next/link';
 import PageHeader from '@/components/PageHeader';
-import { buttonClasses } from '@/components/Button';
 
+// "관제탑"(B) B-라이트 — admin-md 라디우스 + 사이언 잉크 액센트. 임금 편집/저장 로직은 불변.
 const inputClass =
-  'w-full rounded-xl border border-neutral-300 bg-white p-3 text-base text-fg placeholder:text-muted focus:border-brand-500 focus:ring-2 focus:ring-brand-500/15 focus:outline-none';
+  'w-full rounded-admin-md border border-neutral-300 bg-white p-3 text-base text-fg placeholder:text-muted focus:border-admin-cyan-ink focus:ring-2 focus:ring-admin-cyan-ink/15 focus:outline-none';
 
 const EMPLOYMENT_LABEL: Record<string, string> = {
   DAILY: '일일 근로자',
@@ -207,20 +207,20 @@ export default function AdminContractPage({
 
       <div className="mx-auto w-full max-w-3xl space-y-5 p-4 md:py-8">
         {!c ? (
-          <p className="rounded-xl bg-neutral-50 p-6 text-center text-sm text-muted">
+          <p className="rounded-admin-md bg-neutral-50 p-6 text-center text-sm text-muted">
             기술자가 아직 근로계약서를 작성하지 않았습니다.
           </p>
         ) : (
           <>
-            <div className="flex items-center justify-between rounded-xl bg-neutral-50 p-3 text-sm">
+            <div className="flex items-center justify-between rounded-admin-md bg-neutral-50 p-3 text-sm">
               <span className="text-muted">상태</span>
               <span className="font-semibold">{STATUS_LABEL[c.status]}</span>
             </div>
 
             {c.workerSignatureDataUrl ? (
-              <div className="rounded-xl border border-green-200 bg-green-50 p-3">
+              <div className="rounded-admin-md border border-green-200 bg-green-50 p-3">
                 <p className="text-sm font-medium text-green-700">
-                  ✍️ 기술자 서명 완료
+                  기술자 서명 완료
                   {c.signedAt &&
                     ` · ${new Date(c.signedAt).toLocaleString('ko-KR')}`}
                 </p>
@@ -228,17 +228,17 @@ export default function AdminContractPage({
                 <img
                   src={c.workerSignatureDataUrl}
                   alt="기술자 서명"
-                  className="mt-2 h-16 rounded border border-border bg-white object-contain p-1"
+                  className="mt-2 h-16 rounded-admin-sm border border-border bg-white object-contain p-1"
                 />
               </div>
             ) : (
-              <p className="rounded-xl bg-amber-50 p-3 text-sm text-amber-700">
+              <p className="rounded-admin-md bg-amber-50 p-3 text-sm text-amber-700">
                 기술자 서명 대기 중입니다.
               </p>
             )}
 
             {/* 기술자 제출 내용 (읽기전용) */}
-            <section className="space-y-1 rounded-2xl border border-border p-4">
+            <section className="space-y-1 rounded-admin-md border border-border p-4">
               <h2 className="mb-1 text-sm font-semibold">
                 기술자 작성 내용 · {EMPLOYMENT_LABEL[c.employmentType]}
               </h2>
@@ -258,8 +258,8 @@ export default function AdminContractPage({
             </section>
 
             {/* 임금 입력 (관리자) */}
-            <section className="space-y-3 rounded-2xl border border-brand-200 bg-brand-50/40 p-4">
-              <h2 className="text-sm font-semibold text-brand-800">임금 (관리자 입력)</h2>
+            <section className="space-y-3 rounded-admin-md border border-admin-cyan-ink/25 bg-admin-cyan-ink/5 p-4">
+              <h2 className="text-sm font-semibold text-admin-cyan-ink">임금 (관리자 입력)</h2>
               <div>
                 <label className="mb-1 block text-xs text-muted">임금 형태</label>
                 <div className="grid grid-cols-3 gap-2">
@@ -269,9 +269,9 @@ export default function AdminContractPage({
                       type="button"
                       onClick={() => setWageType(w.value)}
                       disabled={confirmed}
-                      className={`rounded-xl border p-2 text-sm font-medium ${
+                      className={`rounded-admin-md border p-2 text-sm font-medium ${
                         wageType === w.value
-                          ? 'border-brand-500 bg-brand-50'
+                          ? 'border-admin-cyan-ink bg-admin-cyan-ink/5 text-admin-cyan-ink'
                           : 'border-neutral-300 bg-white'
                       } disabled:opacity-60`}
                     >
@@ -298,7 +298,7 @@ export default function AdminContractPage({
                   checked={bonusExists}
                   onChange={(e) => setBonusExists(e.target.checked)}
                   disabled={confirmed}
-                  className="h-4 w-4 accent-brand-600"
+                  className="h-4 w-4 accent-admin-cyan-ink"
                 />
                 상여금 있음
               </label>
@@ -320,7 +320,7 @@ export default function AdminContractPage({
                   checked={otherPayExists}
                   onChange={(e) => setOtherPayExists(e.target.checked)}
                   disabled={confirmed}
-                  className="h-4 w-4 accent-brand-600"
+                  className="h-4 w-4 accent-admin-cyan-ink"
                 />
                 기타급여(제수당 등) 있음
               </label>
@@ -369,9 +369,9 @@ export default function AdminContractPage({
                       type="button"
                       onClick={() => setPayMethod(m.value)}
                       disabled={confirmed}
-                      className={`rounded-xl border p-2 text-sm font-medium ${
+                      className={`rounded-admin-md border p-2 text-sm font-medium ${
                         payMethod === m.value
-                          ? 'border-brand-500 bg-brand-50'
+                          ? 'border-admin-cyan-ink bg-admin-cyan-ink/5 text-admin-cyan-ink'
                           : 'border-neutral-300 bg-white'
                       } disabled:opacity-60`}
                     >
@@ -383,7 +383,7 @@ export default function AdminContractPage({
             </section>
 
             {/* 4대보험 */}
-            <section className="space-y-2 rounded-2xl border border-border p-4">
+            <section className="space-y-2 rounded-admin-md border border-border p-4">
               <h2 className="text-sm font-semibold">사회보험 적용</h2>
               <div className="grid grid-cols-2 gap-2 text-sm">
                 {[
@@ -398,7 +398,7 @@ export default function AdminContractPage({
                       checked={it.v}
                       onChange={(e) => it.set(e.target.checked)}
                       disabled={confirmed}
-                      className="h-4 w-4 accent-brand-600"
+                      className="h-4 w-4 accent-admin-cyan-ink"
                     />
                     {it.label}
                   </label>
@@ -407,7 +407,7 @@ export default function AdminContractPage({
             </section>
 
             {/* 사업주 (미진전기, 읽기전용) */}
-            <section className="space-y-1 rounded-2xl border border-border bg-neutral-50 p-4">
+            <section className="space-y-1 rounded-admin-md border border-border bg-neutral-50 p-4">
               <h2 className="mb-1 text-sm font-semibold">사업주 (고용주)</h2>
               <Row label="사업체명" value={d.employer.name} />
               {d.employer.ceo && <Row label="대표자" value={d.employer.ceo} />}
@@ -419,12 +419,12 @@ export default function AdminContractPage({
             </section>
 
             {error && (
-              <p className="rounded-xl bg-red-50 p-3 text-sm font-medium text-red-600">
+              <p className="rounded-admin-md bg-red-50 p-3 text-sm font-medium text-red-600">
                 {error}
               </p>
             )}
             {msg && (
-              <p className="rounded-xl bg-green-50 p-3 text-sm font-medium text-green-700">
+              <p className="rounded-admin-md bg-green-50 p-3 text-sm font-medium text-green-700">
                 {msg}
               </p>
             )}
@@ -435,16 +435,16 @@ export default function AdminContractPage({
                   type="button"
                   onClick={save}
                   disabled={busy}
-                  className={buttonClasses('secondary', 'md', 'flex-1')}
+                  className="h-12 flex-1 rounded-admin-md border border-border font-bold text-fg disabled:opacity-60"
                 >
                   임금 저장
                 </button>
               )}
               <Link
                 href={`/admin/technicians/${id}/contract/print`}
-                className={buttonClasses('primary', 'md', 'flex-1')}
+                className="flex h-12 flex-1 items-center justify-center rounded-admin-md bg-admin-cyan-ink font-bold text-white"
               >
-                🖨 인쇄
+                인쇄
               </Link>
             </div>
             {!confirmed && (
