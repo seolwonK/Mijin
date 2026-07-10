@@ -1,64 +1,84 @@
 @import "tailwindcss";
 
 /* ── 디자인 토큰 (Tailwind v4 @theme) ──
-   새 비주얼 아이덴티티: Electric Violet (짙은 블루-바이올렛, hue ~270°).
-   각 축의 결정 근거(팔레트 후보 비교, 뉴트럴/라디우스/타이포 결정)는
-   .omc/research/design-direction.md 참조. 3계층 구조: Primitive(brand/neutral 풀스케일)
-   → Semantic(surface/fg/muted/border) → Component(개별 컴포넌트, B4에서 적용). */
+   하이브리드 파운데이션: 모바일/고객 화면은 "결"(C, 소프트-프리미엄) 톤을 기본 브랜드로 채택하고,
+   관리자 셸/대시보드는 "관제탑"(B, 프리시전-툴) 톤을 별도 `admin-*` 네임스페이스로 둔다.
+   두 톤은 서로 다른 화면(모바일 vs 관리자)에서만 쓰이므로 CSS 변수 스코프 오버라이드 대신
+   완전히 별도의 색 팔레트로 분리했다 — 관리자 화면이라고 전부 어두워지는 게 아니라,
+   `admin-*` 유틸을 실제로 사용하는 컴포넌트(AdminShell/AdminDataTable/AdminInspector 등)만
+   다크 톤이 적용된다. 근거: `.omc/research/concepts/rationale.md`(V 콘셉트 3안),
+   `.omc/research/concepts/{c,b}/*.html`(고충실도 목업). 3계층 구조(Primitive→Semantic→Component)
+   원칙은 유지. */
 @theme {
-  /* Primitive — 브랜드 (Electric Violet). 흰 텍스트 대비용 solid 버튼은 600~800 레인지,
-     50~200은 배경/틴트 전용 — 본문 텍스트에 직접 쓰지 않는다(WCAG 4.5:1 가드레일). */
-  --color-brand-50: oklch(0.97 0.014 275);
-  --color-brand-100: oklch(0.93 0.03 275);
-  --color-brand-200: oklch(0.87 0.055 274);
-  --color-brand-300: oklch(0.79 0.09 273);
-  --color-brand-400: oklch(0.69 0.13 272);
-  --color-brand-500: oklch(0.58 0.17 271);
-  --color-brand-600: oklch(0.49 0.19 270);
-  --color-brand-700: oklch(0.41 0.18 269);
-  --color-brand-800: oklch(0.34 0.15 268);
-  --color-brand-900: oklch(0.28 0.11 267);
-  --color-brand-950: oklch(0.19 0.075 266);
+  /* ── Primitive — 브랜드 (결 / 뮤트 브론즈-골드). 흰 텍스트 대비용 solid는 600~800,
+     50~200은 배경/틴트 전용(WCAG 4.5:1 가드레일 유지). */
+  --color-brand-50: oklch(0.975 0.014 75);
+  --color-brand-100: oklch(0.94 0.03 75);
+  --color-brand-200: oklch(0.87 0.05 74);
+  --color-brand-300: oklch(0.79 0.068 72);
+  --color-brand-400: oklch(0.70 0.084 70);
+  --color-brand-500: oklch(0.60 0.094 68);
+  --color-brand-600: oklch(0.52 0.094 66);
+  --color-brand-700: oklch(0.44 0.084 64);
+  --color-brand-800: oklch(0.36 0.068 62);
+  --color-brand-900: oklch(0.29 0.052 60);
+  --color-brand-950: oklch(0.20 0.038 58);
 
-  /* Primitive — 뉴트럴. 기존 slate의 cool 블루 틴트를 걷어낸 warm-neutral 그레이
-     (뉴트럴 변경 결정: design-direction.md §2.2). B4에서 slate/gray 콜사이트를
-     아래 시맨틱 토큰으로 점진 치환한다. */
-  --color-neutral-50: oklch(0.985 0.002 90);
-  --color-neutral-100: oklch(0.967 0.003 90);
-  --color-neutral-200: oklch(0.922 0.005 90);
-  --color-neutral-300: oklch(0.869 0.006 90);
-  --color-neutral-400: oklch(0.708 0.008 90);
-  --color-neutral-500: oklch(0.556 0.008 90);
-  --color-neutral-600: oklch(0.446 0.008 90);
-  --color-neutral-700: oklch(0.373 0.008 90);
-  --color-neutral-800: oklch(0.269 0.007 90);
-  --color-neutral-900: oklch(0.205 0.006 90);
-  --color-neutral-950: oklch(0.145 0.005 90);
+  /* ── Primitive — 뉴트럴. "결"의 쿨톤 페일 뉴트럴(크림 아님) — hue 250대의 아주 낮은 채도. */
+  --color-neutral-50: oklch(0.978 0.003 250);
+  --color-neutral-100: oklch(0.955 0.004 250);
+  --color-neutral-200: oklch(0.910 0.006 250);
+  --color-neutral-300: oklch(0.845 0.008 250);
+  --color-neutral-400: oklch(0.685 0.010 250);
+  --color-neutral-500: oklch(0.545 0.011 250);
+  --color-neutral-600: oklch(0.435 0.011 250);
+  --color-neutral-700: oklch(0.345 0.010 250);
+  --color-neutral-800: oklch(0.245 0.009 250);
+  --color-neutral-900: oklch(0.175 0.008 250);
+  --color-neutral-950: oklch(0.120 0.006 250);
 
-  /* Semantic — 화면 표면/텍스트/보더. 컴포넌트/화면은 brand-*, neutral-* 프리미티브를 직접
-     참조하지 말고 이 레이어를 통해서만 색을 가져갈 것(B4 리팩토링 원칙). surface는 기존 바디
-     배경(#f4f7fc, 블루 틴트 오프화이트)과 동일한 발상을 새 hue로 이어받은 값. */
-  --color-surface: oklch(0.975 0.006 275);
+  /* ── Semantic — 화면 표면/텍스트/보더 (모바일/고객·미마이그레이션 화면 공통 기본값). */
+  --color-surface: oklch(0.967 0.004 250);
   --color-fg: var(--color-neutral-900);
   --color-muted: var(--color-neutral-500);
   --color-border: var(--color-neutral-200);
 
-  /* 라디우스 — 코너 언어를 한 단계 절제(소비자앱풍 → 전문 툴풍, `/admin` 밀도 테이블 개선 효과 겸함).
-     기존 rounded-xl/2xl/3xl 리터럴은 코드 수정 없이 이 값을 그대로 상속한다(B1 실증 확인).
-     rounded-full(배지/아바타 pill)은 대상 아님 — 그대로 유지. */
-  --radius-lg: 0.4375rem; /* 신규 리맵(기존 Tailwind 기본 0.5rem 대비 절제). 실측 12개 콜사이트 전량
-     버튼/배지/썸네일(카드 문맥 0건, .omc/research/elevation-audit.md §4) — 버튼 스케일 유지 위해
-     xl/2xl/3xl과 같은 비율로만 소폭 절제, 카드처럼 벌리지 않는다. */
-  --radius-xl: 0.625rem;
-  --radius-2xl: 0.75rem;
-  --radius-3xl: 1.125rem;
+  /* ── 라디우스 — "결"의 소프트-프리미엄 톤(직전 Electric Violet 단계의 절제된 라디우스보다
+     한 단계 더 부드럽게, 다만 그 이전 리스킨의 말랑한 소비자앱 최대치까지는 안 감). */
+  --radius-lg: 0.5rem;
+  --radius-xl: 0.875rem;
+  --radius-2xl: 1.25rem;
+  --radius-3xl: 1.75rem;
 
-  /* 섀도우 — 토스 문법(면 분리는 1차로 border, shadow는 보조 신호): 불투명도·확산 축소로 경량화.
-     전제조건 확인(.omc/research/elevation-audit.md §3): shadow-card 베이스 사용 29곳 전량이 border를
-     동반해 흰-위-흰 뭉개짐 위험 없음 — Card 프리미티브(src/components/Card.tsx)가 이 조합을 고정한다. */
-  --shadow-card: 0 1px 2px rgb(20 16 32 / 0.03), 0 6px 16px -10px rgb(20 16 32 / 0.08);
-  --shadow-card-hover: 0 1px 2px rgb(20 16 32 / 0.04), 0 10px 24px -12px rgb(20 16 32 / 0.12);
-  --shadow-pop: 0 6px 20px -8px rgb(20 16 32 / 0.12);
+  /* ── 섀도우 — 기존 Card(border+shadow) 콜사이트 호환용. 미마이그레이션 화면은 이 값을
+     그대로 상속(회귀 없음). 신규 "카드리스" 표면은 아래 --shadow-surface-* 를 쓴다. */
+  --shadow-card: 0 1px 2px rgb(23 24 27 / 0.03), 0 6px 16px -10px rgb(23 24 27 / 0.08);
+  --shadow-card-hover: 0 1px 2px rgb(23 24 27 / 0.04), 0 10px 24px -12px rgb(23 24 27 / 0.12);
+  --shadow-pop: 0 6px 20px -8px rgb(23 24 27 / 0.12);
+
+  /* ── "결" 전용 — 보더 없이 그림자만으로 면을 분리하는 소프트 서피스(Surface.tsx). */
+  --shadow-surface-sm: 0 1px 2px rgb(23 24 27 / 0.04), 0 8px 20px -10px rgb(23 24 27 / 0.10);
+  --shadow-surface-md: 0 2px 4px rgb(23 24 27 / 0.05), 0 18px 40px -16px rgb(23 24 27 / 0.16);
+  --shadow-surface-lg: 0 4px 10px rgb(23 24 27 / 0.06), 0 28px 56px -18px rgb(23 24 27 / 0.20);
+
+  /* ── "관제탑"(B) 전용 네임스페이스 — 관리자 셸/대시보드 컴포넌트에서만 사용.
+     일반 화면 토큰(brand-* 및 neutral-*)과 분리해 관리자 다크 톤이 미마이그레이션 admin
+     하위 화면(providers/technicians/settings 등, 아직 라이트 콘텐츠)에 새어나가지 않게 한다. */
+  --color-admin-bg: oklch(0.19 0.006 250);
+  --color-admin-surface: oklch(0.23 0.006 250);
+  --color-admin-surface-2: oklch(0.27 0.007 250);
+  --color-admin-border: oklch(0.33 0.008 250);
+  --color-admin-border-strong: oklch(0.40 0.010 250);
+  --color-admin-ink: oklch(0.94 0.004 250);
+  --color-admin-dim: oklch(0.66 0.008 250);
+  --color-admin-faint: oklch(0.46 0.008 250);
+  --color-admin-cyan: oklch(0.78 0.12 200);
+  --color-admin-amber: oklch(0.75 0.11 75);
+  --color-admin-emerald: oklch(0.72 0.13 155);
+  --color-admin-red: oklch(0.68 0.17 25);
+  --color-admin-slate: oklch(0.62 0.02 250);
+  --radius-admin-sm: 0.375rem;
+  --radius-admin-md: 0.5rem;
 }
 
 html {
@@ -100,7 +120,9 @@ h3 {
   background: color-mix(in oklch, var(--color-brand-600) 16%, transparent);
 }
 
-/* 근로계약서 인쇄 — A4, 화면 전용 요소(헤더·버튼)는 숨긴다 */
+/* 근로계약서 인쇄 — A4, 화면 전용 요소(헤더·버튼)는 숨긴다.
+   관리자 다크 톤(admin-*)은 인쇄 문맥에 절대 새어나가지 않아야 한다 — 인쇄는 무조건
+   black-on-white 유지(V 콘셉트 rationale.md 원칙 재확인, 이번 F 단계에서도 그대로 승계). */
 @media print {
   @page {
     size: A4;
