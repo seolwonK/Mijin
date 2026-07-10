@@ -8,6 +8,7 @@ import RegionSelect, { type RegionValue } from '@/components/RegionSelect';
 import RegionMultiSelect from '@/components/RegionMultiSelect';
 import { hasSigungu, regionKey } from '@/lib/regions';
 import { startIdentityVerification } from '@/lib/identity/client';
+import { CheckIcon } from '@/components/icons';
 
 const inputClass =
   'w-full rounded-xl border border-neutral-300 bg-white p-3 text-base text-fg placeholder:text-muted focus:border-brand-500 focus:ring-2 focus:ring-brand-500/15 focus:outline-none';
@@ -139,8 +140,10 @@ export default function TechSignupPage() {
   if (done) {
     return (
       <main className="flex min-h-screen flex-col items-center justify-center p-6">
-        <div className="flex w-full flex-col items-center gap-5 text-center md:max-w-lg md:rounded-3xl md:border md:border-border md:bg-white md:p-12 md:shadow-card">
-          <div className="text-6xl">🎉</div>
+        <div className="flex w-full flex-col items-center gap-5 text-center md:max-w-lg md:rounded-3xl md:bg-white md:p-12 md:shadow-surface-lg">
+          <span className="flex h-16 w-16 items-center justify-center rounded-2xl bg-brand-600">
+            <CheckIcon className="h-8 w-8 text-white" />
+          </span>
           <h1 className="text-2xl font-bold text-fg">가입이 완료되었습니다</h1>
           <p className="text-muted">
             자동으로 로그인되었습니다.
@@ -168,7 +171,7 @@ export default function TechSignupPage() {
         onSubmit={submit}
         className="mx-auto w-full max-w-2xl space-y-5 p-4 pb-10 md:py-8 md:pb-16"
       >
-        <section className="space-y-2 md:rounded-2xl md:border md:border-border md:bg-white md:p-6 md:shadow-card">
+        <section className="space-y-2 md:rounded-2xl md:bg-white md:p-6 md:shadow-surface-sm">
           <h2 className="text-sm font-semibold">계정 정보</h2>
           <input
             type="text"
@@ -192,7 +195,7 @@ export default function TechSignupPage() {
           />
         </section>
 
-        <section className="space-y-3 md:rounded-2xl md:border md:border-border md:bg-white md:p-6 md:shadow-card">
+        <section className="space-y-3 md:rounded-2xl md:bg-white md:p-6 md:shadow-surface-sm">
           <h2 className="text-sm font-semibold">근로 형태</h2>
           <div className="grid grid-cols-2 gap-2">
             {EMPLOYMENT_OPTIONS.map((opt) => (
@@ -213,7 +216,7 @@ export default function TechSignupPage() {
           </div>
         </section>
 
-        <section className="space-y-2 md:rounded-2xl md:border md:border-border md:bg-white md:p-6 md:shadow-card">
+        <section className="space-y-2 md:rounded-2xl md:bg-white md:p-6 md:shadow-surface-sm">
           <h2 className="text-sm font-semibold">기술자 정보</h2>
           <input
             type="text"
@@ -258,7 +261,8 @@ export default function TechSignupPage() {
           </div>
           {verificationId ? (
             <p className="flex items-center gap-1 text-sm font-medium text-green-600">
-              ✅ 휴대폰 본인인증 완료
+              <CheckIcon className="h-4 w-4" />
+              휴대폰 본인인증 완료
             </p>
           ) : (
             <p className="text-xs text-neutral-400">
@@ -278,7 +282,7 @@ export default function TechSignupPage() {
           />
         </section>
 
-        <section className="space-y-2 md:rounded-2xl md:border md:border-border md:bg-white md:p-6 md:shadow-card">
+        <section className="space-y-2 md:rounded-2xl md:bg-white md:p-6 md:shadow-surface-sm">
           <h2 className="text-sm font-semibold">서비스 가능 지역</h2>
           <p className="text-xs text-muted">
             일(배정)을 받을 지역을 여러 곳 선택할 수 있습니다. 선택한 지역의 요청만

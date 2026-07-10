@@ -4,8 +4,10 @@ import { use, useState } from 'react';
 import PageHeader from '@/components/PageHeader';
 import { buttonClasses } from '@/components/Button';
 import { usePolling } from '@/components/usePolling';
-import { StatusBadge, UrgencyBadge } from '@/components/StatusBadge';
+import { StatusPill, UrgencyPill } from '@/components/StatusPill';
+import { surfaceClasses } from '@/components/Surface';
 import { Skeleton, CardSkeleton } from '@/components/Skeleton';
+import { MapPinIcon, PhoneIcon, CheckIcon, TruckIcon } from '@/components/icons';
 
 type JobDetail = {
   id: string;
@@ -104,9 +106,9 @@ export default function TechJobDetailPage({
       <PageHeader title="배정 상세" back="/tech" width="max-w-3xl" />
 
       <div className="mx-auto w-full max-w-3xl space-y-4 p-4 md:grid md:grid-cols-2 md:items-start md:gap-4 md:space-y-0 md:py-8">
-        <div className="flex items-center gap-1 md:col-span-2">
-          <UrgencyBadge urgency={r.urgency} />
-          <StatusBadge status={r.status} />
+        <div className="flex items-center gap-2 md:col-span-2">
+          <UrgencyPill urgency={r.urgency} />
+          <StatusPill status={r.status} />
           {job.distanceKm != null && (
             <span className="ml-auto text-sm text-muted">
               {job.distanceKm.toFixed(1)}km
@@ -114,7 +116,7 @@ export default function TechJobDetailPage({
           )}
         </div>
 
-        <section className="rounded-2xl border border-border bg-white p-4 md:col-span-2 md:p-5">
+        <section className={surfaceClasses('rounded-2xl p-4 md:col-span-2 md:p-5')}>
           <h2 className="mb-1 text-sm text-muted">고장 내용</h2>
           <p className="whitespace-pre-wrap text-fg">{r.description}</p>
           <p className="mt-2 text-xs text-neutral-400">
@@ -122,7 +124,7 @@ export default function TechJobDetailPage({
           </p>
         </section>
 
-        <section className="rounded-2xl border border-border bg-white p-4 md:p-5">
+        <section className={surfaceClasses('rounded-2xl p-4 md:p-5')}>
           <h2 className="mb-1 text-sm text-muted">위치</h2>
           <p className="text-fg">{r.address ?? '주소 미확인'}</p>
           {r.lat != null && r.lng != null && (
@@ -130,22 +132,24 @@ export default function TechJobDetailPage({
               href={`https://map.kakao.com/link/map/고객위치,${r.lat},${r.lng}`}
               target="_blank"
               rel="noreferrer"
-              className="mt-2 inline-block rounded-lg bg-yellow-400 px-3 py-1.5 text-sm font-bold text-neutral-900"
+              className="mt-2 inline-flex items-center gap-1.5 rounded-lg bg-yellow-400 px-3 py-1.5 text-sm font-bold text-neutral-900"
             >
-              🗺 카카오맵에서 보기
+              <MapPinIcon className="h-4 w-4" />
+              카카오맵에서 보기
             </a>
           )}
         </section>
 
-        <section className="rounded-2xl border border-border bg-white p-4 md:p-5">
+        <section className={surfaceClasses('rounded-2xl p-4 md:p-5')}>
           <h2 className="mb-1 text-sm text-muted">고객</h2>
           <div className="flex items-center justify-between">
             <span className="font-bold text-fg">{r.customerName}</span>
             <a
               href={`tel:${r.customerPhone}`}
-              className="rounded-lg bg-brand-600 px-3 py-1.5 text-sm font-bold text-white"
+              className="inline-flex items-center gap-1.5 rounded-lg bg-brand-600 px-3 py-1.5 text-sm font-bold text-white"
             >
-              📞 {r.customerPhone}
+              <PhoneIcon className="h-4 w-4" />
+              {r.customerPhone}
             </a>
           </div>
         </section>
@@ -156,8 +160,9 @@ export default function TechJobDetailPage({
           </p>
         )}
         {flash && (
-          <p className="rounded-xl bg-green-50 p-3 text-sm font-medium text-green-700 md:col-span-2">
-            ✅ {flash}
+          <p className="flex items-center gap-1.5 rounded-xl bg-green-50 p-3 text-sm font-medium text-green-700 md:col-span-2">
+            <CheckIcon className="h-4 w-4 shrink-0" />
+            {flash}
           </p>
         )}
         {actionError && (
@@ -168,7 +173,7 @@ export default function TechJobDetailPage({
       </div>
 
       {(canRespond || canDispatch || canComplete) && (
-        <div className="fixed bottom-0 left-1/2 w-full max-w-md -translate-x-1/2 space-y-2 border-t border-border bg-white px-4 pt-4 pb-[calc(1rem+env(safe-area-inset-bottom))] md:static md:left-auto md:mx-auto md:max-w-3xl md:translate-x-0 md:border-t-0 md:bg-transparent md:px-4 md:pt-2 md:pb-0">
+        <div className="fixed bottom-0 left-1/2 w-full max-w-md -translate-x-1/2 space-y-2 bg-white px-4 pt-4 pb-[calc(1rem+env(safe-area-inset-bottom))] shadow-surface-lg md:static md:left-auto md:mx-auto md:max-w-3xl md:translate-x-0 md:bg-transparent md:px-4 md:pt-2 md:pb-0 md:shadow-none">
           {canRespond && !rejecting && (
             <div className="flex gap-2">
               <button
@@ -177,7 +182,8 @@ export default function TechJobDetailPage({
                 disabled={busy}
                 className={buttonClasses('primary', 'lg', 'flex-[2]')}
               >
-                ✅ 수락하기
+                <CheckIcon className="h-5 w-5" />
+                수락하기
               </button>
               <button
                 type="button"
@@ -248,9 +254,10 @@ export default function TechJobDetailPage({
                 type="button"
                 onClick={() => setConfirming('DISPATCHED')}
                 disabled={busy}
-                className="h-14 w-full rounded-2xl bg-amber-500 text-lg font-bold text-white disabled:opacity-60"
+                className="flex h-14 w-full items-center justify-center gap-2 rounded-2xl bg-amber-500 text-lg font-bold text-white disabled:opacity-60"
               >
-                🚚 출동 시작
+                <TruckIcon className="h-5 w-5" />
+                출동 시작
               </button>
             ))}
           {canComplete &&
@@ -283,9 +290,10 @@ export default function TechJobDetailPage({
                 type="button"
                 onClick={() => setConfirming('COMPLETED')}
                 disabled={busy}
-                className="h-14 w-full rounded-2xl bg-green-600 text-lg font-bold text-white disabled:opacity-60"
+                className="flex h-14 w-full items-center justify-center gap-2 rounded-2xl bg-green-600 text-lg font-bold text-white disabled:opacity-60"
               >
-                ✅ 완료 처리
+                <CheckIcon className="h-5 w-5" />
+                완료 처리
               </button>
             ))}
         </div>

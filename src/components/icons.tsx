@@ -95,11 +95,65 @@ export function GridIcon({ className }: IconProps) {
   );
 }
 
+export function CheckIcon({ className }: IconProps) {
+  return (
+    <svg {...base} className={className} aria-hidden="true">
+      <path d="m5 12.5 4.5 4.5L19 7" />
+    </svg>
+  );
+}
+
+export function MapPinIcon({ className }: IconProps) {
+  return (
+    <svg {...base} className={className} aria-hidden="true">
+      <path d="M19 10.5c0 5-7 11-7 11s-7-6-7-11a7 7 0 1 1 14 0Z" />
+      <circle cx="12" cy="10.5" r="2.5" />
+    </svg>
+  );
+}
+
+export function PhoneIcon({ className }: IconProps) {
+  return (
+    <svg {...base} className={className} aria-hidden="true">
+      <path d="M5.5 3.5h3l1.5 4-2 1.5a12 12 0 0 0 5 5l1.5-2 4 1.5v3a1.5 1.5 0 0 1-1.6 1.5A17 17 0 0 1 4 6.1 1.5 1.5 0 0 1 5.5 3.5Z" />
+    </svg>
+  );
+}
+
 export function GearIcon({ className }: IconProps) {
   return (
     <svg {...base} className={className} aria-hidden="true">
       <circle cx="12" cy="12" r="3" />
       <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+    </svg>
+  );
+}
+
+export function BellIcon({ className }: IconProps) {
+  return (
+    <svg {...base} className={className} aria-hidden="true">
+      <path d="M6 10a6 6 0 1 1 12 0c0 3.2 1 4.8 2 6H4c1-1.2 2-2.8 2-6Z" />
+      <path d="M9.5 19a2.5 2.5 0 0 0 5 0" />
+    </svg>
+  );
+}
+
+export function TruckIcon({ className }: IconProps) {
+  return (
+    <svg {...base} className={className} aria-hidden="true">
+      <rect x="2" y="7" width="12" height="10" rx="1.5" />
+      <path d="M14 10h4l3.5 3.5V17h-3" />
+      <circle cx="7" cy="18.5" r="1.75" />
+      <circle cx="17" cy="18.5" r="1.75" />
+    </svg>
+  );
+}
+
+export function RefreshIcon({ className }: IconProps) {
+  return (
+    <svg {...base} className={className} aria-hidden="true">
+      <path d="M20 11a8 8 0 0 0-14.9-3.5M4 4v4.5h4.5" />
+      <path d="M4 13a8 8 0 0 0 14.9 3.5M20 20v-4.5h-4.5" />
     </svg>
   );
 }

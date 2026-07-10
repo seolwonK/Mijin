@@ -3,10 +3,12 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePolling } from '@/components/usePolling';
-import { StatusBadge, UrgencyBadge } from '@/components/StatusBadge';
+import { StatusPill, UrgencyPill } from '@/components/StatusPill';
+import { surfaceClasses } from '@/components/Surface';
 import LogoutButton from '@/components/LogoutButton';
 import PageHeader from '@/components/PageHeader';
 import { Skeleton, CardSkeletonGrid } from '@/components/Skeleton';
+import { MapPinIcon, BellIcon, WrenchIcon, ClipboardIcon, RefreshIcon } from '@/components/icons';
 
 // lastUpdatedAt(마지막 성공 갱신 시각)을 "방금 확인 / n초 전 확인" 문구로 변환.
 function freshnessLabel(lastUpdatedAt: number | null, now: number): string {
@@ -37,14 +39,15 @@ function JobCard({ job, highlight }: { job: Job; highlight?: boolean }) {
   return (
     <Link
       href={`/tech/jobs/${job.id}`}
-      className={`block rounded-2xl border p-4 transition-shadow hover:shadow-card-hover ${
-        highlight ? 'border-brand-400 bg-brand-50' : 'border-border bg-white'
-      }`}
+      className={surfaceClasses(
+        'block rounded-2xl p-4 transition-shadow hover:shadow-surface-md',
+        highlight,
+      )}
     >
       <div className="flex items-center justify-between">
-        <div className="flex gap-1">
-          <UrgencyBadge urgency={job.request.urgency} />
-          <StatusBadge status={job.request.status} />
+        <div className="flex items-center gap-2">
+          <UrgencyPill urgency={job.request.urgency} />
+          <StatusPill status={job.request.status} />
         </div>
         {job.distanceKm != null && (
           <span className="text-sm font-medium text-muted">
@@ -54,7 +57,10 @@ function JobCard({ job, highlight }: { job: Job; highlight?: boolean }) {
       </div>
       <p className="mt-2 line-clamp-2 text-sm text-fg">{job.request.description}</p>
       {job.request.address && (
-        <p className="mt-1 text-sm text-muted">📍 {job.request.address}</p>
+        <p className="mt-1 flex items-center gap-1 text-sm text-muted">
+          <MapPinIcon className="h-3.5 w-3.5 shrink-0" />
+          {job.request.address}
+        </p>
       )}
       <p className="mt-1 text-xs text-muted">
         배정 {new Date(job.createdAt).toLocaleString('ko-KR')}
@@ -118,9 +124,9 @@ export default function TechHomePage() {
             onClick={handleManualRefresh}
             disabled={manualRefreshing}
             aria-label="새로고침"
-            className={`flex h-11 w-11 items-center justify-center rounded-full text-base text-muted transition-colors hover:bg-neutral-100 active:bg-neutral-200 disabled:opacity-50 ${manualRefreshing ? 'animate-spin' : ''}`}
+            className="flex h-11 w-11 items-center justify-center rounded-full text-muted transition-colors hover:bg-neutral-100 active:bg-neutral-200 disabled:opacity-50"
           >
-            🔄
+            <RefreshIcon className={`h-[18px] w-[18px] ${manualRefreshing ? 'animate-spin' : ''}`} />
           </button>
         </div>
 
@@ -140,17 +146,22 @@ export default function TechHomePage() {
                 : 'border-amber-300 bg-amber-50 hover:bg-amber-100'
             }`}
           >
-            <span className="min-w-0">
-              <span
-                className={`block font-bold ${contractSigned ? 'text-green-800' : 'text-amber-800'}`}
-              >
-                📄 근로계약서 {contractSigned ? '서명 완료' : '작성 필요'}
-              </span>
-              {!contractSigned && (
-                <span className="mt-0.5 block text-xs text-amber-700">
-                  서명을 완료해야 배정(일)을 받을 수 있습니다.
+            <span className="flex min-w-0 items-center gap-2">
+              <ClipboardIcon
+                className={`h-5 w-5 shrink-0 ${contractSigned ? 'text-green-700' : 'text-amber-700'}`}
+              />
+              <span className="min-w-0">
+                <span
+                  className={`block font-bold ${contractSigned ? 'text-green-800' : 'text-amber-800'}`}
+                >
+                  근로계약서 {contractSigned ? '서명 완료' : '작성 필요'}
                 </span>
-              )}
+                {!contractSigned && (
+                  <span className="mt-0.5 block text-xs text-amber-700">
+                    서명을 완료해야 배정(일)을 받을 수 있습니다.
+                  </span>
+                )}
+              </span>
             </span>
             <span
               className={`shrink-0 text-sm ${contractSigned ? 'text-green-600' : 'text-amber-600'}`}
@@ -161,8 +172,9 @@ export default function TechHomePage() {
         )}
 
         <section>
-          <h2 className="mb-2 font-semibold text-brand-700">
-            🔔 응답 대기 {waiting.length > 0 && `(${waiting.length})`}
+          <h2 className="mb-2 flex items-center gap-1.5 font-semibold text-brand-700">
+            <BellIcon className="h-4 w-4" />
+            응답 대기 {waiting.length > 0 && `(${waiting.length})`}
           </h2>
           {loading ? (
             <CardSkeletonGrid count={2} />
@@ -180,7 +192,10 @@ export default function TechHomePage() {
         </section>
 
         <section>
-          <h2 className="mb-2 font-semibold">🔧 진행중</h2>
+          <h2 className="mb-2 flex items-center gap-1.5 font-semibold">
+            <WrenchIcon className="h-4 w-4" />
+            진행중
+          </h2>
           {loading ? null : inProgress.length === 0 ? (
             <p className="rounded-xl bg-neutral-50 p-4 text-center text-sm text-muted">
               진행중인 건이 없습니다

@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import PageHeader from '@/components/PageHeader';
 import { buttonClasses } from '@/components/Button';
 import SignaturePad from '@/components/SignaturePad';
+import { CheckIcon } from '@/components/icons';
 
 const inputClass =
   'w-full rounded-xl border border-neutral-300 bg-white p-3 text-base text-fg placeholder:text-muted focus:border-brand-500 focus:ring-2 focus:ring-brand-500/15 focus:outline-none disabled:bg-neutral-100 disabled:text-muted';
@@ -188,7 +189,10 @@ export default function TechContractPage() {
       >
         {confirmed ? (
           <div className="rounded-xl bg-green-50 p-3 text-sm font-medium text-green-700">
-            <p>✅ 서명 완료 — 계약이 체결되었습니다.</p>
+            <p className="flex items-center gap-1.5">
+              <CheckIcon className="h-4 w-4 shrink-0" />
+              서명 완료 — 계약이 체결되었습니다.
+            </p>
             {c.workerSignatureDataUrl && (
               // eslint-disable-next-line @next/next/no-img-element
               <img
@@ -224,7 +228,7 @@ export default function TechContractPage() {
         </section>
 
         {/* 기술자 작성 항목 */}
-        <section className="space-y-3 md:rounded-2xl md:border md:border-border md:bg-white md:p-6 md:shadow-card">
+        <section className="space-y-3 md:rounded-2xl md:bg-white md:p-6 md:shadow-surface-sm">
           <h2 className="text-sm font-semibold">계약 내용</h2>
           <div>
             <label className="mb-1 block text-xs text-muted">근로개시일</label>
@@ -262,7 +266,7 @@ export default function TechContractPage() {
           </div>
         </section>
 
-        <section className="space-y-3 md:rounded-2xl md:border md:border-border md:bg-white md:p-6 md:shadow-card">
+        <section className="space-y-3 md:rounded-2xl md:bg-white md:p-6 md:shadow-surface-sm">
           <h2 className="text-sm font-semibold">근로자(본인) 정보</h2>
           <div>
             <label className="mb-1 block text-xs text-muted">성명</label>
@@ -315,7 +319,7 @@ export default function TechContractPage() {
 
         {/* 서명 → 계약 완료 */}
         {!confirmed && c.wageAmount != null && (
-          <section className="space-y-2 md:rounded-2xl md:border md:border-border md:bg-white md:p-6 md:shadow-card">
+          <section className="space-y-2 md:rounded-2xl md:bg-white md:p-6 md:shadow-surface-sm">
             <h2 className="text-sm font-semibold">근로자 서명</h2>
             <SignaturePad onChange={setSignature} />
           </section>
