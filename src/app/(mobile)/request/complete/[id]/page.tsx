@@ -4,6 +4,7 @@ import { prisma } from '@/lib/db';
 import PageHeader from '@/components/PageHeader';
 import CopyButton from '@/components/CopyButton';
 import { buttonClasses } from '@/components/Button';
+import { CheckIcon } from '@/components/icons';
 
 export default async function RequestCompletePage({
   params,
@@ -21,9 +22,9 @@ export default async function RequestCompletePage({
     <main className="flex min-h-screen flex-col">
       <PageHeader title="접수 완료" width="max-w-lg" />
       <div className="flex flex-1 flex-col items-center justify-center p-6">
-        <div className="flex w-full flex-col items-center gap-6 text-center md:max-w-lg md:rounded-3xl md:border md:border-border md:bg-white md:p-12 md:shadow-card">
-          <div className="flex h-20 w-20 items-center justify-center rounded-full bg-green-100 text-5xl">
-            ✅
+        <div className="flex w-full flex-col items-center gap-6 text-center md:max-w-lg md:rounded-3xl md:bg-white md:p-12 md:shadow-surface-md">
+          <div className="flex h-20 w-20 items-center justify-center rounded-full bg-emerald-100">
+            <CheckIcon className="h-9 w-9 text-emerald-600" />
           </div>
           <h1 className="text-2xl font-bold text-fg">접수가 완료되었습니다</h1>
           <div className="w-full rounded-2xl bg-brand-50 px-6 py-5">

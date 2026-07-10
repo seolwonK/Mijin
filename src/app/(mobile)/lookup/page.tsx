@@ -1,8 +1,13 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import PageHeader from '@/components/PageHeader';
-import { StatusBadge, UrgencyBadge } from '@/components/StatusBadge';
+import Surface from '@/components/Surface';
+import TrackStepper from '@/components/TrackStepper';
+import { StatusPill, UrgencyPill } from '@/components/StatusPill';
+import { buttonClasses } from '@/components/Button';
+import { MapPinIcon, PhoneIcon } from '@/components/icons';
 
 type LookupRequest = {
   id: string;
@@ -17,7 +22,7 @@ type LookupRequest = {
   assignee: { kind: 'PROVIDER' | 'TECHNICIAN'; name: string; phone: string } | null;
 };
 
-const STEPS = ['접수', '배정', '수락', '출동', '완료'];
+// TrackStepper와 동일한 5단계 순서(접수→배정→수락→출동→완료) — StatusPill의 상태 키를 그대로 따른다.
 const STEP_INDEX: Record<string, number> = {
   RECEIVED: 0,
   ASSIGNED: 1,
@@ -26,50 +31,14 @@ const STEP_INDEX: Record<string, number> = {
   COMPLETED: 4,
 };
 
-function Timeline({ status }: { status: string }) {
-  const stepIndex = STEP_INDEX[status] ?? 0;
-  return (
-    <div className="flex items-center">
-      {STEPS.map((step, i) => (
-        <div key={step} className="flex flex-1 flex-col items-center">
-          <div className="flex w-full items-center">
-            <div
-              className={`h-0.5 flex-1 ${i === 0 ? 'bg-transparent' : i <= stepIndex ? 'bg-brand-500' : 'bg-neutral-200'}`}
-            />
-            <div
-              className={`flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold ${
-                i < stepIndex
-                  ? 'bg-brand-500 text-white'
-                  : i === stepIndex
-                    ? 'bg-brand-600 text-white ring-2 ring-brand-200'
-                    : 'bg-neutral-200 text-neutral-500'
-              }`}
-            >
-              {i < stepIndex ? '✓' : i + 1}
-            </div>
-            <div
-              className={`h-0.5 flex-1 ${i === STEPS.length - 1 ? 'bg-transparent' : i < stepIndex ? 'bg-brand-500' : 'bg-neutral-200'}`}
-            />
-          </div>
-          <span
-            className={`mt-1 text-xs ${i === stepIndex ? 'font-bold text-brand-600' : 'text-muted'}`}
-          >
-            {step}
-          </span>
-        </div>
-      ))}
-    </div>
-  );
-}
-
 function RequestCard({ r }: { r: LookupRequest }) {
   return (
-    <div className="space-y-4 rounded-2xl border border-border bg-white p-4 md:p-5">
+    <Surface className="space-y-4 rounded-2xl p-4 md:p-5">
       <div className="flex items-center justify-between">
         <span className="font-bold text-fg">접수번호 {r.lookupCode}</span>
-        <div className="flex gap-1">
-          <UrgencyBadge urgency={r.urgency} />
-          <StatusBadge status={r.status} />
+        <div className="flex items-center gap-2">
+          <UrgencyPill urgency={r.urgency} />
+          <StatusPill status={r.status} />
         </div>
       </div>
 
@@ -78,12 +47,17 @@ function RequestCard({ r }: { r: LookupRequest }) {
           이 접수는 취소되었습니다.
         </p>
       ) : (
-        <Timeline status={r.status} />
+        <TrackStepper currentIndex={STEP_INDEX[r.status] ?? 0} />
       )}
 
       <div className="space-y-1 text-sm text-neutral-600">
         <p className="whitespace-pre-wrap">{r.description}</p>
-        {r.address && <p>📍 {r.address}</p>}
+        {r.address && (
+          <p className="flex items-center gap-1">
+            <MapPinIcon className="h-3.5 w-3.5 shrink-0 text-muted" />
+            {r.address}
+          </p>
+        )}
         <p>접수 시각: {new Date(r.createdAt).toLocaleString('ko-KR')}</p>
       </div>
 
@@ -96,14 +70,15 @@ function RequestCard({ r }: { r: LookupRequest }) {
             <span className="font-bold text-fg">{r.assignee.name}</span>
             <a
               href={`tel:${r.assignee.phone}`}
-              className="rounded-lg bg-brand-600 px-3 py-1.5 text-sm font-bold text-white"
+              className="inline-flex items-center gap-1.5 rounded-lg bg-brand-600 px-3 py-1.5 text-sm font-bold text-white"
             >
-              📞 전화하기
+              <PhoneIcon className="h-3.5 w-3.5" />
+              전화하기
             </a>
           </div>
         </div>
       )}
-    </div>
+    </Surface>
   );
 }
 
@@ -181,7 +156,7 @@ export default function LookupPage() {
 
       <div className="mx-auto w-full max-w-2xl space-y-4 p-4 md:space-y-5 md:py-8">
         <form
-          className="flex flex-col gap-2 md:rounded-2xl md:border md:border-border md:bg-white md:p-5 md:shadow-card"
+          className="flex flex-col gap-2 md:rounded-2xl md:bg-white md:p-5 md:shadow-surface-sm"
           onSubmit={(e) => {
             e.preventDefault();
             lookup();
@@ -213,15 +188,26 @@ export default function LookupPage() {
         </form>
 
         {results && results.length === 0 && (
-          <p className="rounded-xl bg-neutral-50 p-6 text-center text-sm text-muted md:border md:border-border md:bg-white md:py-10 md:shadow-card">
-            이 번호로 접수된 내역이 없습니다
-          </p>
+          <div className="space-y-3 rounded-xl bg-neutral-50 p-6 text-center md:bg-white md:py-10 md:shadow-surface-sm">
+            <p className="text-sm text-muted">이 번호로 접수된 내역이 없습니다</p>
+            <Link href="/request/new" className={buttonClasses('secondary', 'sm')}>
+              새로 접수하기
+            </Link>
+          </div>
         )}
         {results && results.length > 0 && (
           <div className="space-y-3">
             {results.map((r) => (
               <RequestCard key={r.id} r={r} />
             ))}
+            <div className="pt-1 text-center">
+              <Link
+                href="/request/new"
+                className="text-sm font-semibold text-brand-700 hover:underline"
+              >
+                새로 접수하기 →
+              </Link>
+            </div>
           </div>
         )}
       </div>

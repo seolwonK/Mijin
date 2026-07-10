@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import PageHeader from '@/components/PageHeader';
-import { cardClasses } from '@/components/Card';
+import Surface from '@/components/Surface';
 import { BuildingIcon, WrenchIcon, ShieldIcon } from '@/components/icons';
 
 const ROLES: {
@@ -26,22 +26,18 @@ export default function LoginHubPage() {
         </div>
 
         {ROLES.map((r) => (
-          <Link
-            key={r.href}
-            href={r.href}
-            className={cardClasses(
-              'flex items-center gap-4 rounded-2xl p-4 transition-all hover:-translate-y-0.5 hover:border-brand-300 hover:shadow-card-hover active:translate-y-0',
-            )}
-          >
-            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-neutral-100">
-              <r.Icon className="h-6 w-6 text-muted" />
-            </span>
-            <span className="min-w-0 flex-1">
-              <span className="block font-bold text-fg">{r.title}</span>
-              <span className="block text-sm text-muted">{r.desc}</span>
-            </span>
-            <span className="text-xl text-neutral-300">›</span>
-          </Link>
+          <Surface key={r.href} as="section" className="rounded-2xl transition-transform hover:-translate-y-0.5 active:translate-y-0">
+            <Link href={r.href} className="flex items-center gap-4 p-4">
+              <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-neutral-100">
+                <r.Icon className="h-6 w-6 text-muted" />
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="block font-bold text-fg">{r.title}</span>
+                <span className="block text-sm text-muted">{r.desc}</span>
+              </span>
+              <span className="text-xl text-neutral-300">›</span>
+            </Link>
+          </Surface>
         ))}
 
         <div className="mt-3 space-y-2 border-t border-border pt-5">
