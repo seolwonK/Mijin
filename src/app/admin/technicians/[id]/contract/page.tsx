@@ -198,6 +198,11 @@ export default function AdminContractPage({
         title={`근로계약서 — ${d.technician.name}`}
         back={`/admin/technicians/${id}`}
         width="max-w-3xl"
+        crumbs={[
+          { label: '개인기술자 관리', href: '/admin/technicians' },
+          { label: d.technician.name, href: `/admin/technicians/${id}` },
+          { label: '계약서', href: `/admin/technicians/${id}/contract` },
+        ]}
       />
 
       <div className="mx-auto w-full max-w-3xl space-y-5 p-4 md:py-8">

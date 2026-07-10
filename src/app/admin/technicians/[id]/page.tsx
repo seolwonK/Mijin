@@ -159,6 +159,10 @@ export default function EditTechnicianPage({
       <PageHeader
         title={detail.name}
         back="/admin/technicians"
+        crumbs={[
+          { label: '개인기술자 관리', href: '/admin/technicians' },
+          { label: detail.name, href: `/admin/technicians/${id}` },
+        ]}
         right={
           <span
             className={`rounded-full px-2 py-0.5 text-xs font-bold ${badge.className}`}

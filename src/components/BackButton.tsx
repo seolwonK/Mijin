@@ -1,9 +1,13 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
+import { getNavDepth } from './useNavDepthTracker';
 
-// 모바일 헤더용 뒤로가기 — 44px 터치 영역 확보, 방문 이력이 있으면 실제 뒤로가기,
-// 딥링크로 바로 들어온 경우엔 fallback 경로로 이동.
+// 모바일 헤더용 뒤로가기 — 44px 터치 영역 확보. 앱 내부 네비게이션 깊이 카운터가
+// 1 이상이면(이 탭에서 실제로 화면 이동을 한 적이 있으면) 진짜 뒤로가기, 0이면
+// (딥링크로 바로 들어온 경우) fallback 경로로 이동. `history.length`는 about:blank
+// 등 앱 바깥 엔트리까지 세어 딥링크 진입을 구분 못 하므로 쓰지 않는다
+// (useNavDepthTracker.ts 참조).
 export default function BackButton({ fallback }: { fallback: string }) {
   const router = useRouter();
   return (
@@ -11,7 +15,7 @@ export default function BackButton({ fallback }: { fallback: string }) {
       type="button"
       aria-label="뒤로가기"
       onClick={() => {
-        if (window.history.length > 1) router.back();
+        if (getNavDepth() >= 1) router.back();
         else router.replace(fallback);
       }}
       className="-ml-2 flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-2xl text-neutral-700 active:bg-neutral-100"

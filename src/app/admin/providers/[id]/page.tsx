@@ -148,6 +148,10 @@ export default function EditProviderPage({
       <PageHeader
         title={detail.name}
         back="/admin/providers"
+        crumbs={[
+          { label: '업체 관리', href: '/admin/providers' },
+          { label: detail.name, href: `/admin/providers/${id}` },
+        ]}
         right={
           <span
             className={`rounded-full px-2 py-0.5 text-xs font-bold ${badge.className}`}

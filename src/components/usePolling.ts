@@ -16,6 +16,8 @@ export function usePolling<T>(url: string | null, intervalMs: number) {
   const router = useRouter();
   const [data, setData] = useState<T | null>(null);
   const [error, setError] = useState<string | null>(null);
+  // 마지막으로 성공 응답을 받은 시각 (ms epoch) — 실패/401 시에는 갱신하지 않는다.
+  const [lastUpdatedAt, setLastUpdatedAt] = useState<number | null>(null);
 
   const refresh = useCallback(async () => {
     if (!url) return;
@@ -37,6 +39,7 @@ export function usePolling<T>(url: string | null, intervalMs: number) {
       }
       setData(await res.json());
       setError(null);
+      setLastUpdatedAt(Date.now());
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
     }
@@ -48,5 +51,5 @@ export function usePolling<T>(url: string | null, intervalMs: number) {
     return () => clearInterval(timer);
   }, [refresh, intervalMs]);
 
-  return { data, error, refresh };
+  return { data, error, refresh, lastUpdatedAt };
 }

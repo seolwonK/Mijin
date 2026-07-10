@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
+import NavDepthTracker from '@/components/useNavDepthTracker';
 
 export const metadata: Metadata = {
   title: '전기 출동 서비스',
@@ -23,7 +24,10 @@ export default function RootLayout({
   // (mobile) 그룹: 고객·업체용 모바일 프레임 / admin: 데스크톱 대응 넓은 프레임
   return (
     <html lang="ko" className="h-full antialiased">
-      <body className="min-h-full bg-surface text-fg">{children}</body>
+      <body className="min-h-full bg-surface text-fg">
+        {children}
+        <NavDepthTracker />
+      </body>
     </html>
   );
 }

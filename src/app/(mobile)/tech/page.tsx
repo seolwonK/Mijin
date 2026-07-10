@@ -1,11 +1,22 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePolling } from '@/components/usePolling';
 import { StatusBadge, UrgencyBadge } from '@/components/StatusBadge';
 import LogoutButton from '@/components/LogoutButton';
 import PageHeader from '@/components/PageHeader';
 import { Skeleton, CardSkeletonGrid } from '@/components/Skeleton';
+
+// lastUpdatedAt(마지막 성공 갱신 시각)을 "방금 확인 / n초 전 확인" 문구로 변환.
+function freshnessLabel(lastUpdatedAt: number | null, now: number): string {
+  if (lastUpdatedAt == null) return '확인 중…';
+  const diffSec = Math.max(0, Math.floor((now - lastUpdatedAt) / 1000));
+  if (diffSec < 3) return '방금 확인';
+  if (diffSec < 60) return `${diffSec}초 전 확인`;
+  const diffMin = Math.floor(diffSec / 60);
+  return `${diffMin}분 전 확인`;
+}
 
 type Job = {
   id: string;
@@ -53,7 +64,10 @@ function JobCard({ job, highlight }: { job: Job; highlight?: boolean }) {
 }
 
 export default function TechHomePage() {
-  const { data, error } = usePolling<{ jobs: Job[] }>('/api/tech/jobs', 5_000);
+  const { data, error, refresh, lastUpdatedAt } = usePolling<{ jobs: Job[] }>(
+    '/api/tech/jobs',
+    5_000,
+  );
   const { data: contractData } = usePolling<{ contract: { status: string } }>(
     '/api/tech/contract',
     30_000,
@@ -62,6 +76,23 @@ export default function TechHomePage() {
   const contractLoading = !contractData;
   const jobs = data?.jobs ?? [];
   const loading = !data && !error;
+
+  // "n초 전 확인" 문구가 1초 간격으로 갱신되도록 하는 틱.
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const timer = setInterval(() => setNow(Date.now()), 1_000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const [manualRefreshing, setManualRefreshing] = useState(false);
+  async function handleManualRefresh() {
+    setManualRefreshing(true);
+    try {
+      await refresh();
+    } finally {
+      setManualRefreshing(false);
+    }
+  }
 
   const waiting = jobs.filter((j) => j.status === 'REQUESTED');
   const inProgress = jobs.filter(
@@ -80,6 +111,19 @@ export default function TechHomePage() {
       />
 
       <div className="mx-auto w-full max-w-5xl space-y-6 p-4 md:space-y-8 md:py-8">
+        <div className="flex items-center justify-end gap-1 text-xs text-muted">
+          <span>{freshnessLabel(lastUpdatedAt, now)}</span>
+          <button
+            type="button"
+            onClick={handleManualRefresh}
+            disabled={manualRefreshing}
+            aria-label="새로고침"
+            className={`flex h-11 w-11 items-center justify-center rounded-full text-base text-muted transition-colors hover:bg-neutral-100 active:bg-neutral-200 disabled:opacity-50 ${manualRefreshing ? 'animate-spin' : ''}`}
+          >
+            🔄
+          </button>
+        </div>
+
         {error && <p className="text-sm text-red-600">{error}</p>}
 
         {contractLoading ? (

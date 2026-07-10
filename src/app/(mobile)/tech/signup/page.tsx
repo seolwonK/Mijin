@@ -6,7 +6,7 @@ import PageHeader from '@/components/PageHeader';
 import { buttonClasses } from '@/components/Button';
 import RegionSelect, { type RegionValue } from '@/components/RegionSelect';
 import RegionMultiSelect from '@/components/RegionMultiSelect';
-import { hasSigungu } from '@/lib/regions';
+import { hasSigungu, regionKey } from '@/lib/regions';
 import { startIdentityVerification } from '@/lib/identity/client';
 
 const inputClass =
@@ -42,6 +42,15 @@ export default function TechSignupPage() {
   const fullAddress = [region.sido, region.sigungu, addrDetail.trim()]
     .filter(Boolean)
     .join(' ');
+
+  // 거주지역 시/도를 새로 고르고 서비스 가능 지역이 아직 비어 있으면 같은 시/도(전체)를
+  // 1건 자동 추가한다 — 강제 아님(칩에서 바로 삭제 가능), 이미 값이 있으면 손대지 않는다.
+  function handleRegionChange(next: RegionValue) {
+    if (next.sido && next.sido !== region.sido && regions.length === 0) {
+      setRegions([regionKey(next.sido, '')]);
+    }
+    setRegion(next);
+  }
 
   // 휴대폰 본인인증 시작 → 서버 검증 → verificationId 확보.
   // mock 환경에서는 입력한 이름/번호가 그대로 인증되고, portone 환경에서는 PASS 팝업이 뜬다.
@@ -256,7 +265,7 @@ export default function TechSignupPage() {
               성명·전화번호 입력 후 <b>본인인증</b>을 완료해야 가입할 수 있습니다.
             </p>
           )}
-          <RegionSelect value={region} onChange={setRegion} />
+          <RegionSelect value={region} onChange={handleRegionChange} />
           <input
             type="text"
             value={addrDetail}

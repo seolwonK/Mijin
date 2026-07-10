@@ -1,6 +1,7 @@
 'use client';
 
 import { use, useEffect, useState } from 'react';
+import Link from 'next/link';
 
 const WAGE_TYPE_LABEL: Record<string, string> = {
   MONTHLY: '월급',
@@ -137,11 +138,17 @@ export default function ContractPrintPage({
 
   return (
     <main className="bg-white">
-      {/* 화면 전용 인쇄 버튼 (인쇄물에는 제외) */}
+      {/* 화면 전용 상단바 (인쇄물에는 제외) */}
       <div
         data-print-hide
-        className="sticky top-0 z-10 flex justify-end gap-2 border-b border-border bg-surface/95 p-3 backdrop-blur"
+        className="sticky top-0 z-10 flex items-center justify-between gap-2 border-b border-border bg-surface/95 p-3 backdrop-blur"
       >
+        <Link
+          href={`/admin/technicians/${id}/contract`}
+          className="text-sm font-semibold text-brand-700 hover:text-brand-800"
+        >
+          ← 계약서로 돌아가기
+        </Link>
         <button
           type="button"
           onClick={() => window.print()}
