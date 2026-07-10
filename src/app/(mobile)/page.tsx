@@ -1,12 +1,14 @@
 import Link from 'next/link';
+import { cardClasses } from '@/components/Card';
+import { BoltIcon, ClipboardIcon } from '@/components/icons';
 
 export default function Home() {
   return (
     <main className="flex min-h-screen flex-col px-6 py-8 md:items-center md:justify-center md:py-16">
       {/* 히어로 */}
       <div className="flex flex-1 flex-col items-center justify-center gap-4 text-center md:flex-none md:gap-5">
-        <div className="flex h-20 w-20 items-center justify-center rounded-3xl bg-gradient-to-br from-brand-500 to-brand-600 text-4xl shadow-[0_10px_30px_-8px_oklch(0.49_0.19_270_/_0.5)] md:h-24 md:w-24 md:text-5xl">
-          ⚡
+        <div className="flex h-20 w-20 items-center justify-center rounded-3xl bg-brand-600 md:h-24 md:w-24">
+          <BoltIcon className="h-9 w-9 text-white md:h-11 md:w-11" />
         </div>
         <div className="space-y-2">
           <h1 className="text-[28px] font-extrabold leading-tight text-fg md:text-4xl">
@@ -23,10 +25,10 @@ export default function Home() {
       <div className="mt-8 flex w-full flex-col gap-3 md:mt-12 md:max-w-2xl md:flex-row md:gap-4">
         <Link
           href="/request/new"
-          className="group flex items-center gap-4 rounded-3xl bg-brand-600 p-5 text-left text-white shadow-[0_12px_30px_-10px_oklch(0.49_0.19_270_/_0.55)] transition-all hover:bg-brand-700 active:scale-[0.99] md:flex-1 md:flex-col md:items-start md:gap-3 md:p-7"
+          className="group flex items-center gap-4 rounded-3xl bg-brand-600 p-5 text-left text-white transition-colors hover:bg-brand-700 active:scale-[0.99] md:flex-1 md:flex-col md:items-start md:gap-3 md:p-7"
         >
-          <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-white/15 text-2xl">
-            ⚡
+          <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-white/15">
+            <BoltIcon className="h-6 w-6" />
           </span>
           <span className="min-w-0">
             <span className="block text-lg font-bold md:text-xl">고장 접수하기</span>
@@ -41,10 +43,12 @@ export default function Home() {
 
         <Link
           href="/lookup"
-          className="group flex items-center gap-4 rounded-3xl border border-border bg-white p-5 text-left text-fg shadow-card transition-all hover:border-neutral-300 hover:shadow-card-hover active:scale-[0.99] md:flex-1 md:flex-col md:items-start md:gap-3 md:p-7"
+          className={cardClasses(
+            'group flex items-center gap-4 rounded-3xl p-5 text-left text-fg transition-all hover:border-neutral-300 hover:shadow-card-hover active:scale-[0.99] md:flex-1 md:flex-col md:items-start md:gap-3 md:p-7',
+          )}
         >
-          <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-neutral-100 text-2xl">
-            📋
+          <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-neutral-100">
+            <ClipboardIcon className="h-6 w-6 text-muted" />
           </span>
           <span className="min-w-0">
             <span className="block text-lg font-bold md:text-xl">접수 내역 조회</span>

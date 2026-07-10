@@ -1,0 +1,67 @@
+// 절제된 라인 아이콘 세트 — 이모지 마커(⚡🏢🔧🛠️🕐📍 등) 대체용.
+// 토스 문법의 "색 절제" 원칙에 맞춰 currentColor로 텍스트 색을 그대로 상속한다(별도 팔레트 없음).
+// 신규 아이콘이 필요하면 이 파일에 같은 stroke-width(1.75)·viewBox(0 0 24 24) 규격으로 추가할 것.
+type IconProps = { className?: string };
+
+const base = {
+  viewBox: '0 0 24 24',
+  fill: 'none',
+  stroke: 'currentColor',
+  strokeWidth: 1.75,
+  strokeLinecap: 'round' as const,
+  strokeLinejoin: 'round' as const,
+};
+
+export function BoltIcon({ className }: IconProps) {
+  return (
+    <svg {...base} className={className} aria-hidden="true">
+      <path d="M13 2 4 14h6l-1 8 9-12h-6l1-8Z" />
+    </svg>
+  );
+}
+
+export function ClipboardIcon({ className }: IconProps) {
+  return (
+    <svg {...base} className={className} aria-hidden="true">
+      <rect x="6" y="4" width="12" height="17" rx="2" />
+      <path d="M9 4V3a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v1" />
+      <path d="M9 11h6M9 15h6" />
+    </svg>
+  );
+}
+
+export function BuildingIcon({ className }: IconProps) {
+  return (
+    <svg {...base} className={className} aria-hidden="true">
+      <rect x="4" y="3" width="12" height="18" rx="1" />
+      <path d="M16 21h4v-9l-4-3" />
+      <path d="M8 7h.01M12 7h.01M8 11h.01M12 11h.01M8 15h.01M12 15h.01" />
+    </svg>
+  );
+}
+
+export function WrenchIcon({ className }: IconProps) {
+  return (
+    <svg {...base} className={className} aria-hidden="true">
+      <path d="M14.5 6.5a4 4 0 0 0-5.4 4.9L3 17.5 6.5 21l6.1-6.1a4 4 0 0 0 4.9-5.4l-3 3-2-2 3-3Z" />
+    </svg>
+  );
+}
+
+export function ShieldIcon({ className }: IconProps) {
+  return (
+    <svg {...base} className={className} aria-hidden="true">
+      <path d="M12 3 5 6v5c0 4.5 3 7.5 7 9 4-1.5 7-4.5 7-9V6l-7-3Z" />
+      <path d="M9.5 12.2l1.8 1.8 3.2-3.6" />
+    </svg>
+  );
+}
+
+export function ClockIcon({ className }: IconProps) {
+  return (
+    <svg {...base} className={className} aria-hidden="true">
+      <circle cx="12" cy="12" r="9" />
+      <path d="M12 7v5l3.5 2" />
+    </svg>
+  );
+}

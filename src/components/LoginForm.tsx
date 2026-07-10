@@ -68,7 +68,7 @@ export default function LoginForm({
               onChange={(e) => setLoginId(e.target.value)}
               placeholder="아이디"
               autoComplete="username"
-              className="w-full rounded-xl border border-border p-3 text-base focus:border-brand-500 focus:outline-none"
+              className="w-full rounded-xl border border-border p-3 text-base focus:border-brand-500 focus:ring-2 focus:ring-brand-500/15 focus:outline-none"
             />
           </div>
           <div>
@@ -82,7 +82,7 @@ export default function LoginForm({
               onChange={(e) => setPassword(e.target.value)}
               placeholder="비밀번호"
               autoComplete="current-password"
-              className="w-full rounded-xl border border-border p-3 text-base focus:border-brand-500 focus:outline-none"
+              className="w-full rounded-xl border border-border p-3 text-base focus:border-brand-500 focus:ring-2 focus:ring-brand-500/15 focus:outline-none"
             />
           </div>
           {error && (

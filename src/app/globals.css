@@ -46,14 +46,19 @@
   /* 라디우스 — 코너 언어를 한 단계 절제(소비자앱풍 → 전문 툴풍, `/admin` 밀도 테이블 개선 효과 겸함).
      기존 rounded-xl/2xl/3xl 리터럴은 코드 수정 없이 이 값을 그대로 상속한다(B1 실증 확인).
      rounded-full(배지/아바타 pill)은 대상 아님 — 그대로 유지. */
+  --radius-lg: 0.4375rem; /* 신규 리맵(기존 Tailwind 기본 0.5rem 대비 절제). 실측 12개 콜사이트 전량
+     버튼/배지/썸네일(카드 문맥 0건, .omc/research/elevation-audit.md §4) — 버튼 스케일 유지 위해
+     xl/2xl/3xl과 같은 비율로만 소폭 절제, 카드처럼 벌리지 않는다. */
   --radius-xl: 0.625rem;
   --radius-2xl: 0.75rem;
   --radius-3xl: 1.125rem;
 
-  /* 섀도우 — 구조는 기존과 동일, 잉크만 slate(블루 틴트) → 브랜드 계열 다크 잉크로 재틴트. */
-  --shadow-card: 0 1px 2px rgb(20 16 32 / 0.04), 0 10px 30px -14px rgb(20 16 32 / 0.13);
-  --shadow-card-hover: 0 1px 2px rgb(20 16 32 / 0.05), 0 18px 40px -18px rgb(20 16 32 / 0.2);
-  --shadow-pop: 0 8px 30px -6px rgb(20 16 32 / 0.18);
+  /* 섀도우 — 토스 문법(면 분리는 1차로 border, shadow는 보조 신호): 불투명도·확산 축소로 경량화.
+     전제조건 확인(.omc/research/elevation-audit.md §3): shadow-card 베이스 사용 29곳 전량이 border를
+     동반해 흰-위-흰 뭉개짐 위험 없음 — Card 프리미티브(src/components/Card.tsx)가 이 조합을 고정한다. */
+  --shadow-card: 0 1px 2px rgb(20 16 32 / 0.03), 0 6px 16px -10px rgb(20 16 32 / 0.08);
+  --shadow-card-hover: 0 1px 2px rgb(20 16 32 / 0.04), 0 10px 24px -12px rgb(20 16 32 / 0.12);
+  --shadow-pop: 0 6px 20px -8px rgb(20 16 32 / 0.12);
 }
 
 html {

@@ -7,7 +7,8 @@ const BASE =
   'inline-flex items-center justify-center gap-2 rounded-2xl font-bold transition-colors disabled:cursor-not-allowed disabled:opacity-50';
 
 const VARIANT: Record<Variant, string> = {
-  primary: 'bg-brand-600 text-white shadow-sm enabled:hover:bg-brand-700 active:bg-brand-800',
+  // 토스 문법: 버튼은 색 대비만으로 정의 — 그림자 절제(구 shadow-sm 제거).
+  primary: 'bg-brand-600 text-white enabled:hover:bg-brand-700 active:bg-brand-800',
   secondary:
     'border border-border bg-white text-fg enabled:hover:bg-neutral-50 active:bg-neutral-100',
   ghost: 'text-muted enabled:hover:bg-neutral-100 active:bg-neutral-200',

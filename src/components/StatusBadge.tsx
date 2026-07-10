@@ -21,7 +21,7 @@ const URGENCY: Record<string, { label: string; className: string }> = {
 export function StatusBadge({ status }: { status: string }) {
   const s = REQUEST_STATUS[status] ?? { label: status, className: 'bg-neutral-100 text-neutral-600' };
   return (
-    <span className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${s.className}`}>
+    <span className={`inline-block rounded-full px-2.5 py-1 text-xs font-medium ${s.className}`}>
       {s.label}
     </span>
   );
@@ -30,7 +30,7 @@ export function StatusBadge({ status }: { status: string }) {
 export function UrgencyBadge({ urgency }: { urgency: string }) {
   const u = URGENCY[urgency] ?? { label: urgency, className: 'bg-neutral-500 text-white' };
   return (
-    <span className={`inline-block rounded-full px-2 py-0.5 text-xs font-bold ${u.className}`}>
+    <span className={`inline-block rounded-full px-2.5 py-1 text-xs font-bold ${u.className}`}>
       {u.label}
     </span>
   );

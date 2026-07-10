@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import PageHeader from '@/components/PageHeader';
 import { buttonClasses } from '@/components/Button';
+import { cardClasses } from '@/components/Card';
 import { usePolling } from '@/components/usePolling';
 import { CardSkeletonGrid } from '@/components/Skeleton';
 import { SortTh, type SortState } from '@/components/SortTh';
@@ -102,7 +103,7 @@ export default function AdminProvidersPage() {
         {pending.length > 0 && (
           <section>
             <h2 className="mb-2 text-base font-bold text-amber-700">
-              🕐 승인 대기 ({pending.length})
+              승인 대기 ({pending.length})
             </h2>
             <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
               {pending.map((p) => (
@@ -140,7 +141,7 @@ export default function AdminProvidersPage() {
             </p>
           )}
           {!loading && approved.length > 0 && (
-            <div className="overflow-x-auto rounded-2xl border border-border bg-white shadow-card">
+            <div className={cardClasses('overflow-x-auto rounded-2xl')}>
               <table className="w-full min-w-[680px] text-sm">
                 <thead>
                   <tr className="border-b border-border bg-neutral-50 text-left text-xs tracking-wide text-muted">
@@ -166,7 +167,7 @@ export default function AdminProvidersPage() {
                       </td>
                       <td className="px-4 py-2.5 text-neutral-600">{p.loginId}</td>
                       <td className="px-4 py-2.5 text-neutral-600">{p.phone}</td>
-                      <td className="max-w-xs truncate px-4 py-2.5 text-neutral-600">📍 {p.address}</td>
+                      <td className="max-w-xs truncate px-4 py-2.5 text-neutral-600">{p.address}</td>
                       <td className="px-4 py-2.5 text-right">
                         <button
                           type="button"
