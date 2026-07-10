@@ -1,4 +1,5 @@
-// ASSIGNED/ACCEPTED는 원래 Tailwind 파란 계열/인디고였다 — 둘 다 새 브랜드(Electric Violet)
+// ASSIGNED/ACCEPTED는 원래 Tailwind 파란 계열/인디고였다 — 둘 다 브랜드(현재는 브론즈-골드,
+// "결" 하이브리드 파운데이션 기준 — 과거 Electric Violet 시절 작성된 주석을 갱신)
 // alias 경유 시 브랜드색과 겹치거나(전자는 alias로 브랜드와 완전히 동일) hue상 인접해
 // "상태=브랜드" 오인 위험이 있다(design-direction.md §4 watch-item). cyan/teal로 재배정해
 // 브랜드와 분리하되 파이프라인 순서(대기→배정→수락→출동→완료)를 sky→cyan→teal→amber→green

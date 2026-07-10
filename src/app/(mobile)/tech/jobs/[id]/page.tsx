@@ -235,7 +235,7 @@ export default function TechJobDetailPage({
                     type="button"
                     onClick={() => act('status', { status: 'DISPATCHED' }, '출동을 시작했습니다')}
                     disabled={busy}
-                    className="h-12 flex-1 rounded-2xl bg-amber-500 font-bold text-white disabled:opacity-60"
+                    className="h-12 flex-1 rounded-2xl bg-teal-600 font-bold text-white disabled:opacity-60"
                   >
                     출동 시작
                   </button>
@@ -254,7 +254,7 @@ export default function TechJobDetailPage({
                 type="button"
                 onClick={() => setConfirming('DISPATCHED')}
                 disabled={busy}
-                className="flex h-14 w-full items-center justify-center gap-2 rounded-2xl bg-amber-500 text-lg font-bold text-white disabled:opacity-60"
+                className="flex h-14 w-full items-center justify-center gap-2 rounded-2xl bg-teal-600 text-lg font-bold text-white disabled:opacity-60"
               >
                 <TruckIcon className="h-5 w-5" />
                 출동 시작
@@ -271,7 +271,7 @@ export default function TechJobDetailPage({
                     type="button"
                     onClick={() => act('status', { status: 'COMPLETED' }, '완료 처리했습니다')}
                     disabled={busy}
-                    className="h-12 flex-1 rounded-2xl bg-green-600 font-bold text-white disabled:opacity-60"
+                    className="h-12 flex-1 rounded-2xl bg-emerald-600 font-bold text-white disabled:opacity-60"
                   >
                     완료 확정
                   </button>
@@ -290,7 +290,7 @@ export default function TechJobDetailPage({
                 type="button"
                 onClick={() => setConfirming('COMPLETED')}
                 disabled={busy}
-                className="flex h-14 w-full items-center justify-center gap-2 rounded-2xl bg-green-600 text-lg font-bold text-white disabled:opacity-60"
+                className="flex h-14 w-full items-center justify-center gap-2 rounded-2xl bg-emerald-600 text-lg font-bold text-white disabled:opacity-60"
               >
                 <CheckIcon className="h-5 w-5" />
                 완료 처리
