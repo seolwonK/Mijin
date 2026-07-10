@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { ClipboardIcon } from '@/components/icons';
 
 // 텍스트(접수번호 등)를 클립보드에 복사하는 작은 버튼. 복사 후 1.5초간 확인 표시.
 export default function CopyButton({
@@ -26,9 +27,16 @@ export default function CopyButton({
     <button
       type="button"
       onClick={copy}
-      className="inline-flex min-h-[36px] items-center gap-1 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-50 active:bg-gray-100"
+      className="inline-flex min-h-[36px] items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-50 active:bg-gray-100"
     >
-      {copied ? '✓ 복사됨' : `📋 ${label}`}
+      {copied ? (
+        '✓ 복사됨'
+      ) : (
+        <>
+          <ClipboardIcon className="h-3.5 w-3.5 shrink-0" />
+          {label}
+        </>
+      )}
     </button>
   );
 }

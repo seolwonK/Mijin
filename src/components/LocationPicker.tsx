@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { MapPinIcon } from '@/components/icons';
 
 export type LocationValue = {
   lat: number | null;
@@ -53,7 +54,14 @@ export default function LocationPicker({
         disabled={status === 'loading'}
         className="flex w-full items-center justify-center gap-2 rounded-xl border border-brand-300 bg-brand-50 p-3 text-base font-medium text-brand-700 disabled:opacity-60"
       >
-        {status === 'loading' ? '위치 확인 중…' : '📍 내 위치로 주소 채우기'}
+        {status === 'loading' ? (
+          '위치 확인 중…'
+        ) : (
+          <>
+            <MapPinIcon className="h-4 w-4 shrink-0" />
+            내 위치로 주소 채우기
+          </>
+        )}
       </button>
       {status === 'ok' && (
         <p className="text-sm text-green-700">

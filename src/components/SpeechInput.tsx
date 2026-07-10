@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { MicIcon } from '@/components/icons';
 
 type SpeechRecognitionInstance = {
   lang: string;
@@ -250,13 +251,19 @@ export default function SpeechInput({
               : 'border-neutral-300 bg-white text-neutral-700'
           }`}
         >
-          {preparing
-            ? '마이크 준비 중…'
-            : listening
-              ? recSupported
-                ? '🔴 녹음 중… 탭하여 종료'
-                : '🔴 듣는 중… 탭하여 종료'
-              : '🎤 음성으로 입력하기'}
+          {preparing ? (
+            '마이크 준비 중…'
+          ) : listening ? (
+            <>
+              <span className="h-2.5 w-2.5 shrink-0 animate-pulse rounded-full bg-red-500" />
+              {recSupported ? '녹음 중… 탭하여 종료' : '듣는 중… 탭하여 종료'}
+            </>
+          ) : (
+            <>
+              <MicIcon className="h-4 w-4 shrink-0" />
+              음성으로 입력하기
+            </>
+          )}
         </button>
       )}
       {voiceBlocked && (
