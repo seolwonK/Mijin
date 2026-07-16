@@ -9,6 +9,7 @@ import RegionMultiSelect from '@/components/RegionMultiSelect';
 import { hasSigungu, regionKey } from '@/lib/regions';
 import { startIdentityVerification } from '@/lib/identity/client';
 import { CheckIcon } from '@/components/icons';
+import ReferrerField, { type ReferrerSelection } from '@/components/ReferrerField';
 
 const inputClass =
   'w-full rounded-xl border border-neutral-300 bg-white p-3 text-base text-fg placeholder:text-muted focus:border-brand-500 focus:ring-2 focus:ring-brand-500/15 focus:outline-none';
@@ -29,6 +30,7 @@ export default function TechSignupPage() {
   const [region, setRegion] = useState<RegionValue>({ sido: '', sigungu: '' });
   const [addrDetail, setAddrDetail] = useState('');
   const [regions, setRegions] = useState<string[]>([]);
+  const [referrer, setReferrer] = useState<ReferrerSelection | null>(null);
   const [agreed, setAgreed] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -122,6 +124,7 @@ export default function TechSignupPage() {
           employmentType,
           regions,
           verificationId,
+          ...(referrer ? { referrerUserId: referrer.userId } : {}),
         }),
       });
       const data = await res.json();
@@ -289,6 +292,14 @@ export default function TechSignupPage() {
             받으며, 그 안에서 가까운 순으로 배정됩니다.
           </p>
           <RegionMultiSelect value={regions} onChange={setRegions} />
+        </section>
+
+        <section className="space-y-2 md:rounded-2xl md:bg-white md:p-6 md:shadow-surface-sm">
+          <h2 className="text-sm font-semibold">추천인 (선택)</h2>
+          <p className="text-xs text-muted">
+            추천인이 있다면 전화번호로 검색해 지정할 수 있습니다.
+          </p>
+          <ReferrerField selected={referrer} onSelectedChange={setReferrer} variant="mobile" />
         </section>
 
         <label className="flex items-start gap-2 text-sm text-neutral-600">

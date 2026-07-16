@@ -4,11 +4,13 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import PageHeader from '@/components/PageHeader';
 import ProviderForm, { type ProviderFormValue } from '@/components/ProviderForm';
+import ReferrerField, { type ReferrerSelection } from '@/components/ReferrerField';
 
 export default function NewProviderPage() {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [referrer, setReferrer] = useState<ReferrerSelection | null>(null);
 
   async function submit(v: ProviderFormValue) {
     setBusy(true);
@@ -32,6 +34,7 @@ export default function NewProviderPage() {
           lat,
           lng,
           memo: v.memo.trim() || null,
+          ...(referrer ? { referrerUserId: referrer.userId } : {}),
         }),
       });
       const data = await res.json();
@@ -50,6 +53,10 @@ export default function NewProviderPage() {
   return (
     <main className="min-h-screen">
       <PageHeader title="업체 등록" back="/admin/providers" />
+      <div className="mx-auto w-full max-w-2xl space-y-2 p-4">
+        <label className="text-sm font-semibold">추천인 (선택)</label>
+        <ReferrerField selected={referrer} onSelectedChange={setReferrer} variant="admin" />
+      </div>
       <ProviderForm
         initial={{
           loginId: '',

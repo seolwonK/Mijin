@@ -5,6 +5,8 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import PageHeader from '@/components/PageHeader';
 import TechnicianForm, { type TechnicianFormValue } from '@/components/TechnicianForm';
+import AdminReviewList, { type AdminReview } from '@/components/AdminReviewList';
+import ReferrerField from '@/components/ReferrerField';
 
 type TechnicianDetail = {
   id: string;
@@ -21,6 +23,10 @@ type TechnicianDetail = {
   contractStatus: 'DRAFT' | 'SUBMITTED' | 'CONFIRMED' | null;
   appliedAt: string;
   rejectReason: string | null;
+  referredBy: { userId: string; name: string; type: '업체' | '기술자' } | null;
+  reviewCount: number;
+  avgRating: number | null;
+  reviews: AdminReview[];
 };
 
 const APPROVAL_BADGE: Record<string, { label: string; className: string }> = {
@@ -50,6 +56,9 @@ export default function EditTechnicianPage({
   const [busy, setBusy] = useState(false);
   const [rejecting, setRejecting] = useState(false);
   const [reason, setReason] = useState('');
+  const [referrerEditing, setReferrerEditing] = useState(false);
+  const [referrerBusy, setReferrerBusy] = useState(false);
+  const [referrerError, setReferrerError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     const res = await fetch(`/api/admin/technicians/${id}`, { cache: 'no-store' });
@@ -106,6 +115,27 @@ export default function EditTechnicianPage({
       await load();
     } finally {
       setBusy(false);
+    }
+  }
+
+  async function updateReferrer(referredByUserId: string | null) {
+    setReferrerBusy(true);
+    setReferrerError(null);
+    try {
+      const res = await fetch(`/api/admin/technicians/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ referredByUserId }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setReferrerError(data.error ?? '저장에 실패했습니다');
+        return;
+      }
+      setReferrerEditing(false);
+      await load();
+    } finally {
+      setReferrerBusy(false);
     }
   }
 
@@ -264,6 +294,66 @@ export default function EditTechnicianPage({
           </p>
         )}
       </section>
+
+      <section className="mx-auto max-w-2xl space-y-2 border-b border-neutral-100 p-4">
+        <h2 className="text-sm font-semibold text-muted">소개자</h2>
+        {!referrerEditing ? (
+          <div className="flex items-center justify-between rounded-admin-md border border-border p-3 text-sm">
+            <span>
+              {detail.referredBy
+                ? `${detail.referredBy.name} (${detail.referredBy.type})`
+                : '지정된 소개자 없음'}
+            </span>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => setReferrerEditing(true)}
+                disabled={referrerBusy}
+                className="text-xs font-bold text-admin-cyan-ink"
+              >
+                {detail.referredBy ? '변경' : '지정'}
+              </button>
+              {detail.referredBy && (
+                <button
+                  type="button"
+                  onClick={() => updateReferrer(null)}
+                  disabled={referrerBusy}
+                  className="text-xs font-bold text-red-600"
+                >
+                  해제
+                </button>
+              )}
+            </div>
+          </div>
+        ) : (
+          <div className="space-y-2">
+            <ReferrerField
+              selected={null}
+              onSelectedChange={(v) => (v ? updateReferrer(v.userId) : setReferrerEditing(false))}
+              variant="admin"
+              disabled={referrerBusy}
+            />
+            <button
+              type="button"
+              onClick={() => setReferrerEditing(false)}
+              disabled={referrerBusy}
+              className="text-xs font-bold text-muted"
+            >
+              취소
+            </button>
+          </div>
+        )}
+        {referrerError && <p className="text-xs text-red-600">{referrerError}</p>}
+        <p className="text-xs text-neutral-400">
+          소급 지정 시 과거 조사는 적립되지 않습니다.
+        </p>
+      </section>
+
+      <AdminReviewList
+        avgRating={detail.avgRating}
+        reviewCount={detail.reviewCount}
+        reviews={detail.reviews}
+      />
 
       <TechnicianForm
         initial={{

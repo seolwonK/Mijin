@@ -25,6 +25,7 @@ type RequestRow = {
   createdAt: string;
   assigneeName: string | null;
   assigneeKind: 'PROVIDER' | 'TECHNICIAN' | null;
+  survey: { submitted: boolean; rating: number | null } | null;
 };
 
 const TABS: { key: string; label: string; statuses: string[] | null }[] = [
@@ -35,7 +36,7 @@ const TABS: { key: string; label: string; statuses: string[] | null }[] = [
   { key: 'DONE', label: '완료/취소', statuses: ['COMPLETED', 'CANCELED'] },
 ];
 
-type ColKey = 'status' | 'code' | 'urgency' | 'desc' | 'who' | 'time' | 'assignee';
+type ColKey = 'status' | 'code' | 'urgency' | 'desc' | 'who' | 'time' | 'assignee' | 'survey';
 
 // "관제탑"(B) 콘셉트 실물 반영 — 데스크톱(md+)은 메트릭 스트립 + 정렬 가능 DataTable +
 // 우측 인스펙터로 전면 재구성한다. 모바일은 기존 카드 그리드 UI를 그대로 유지한다
@@ -145,6 +146,22 @@ export default function AdminDashboardPage() {
           {r.assigneeName ?? '—'}
         </span>
       ),
+    },
+    {
+      key: 'survey',
+      label: '조사',
+      width: '84px',
+      align: 'right',
+      render: (r) => {
+        if (r.status !== 'COMPLETED') return <span className="text-admin-faint">-</span>;
+        if (!r.survey) return <span className="text-admin-dim">미발송</span>;
+        if (!r.survey.submitted) return <span className="text-admin-dim">미참여</span>;
+        return (
+          <span className="font-mono font-semibold text-admin-cyan">
+            {r.survey.rating != null ? `★${r.survey.rating}` : '참여'}
+          </span>
+        );
+      },
     },
   ];
 

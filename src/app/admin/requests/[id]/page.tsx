@@ -5,7 +5,7 @@ import BackButton from '@/components/BackButton';
 import { usePolling } from '@/components/usePolling';
 import { AdminStatusTag, AdminUrgencyTag } from '@/components/AdminStatusTag';
 import { useConfirm } from '@/components/useConfirm';
-import { AlertIcon } from '@/components/icons';
+import { AlertIcon, StarIcon } from '@/components/icons';
 
 type Assignee = { kind: 'PROVIDER' | 'TECHNICIAN'; name: string; phone: string };
 
@@ -18,6 +18,14 @@ type AssignmentRow = {
   respondedAt: string | null;
   createdAt: string;
   assignee: Assignee | null;
+};
+
+type SurveyInfo = {
+  submitted: boolean;
+  rating: number | null;
+  comment: string | null;
+  paidAmount: number | null;
+  submittedAt: string | null;
 };
 
 type RequestDetail = {
@@ -36,6 +44,7 @@ type RequestDetail = {
   needsAttention: boolean;
   createdAt: string;
   assignments: AssignmentRow[];
+  survey: SurveyInfo | null;
 };
 
 type Candidate = {
@@ -46,6 +55,9 @@ type Candidate = {
   address: string;
   distanceKm: number | null;
   rejectedThisRequest: boolean;
+  assigned30d: number;
+  avgRating: number;
+  reviewCount: number;
 };
 
 const ASSIGNMENT_STATUS_LABEL: Record<string, string> = {
@@ -284,6 +296,10 @@ export default function AdminRequestDetailPage({
                           : '거리 미확인'}{' '}
                         · {c.address}
                       </p>
+                      <p className="mt-0.5 font-mono text-xs text-muted">
+                        30일 배정(수락+거절) {c.assigned30d}회 · 평균 별점 {c.avgRating.toFixed(1)}
+                        {c.reviewCount > 0 ? ` (${c.reviewCount}건)` : ' (리뷰 없음)'}
+                      </p>
                     </div>
                     <button
                       type="button"
@@ -348,6 +364,50 @@ export default function AdminRequestDetailPage({
             </div>
           </section>
         )}
+
+        <section className="rounded-admin-md border border-border p-4">
+          <h2 className="mb-2 text-sm text-muted">만족도 조사</h2>
+          {req.survey == null ? (
+            <p className="text-sm text-muted">미발송</p>
+          ) : !req.survey.submitted ? (
+            <p className="text-sm text-muted">미참여</p>
+          ) : (
+            (() => {
+              const survey = req.survey;
+              return (
+                <div className="space-y-1.5">
+                  <div className="flex items-center gap-1" aria-label={`별점 ${survey.rating}점`}>
+                    {[1, 2, 3, 4, 5].map((n) => (
+                      <StarIcon
+                        key={n}
+                        filled={survey.rating != null && n <= survey.rating}
+                        className={`h-5 w-5 ${
+                          survey.rating != null && n <= survey.rating
+                            ? 'text-amber-400'
+                            : 'text-neutral-300'
+                        }`}
+                      />
+                    ))}
+                  </div>
+                  {survey.comment && (
+                    <p className="whitespace-pre-wrap text-sm">{survey.comment}</p>
+                  )}
+                  <p className="text-sm text-neutral-600">
+                    지불 금액{' '}
+                    {survey.paidAmount != null
+                      ? `${survey.paidAmount.toLocaleString('ko-KR')}원`
+                      : '미확인'}
+                  </p>
+                  {survey.submittedAt && (
+                    <p className="text-xs text-muted">
+                      {new Date(survey.submittedAt).toLocaleString('ko-KR')} 제출
+                    </p>
+                  )}
+                </div>
+              );
+            })()
+          )}
+        </section>
 
         {error && (
           <p className="rounded-admin-md bg-red-50 p-3 text-sm font-medium text-red-600">

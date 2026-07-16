@@ -177,3 +177,27 @@ export function AlertIcon({ className }: IconProps) {
     </svg>
   );
 }
+
+// 정산(수수료) 내비게이션용 — 원화(₩) 기호를 W 지그재그 + 이중 가로선으로 표현.
+export function WonIcon({ className }: IconProps) {
+  return (
+    <svg {...base} className={className} aria-hidden="true">
+      <path d="M4 6 8 18 12 10 16 18 20 6" />
+      <path d="M5 10.5h14M5 13.5h14" />
+    </svg>
+  );
+}
+
+// 만족도 조사 별점 표시용. filled=true면 currentColor로 채운다(다른 아이콘과 달리 fill 사용).
+export function StarIcon({ className, filled = false }: IconProps & { filled?: boolean }) {
+  return (
+    <svg
+      {...base}
+      fill={filled ? 'currentColor' : 'none'}
+      className={className}
+      aria-hidden="true"
+    >
+      <path d="M12 3.5 14.6 9.1 20.7 9.8 16.2 14 17.4 20 12 17 6.6 20 7.8 14 3.3 9.8 9.4 9.1 12 3.5Z" />
+    </svg>
+  );
+}

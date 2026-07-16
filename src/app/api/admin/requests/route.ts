@@ -29,6 +29,7 @@ export async function GET(req: NextRequest) {
         take: 1,
         include: ASSIGNEE_INCLUDE,
       },
+      survey: { select: { submittedAt: true, rating: true } },
     },
   });
 
@@ -47,6 +48,11 @@ export async function GET(req: NextRequest) {
       assignBaseAt: r.assignBaseAt,
       assigneeName: r.assignments[0] ? resolveAssignee(r.assignments[0])?.name ?? null : null,
       assigneeKind: r.assignments[0] ? resolveAssignee(r.assignments[0])?.kind ?? null : null,
+      // COMPLETED 건 한정 조사 상태 — 그 외 상태는 null(목록 화면이 "-"로 표시).
+      survey:
+        r.status === 'COMPLETED' && r.survey
+          ? { submitted: r.survey.submittedAt != null, rating: r.survey.rating }
+          : null,
     })),
   });
 }

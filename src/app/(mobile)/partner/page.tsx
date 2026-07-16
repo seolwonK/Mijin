@@ -8,6 +8,7 @@ import Surface from '@/components/Surface';
 import { buttonClasses } from '@/components/Button';
 import LogoutButton from '@/components/LogoutButton';
 import { CardSkeletonGrid } from '@/components/Skeleton';
+import CommissionSummary from '@/components/CommissionSummary';
 import { BellIcon, WrenchIcon, MapPinIcon } from '@/components/icons';
 
 type Job = {
@@ -138,6 +139,8 @@ export default function PartnerHomePage() {
             </div>
           </section>
         )}
+
+        <CommissionSummary url="/api/partner/commissions" />
       </div>
     </main>
   );

@@ -1,7 +1,8 @@
 // 발송 정책:
 //  1) 접수 완료 → 고객에게 1건
 //  2) 배정 → 담당 업체에게 1건 (고객 연락처·주소 포함)
-// (수락·완료·가입 심사 알림은 화면 내 확인으로 대체 — 비용 절감)
+//  3) 완료 → 고객에게 1건 (만족도 조사)
+// (수락·가입 심사 알림은 화면 내 확인으로 대체 — 비용 절감)
 // 한글 45자(90바이트)를 넘으면 SMS→LMS로 전환되어 단가가 약 3배가 된다.
 
 export function smsRequestReceived(customerName: string): string {
@@ -45,4 +46,9 @@ export function smsProviderAssigned(p: {
   if (p.distanceKm != null) lines.push(`거리: 약 ${p.distanceKm.toFixed(1)}km`);
   lines.push('업체 포털에서 수락/거절을 눌러 주세요.');
   return lines.join('\n');
+}
+
+// 완료 후 만족도 조사 안내 — 고객에게 참여 링크 전달 (단문 유지)
+export function smsSurveyRequest(url: string): string {
+  return `[전기출동] 수리가 완료되었습니다. 만족도 조사 참여: ${url}`;
 }

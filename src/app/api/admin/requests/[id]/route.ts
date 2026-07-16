@@ -18,6 +18,7 @@ export async function GET(
         orderBy: { createdAt: 'desc' },
         include: ASSIGNEE_INCLUDE,
       },
+      survey: true,
     },
   });
   if (!request) {
@@ -51,5 +52,16 @@ export async function GET(
       createdAt: a.createdAt,
       assignee: resolveAssignee(a),
     })),
+    // survey === null: row 자체가 없음 = "미발송"(기능 도입 전 완료 건 또는 미완료 건).
+    // survey.submitted === false: row는 있지만 아직 제출 전 = "미참여".
+    survey: request.survey
+      ? {
+          submitted: request.survey.submittedAt != null,
+          rating: request.survey.rating,
+          comment: request.survey.comment,
+          paidAmount: request.survey.paidAmount,
+          submittedAt: request.survey.submittedAt,
+        }
+      : null,
   });
 }

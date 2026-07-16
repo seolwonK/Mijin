@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/db';
 import { requireSession } from '@/lib/auth';
+import { createSurveyAndNotify } from '@/lib/survey';
 
 const statusSchema = z.object({
   status: z.enum(['DISPATCHED', 'COMPLETED']),
@@ -58,6 +59,15 @@ export async function POST(
         { status: 409 },
       );
     }
+    // 완료 CAS 성공 시에만 만족도 조사 링크를 문자로 보낸다. 재조회 없이 위에서
+    // 이미 로드한 배정(a)에서 바로 전달 — 실패해도 완료 응답은 그대로 나간다.
+    void createSurveyAndNotify({
+      requestId: a.requestId,
+      providerId: a.providerId,
+      technicianId: a.technicianId,
+      phone: a.request.customerPhone,
+      origin: new URL(req.url).origin,
+    });
   }
   return NextResponse.json({ ok: true });
 }

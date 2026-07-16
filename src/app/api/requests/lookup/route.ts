@@ -61,6 +61,7 @@ export async function POST(req: NextRequest) {
         take: 1,
         include: ASSIGNEE_INCLUDE,
       },
+      survey: { select: { token: true, submittedAt: true } },
     },
   });
 
@@ -68,6 +69,15 @@ export async function POST(req: NextRequest) {
     requests: requests.map((r) => {
       const active = r.assignments[0];
       const assignee = active ? resolveAssignee(active) : null;
+      // 조사 재접근은 COMPLETED 건에 한정 — 그 외 상태는 survey: null.
+      // 제출 완료 건은 토큰을 응답에 싣지 않는다(재제출 유도 방지).
+      const survey =
+        r.status === 'COMPLETED' && r.survey
+          ? {
+              submitted: r.survey.submittedAt != null,
+              ...(r.survey.submittedAt == null ? { url: `/survey/${r.survey.token}` } : {}),
+            }
+          : null;
       return {
         id: r.id,
         lookupCode: r.lookupCode,
@@ -81,6 +91,7 @@ export async function POST(req: NextRequest) {
         assignee: assignee
           ? { kind: assignee.kind, name: assignee.name, phone: assignee.phone }
           : null,
+        survey,
       };
     }),
   });

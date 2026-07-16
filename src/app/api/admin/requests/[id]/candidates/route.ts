@@ -13,11 +13,12 @@ export async function GET(
   const { id } = await params;
   const request = await prisma.serviceRequest.findUnique({
     where: { id },
-    select: { id: true, lat: true, lng: true, address: true },
+    select: { id: true, lat: true, lng: true, address: true, urgency: true },
   });
   if (!request) {
     return NextResponse.json({ error: '접수를 찾을 수 없습니다' }, { status: 404 });
   }
-  const candidates = await getCandidates(request);
+  // CRITICAL 접수에서도 관리자 화면에 표시할 통계(30일 배정(수락+거절)·평균 별점)를 채운다.
+  const candidates = await getCandidates(request, { withStats: true });
   return NextResponse.json({ candidates, hasCoords: request.lat != null && request.lng != null });
 }

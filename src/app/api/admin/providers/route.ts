@@ -20,6 +20,8 @@ const createSchema = z.object({
   lng: z.number().min(-180).max(180).nullish(),
   memo: z.string().trim().max(500).nullish(),
   bizRegNo: z.string().trim().nullish(),
+  // 추천인 User.id (선택)
+  referrerUserId: z.string().trim().min(1).optional(),
 });
 
 export async function GET() {
@@ -98,6 +100,38 @@ export async function POST(req: NextRequest) {
     lng = geo.lng;
   }
 
+  // 추천인 검증(선택) — 관리자 직접 등록도 셀프 가입과 동일 규칙(존재·승인·활성·자기 자신 아님)을 적용
+  let referredByUserId: string | null = null;
+  if (data.referrerUserId) {
+    const referrer = await prisma.user.findUnique({
+      where: { id: data.referrerUserId },
+      select: {
+        id: true,
+        phone: true,
+        role: true,
+        provider: { select: { approvalStatus: true, isActive: true } },
+        technician: { select: { approvalStatus: true, isActive: true } },
+      },
+    });
+    const entity =
+      referrer &&
+      (referrer.role === 'PROVIDER'
+        ? referrer.provider
+        : referrer.role === 'TECHNICIAN'
+          ? referrer.technician
+          : null);
+    if (!referrer || !entity || entity.approvalStatus !== 'APPROVED' || !entity.isActive) {
+      return NextResponse.json({ error: '추천인을 찾을 수 없습니다' }, { status: 400 });
+    }
+    if (referrer.phone === data.phone) {
+      return NextResponse.json(
+        { error: '본인을 추천인으로 지정할 수 없습니다' },
+        { status: 400 },
+      );
+    }
+    referredByUserId = referrer.id;
+  }
+
   try {
     const user = await prisma.user.create({
       data: {
@@ -115,6 +149,7 @@ export async function POST(req: NextRequest) {
             bizRegNo,
             approvalStatus: 'APPROVED',
             approvedAt: new Date(),
+            referredByUserId,
           },
         },
       },

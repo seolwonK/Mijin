@@ -9,6 +9,7 @@ import RegionSelect, { type RegionValue } from '@/components/RegionSelect';
 import RegionMultiSelect from '@/components/RegionMultiSelect';
 import { hasSigungu } from '@/lib/regions';
 import { CheckIcon, ClipboardIcon } from '@/components/icons';
+import ReferrerField, { type ReferrerSelection } from '@/components/ReferrerField';
 
 const inputClass =
   'w-full rounded-xl border border-border bg-white p-3 text-base text-fg placeholder:text-muted focus:border-brand-500 focus:ring-2 focus:ring-brand-500/15 focus:outline-none';
@@ -23,6 +24,7 @@ export default function PartnerSignupPage() {
   const [regions, setRegions] = useState<string[]>([]);
   const [bizRegNo, setBizRegNo] = useState('');
   const [file, setFile] = useState<File | null>(null);
+  const [referrer, setReferrer] = useState<ReferrerSelection | null>(null);
   const [agreed, setAgreed] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -53,6 +55,7 @@ export default function PartnerSignupPage() {
       form.set('regions', JSON.stringify(regions));
       form.set('bizRegNo', bizRegNo);
       form.set('bizCert', file);
+      if (referrer) form.set('referrerUserId', referrer.userId);
       const res = await fetch('/api/partner/signup', { method: 'POST', body: form });
       const data = await res.json();
       if (!res.ok) {
@@ -201,6 +204,14 @@ export default function PartnerSignupPage() {
           <p className="text-xs text-muted">
             JPG/PNG/PDF, 8MB 이하. 관리자 확인 용도로만 사용됩니다.
           </p>
+        </Surface>
+
+        <Surface as="section" className="space-y-2 rounded-2xl p-4 md:p-6">
+          <h2 className="text-sm font-semibold">추천인 (선택)</h2>
+          <p className="text-xs text-muted">
+            추천인이 있다면 전화번호로 검색해 지정할 수 있습니다.
+          </p>
+          <ReferrerField selected={referrer} onSelectedChange={setReferrer} variant="mobile" />
         </Surface>
 
         <label className="flex items-start gap-2 text-sm text-neutral-600">

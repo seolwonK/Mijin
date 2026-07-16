@@ -28,6 +28,8 @@ const fieldsSchema = z.object({
     .pipe(z.string().regex(/^0\d{8,10}$/, '전화번호 형식이 올바르지 않습니다')),
   address: z.string().trim().min(1, '주소를 입력해 주세요').max(200),
   bizRegNo: z.string().trim().min(1, '사업자등록번호를 입력해 주세요'),
+  // 추천인 User.id (선택) — multipart라 미첨부 시 form.get()이 null을 반환한다
+  referrerUserId: z.string().trim().min(1).nullish(),
 });
 
 // 인메모리 레이트리밋: IP당 10분에 5회 (가입 신청 남용 방지)
@@ -69,6 +71,7 @@ export async function POST(req: NextRequest) {
     phone: form.get('phone'),
     address: form.get('address'),
     bizRegNo: form.get('bizRegNo'),
+    referrerUserId: form.get('referrerUserId'),
   });
   if (!parsed.success) {
     return NextResponse.json(
@@ -120,6 +123,38 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  // 추천인 검증(선택) — 존재·승인·활성 여부를 서버가 재확인하고, 자기 자신 추천을 차단한다.
+  let referredByUserId: string | null = null;
+  if (data.referrerUserId) {
+    const referrer = await prisma.user.findUnique({
+      where: { id: data.referrerUserId },
+      select: {
+        id: true,
+        phone: true,
+        role: true,
+        provider: { select: { approvalStatus: true, isActive: true } },
+        technician: { select: { approvalStatus: true, isActive: true } },
+      },
+    });
+    const entity =
+      referrer &&
+      (referrer.role === 'PROVIDER'
+        ? referrer.provider
+        : referrer.role === 'TECHNICIAN'
+          ? referrer.technician
+          : null);
+    if (!referrer || !entity || entity.approvalStatus !== 'APPROVED' || !entity.isActive) {
+      return NextResponse.json({ error: '추천인을 찾을 수 없습니다' }, { status: 400 });
+    }
+    if (referrer.phone === data.phone) {
+      return NextResponse.json(
+        { error: '본인을 추천인으로 지정할 수 없습니다' },
+        { status: 400 },
+      );
+    }
+    referredByUserId = referrer.id;
+  }
+
   // 좌표는 지오코딩 시도만 (키 없거나 실패해도 신청은 진행 — 승인 시 관리자가 보완)
   const geo = await geocode(data.address);
 
@@ -147,6 +182,7 @@ export async function POST(req: NextRequest) {
           regions,
           bizRegNo,
           approvalStatus: 'PENDING',
+          referredByUserId,
         },
       },
     },

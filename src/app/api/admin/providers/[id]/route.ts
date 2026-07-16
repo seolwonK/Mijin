@@ -19,6 +19,8 @@ const patchSchema = z.object({
   memo: z.string().trim().max(500).nullable().optional(),
   regions: z.array(z.string()).optional(),
   password: z.string().min(8, '비밀번호는 8자 이상').optional(),
+  // 소개자 지정/변경(string)·해제(null). 미포함이면 변경하지 않는다.
+  referredByUserId: z.string().min(1).nullable().optional(),
 });
 
 export async function GET(
@@ -31,9 +33,35 @@ export async function GET(
   const { id } = await params;
   const p = await prisma.provider.findUnique({
     where: { id },
-    include: { user: { select: { loginId: true, name: true, phone: true } } },
+    include: {
+      user: { select: { loginId: true, name: true, phone: true } },
+      referredBy: { select: { id: true, name: true, role: true } },
+    },
   });
   if (!p) return NextResponse.json({ error: '업체를 찾을 수 없습니다' }, { status: 404 });
+
+  // 만족도 조사 요약(평균·건수) + 최근 20건 — 제출된(rating != null) 것만 집계 대상.
+  const [reviewAgg, reviews] = await Promise.all([
+    prisma.satisfactionSurvey.aggregate({
+      where: { providerId: id, rating: { not: null } },
+      _avg: { rating: true },
+      _count: { _all: true },
+    }),
+    prisma.satisfactionSurvey.findMany({
+      where: { providerId: id, rating: { not: null } },
+      orderBy: { submittedAt: 'desc' },
+      take: 20,
+      select: {
+        id: true,
+        requestId: true,
+        rating: true,
+        comment: true,
+        paidAmount: true,
+        submittedAt: true,
+      },
+    }),
+  ]);
+
   return NextResponse.json({
     id: p.id,
     loginId: p.user.loginId,
@@ -50,6 +78,16 @@ export async function GET(
     hasCert: !!(p.bizCertFileId || p.bizCertPath),
     appliedAt: p.appliedAt,
     rejectReason: p.rejectReason,
+    referredBy: p.referredBy
+      ? {
+          userId: p.referredBy.id,
+          name: p.referredBy.name,
+          type: p.referredBy.role === 'PROVIDER' ? '업체' : '기술자',
+        }
+      : null,
+    reviewCount: reviewAgg._count._all,
+    avgRating: reviewAgg._count._all > 0 ? reviewAgg._avg.rating : null,
+    reviews,
   });
 }
 
@@ -88,6 +126,40 @@ export async function PATCH(
   if (data.isActive !== undefined) providerData.isActive = data.isActive;
   if (data.memo !== undefined) providerData.memo = data.memo;
   if (data.regions !== undefined) providerData.regions = sanitizeRegionKeys(data.regions);
+
+  // 소개자 소급 지정/변경/해제 — 검증(존재·승인·활성·자기 자신 아님)은 PATCH할 때마다 재확인한다.
+  if (data.referredByUserId !== undefined) {
+    if (data.referredByUserId === null) {
+      providerData.referredByUserId = null;
+    } else {
+      const referrer = await prisma.user.findUnique({
+        where: { id: data.referredByUserId },
+        select: {
+          id: true,
+          role: true,
+          provider: { select: { approvalStatus: true, isActive: true } },
+          technician: { select: { approvalStatus: true, isActive: true } },
+        },
+      });
+      const entity =
+        referrer &&
+        (referrer.role === 'PROVIDER'
+          ? referrer.provider
+          : referrer.role === 'TECHNICIAN'
+            ? referrer.technician
+            : null);
+      if (!referrer || !entity || entity.approvalStatus !== 'APPROVED' || !entity.isActive) {
+        return NextResponse.json({ error: '추천인을 찾을 수 없습니다' }, { status: 400 });
+      }
+      if (referrer.id === provider.userId) {
+        return NextResponse.json(
+          { error: '본인을 추천인으로 지정할 수 없습니다' },
+          { status: 400 },
+        );
+      }
+      providerData.referredByUserId = referrer.id;
+    }
+  }
 
   const userData: Record<string, unknown> = {};
   if (data.name !== undefined) userData.name = data.name;

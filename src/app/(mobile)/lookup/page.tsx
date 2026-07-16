@@ -20,6 +20,7 @@ type LookupRequest = {
   createdAt: string;
   completedAt: string | null;
   assignee: { kind: 'PROVIDER' | 'TECHNICIAN'; name: string; phone: string } | null;
+  survey: { submitted: boolean; url?: string } | null;
 };
 
 // TrackStepper와 동일한 5단계 순서(접수→배정→수락→출동→완료) — StatusPill의 상태 키를 그대로 따른다.
@@ -77,6 +78,18 @@ function RequestCard({ r }: { r: LookupRequest }) {
             </a>
           </div>
         </div>
+      )}
+
+      {r.status === 'COMPLETED' && r.survey && (
+        r.survey.submitted ? (
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700">
+            참여 완료
+          </span>
+        ) : (
+          <Link href={r.survey.url ?? '#'} className={buttonClasses('primary', 'sm', 'w-full')}>
+            만족도 조사 참여
+          </Link>
+        )
       )}
     </Surface>
   );

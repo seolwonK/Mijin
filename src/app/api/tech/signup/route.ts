@@ -27,6 +27,8 @@ const fieldsSchema = z.object({
     .string({ error: '휴대폰 본인인증을 완료해 주세요' })
     .trim()
     .min(1, '휴대폰 본인인증을 완료해 주세요'),
+  // 추천인 User.id (선택)
+  referrerUserId: z.string().trim().min(1).optional(),
 });
 
 // 인메모리 레이트리밋: IP당 10분에 5회 (가입 신청 남용 방지)
@@ -108,6 +110,39 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  // 추천인 검증(선택) — 본인인증된 실제 번호(iv.phone) 기준으로 자기 자신 여부를 판정한다.
+  // 트랜잭션 밖에서 읽기 전용으로 먼저 검증하고, 트랜잭션 내부에는 스칼라 값만 반영한다.
+  let referredByUserId: string | null = null;
+  if (data.referrerUserId) {
+    const referrer = await prisma.user.findUnique({
+      where: { id: data.referrerUserId },
+      select: {
+        id: true,
+        phone: true,
+        role: true,
+        provider: { select: { approvalStatus: true, isActive: true } },
+        technician: { select: { approvalStatus: true, isActive: true } },
+      },
+    });
+    const entity =
+      referrer &&
+      (referrer.role === 'PROVIDER'
+        ? referrer.provider
+        : referrer.role === 'TECHNICIAN'
+          ? referrer.technician
+          : null);
+    if (!referrer || !entity || entity.approvalStatus !== 'APPROVED' || !entity.isActive) {
+      return NextResponse.json({ error: '추천인을 찾을 수 없습니다' }, { status: 400 });
+    }
+    if (referrer.phone === iv.phone) {
+      return NextResponse.json(
+        { error: '본인을 추천인으로 지정할 수 없습니다' },
+        { status: 400 },
+      );
+    }
+    referredByUserId = referrer.id;
+  }
+
   // 좌표는 지오코딩 시도만 (키 없거나 실패해도 신청은 진행 — 승인 시 관리자가 보완)
   const geo = await geocode(data.address);
   const passwordHash = await bcrypt.hash(data.password, 10);
@@ -140,6 +175,7 @@ export async function POST(req: NextRequest) {
               employmentType: data.employmentType,
               approvalStatus: 'APPROVED',
               approvedAt: new Date(),
+              referredByUserId,
             },
           },
         },

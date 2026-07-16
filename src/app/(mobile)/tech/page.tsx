@@ -8,6 +8,7 @@ import { surfaceClasses } from '@/components/Surface';
 import LogoutButton from '@/components/LogoutButton';
 import PageHeader from '@/components/PageHeader';
 import { Skeleton, CardSkeletonGrid } from '@/components/Skeleton';
+import CommissionSummary from '@/components/CommissionSummary';
 import { MapPinIcon, BellIcon, WrenchIcon, ClipboardIcon, RefreshIcon } from '@/components/icons';
 
 // lastUpdatedAt(마지막 성공 갱신 시각)을 "방금 확인 / n초 전 확인" 문구로 변환.
@@ -219,6 +220,8 @@ export default function TechHomePage() {
             </div>
           </section>
         )}
+
+        <CommissionSummary url="/api/tech/commissions" />
       </div>
     </main>
   );

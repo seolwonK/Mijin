@@ -75,57 +75,70 @@ enum ProviderApproval {
 }
 
 model User {
-  id           String      @id @default(cuid())
-  loginId      String      @unique
-  passwordHash String
-  name         String
-  phone        String
-  role         Role
-  provider     Provider?
-  technician   Technician?
-  createdAt    DateTime    @default(now())
+  id                  String            @id @default(cuid())
+  loginId             String            @unique
+  passwordHash        String
+  name                String
+  phone               String
+  role                Role
+  provider            Provider?         @relation("ProviderOwner")
+  technician          Technician?       @relation("TechnicianOwner")
+  // 소개(추천)한 업체·기술자 — 가입 시점에 지정, 소급은 관리자만
+  referredProviders   Provider[]        @relation("ProviderReferrer")
+  referredTechnicians Technician[]      @relation("TechnicianReferrer")
+  commissionEntries   CommissionEntry[] @relation("CommissionReferrer")
+  createdAt           DateTime          @default(now())
 }
 
 model Provider {
-  id             String           @id @default(cuid())
-  user           User             @relation(fields: [userId], references: [id])
-  userId         String           @unique
-  address        String
-  lat            Float? // 셀프 가입 시 좌표를 모를 수 있음 — 좌표 없으면 거리계산·자동배정 제외
-  lng            Float?
-  isActive       Boolean          @default(true) // 비활성 업체는 배정 제외 (승인된 업체의 영업 on/off)
-  memo           String?
-  regions        String[]         @default([]) // 서비스 가능 지역 키 목록 ("시도"/"시도 구"). 빈 배열 = 전 지역
-  bizRegNo       String?          @unique // 사업자등록번호 (숫자 10자리)
-  bizCertPath    String? // (레거시) 파일시스템 저장 경로 — 신규 가입은 bizCertFileId 사용
-  bizCertFileId  String? // 사업자등록증 StoredFile id (DB 저장, 관리자만 열람)
-  approvalStatus ProviderApproval @default(PENDING)
-  rejectReason   String?
-  appliedAt      DateTime         @default(now())
-  approvedAt     DateTime?
-  assignments    Assignment[]
+  id               String           @id @default(cuid())
+  user             User             @relation("ProviderOwner", fields: [userId], references: [id])
+  userId           String           @unique
+  address          String
+  lat              Float? // 셀프 가입 시 좌표를 모를 수 있음 — 좌표 없으면 거리계산·자동배정 제외
+  lng              Float?
+  isActive         Boolean          @default(true) // 비활성 업체는 배정 제외 (승인된 업체의 영업 on/off)
+  memo             String?
+  regions          String[]         @default([]) // 서비스 가능 지역 키 목록 ("시도"/"시도 구"). 빈 배열 = 전 지역
+  bizRegNo         String?          @unique // 사업자등록번호 (숫자 10자리)
+  bizCertPath      String? // (레거시) 파일시스템 저장 경로 — 신규 가입은 bizCertFileId 사용
+  bizCertFileId    String? // 사업자등록증 StoredFile id (DB 저장, 관리자만 열람)
+  approvalStatus   ProviderApproval @default(PENDING)
+  rejectReason     String?
+  appliedAt        DateTime         @default(now())
+  approvedAt       DateTime?
+  assignments      Assignment[]
+  // 소개자(User) — 가입 시 지정, 변경·소급은 관리자만
+  referredByUserId String?
+  referredBy       User?            @relation("ProviderReferrer", fields: [referredByUserId], references: [id])
+
+  @@index([referredByUserId])
 }
 
 // 개인기술자 — 업체(Provider)와 병렬로 배정 대상. 사업자 필드 대신 근로형태·근로계약서를 가진다.
 model Technician {
-  id             String              @id @default(cuid())
-  user           User                @relation(fields: [userId], references: [id])
-  userId         String              @unique
-  address        String
-  lat            Float? // 셀프 가입 시 좌표를 모를 수 있음 — 좌표 없으면 거리계산·자동배정 제외
-  lng            Float?
-  isActive       Boolean             @default(true) // 비활성 기술자는 배정 제외
-  memo           String?
-  regions        String[]            @default([]) // 서비스 가능 지역 키 목록 ("시도"/"시도 구"). 빈 배열 = 전 지역
-  employmentType EmploymentType // 일일(DAILY) / 상시(PERMANENT)
-  approvalStatus ProviderApproval    @default(PENDING) // 업체와 동일한 승인 흐름 재사용
-  rejectReason   String?
-  appliedAt      DateTime            @default(now())
-  approvedAt     DateTime?
-  assignments    Assignment[]
-  contract       EmploymentContract?
+  id               String              @id @default(cuid())
+  user             User                @relation("TechnicianOwner", fields: [userId], references: [id])
+  userId           String              @unique
+  address          String
+  lat              Float? // 셀프 가입 시 좌표를 모를 수 있음 — 좌표 없으면 거리계산·자동배정 제외
+  lng              Float?
+  isActive         Boolean             @default(true) // 비활성 기술자는 배정 제외
+  memo             String?
+  regions          String[]            @default([]) // 서비스 가능 지역 키 목록 ("시도"/"시도 구"). 빈 배열 = 전 지역
+  employmentType   EmploymentType // 일일(DAILY) / 상시(PERMANENT)
+  approvalStatus   ProviderApproval    @default(PENDING) // 업체와 동일한 승인 흐름 재사용
+  rejectReason     String?
+  appliedAt        DateTime            @default(now())
+  approvedAt       DateTime?
+  assignments      Assignment[]
+  contract         EmploymentContract?
+  // 소개자(User) — 가입 시 지정, 변경·소급은 관리자만
+  referredByUserId String?
+  referredBy       User?               @relation("TechnicianReferrer", fields: [referredByUserId], references: [id])
 
   @@index([approvalStatus])
+  @@index([referredByUserId])
 }
 
 // 표준 근로계약서 앞장. 기술자 1인당 1건(v1). 근무조건은 서버가 근로형태에 따라 강제 세팅,
@@ -167,15 +180,15 @@ model EmploymentContract {
   payMethod      PayMethod?
 
   // 연차유급휴가 / 4대보험
-  annualLeaveNote     String?  @default("근로기준법에 따라 부여")
-  insuranceEmployment Boolean  @default(true) // 고용보험
-  insuranceAccident   Boolean  @default(true) // 산재보험
-  insurancePension    Boolean  @default(true) // 국민연금
-  insuranceHealth     Boolean  @default(true) // 건강보험
+  annualLeaveNote     String? @default("근로기준법에 따라 부여")
+  insuranceEmployment Boolean @default(true) // 고용보험
+  insuranceAccident   Boolean @default(true) // 산재보험
+  insurancePension    Boolean @default(true) // 국민연금
+  insuranceHealth     Boolean @default(true) // 건강보험
 
   // 근로자(을) 기재란
-  workerAddress       String?
-  workerSignatureName String?
+  workerAddress          String?
+  workerSignatureName    String?
   // 근로자 손글씨 서명 (data URL PNG). 서명 시 계약이 확정된다.
   workerSignatureDataUrl String?
   signedAt               DateTime?
@@ -188,8 +201,8 @@ model EmploymentContract {
 }
 
 model ServiceRequest {
-  id              String        @id @default(cuid())
-  lookupCode      String        @unique // 6자리 숫자, 고객 조회용
+  id              String              @id @default(cuid())
+  lookupCode      String              @unique // 6자리 숫자, 고객 조회용
   customerName    String
   customerPhone   String // 숫자만 정규화 저장
   description     String
@@ -198,16 +211,17 @@ model ServiceRequest {
   voiceMime       String? // audio/webm | audio/mp4 등 — 재생 시 Content-Type
   voiceTranscript String? // 서버 STT 변환 결과 (원본 보존, description과 별도)
   urgency         Urgency
-  status          RequestStatus @default(RECEIVED)
+  status          RequestStatus       @default(RECEIVED)
   lat             Float?
   lng             Float? // 위치 거부 시 null 허용
   address         String? // 역지오코딩 or 수동 입력
-  assignBaseAt    DateTime      @default(now()) // 자동배정 타이머 기준 시각
-  needsAttention  Boolean       @default(false) // 자동배정 실패/거절 반환 플래그
+  assignBaseAt    DateTime            @default(now()) // 자동배정 타이머 기준 시각
+  needsAttention  Boolean             @default(false) // 자동배정 실패/거절 반환 플래그
   completedAt     DateTime?
   assignments     Assignment[]
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
+  survey          SatisfactionSurvey?
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
 
   @@index([status, assignBaseAt]) // 자동배정 워커 스캔용
   @@index([customerPhone])
@@ -231,32 +245,78 @@ model Assignment {
   respondedAt  DateTime?
   createdAt    DateTime         @default(now())
 
-  @@index([providerId, status])
-  @@index([technicianId, status])
+  @@index([providerId, status, respondedAt])
+  @@index([technicianId, status, respondedAt])
   @@index([requestId])
+}
+
+// 완료된 접수의 고객 만족도 조사 — 조사 링크 SMS 1건당 1행, 1회 제출.
+// 배정 대상 귀속은 완료 시점 수락 배정의 스냅샷(반정규화) — 평균 별점 집계를 단일 groupBy로 표현하기 위함.
+// XOR 불변식(provider 또는 technician 중 정확히 하나)은 Assignment와 동일하게 DB CHECK로 강제한다.
+model SatisfactionSurvey {
+  id           String           @id @default(cuid())
+  requestId    String           @unique
+  request      ServiceRequest   @relation(fields: [requestId], references: [id])
+  token        String           @unique
+  providerId   String? // 완료 시점의 수락 배정 대상 스냅샷 (XOR — DB CHECK로 강제)
+  technicianId String?
+  rating       Int? // 1~5, 제출 전 null
+  comment      String? // 선택 후기
+  paidAmount   Int? // 원 단위, 제출 전 null
+  submittedAt  DateTime? // null = 미제출 (1회 제출 CAS 기준)
+  createdAt    DateTime         @default(now())
+  commission   CommissionEntry?
+
+  @@index([providerId])
+  @@index([technicianId])
+}
+
+// 소개(추천) 수수료 원장 — 조사 1건당 최대 1건(surveyId 멱등), 지급액은 생성 시점에 동결한다.
+// 요율 변경·소개 관계 소급 지정은 과거 원장에 영향을 주지 않는다(파생 재계산이 아닌 스냅샷).
+enum CommissionStatus {
+  PENDING
+  PAID
+}
+
+model CommissionEntry {
+  id             String             @id @default(cuid())
+  referrerUserId String // 소개자(User)
+  referrer       User               @relation("CommissionReferrer", fields: [referrerUserId], references: [id])
+  providerId     String? // 피소개자 스냅샷 (XOR — DB CHECK로 강제, SatisfactionSurvey 전례와 동일하게 bare scalar)
+  technicianId   String?
+  surveyId       String             @unique // 조사 1건 = 적립 1건 (멱등 키)
+  survey         SatisfactionSurvey @relation(fields: [surveyId], references: [id])
+  requestId      String
+  baseAmount     Int // 적립 시점 paidAmount 동결
+  amount         Int // floor(baseAmount * 0.02)
+  status         CommissionStatus   @default(PENDING)
+  createdAt      DateTime           @default(now())
+  paidAt         DateTime?
+
+  @@index([referrerUserId, status])
 }
 
 // 싱글턴 (id=1)
 model AppSettings {
-  id                  Int      @id @default(1)
-  autoAssignEnabled   Boolean  @default(false) // 수동 모드가 기본
-  waitMinutesCritical Int      @default(10)
-  waitMinutesUrgent   Int      @default(20)
-  waitMinutesNormal   Int      @default(60)
+  id                       Int        @id @default(1)
+  autoAssignEnabled        Boolean    @default(false) // 수동 모드가 기본
+  waitMinutesCritical      Int        @default(10)
+  waitMinutesUrgent        Int        @default(20)
+  waitMinutesNormal        Int        @default(60)
   // 근로계약서 사업주(고용주) 정보 — 미진전기 고정, 모든 계약서에 자동 기입
-  employerName        String   @default("미진전기")
-  employerCeo         String? // 대표자
-  employerAddress     String?
-  employerPhone       String?
-  employerBizRegNo    String? // 사업자등록번호
+  employerName             String     @default("미진전기")
+  employerCeo              String? // 대표자
+  employerAddress          String?
+  employerPhone            String?
+  employerBizRegNo         String? // 사업자등록번호
   // 회사 서명/직인 이미지 (data URL) — 모든 계약서 사업주 서명란에 자동 삽입
   employerSignatureDataUrl String?
   // 근로형태별 기본 임금 — 계약서 생성 시 자동 기입(관리자 수정 가능, 비우면 "추후 협의")
-  defaultDailyWage    Int? // 일용 기본 일급
-  defaultMonthlyWage  Int? // 상시 기본 월급
-  defaultPayDate      String? // 기본 임금지급일 (예: "매월 25일")
-  defaultPayMethod    PayMethod? // 기본 지급방법
-  updatedAt           DateTime @updatedAt
+  defaultDailyWage         Int? // 일용 기본 일급
+  defaultMonthlyWage       Int? // 상시 기본 월급
+  defaultPayDate           String? // 기본 임금지급일 (예: "매월 25일")
+  defaultPayMethod         PayMethod? // 기본 지급방법
+  updatedAt                DateTime   @updatedAt
 }
 
 model SmsLog {

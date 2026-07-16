@@ -4,11 +4,13 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import PageHeader from '@/components/PageHeader';
 import TechnicianForm, { type TechnicianFormValue } from '@/components/TechnicianForm';
+import ReferrerField, { type ReferrerSelection } from '@/components/ReferrerField';
 
 export default function NewTechnicianPage() {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [referrer, setReferrer] = useState<ReferrerSelection | null>(null);
 
   async function submit(v: TechnicianFormValue) {
     setBusy(true);
@@ -33,6 +35,7 @@ export default function NewTechnicianPage() {
           lat,
           lng,
           memo: v.memo.trim() || null,
+          ...(referrer ? { referrerUserId: referrer.userId } : {}),
         }),
       });
       const data = await res.json();
@@ -51,6 +54,11 @@ export default function NewTechnicianPage() {
   return (
     <main className="min-h-screen">
       <PageHeader title="개인기술자 직접 등록" back="/admin/technicians" />
+
+      <div className="mx-auto w-full max-w-2xl space-y-2 p-4">
+        <label className="text-sm font-semibold">추천인 (선택)</label>
+        <ReferrerField selected={referrer} onSelectedChange={setReferrer} variant="admin" />
+      </div>
 
       <TechnicianForm
         initial={{
