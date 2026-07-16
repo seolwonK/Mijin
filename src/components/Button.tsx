@@ -4,7 +4,7 @@ type Variant = 'primary' | 'secondary' | 'ghost' | 'danger';
 type Size = 'sm' | 'md' | 'lg';
 
 const BASE =
-  'inline-flex items-center justify-center gap-2 rounded-2xl font-bold transition-colors disabled:cursor-not-allowed disabled:opacity-50';
+  'inline-flex items-center justify-center gap-2 rounded-2xl font-bold transition disabled:cursor-not-allowed disabled:opacity-50 enabled:active:scale-[0.98]';
 
 const VARIANT: Record<Variant, string> = {
   // 토스 문법: 버튼은 색 대비만으로 정의 — 그림자 절제(구 shadow-sm 제거).

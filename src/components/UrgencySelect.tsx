@@ -42,10 +42,10 @@ export default function UrgencySelect({
           key={opt.value}
           type="button"
           onClick={() => onChange(opt.value)}
-          className={`rounded-xl border p-3 text-center ${
+          className={`rounded-xl border p-3 text-center transition active:scale-[0.98] ${
             value === opt.value
               ? opt.selectedClass
-              : 'border-border bg-white text-muted'
+              : 'border-border bg-white text-muted hover:border-neutral-300 hover:bg-neutral-50'
           }`}
         >
           <div className="text-base font-bold">{opt.label}</div>

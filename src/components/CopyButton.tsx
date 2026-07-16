@@ -27,7 +27,7 @@ export default function CopyButton({
     <button
       type="button"
       onClick={copy}
-      className="inline-flex min-h-[36px] items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-50 active:bg-gray-100"
+      className="inline-flex min-h-[36px] items-center gap-1.5 rounded-lg border border-border bg-white px-3 py-1.5 text-sm font-medium text-muted transition active:scale-[0.98] hover:bg-neutral-50 active:bg-neutral-100"
     >
       {copied ? (
         '✓ 복사됨'

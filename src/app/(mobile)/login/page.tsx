@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import PageHeader from '@/components/PageHeader';
 import Surface from '@/components/Surface';
 import { BuildingIcon, WrenchIcon, ShieldIcon } from '@/components/icons';
@@ -14,15 +15,31 @@ const ROLES: {
   { href: '/admin/login', Icon: ShieldIcon, title: '관리자', desc: '관리자 로그인' },
 ];
 
+// 블루 프로 배경(딥네이비 케이블+보케, public/images/bg-login.webp — hub-login-bg.png webp 변환,
+// .omc/research/blue-pro/candidates/hub-login-bg.png). 역할 카드(Surface)는 불투명 흰 배경이라
+// 이미지 위에서도 그대로 legible; 네이비 오버레이는 카드 밖 여백에 노출되는 인사말·구분선
+// 텍스트만 흰색 계열로 바꿔 대비를 맞춘다. Next 16: `priority`는 deprecated, `preload={true}` 사용
+// (node_modules/next/dist/docs/01-app/03-api-reference/02-components/image.md).
 export default function LoginHubPage() {
   return (
-    <main className="min-h-screen">
+    <main className="relative isolate min-h-screen overflow-hidden">
+      <Image
+        src="/images/bg-login.webp"
+        alt=""
+        fill
+        sizes="100vw"
+        style={{ objectFit: 'cover' }}
+        preload={true}
+        className="-z-10"
+      />
+      <div className="absolute inset-0 -z-10 bg-brand-950/60" />
+
       <PageHeader title="로그인" back="/" />
 
       <div className="mx-auto w-full max-w-md space-y-3 p-4 md:py-10">
         <div className="px-1 pb-2">
-          <h2 className="text-xl font-bold text-fg">환영합니다</h2>
-          <p className="mt-1 text-sm text-muted">이용하실 계정 유형을 선택해 주세요.</p>
+          <h2 className="text-xl font-bold text-white">환영합니다</h2>
+          <p className="mt-1 text-sm text-white/70">이용하실 계정 유형을 선택해 주세요.</p>
         </div>
 
         {ROLES.map((r) => (
@@ -40,8 +57,8 @@ export default function LoginHubPage() {
           </Surface>
         ))}
 
-        <div className="mt-3 space-y-2 border-t border-border pt-5">
-          <p className="px-1 text-xs font-semibold tracking-wide text-neutral-400 uppercase">
+        <div className="mt-3 space-y-2 border-t border-white/20 pt-5">
+          <p className="px-1 text-xs font-semibold tracking-wide text-white/60 uppercase">
             처음이신가요? 가입하기
           </p>
           <Link

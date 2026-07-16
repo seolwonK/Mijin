@@ -90,7 +90,7 @@ export default function LoginForm({
                 onChange={(e) => setLoginId(e.target.value)}
                 placeholder="아이디"
                 autoComplete="username"
-                className="w-full rounded-admin-md border border-admin-border bg-admin-bg p-3 text-base text-admin-ink placeholder:text-admin-faint focus:border-admin-cyan focus:ring-2 focus:ring-admin-cyan/20 focus:outline-none"
+                className="w-full rounded-admin-md border border-admin-border bg-admin-bg p-3 text-base text-admin-ink placeholder:text-admin-faint transition-colors focus:border-admin-cyan focus:ring-2 focus:ring-admin-cyan/20 focus:outline-none"
               />
             </div>
             <div>
@@ -104,7 +104,7 @@ export default function LoginForm({
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="비밀번호"
                 autoComplete="current-password"
-                className="w-full rounded-admin-md border border-admin-border bg-admin-bg p-3 text-base text-admin-ink placeholder:text-admin-faint focus:border-admin-cyan focus:ring-2 focus:ring-admin-cyan/20 focus:outline-none"
+                className="w-full rounded-admin-md border border-admin-border bg-admin-bg p-3 text-base text-admin-ink placeholder:text-admin-faint transition-colors focus:border-admin-cyan focus:ring-2 focus:ring-admin-cyan/20 focus:outline-none"
               />
             </div>
             {error && (
@@ -115,7 +115,7 @@ export default function LoginForm({
             <button
               type="submit"
               disabled={busy || !loginId || !password}
-              className="flex h-14 w-full items-center justify-center rounded-admin-md bg-admin-cyan text-lg font-bold text-admin-bg transition-opacity enabled:hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+              className="flex h-14 w-full items-center justify-center rounded-admin-md bg-admin-cyan text-lg font-bold text-admin-bg transition disabled:cursor-not-allowed disabled:opacity-50 enabled:hover:opacity-90 enabled:active:scale-[0.98] enabled:active:opacity-80"
             >
               {busy ? '로그인 중…' : '로그인'}
             </button>
@@ -147,7 +147,7 @@ export default function LoginForm({
               onChange={(e) => setLoginId(e.target.value)}
               placeholder="아이디"
               autoComplete="username"
-              className="w-full rounded-xl border border-border p-3 text-base focus:border-brand-500 focus:ring-2 focus:ring-brand-500/15 focus:outline-none"
+              className="w-full rounded-xl border border-border p-3 text-base transition-colors focus:border-brand-500 focus:ring-2 focus:ring-brand-500/15 focus:outline-none"
             />
           </div>
           <div>
@@ -161,7 +161,7 @@ export default function LoginForm({
               onChange={(e) => setPassword(e.target.value)}
               placeholder="비밀번호"
               autoComplete="current-password"
-              className="w-full rounded-xl border border-border p-3 text-base focus:border-brand-500 focus:ring-2 focus:ring-brand-500/15 focus:outline-none"
+              className="w-full rounded-xl border border-border p-3 text-base transition-colors focus:border-brand-500 focus:ring-2 focus:ring-brand-500/15 focus:outline-none"
             />
           </div>
           {error && (

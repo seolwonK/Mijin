@@ -238,14 +238,14 @@ export default function SpeechInput({
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder ?? '예) 안방 콘센트에서 타는 냄새가 나고 전기가 나갔어요'}
         rows={4}
-        className="w-full rounded-xl border border-neutral-300 p-3 text-base focus:border-brand-500 focus:outline-none"
+        className="w-full rounded-xl border border-neutral-300 p-3 text-base transition-colors focus:border-brand-500 focus:ring-2 focus:ring-brand-500/15 focus:outline-none"
       />
       {voiceAvailable && (
         <button
           type="button"
           onClick={toggleListening}
           disabled={preparing}
-          className={`mt-2 flex w-full items-center justify-center gap-2 rounded-xl border p-3 text-base font-medium disabled:opacity-60 ${
+          className={`mt-2 flex w-full items-center justify-center gap-2 rounded-xl border p-3 text-base font-medium transition enabled:active:scale-[0.98] disabled:opacity-60 ${
             listening
               ? 'animate-pulse border-red-300 bg-red-50 text-red-600'
               : 'border-neutral-300 bg-white text-neutral-700'
@@ -284,7 +284,7 @@ export default function SpeechInput({
           <button
             type="button"
             onClick={() => onVoiceChange(null)}
-            className="shrink-0 rounded-lg px-2 py-1 text-sm font-medium text-red-500"
+            className="shrink-0 rounded-lg px-2 py-1 text-sm font-medium text-red-500 transition-colors hover:bg-red-50 active:bg-red-100"
           >
             삭제
           </button>

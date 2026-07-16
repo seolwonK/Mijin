@@ -52,7 +52,7 @@ export default function LocationPicker({
         type="button"
         onClick={locate}
         disabled={status === 'loading'}
-        className="flex w-full items-center justify-center gap-2 rounded-xl border border-brand-300 bg-brand-50 p-3 text-base font-medium text-brand-700 disabled:opacity-60"
+        className="flex w-full items-center justify-center gap-2 rounded-xl border border-brand-300 bg-brand-50 p-3 text-base font-medium text-brand-700 transition disabled:cursor-not-allowed disabled:opacity-60 enabled:hover:bg-brand-100 enabled:active:scale-[0.98] enabled:active:bg-brand-200"
       >
         {status === 'loading' ? (
           '위치 확인 중…'
@@ -83,7 +83,7 @@ export default function LocationPicker({
         value={value.address}
         onChange={(e) => onChange({ ...value, address: e.target.value })}
         placeholder="주소 (예: 서울 강남구 역삼동 ○○아파트 101동)"
-        className="w-full rounded-xl border border-border p-3 text-base focus:border-brand-500 focus:outline-none"
+        className="w-full rounded-xl border border-border p-3 text-base transition-colors focus:border-brand-500 focus:ring-2 focus:ring-brand-500/15 focus:outline-none"
       />
     </div>
   );

@@ -6,7 +6,9 @@ type Tone = 'dark' | 'light';
 const STATUS: Record<string, { label: string; dot: string; dotLight?: string; strike?: boolean }> = {
   RECEIVED: { label: '배정대기', dot: 'bg-admin-faint' },
   ASSIGNED: { label: '배정됨', dot: 'bg-admin-slate' },
-  ACCEPTED: { label: '수락됨', dot: 'bg-admin-cyan', dotLight: 'bg-admin-cyan-ink' },
+  // ACCEPTED: blue-pro 전환으로 admin-cyan이 brand-*와 같은 hue(262)가 되어 "상태=브랜드"
+  // 충돌 발생 — 전용 admin-violet/-violet-ink(hue 300)로 분리(globals.css 참고).
+  ACCEPTED: { label: '수락됨', dot: 'bg-admin-violet', dotLight: 'bg-admin-violet-ink' },
   DISPATCHED: { label: '출동중', dot: 'bg-admin-amber' },
   COMPLETED: { label: '완료', dot: 'bg-admin-emerald' },
   CANCELED: { label: '취소', dot: 'bg-admin-faint', strike: true },

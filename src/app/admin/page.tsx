@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePolling } from '@/components/usePolling';
 import { StatusBadge, UrgencyBadge } from '@/components/StatusBadge';
 import LogoutButton from '@/components/LogoutButton';
@@ -297,6 +298,20 @@ export default function AdminDashboardPage() {
 
       {/* ── 데스크톱(md+) — "관제탑" 커맨드센터 ── */}
       <div className="hidden bg-admin-bg text-admin-ink md:block">
+        {/* 얇은 배너 밴드 — hero-2-bluehour.png(webp) 텍스처, 관제탑 절제 원칙상 이미지는
+            30% 불투명도 + 짙은 네이비 그라데이션으로 거의 질감만 남긴다(텍스트 없음, 정보는
+            아래 AdminMetricStrip이 전담). .omc/research/blue-pro/candidates/hero-2-bluehour.png */}
+        <div className="relative h-16 overflow-hidden border-b border-admin-border">
+          <Image
+            src="/images/banner-admin.webp"
+            alt=""
+            fill
+            sizes="100vw"
+            style={{ objectFit: 'cover' }}
+            className="opacity-30"
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-admin-bg via-admin-bg/85 to-admin-bg/40" />
+        </div>
         <AdminMetricStrip
           metrics={[
             { label: '오늘 접수', value: all.length },

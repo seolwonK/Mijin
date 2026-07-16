@@ -57,7 +57,7 @@ export default function PageHeader({
                 ) : (
                   <Link
                     href={crumb.href}
-                    className="max-w-[6rem] shrink-0 truncate hover:text-brand-600 hover:underline sm:max-w-[10rem]"
+                    className="max-w-[6rem] shrink-0 truncate transition-colors hover:text-brand-600 hover:underline sm:max-w-[10rem]"
                   >
                     {crumb.label}
                   </Link>

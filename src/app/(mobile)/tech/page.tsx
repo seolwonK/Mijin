@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePolling } from '@/components/usePolling';
 import { StatusPill, UrgencyPill } from '@/components/StatusPill';
 import { surfaceClasses } from '@/components/Surface';
@@ -118,6 +119,26 @@ export default function TechHomePage() {
       />
 
       <div className="mx-auto w-full max-w-5xl space-y-6 p-4 md:space-y-8 md:py-8">
+        {/* 배너 밴드 — banner-tech.webp(hero-3-flatlay.png 변환, 공구 플랫레이). 이미지
+            우측의 여백에 텍스트를 얹고, 좌측 공구는 그대로 드러나도록 그라데이션은
+            우측에서 좌측으로 옅어진다(관제탑 밴드와 같은 절제 원칙, 텍스트는 한 줄만). */}
+        <div className="relative -mx-4 h-28 w-[calc(100%+2rem)] overflow-hidden rounded-b-2xl md:mx-0 md:h-36 md:w-full md:rounded-3xl">
+          <Image
+            src="/images/banner-tech.webp"
+            alt=""
+            fill
+            sizes="(min-width: 768px) 64rem, 100vw"
+            style={{ objectFit: 'cover' }}
+            preload={true}
+          />
+          <div className="absolute inset-0 bg-gradient-to-l from-brand-950/90 via-brand-950/35 to-transparent" />
+          <div className="absolute inset-0 flex items-center justify-end px-5 text-right md:px-8">
+            <p className="text-[15px] font-bold text-white md:text-lg">
+              오늘도 안전한 출동 되세요
+            </p>
+          </div>
+        </div>
+
         <div className="flex items-center justify-end gap-1 text-xs text-muted">
           <span>{freshnessLabel(lastUpdatedAt, now)}</span>
           <button

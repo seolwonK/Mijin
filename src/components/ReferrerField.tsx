@@ -11,20 +11,20 @@ type Candidate = { userId: string; maskedName: string; type: '업체' | '기술�
 const VARIANT_CLASS = {
   mobile: {
     input:
-      'w-full rounded-xl border border-border bg-white p-3 text-base text-fg placeholder:text-muted focus:border-brand-500 focus:ring-2 focus:ring-brand-500/15 focus:outline-none',
+      'w-full rounded-xl border border-border bg-white p-3 text-base text-fg placeholder:text-muted transition-colors focus:border-brand-500 focus:ring-2 focus:ring-brand-500/15 focus:outline-none',
     button:
-      'shrink-0 rounded-xl bg-neutral-900 px-4 text-sm font-bold text-white transition-colors enabled:hover:bg-neutral-950 disabled:opacity-50',
+      'shrink-0 rounded-xl bg-neutral-900 px-4 text-sm font-bold text-white transition disabled:opacity-50 enabled:hover:bg-neutral-950 enabled:active:scale-[0.98]',
     candidate:
-      'w-full rounded-xl border border-border p-3 text-left text-sm hover:border-brand-500',
+      'w-full rounded-xl border border-border p-3 text-left text-sm transition-colors hover:border-brand-500',
     chip: 'flex items-center justify-between rounded-xl border border-brand-300 bg-brand-50 p-3',
   },
   admin: {
     input:
-      'w-full rounded-admin-md border border-border p-3 text-base focus:border-admin-cyan-ink focus:outline-none',
+      'w-full rounded-admin-md border border-border p-3 text-base transition-colors focus:border-admin-cyan-ink focus:ring-2 focus:ring-admin-cyan-ink/20 focus:outline-none',
     button:
-      'shrink-0 rounded-admin-md border border-admin-cyan-ink/30 bg-admin-cyan-ink/5 px-4 text-sm font-bold text-admin-cyan-ink disabled:opacity-50',
+      'shrink-0 rounded-admin-md border border-admin-cyan-ink/30 bg-admin-cyan-ink/5 px-4 text-sm font-bold text-admin-cyan-ink transition disabled:opacity-50 enabled:hover:bg-admin-cyan-ink/10 enabled:active:scale-[0.98] enabled:active:bg-admin-cyan-ink/15',
     candidate:
-      'w-full rounded-admin-md border border-border p-3 text-left text-sm hover:border-admin-cyan-ink',
+      'w-full rounded-admin-md border border-border p-3 text-left text-sm transition-colors hover:border-admin-cyan-ink',
     chip: 'flex items-center justify-between rounded-admin-md border border-admin-cyan-ink/30 bg-admin-cyan-ink/5 p-3',
   },
 } as const;
@@ -83,7 +83,7 @@ export default function ReferrerField({
           <button
             type="button"
             onClick={() => onSelectedChange(null)}
-            className="text-xs font-bold text-red-600"
+            className="text-xs font-bold text-red-600 transition-colors hover:text-red-700"
           >
             해제
           </button>

@@ -5,7 +5,7 @@ import { REGIONS, hasSigungu } from '@/lib/regions';
 export type RegionValue = { sido: string; sigungu: string };
 
 const selectClass =
-  'w-full appearance-none rounded-xl border border-border bg-white p-3 text-base focus:border-brand-500 focus:outline-none disabled:bg-neutral-50 disabled:text-neutral-400';
+  'w-full appearance-none rounded-xl border border-border bg-white p-3 text-base transition-colors focus:border-brand-500 focus:ring-2 focus:ring-brand-500/15 focus:outline-none disabled:bg-neutral-50 disabled:text-neutral-400';
 
 // 시/도 + 시/군/구 2단 선택 (수기 입력 대신 드롭다운)
 export default function RegionSelect({
