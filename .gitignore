@@ -30,8 +30,16 @@
 # 업로드 파일 (사업자등록증 등 — 개인정보 포함, 절대 커밋 금지)
 /uploads/
 
-# oh-my-claudecode 로컬 상태
-/.omc/
+# oh-my-claudecode 로컬 상태 (src/.omc 포함)
+.omc/
+
+# 에이전트 런타임/세션 상태
+.gjc/
+.claude/
+
+# Playwright 산출물
+/test-results/
+/playwright-report/
 
 # debug
 npm-debug.log*
