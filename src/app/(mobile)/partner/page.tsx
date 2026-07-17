@@ -11,6 +11,7 @@ import { buttonClasses } from '@/components/Button';
 import LogoutButton from '@/components/LogoutButton';
 import { CardSkeletonGrid } from '@/components/Skeleton';
 import CommissionSummary from '@/components/CommissionSummary';
+import PortalReferralSection from '@/components/PortalReferralSection';
 import PortalStatsCard from '@/components/PortalStatsCard';
 import PortalReviewSection from '@/components/PortalReviewSection';
 import { BellIcon, WrenchIcon, MapPinIcon } from '@/components/icons';
@@ -178,6 +179,8 @@ export default function PartnerHomePage() {
             )}
           </section>
         )}
+
+        <PortalReferralSection url="/api/partner/referrals" />
 
         <CommissionSummary url="/api/partner/commissions" />
 

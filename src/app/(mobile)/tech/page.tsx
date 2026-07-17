@@ -10,6 +10,7 @@ import LogoutButton from '@/components/LogoutButton';
 import PageHeader from '@/components/PageHeader';
 import { Skeleton, CardSkeletonGrid } from '@/components/Skeleton';
 import CommissionSummary from '@/components/CommissionSummary';
+import PortalReferralSection from '@/components/PortalReferralSection';
 import PortalStatsCard from '@/components/PortalStatsCard';
 import PortalReviewSection from '@/components/PortalReviewSection';
 import { MapPinIcon, BellIcon, WrenchIcon, ClipboardIcon, RefreshIcon } from '@/components/icons';
@@ -258,6 +259,8 @@ export default function TechHomePage() {
             )}
           </section>
         )}
+
+        <PortalReferralSection url="/api/tech/referrals" />
 
         <CommissionSummary url="/api/tech/commissions" />
 
