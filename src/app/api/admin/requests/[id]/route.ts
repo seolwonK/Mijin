@@ -11,19 +11,32 @@ export async function GET(
   if (!session) return NextResponse.json({ error: '권한이 없습니다' }, { status: 401 });
 
   const { id } = await params;
-  const request = await prisma.serviceRequest.findUnique({
-    where: { id },
-    include: {
-      assignments: {
-        orderBy: { createdAt: 'desc' },
-        include: ASSIGNEE_INCLUDE,
+  const [request, settings] = await Promise.all([
+    prisma.serviceRequest.findUnique({
+      where: { id },
+      include: {
+        assignments: {
+          orderBy: { createdAt: 'desc' },
+          include: ASSIGNEE_INCLUDE,
+        },
+        survey: true,
       },
-      survey: true,
-    },
-  });
+    }),
+    prisma.appSettings.findUnique({ where: { id: 1 } }),
+  ]);
   if (!request) {
     return NextResponse.json({ error: '접수를 찾을 수 없습니다' }, { status: 404 });
   }
+
+  // 카운트다운 원천(A-5, additive) — 긴급도→AppSettings.waitMinutes{Critical|Urgent|Normal}
+  // 컬럼 매핑(autoAssign.ts:12-16과 동일한 매핑, matching.ts/autoAssign.ts는 무접촉).
+  const waitMinutesByUrgency = settings
+    ? {
+        CRITICAL: settings.waitMinutesCritical,
+        URGENT: settings.waitMinutesUrgent,
+        NORMAL: settings.waitMinutesNormal,
+      }
+    : null;
 
   return NextResponse.json({
     id: request.id,
@@ -40,6 +53,8 @@ export async function GET(
     address: request.address,
     needsAttention: request.needsAttention,
     assignBaseAt: request.assignBaseAt,
+    autoAssignEnabled: settings?.autoAssignEnabled ?? false,
+    waitMinutes: waitMinutesByUrgency ? waitMinutesByUrgency[request.urgency] : null,
     createdAt: request.createdAt,
     completedAt: request.completedAt,
     assignments: request.assignments.map((a) => ({

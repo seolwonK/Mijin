@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import PageHeader from '@/components/PageHeader';
@@ -10,6 +11,8 @@ import { buttonClasses } from '@/components/Button';
 import LogoutButton from '@/components/LogoutButton';
 import { CardSkeletonGrid } from '@/components/Skeleton';
 import CommissionSummary from '@/components/CommissionSummary';
+import PortalStatsCard from '@/components/PortalStatsCard';
+import PortalReviewSection from '@/components/PortalReviewSection';
 import { BellIcon, WrenchIcon, MapPinIcon } from '@/components/icons';
 
 type Job = {
@@ -61,7 +64,10 @@ function JobCard({ job, highlight }: { job: Job; highlight?: boolean }) {
   );
 }
 
+const PAST_TOP_N = 20;
+
 export default function PartnerHomePage() {
+  const [showAllPast, setShowAllPast] = useState(false);
   const { data, error } = usePolling<{ jobs: Job[] }>('/api/partner/jobs', 5_000);
   const jobs = data?.jobs ?? [];
   const loading = !data && !error;
@@ -73,6 +79,7 @@ export default function PartnerHomePage() {
       (j.request.status === 'ACCEPTED' || j.request.status === 'DISPATCHED'),
   );
   const past = jobs.filter((j) => !waiting.includes(j) && !inProgress.includes(j));
+  const visiblePast = showAllPast ? past : past.slice(0, PAST_TOP_N);
 
   return (
     <main className="min-h-screen">
@@ -111,6 +118,8 @@ export default function PartnerHomePage() {
         </div>
 
         {error && <p className="text-sm text-red-600">{error}</p>}
+
+        <PortalStatsCard url="/api/partner/stats" />
 
         <section>
           <h2 className="mb-2 flex items-center gap-1.5 font-semibold text-brand-700">
@@ -154,14 +163,25 @@ export default function PartnerHomePage() {
           <section>
             <h2 className="mb-2 font-semibold text-muted">지난 내역</h2>
             <div className="space-y-2 opacity-70 md:grid md:grid-cols-2 md:gap-3 md:space-y-0 xl:grid-cols-3">
-              {past.slice(0, 20).map((j) => (
+              {visiblePast.map((j) => (
                 <JobCard key={j.id} job={j} />
               ))}
             </div>
+            {past.length > PAST_TOP_N && (
+              <button
+                type="button"
+                onClick={() => setShowAllPast((v) => !v)}
+                className="mt-2 w-full text-center text-xs font-semibold text-muted hover:underline"
+              >
+                {showAllPast ? '접기' : `전체 보기 (${past.length}건)`}
+              </button>
+            )}
           </section>
         )}
 
         <CommissionSummary url="/api/partner/commissions" />
+
+        <PortalReviewSection url="/api/partner/reviews" />
       </div>
     </main>
   );

@@ -10,6 +10,8 @@ import LogoutButton from '@/components/LogoutButton';
 import PageHeader from '@/components/PageHeader';
 import { Skeleton, CardSkeletonGrid } from '@/components/Skeleton';
 import CommissionSummary from '@/components/CommissionSummary';
+import PortalStatsCard from '@/components/PortalStatsCard';
+import PortalReviewSection from '@/components/PortalReviewSection';
 import { MapPinIcon, BellIcon, WrenchIcon, ClipboardIcon, RefreshIcon } from '@/components/icons';
 
 // lastUpdatedAt(마지막 성공 갱신 시각)을 "방금 확인 / n초 전 확인" 문구로 변환.
@@ -71,7 +73,10 @@ function JobCard({ job, highlight }: { job: Job; highlight?: boolean }) {
   );
 }
 
+const PAST_TOP_N = 20;
+
 export default function TechHomePage() {
+  const [showAllPast, setShowAllPast] = useState(false);
   const { data, error, refresh, lastUpdatedAt } = usePolling<{ jobs: Job[] }>(
     '/api/tech/jobs',
     5_000,
@@ -109,6 +114,7 @@ export default function TechHomePage() {
       (j.request.status === 'ACCEPTED' || j.request.status === 'DISPATCHED'),
   );
   const past = jobs.filter((j) => !waiting.includes(j) && !inProgress.includes(j));
+  const visiblePast = showAllPast ? past : past.slice(0, PAST_TOP_N);
 
   return (
     <main className="min-h-screen">
@@ -193,6 +199,8 @@ export default function TechHomePage() {
           </Link>
         )}
 
+        <PortalStatsCard url="/api/tech/stats" />
+
         <section>
           <h2 className="mb-2 flex items-center gap-1.5 font-semibold text-brand-700">
             <BellIcon className="h-4 w-4" />
@@ -235,14 +243,25 @@ export default function TechHomePage() {
           <section>
             <h2 className="mb-2 font-semibold text-muted">지난 내역</h2>
             <div className="space-y-2 opacity-70 md:grid md:grid-cols-2 md:gap-3 md:space-y-0 xl:grid-cols-3">
-              {past.slice(0, 20).map((j) => (
+              {visiblePast.map((j) => (
                 <JobCard key={j.id} job={j} />
               ))}
             </div>
+            {past.length > PAST_TOP_N && (
+              <button
+                type="button"
+                onClick={() => setShowAllPast((v) => !v)}
+                className="mt-2 w-full text-center text-xs font-semibold text-muted hover:underline"
+              >
+                {showAllPast ? '접기' : `전체 보기 (${past.length}건)`}
+              </button>
+            )}
           </section>
         )}
 
         <CommissionSummary url="/api/tech/commissions" />
+
+        <PortalReviewSection url="/api/tech/reviews" />
       </div>
     </main>
   );

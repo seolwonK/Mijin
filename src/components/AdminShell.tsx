@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { usePolling } from '@/components/usePolling';
 import LogoutButton from '@/components/LogoutButton';
-import { GridIcon, BuildingIcon, WrenchIcon, GearIcon, WonIcon } from '@/components/icons';
+import { GridIcon, BuildingIcon, WrenchIcon, GearIcon, WonIcon, RefreshIcon } from '@/components/icons';
 
 // "관제탑"(B) 관리자 셸 — 기존 AdminSidebar(세로 리스트)를 상단 탭 + 아이콘 레일로 대체한다.
 // admin-* 다크 토큰은 이 셸(및 AdminDataTable/AdminInspector/AdminMetricStrip)에서만 쓴다 —
@@ -16,6 +16,7 @@ const NAV = [
   { href: '/admin', label: '대시보드', Icon: GridIcon },
   { href: '/admin/providers', label: '업체 관리', Icon: BuildingIcon },
   { href: '/admin/technicians', label: '기술자 관리', Icon: WrenchIcon },
+  { href: '/admin/rotation', label: '순환 현황', Icon: RefreshIcon },
   { href: '/admin/commissions', label: '정산', Icon: WonIcon },
   { href: '/admin/settings', label: '설정', Icon: GearIcon },
 ];
