@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import PageHeader from '@/components/PageHeader';
+import PasswordInput from '@/components/PasswordInput';
 import { buttonClasses } from '@/components/Button';
 import RegionSelect, { type RegionValue } from '@/components/RegionSelect';
 import RegionMultiSelect from '@/components/RegionMultiSelect';
@@ -103,8 +104,10 @@ export default function TechSignupPage() {
     e.preventDefault();
     setError(null);
     if (!verificationId) return fail('휴대폰 본인인증을 완료해 주세요');
-    if (!loginId.trim()) return fail('로그인 아이디를 입력해 주세요', 'tech-loginId');
-    if (!password) return fail('비밀번호를 입력해 주세요', 'tech-password');
+    if (loginId.trim().length < 3)
+      return fail('로그인 아이디를 3자 이상 입력해 주세요', 'tech-loginId');
+    if (password.length < 8)
+      return fail('비밀번호를 8자 이상 입력해 주세요', 'tech-password');
     if (!employmentType) return fail('근로 형태를 선택해 주세요');
     if (!regionComplete) return fail('거주 지역을 선택해 주세요');
     if (!addrDetail.trim()) return fail('상세 주소를 입력해 주세요', 'tech-addr');
@@ -186,14 +189,11 @@ export default function TechSignupPage() {
             autoComplete="username"
             className={inputClass}
           />
-          <input
-            type="password"
+          <PasswordInput
             value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            onChange={setPassword}
             id="tech-password"
-            aria-label="비밀번호"
             placeholder="비밀번호 (8자 이상)"
-            autoComplete="new-password"
             className={inputClass}
           />
         </section>

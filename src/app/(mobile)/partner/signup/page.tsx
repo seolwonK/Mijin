@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import PageHeader from '@/components/PageHeader';
+import PasswordInput from '@/components/PasswordInput';
 import Surface from '@/components/Surface';
 import { buttonClasses } from '@/components/Button';
 import RegionSelect, { type RegionValue } from '@/components/RegionSelect';
@@ -40,6 +41,8 @@ export default function PartnerSignupPage() {
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
+    if (loginId.trim().length < 3) return setError('로그인 아이디를 3자 이상 입력해 주세요');
+    if (password.length < 8) return setError('비밀번호를 8자 이상 입력해 주세요');
     if (!regionComplete) return setError('사업장 지역을 선택해 주세요');
     if (!file) return setError('사업자등록증 사진을 첨부해 주세요');
     if (!agreed) return setError('개인정보 수집·이용에 동의해 주세요');
@@ -118,13 +121,10 @@ export default function PartnerSignupPage() {
             autoComplete="username"
             className={inputClass}
           />
-          <input
-            type="password"
+          <PasswordInput
             value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            aria-label="비밀번호"
+            onChange={setPassword}
             placeholder="비밀번호 (8자 이상)"
-            autoComplete="new-password"
             className={inputClass}
           />
         </Surface>

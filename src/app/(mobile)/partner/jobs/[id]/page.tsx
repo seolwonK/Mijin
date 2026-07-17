@@ -7,6 +7,7 @@ import { StatusPill, UrgencyPill } from '@/components/StatusPill';
 import Surface from '@/components/Surface';
 import { buttonClasses } from '@/components/Button';
 import { Skeleton, CardSkeleton } from '@/components/Skeleton';
+import ResponseDeadlineNote from '@/components/ResponseDeadlineNote';
 import { CheckIcon, MapPinIcon, PhoneIcon, TruckIcon } from '@/components/icons';
 
 type JobDetail = {
@@ -115,6 +116,7 @@ export default function PartnerJobDetailPage({
             </span>
           )}
         </div>
+        {canRespond && <ResponseDeadlineNote assignedAt={job.createdAt} urgency={r.urgency} />}
 
         <Surface as="section" className="rounded-2xl p-4 md:col-span-2 md:p-5">
           <h2 className="mb-1 text-sm text-muted">고장 내용</h2>
@@ -128,15 +130,26 @@ export default function PartnerJobDetailPage({
           <h2 className="mb-1 text-sm text-muted">위치</h2>
           <p>{r.address ?? '주소 미확인'}</p>
           {r.lat != null && r.lng != null && (
-            <a
-              href={`https://map.kakao.com/link/map/고객위치,${r.lat},${r.lng}`}
-              target="_blank"
-              rel="noreferrer"
-              className="mt-2 inline-flex items-center gap-1.5 rounded-lg bg-yellow-400 px-3 py-1.5 text-sm font-bold text-neutral-900"
-            >
-              <MapPinIcon className="h-4 w-4" />
-              카카오맵에서 보기
-            </a>
+            <div className="mt-2 flex flex-wrap gap-2">
+              <a
+                href={`https://map.kakao.com/link/map/고객위치,${r.lat},${r.lng}`}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-1.5 rounded-lg bg-yellow-400 px-3 py-1.5 text-sm font-bold text-neutral-900"
+              >
+                <MapPinIcon className="h-4 w-4" />
+                지도 보기
+              </a>
+              <a
+                href={`https://map.kakao.com/link/to/고객위치,${r.lat},${r.lng}`}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-1.5 rounded-lg bg-yellow-400 px-3 py-1.5 text-sm font-bold text-neutral-900"
+              >
+                <TruckIcon className="h-4 w-4" />
+                길찾기
+              </a>
+            </div>
           )}
         </Surface>
 

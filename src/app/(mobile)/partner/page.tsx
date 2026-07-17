@@ -14,6 +14,7 @@ import CommissionSummary from '@/components/CommissionSummary';
 import PortalReferralSection from '@/components/PortalReferralSection';
 import PortalStatsCard from '@/components/PortalStatsCard';
 import PortalReviewSection from '@/components/PortalReviewSection';
+import { useNewJobAlert } from '@/components/useNewJobAlert';
 import { BellIcon, WrenchIcon, MapPinIcon } from '@/components/icons';
 
 type Job = {
@@ -74,6 +75,12 @@ export default function PartnerHomePage() {
   const loading = !data && !error;
 
   const waiting = jobs.filter((j) => j.status === 'REQUESTED');
+  // 새 배정 알림(#6) — 탭 타이틀 배지 + 새 건 도착 시 비프·진동·(허용 시) 브라우저 알림.
+  const { notifPermission, enableNotifications } = useNewJobAlert({
+    waitingIds: waiting.map((j) => j.id),
+    ready: !!data,
+    baseTitle: '업체 포털',
+  });
   const inProgress = jobs.filter(
     (j) =>
       j.status === 'ACCEPTED' &&
@@ -119,6 +126,19 @@ export default function PartnerHomePage() {
         </div>
 
         {error && <p className="text-sm text-red-600">{error}</p>}
+
+        {notifPermission === 'default' && (
+          <div className="flex justify-end">
+            <button
+              type="button"
+              onClick={enableNotifications}
+              className="inline-flex items-center gap-1 rounded-full bg-brand-50 px-3 py-1.5 text-xs font-semibold text-brand-700 transition-colors hover:bg-brand-100"
+            >
+              <BellIcon className="h-3.5 w-3.5" />
+              새 배정 브라우저 알림 켜기
+            </button>
+          </div>
+        )}
 
         <PortalStatsCard url="/api/partner/stats" />
 

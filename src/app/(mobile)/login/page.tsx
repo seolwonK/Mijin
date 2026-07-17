@@ -2,7 +2,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import PageHeader from '@/components/PageHeader';
 import Surface from '@/components/Surface';
-import { BuildingIcon, WrenchIcon, ShieldIcon } from '@/components/icons';
+import { BuildingIcon, WrenchIcon } from '@/components/icons';
 
 const ROLES: {
   href: string;
@@ -12,7 +12,7 @@ const ROLES: {
 }[] = [
   { href: '/partner/login', Icon: BuildingIcon, title: '업체', desc: '출동 업체 로그인' },
   { href: '/tech/login', Icon: WrenchIcon, title: '개인기술자', desc: '기술자 로그인' },
-  { href: '/admin/login', Icon: ShieldIcon, title: '관리자', desc: '관리자 로그인' },
+  // 관리자 로그인은 /admin/login 직접 접근 — 고객용 허브에는 노출하지 않는다(불필요한 공격면·혼란 제거).
 ];
 
 // 블루 프로 배경(딥네이비 케이블+보케, public/images/bg-login.webp — hub-login-bg.png webp 변환,
@@ -34,7 +34,7 @@ export default function LoginHubPage() {
       />
       <div className="absolute inset-0 -z-10 bg-brand-950/60" />
 
-      <PageHeader title="로그인" back="/" />
+      <PageHeader title="로그인" back="/" variant="overlay" />
 
       <div className="mx-auto w-full max-w-md space-y-3 p-4 md:py-10">
         <div className="px-1 pb-2">

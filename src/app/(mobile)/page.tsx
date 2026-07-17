@@ -209,9 +209,6 @@ export default function Home() {
             </Surface>
           ))}
         </div>
-        <div className="mt-5">
-          <SectionCta />
-        </div>
       </section>
 
       {/* §4 신뢰 요소 */}
@@ -311,7 +308,7 @@ export default function Home() {
           href="/login"
           className="inline-block rounded-full px-4 py-2 text-sm font-medium text-muted transition-colors hover:bg-white hover:text-fg"
         >
-          업체 · 개인기술자 · 관리자 로그인 →
+          업체 · 개인기술자 로그인 →
         </Link>
       </div>
     </main>

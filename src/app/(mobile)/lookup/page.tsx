@@ -133,21 +133,23 @@ export default function LookupPage() {
     }
   }
 
-  // 접수완료 화면에서 넘어온 ?phone= 또는 지난 조회 번호가 있으면 자동으로 채우고 바로 조회한다.
+  // ?phone=(접수완료 화면에서 이동)은 명시적 의도이므로 채우고 바로 조회한다.
+  // localStorage의 지난 번호는 채우기만 한다 — 공용 기기에서 이전 사용자의 접수 내역이
+  // 자동 노출되는 것을 막기 위해 조회는 버튼으로만 실행한다.
   useEffect(() => {
-    let initial: string | null = null;
     try {
-      initial =
-        new URLSearchParams(window.location.search).get('phone') ||
-        localStorage.getItem('lookup_phone');
+      const fromQuery = new URLSearchParams(window.location.search).get('phone');
+      if (fromQuery) {
+        // 마운트 시 1회 자동 채움·조회 (앱 전반의 usePolling 패턴과 동일)
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setPhone(fromQuery);
+        lookup(false, fromQuery);
+        return;
+      }
+      const remembered = localStorage.getItem('lookup_phone');
+      if (remembered) setPhone(remembered);
     } catch {
-      initial = null;
-    }
-    if (initial) {
-      // 마운트 시 1회 자동 채움·조회 (앱 전반의 usePolling 패턴과 동일)
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setPhone(initial);
-      lookup(false, initial);
+      /* 무시 */
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -167,7 +169,8 @@ export default function LookupPage() {
     <main className="min-h-screen">
       <PageHeader title="접수 내역 조회" back="/" width="max-w-2xl" />
 
-      <div className="mx-auto w-full max-w-2xl space-y-4 p-4 md:space-y-5 md:py-8">
+      {/* pb-28: FloatingDock(fixed bottom-5)이 마지막 카드·"새로 접수하기" 링크를 가리지 않도록 */}
+      <div className="mx-auto w-full max-w-2xl space-y-4 p-4 pb-28 md:space-y-5 md:py-8 md:pb-24">
         <form
           className="flex flex-col gap-2 md:rounded-2xl md:bg-white md:p-5 md:shadow-surface-sm"
           onSubmit={(e) => {

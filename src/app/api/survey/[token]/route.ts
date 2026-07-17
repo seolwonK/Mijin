@@ -22,11 +22,15 @@ function rateLimited(ip: string): boolean {
 
 const submitSchema = z.object({
   rating: z.number().int('별점을 선택해 주세요').min(1, '별점을 선택해 주세요').max(5, '별점은 5점까지입니다'),
+  // 지불 금액은 선택 입력 — null/생략 시 수수료 적립 없이 제출만 기록한다
+  // (accrueCommissionForSurvey가 paidAmount == null 이면 스킵, 스키마도 Int?).
   paidAmount: z
     .number()
     .int('지불 금액을 정확히 입력해 주세요')
     .min(0, '지불 금액을 정확히 입력해 주세요')
-    .max(100_000_000, '지불 금액이 너무 큽니다'),
+    .max(100_000_000, '지불 금액이 너무 큽니다')
+    .nullable()
+    .optional(),
   comment: z.string().max(500, '후기는 500자 이내로 입력해 주세요').optional(),
 });
 
@@ -84,7 +88,7 @@ export async function POST(
     data: {
       rating: parsed.data.rating,
       comment: parsed.data.comment || null,
-      paidAmount: parsed.data.paidAmount,
+      paidAmount: parsed.data.paidAmount ?? null,
       submittedAt: new Date(),
     },
   });

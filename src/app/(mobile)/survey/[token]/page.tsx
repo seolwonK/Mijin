@@ -102,11 +102,20 @@ export default function SurveyPage({ params }: { params: Promise<{ token: string
   }, [token]);
 
   const amount = amountDigits ? Number(amountDigits) : null;
-  const amountValid = amount != null && amount >= 0 && amount <= 100_000_000;
-  const canSubmit = rating != null && amountValid && !busy;
+  // 금액은 선택 입력 — 입력했을 때만 범위를 검증한다.
+  const amountValid = amount == null || (amount >= 0 && amount <= 100_000_000);
+
+  // 유효성 실패 시 안내 + 해당 위치로 스크롤 (request/new의 fail 패턴과 동일 계열)
+  function fail(msg: string, id?: string) {
+    setError(msg);
+    const el = id ? document.getElementById(id) : null;
+    el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
 
   async function submit() {
-    if (!canSubmit) return;
+    if (busy) return;
+    if (rating == null) return fail('별점을 선택해 주세요', 'survey-rating');
+    if (!amountValid) return fail('지불 금액을 확인해 주세요', 'survey-amount');
     setError(null);
     setBusy(true);
     try {
@@ -211,7 +220,7 @@ export default function SurveyPage({ params }: { params: Promise<{ token: string
             )}
           </section>
 
-          <section className="md:rounded-2xl md:bg-white md:p-6 md:shadow-surface-sm">
+          <section id="survey-rating" className="md:rounded-2xl md:bg-white md:p-6 md:shadow-surface-sm">
             <h3 className="mb-3 text-center text-base font-bold text-fg">
               서비스에 만족하셨나요? <span className="text-red-500">*</span>
               <span className="sr-only"> 필수</span>
@@ -232,11 +241,13 @@ export default function SurveyPage({ params }: { params: Promise<{ token: string
             <p className="mt-1 text-right text-xs text-muted">{comment.length}/500</p>
           </section>
 
-          <section className="md:rounded-2xl md:bg-white md:p-6 md:shadow-surface-sm">
+          <section id="survey-amount" className="md:rounded-2xl md:bg-white md:p-6 md:shadow-surface-sm">
             <h3 className="mb-2 text-base font-bold text-fg">
-              실제 지불 금액 <span className="text-red-500">*</span>
-              <span className="sr-only"> 필수</span>
+              실제 지불 금액 <span className="font-normal text-muted">(선택)</span>
             </h3>
+            <p className="mb-2 text-xs text-muted">
+              지불하신 금액을 알려 주시면 서비스 품질 관리에 활용됩니다.
+            </p>
             <div className="relative">
               <input
                 type="text"
@@ -268,7 +279,7 @@ export default function SurveyPage({ params }: { params: Promise<{ token: string
         <div className="fixed bottom-0 left-1/2 w-full max-w-md -translate-x-1/2 border-t border-border bg-white px-4 pt-4 pb-[calc(1rem+env(safe-area-inset-bottom))] md:static md:left-auto md:mx-auto md:max-w-lg md:translate-x-0 md:border-t-0 md:bg-transparent md:px-4 md:pt-0 md:pb-12">
           <button
             type="submit"
-            disabled={!canSubmit}
+            disabled={busy}
             className={buttonClasses('primary', 'lg', 'w-full')}
           >
             {busy ? '제출 중…' : '제출하기'}

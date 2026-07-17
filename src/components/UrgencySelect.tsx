@@ -36,11 +36,13 @@ export default function UrgencySelect({
   onChange: (v: UrgencyValue) => void;
 }) {
   return (
-    <div className="grid grid-cols-3 gap-2">
+    <div role="radiogroup" aria-label="긴급도" className="grid grid-cols-3 gap-2">
       {OPTIONS.map((opt) => (
         <button
           key={opt.value}
           type="button"
+          role="radio"
+          aria-checked={value === opt.value}
           onClick={() => onChange(opt.value)}
           className={`rounded-xl border p-3 text-center transition active:scale-[0.98] ${
             value === opt.value

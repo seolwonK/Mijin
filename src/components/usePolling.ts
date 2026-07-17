@@ -46,9 +46,21 @@ export function usePolling<T>(url: string | null, intervalMs: number) {
   }, [url, router]);
 
   useEffect(() => {
+    // 마운트 시 1회 즉시 갱신 (survey/lookup의 load() 패턴과 동일)
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     refresh();
-    const timer = setInterval(refresh, intervalMs);
-    return () => clearInterval(timer);
+    // 백그라운드 탭에서는 폴링을 쉬고(배터리·서버 절약), 복귀 즉시 한 번 갱신한다.
+    const timer = setInterval(() => {
+      if (!document.hidden) refresh();
+    }, intervalMs);
+    const onVisible = () => {
+      if (!document.hidden) refresh();
+    };
+    document.addEventListener('visibilitychange', onVisible);
+    return () => {
+      clearInterval(timer);
+      document.removeEventListener('visibilitychange', onVisible);
+    };
   }, [refresh, intervalMs]);
 
   return { data, error, refresh, lastUpdatedAt };

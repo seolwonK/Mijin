@@ -29,11 +29,20 @@ export default function NewRequestPage() {
     try {
       const raw = sessionStorage.getItem('req_draft');
       if (!raw) return;
-      const d = JSON.parse(raw) as { description?: string; name?: string; phone?: string };
+      const d = JSON.parse(raw) as {
+        description?: string;
+        name?: string;
+        phone?: string;
+        urgency?: UrgencyValue;
+        location?: LocationValue;
+      };
       queueMicrotask(() => {
         if (d.description) setDescription(d.description);
         if (d.name) setName(d.name);
         if (d.phone) setPhone(d.phone);
+        if (d.urgency) setUrgency(d.urgency);
+        if (d.location && (d.location.address || d.location.lat != null))
+          setLocation(d.location);
       });
     } catch {
       /* 무시 */
@@ -41,12 +50,16 @@ export default function NewRequestPage() {
   }, []);
   useEffect(() => {
     try {
-      if (description || name || phone)
-        sessionStorage.setItem('req_draft', JSON.stringify({ description, name, phone }));
+      // 음성 blob은 직렬화 대상이 아님 — 나머지 입력(긴급도·위치 포함)은 모두 복원한다.
+      if (description || name || phone || urgency || location.address || location.lat != null)
+        sessionStorage.setItem(
+          'req_draft',
+          JSON.stringify({ description, name, phone, urgency, location }),
+        );
     } catch {
       /* 무시 */
     }
-  }, [description, name, phone]);
+  }, [description, name, phone, urgency, location]);
 
   // 유효성 실패 시 안내 + 해당 위치로 스크롤·포커스
   function fail(msg: string, id?: string) {
@@ -66,7 +79,7 @@ export default function NewRequestPage() {
     if (!name.trim()) return fail('이름을 입력해 주세요', 'req-name');
     if (!/^0\d{8,10}$/.test(phone.replace(/\D/g, '')))
       return fail('전화번호를 확인해 주세요', 'req-phone');
-    if (!agreed) return fail('개인정보 수집·이용에 동의해 주세요');
+    if (!agreed) return fail('개인정보 수집·이용에 동의해 주세요', 'req-agree');
 
     setBusy(true);
     try {
@@ -182,6 +195,7 @@ export default function NewRequestPage() {
         <label className="flex items-start gap-2 text-sm text-neutral-600">
           <input
             type="checkbox"
+            id="req-agree"
             checked={agreed}
             onChange={(e) => setAgreed(e.target.checked)}
             className="mt-0.5 h-4 w-4 accent-brand-600"

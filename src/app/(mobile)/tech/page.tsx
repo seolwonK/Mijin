@@ -13,6 +13,7 @@ import CommissionSummary from '@/components/CommissionSummary';
 import PortalReferralSection from '@/components/PortalReferralSection';
 import PortalStatsCard from '@/components/PortalStatsCard';
 import PortalReviewSection from '@/components/PortalReviewSection';
+import { useNewJobAlert } from '@/components/useNewJobAlert';
 import { MapPinIcon, BellIcon, WrenchIcon, ClipboardIcon, RefreshIcon } from '@/components/icons';
 
 // lastUpdatedAt(마지막 성공 갱신 시각)을 "방금 확인 / n초 전 확인" 문구로 변환.
@@ -109,6 +110,12 @@ export default function TechHomePage() {
   }
 
   const waiting = jobs.filter((j) => j.status === 'REQUESTED');
+  // 새 배정 알림(#6) — 탭 타이틀 배지 + 새 건 도착 시 비프·진동·(허용 시) 브라우저 알림.
+  const { notifPermission, enableNotifications } = useNewJobAlert({
+    waitingIds: waiting.map((j) => j.id),
+    ready: !!data,
+    baseTitle: '기술자 포털',
+  });
   const inProgress = jobs.filter(
     (j) =>
       j.status === 'ACCEPTED' &&
@@ -147,6 +154,16 @@ export default function TechHomePage() {
         </div>
 
         <div className="flex items-center justify-end gap-1 text-xs text-muted">
+          {notifPermission === 'default' && (
+            <button
+              type="button"
+              onClick={enableNotifications}
+              className="mr-auto inline-flex items-center gap-1 rounded-full bg-brand-50 px-3 py-1.5 font-semibold text-brand-700 transition-colors hover:bg-brand-100"
+            >
+              <BellIcon className="h-3.5 w-3.5" />
+              새 배정 브라우저 알림 켜기
+            </button>
+          )}
           <span>{freshnessLabel(lastUpdatedAt, now)}</span>
           <button
             type="button"
