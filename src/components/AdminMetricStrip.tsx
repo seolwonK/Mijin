@@ -6,32 +6,36 @@ export type Metric = {
   sub?: string;
 };
 
+const VALUE_COLOR = {
+  default: '',
+  warn: 'text-red-600',
+  accent: 'text-admin-cyan-ink',
+} as const;
+
 export default function AdminMetricStrip({ metrics }: { metrics: Metric[] }) {
   return (
     <div
-      className="grid border-b border-admin-border bg-admin-bg text-admin-ink"
+      className="grid bg-white text-fg"
       style={{ gridTemplateColumns: `repeat(${metrics.length}, minmax(0, 1fr))` }}
     >
       {metrics.map((m, i) => (
         <div
           key={m.label}
-          className={`px-5 py-3 ${i < metrics.length - 1 ? 'border-r border-admin-border' : ''}`}
+          className={`px-5 py-3 ${i < metrics.length - 1 ? 'border-r border-border' : ''}`}
         >
-          <p className="font-mono text-[10px] tracking-wide text-admin-faint uppercase">
+          <p className="font-mono text-[10px] tracking-wide text-muted uppercase md:text-[11px]">
             {m.label}
           </p>
           <p
-            className={`mt-1 font-mono text-[22px] font-bold ${
-              m.tone === 'warn'
-                ? 'text-admin-red'
-                : m.tone === 'accent'
-                  ? 'text-admin-cyan'
-                  : ''
-            }`}
+            className={`mt-1 font-mono text-[22px] font-bold ${VALUE_COLOR[m.tone ?? 'default']}`}
           >
             {m.value}
           </p>
-          {m.sub && <p className="mt-0.5 text-[10.5px] text-admin-dim">{m.sub}</p>}
+          {m.sub && (
+            <p className="mt-0.5 text-[10.5px] text-muted">
+              {m.sub}
+            </p>
+          )}
         </div>
       ))}
     </div>

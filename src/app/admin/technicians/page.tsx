@@ -27,15 +27,17 @@ const EMPLOYMENT_LABEL: Record<string, string> = {
   DAILY: '일일',
   PERMANENT: '상시',
 };
+// SUBMITTED = 기술자가 서명을 제출하고 관리자 확정을 기다리는 상태(schema.prisma ContractStatus)
+// — "서명 전"으로 뭉개면 관리자가 확정할 일이 있다는 사실이 목록에서 보이지 않는다.
 const CONTRACT_LABEL: Record<string, string> = {
   DRAFT: '서명 전',
-  SUBMITTED: '서명 전',
+  SUBMITTED: '확정 대기 (관리자 확인 필요)',
   CONFIRMED: '서명 완료 (배정 가능)',
 };
 
 type Col = 'name' | 'employmentType' | 'loginId' | 'phone' | 'contractStatus' | 'status';
 
-// "관제탑"(B) B-라이트 롤아웃 — providers/page.tsx와 동일 패턴(AdminDataTable tone="light").
+// "관제탑"(B) B-라이트 롤아웃 — providers/page.tsx와 동일한 AdminDataTable 패턴.
 export default function AdminTechniciansPage() {
   const { data, error, refresh } = usePolling<{ technicians: TechnicianRow[] }>(
     '/api/admin/technicians',
@@ -109,7 +111,15 @@ export default function AdminTechniciansPage() {
       label: '근로계약',
       width: '180px',
       render: (t) => (
-        <span className={t.contractStatus === 'CONFIRMED' ? 'font-medium text-green-700' : 'text-muted'}>
+        <span
+          className={
+            t.contractStatus === 'CONFIRMED'
+              ? 'font-medium text-green-700'
+              : t.contractStatus === 'SUBMITTED'
+                ? 'font-bold text-amber-700'
+                : 'text-muted'
+          }
+        >
           {t.contractStatus ? CONTRACT_LABEL[t.contractStatus] : '미작성'}
         </span>
       ),
@@ -210,7 +220,6 @@ export default function AdminTechniciansPage() {
           {!loading && approved.length > 0 && (
             <div className="rounded-admin-md border border-border bg-white">
               <AdminDataTable
-                tone="light"
                 columns={columns}
                 rows={approved}
                 rowKey={(t) => t.id}
@@ -240,7 +249,7 @@ export default function AdminTechniciansPage() {
                     </span>
                   </div>
                   {t.rejectReason && (
-                    <p className="mt-1 text-xs text-muted">사유: {t.rejectReason}</p>
+                    <p className="mt-1 text-xs md:text-sm text-muted">사유: {t.rejectReason}</p>
                   )}
                 </Link>
               ))}

@@ -61,12 +61,17 @@ export default function AdminCommissionsPage() {
   const [paying, setPaying] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
   const [confirm, confirmUI] = useConfirm();
+  // 월 필터(#12) — '' = 전체. 변경 시 건별 내역을 다시 불러온다.
+  const [month, setMonth] = useState('');
+  const [exporting, setExporting] = useState(false);
 
-  async function loadEntries(referrerUserId: string, cursor?: string) {
+  async function loadEntries(referrerUserId: string, cursor?: string, monthOverride?: string) {
     setEntriesLoading(true);
     try {
+      const m = monthOverride ?? month;
       const qs = new URLSearchParams({ referrerUserId });
       if (cursor) qs.set('cursor', cursor);
+      if (m) qs.set('month', m);
       const res = await fetch(`/api/admin/commissions?${qs}`, { cache: 'no-store' });
       if (!res.ok) throw new Error('불러오기 실패');
       const json = (await res.json()) as { entries: EntryRow[]; nextCursor: string | null };
@@ -86,6 +91,68 @@ export default function AdminCommissionsPage() {
     setEntries([]);
     setNextCursor(null);
     loadEntries(userId);
+  }
+
+  function changeMonth(next: string) {
+    setMonth(next);
+    if (!selectedId) return;
+    setChecked(new Set());
+    setEntries([]);
+    setNextCursor(null);
+    loadEntries(selectedId, undefined, next);
+  }
+
+  // CSV 내보내기 — 현재 소개자·월 필터 기준 전체 페이지를 커서로 순회해 받은 뒤 다운로드.
+  // (건수는 월 단위 정산 규모라 수백 건 수준 — 클라이언트 순회로 충분, 상한 50페이지 안전장치)
+  async function exportCsv(r: ReferrerRow) {
+    setExporting(true);
+    setActionError(null);
+    try {
+      const rows: EntryRow[] = [];
+      let cursor: string | null = null;
+      for (let i = 0; i < 50; i++) {
+        const qs = new URLSearchParams({ referrerUserId: r.userId });
+        if (cursor) qs.set('cursor', cursor);
+        if (month) qs.set('month', month);
+        const res = await fetch(`/api/admin/commissions?${qs}`, { cache: 'no-store' });
+        if (!res.ok) throw new Error('불러오기 실패');
+        const json = (await res.json()) as { entries: EntryRow[]; nextCursor: string | null };
+        rows.push(...json.entries);
+        cursor = json.nextCursor;
+        if (!cursor) break;
+      }
+      const esc = (v: string | number | null) => {
+        const s = v == null ? '' : String(v);
+        return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+      };
+      const header = ['소개대상', '유형', '결제금액(원)', '수수료(원)', '상태', '적립일', '지급일', '별점'];
+      const lines = rows.map((e) =>
+        [
+          esc(e.refereeName),
+          esc(e.refereeType),
+          e.baseAmount,
+          e.amount,
+          e.status === 'PAID' ? '지급완료' : '미지급',
+          new Date(e.createdAt).toLocaleDateString('ko-KR'),
+          e.paidAt ? new Date(e.paidAt).toLocaleDateString('ko-KR') : '',
+          e.rating ?? '',
+        ].join(','),
+      );
+      // BOM: 엑셀에서 한글이 깨지지 않도록
+      const blob = new Blob(['\uFEFF' + [header.join(','), ...lines].join('\n')], {
+        type: 'text/csv;charset=utf-8',
+      });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `정산_${r.name}${month ? `_${month}` : ''}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      setActionError('CSV 내보내기에 실패했습니다');
+    } finally {
+      setExporting(false);
+    }
   }
 
   function toggleCheck(id: string) {
@@ -223,7 +290,6 @@ export default function AdminCommissionsPage() {
         {!loading && referrers.length > 0 && (
           <div className="rounded-admin-md border border-border bg-white">
             <AdminDataTable
-              tone="light"
               columns={columns}
               rows={referrers}
               rowKey={(r) => r.userId}
@@ -241,7 +307,31 @@ export default function AdminCommissionsPage() {
                 {selected.name} 내역{' '}
                 <span className="font-normal text-muted">· 미지급 {won(selected.pendingTotal)}</span>
               </h2>
-              <div className="flex gap-2">
+              <div className="flex flex-wrap items-center gap-2">
+                <input
+                  type="month"
+                  value={month}
+                  onChange={(e) => changeMonth(e.target.value)}
+                  aria-label="적립 월 필터"
+                  className="rounded-admin-md border border-border px-2 py-1.5 text-xs md:text-sm text-fg focus:border-admin-cyan-ink focus:outline-none"
+                />
+                {month && (
+                  <button
+                    type="button"
+                    onClick={() => changeMonth('')}
+                    className="text-xs md:text-sm font-semibold text-muted hover:underline"
+                  >
+                    전체
+                  </button>
+                )}
+                <button
+                  type="button"
+                  disabled={exporting}
+                  onClick={() => exportCsv(selected)}
+                  className={buttonClasses('secondary', 'sm')}
+                >
+                  {exporting ? '내보내는 중…' : 'CSV'}
+                </button>
                 <button
                   type="button"
                   disabled={checked.size === 0 || paying}
@@ -293,7 +383,7 @@ export default function AdminCommissionsPage() {
                         {won(e.amount)}
                       </span>
                     </div>
-                    <p className="mt-0.5 text-xs text-muted">
+                    <p className="mt-0.5 text-xs md:text-sm text-muted">
                       결제 {won(e.baseAmount)} · {new Date(e.createdAt).toLocaleString('ko-KR')}
                       {e.status === 'PAID' &&
                         e.paidAt &&
@@ -307,7 +397,7 @@ export default function AdminCommissionsPage() {
                           ))}
                         </span>
                         {e.commentPreview && (
-                          <span className="truncate text-xs text-muted">{e.commentPreview}</span>
+                          <span className="truncate text-xs md:text-sm text-muted">{e.commentPreview}</span>
                         )}
                       </div>
                     )}
@@ -324,7 +414,7 @@ export default function AdminCommissionsPage() {
               <button
                 type="button"
                 onClick={() => loadEntries(selected.userId, nextCursor)}
-                className="w-full border-t border-border p-2.5 text-xs font-semibold text-admin-cyan-ink hover:bg-neutral-50"
+                className="w-full border-t border-border p-2.5 text-xs md:text-sm font-semibold text-admin-cyan-ink hover:bg-neutral-50"
               >
                 더보기
               </button>

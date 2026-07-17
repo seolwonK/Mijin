@@ -4,9 +4,9 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { buttonClasses } from '@/components/Button';
 
-// variant: 'c'(결, 소프트-프리미엄 — 업체·개인기술자 로그인) | 'b'(관제탑, 다크 프리시전 — 관리자).
+// variant: 'c'(결, 소프트-프리미엄 — 업체·개인기술자 로그인) | 'b'(관리자).
 // 기존 4역할 공유 컴포넌트라 로그인 로직(제출·역할별 리다이렉트)은 완전히 동일하게 유지하고
-// 화면 톤만 분기한다. admin-* 다크 토큰은 variant='b'일 때만 쓴다.
+// 화면 톤만 분기한다.
 type Variant = 'c' | 'b';
 
 export default function LoginForm({
@@ -70,17 +70,17 @@ export default function LoginForm({
 
   if (variant === 'b') {
     return (
-      <main className="flex min-h-screen w-full flex-col items-center justify-center bg-admin-bg p-6 text-admin-ink">
-        <div className="w-full max-w-sm md:max-w-md md:rounded-admin-md md:border md:border-admin-border md:bg-admin-surface md:p-10">
+      <main className="flex min-h-screen w-full flex-col items-center justify-center bg-white p-6 text-fg">
+        <div className="w-full max-w-sm md:max-w-md md:rounded-admin-md md:border md:border-border md:bg-white md:p-10">
           <h1 className="mb-6 text-center text-2xl font-bold">{title}</h1>
           {hasReturnTo && (
-            <p className="mb-4 rounded-admin-md border border-admin-cyan/25 bg-admin-cyan/10 p-2.5 text-center text-[13px] text-admin-cyan">
+            <p className="mb-4 rounded-admin-md border border-brand-200 bg-brand-50 p-2.5 text-center text-[13px] text-brand-700">
               로그인이 필요합니다
             </p>
           )}
           <form onSubmit={submit} className="space-y-3">
             <div>
-              <label htmlFor="loginId" className="mb-1 block text-xs font-medium text-admin-dim">
+              <label htmlFor="loginId" className="mb-1 block text-xs font-medium text-muted">
                 아이디
               </label>
               <input
@@ -90,11 +90,11 @@ export default function LoginForm({
                 onChange={(e) => setLoginId(e.target.value)}
                 placeholder="아이디"
                 autoComplete="username"
-                className="w-full rounded-admin-md border border-admin-border bg-admin-bg p-3 text-base text-admin-ink placeholder:text-admin-faint transition-colors focus:border-admin-cyan focus:ring-2 focus:ring-admin-cyan/20 focus:outline-none"
+                className="w-full rounded-admin-md border border-border bg-white p-3 text-base text-fg placeholder:text-muted transition-colors focus:border-brand-500 focus:ring-2 focus:ring-brand-500/15 focus:outline-none"
               />
             </div>
             <div>
-              <label htmlFor="password" className="mb-1 block text-xs font-medium text-admin-dim">
+              <label htmlFor="password" className="mb-1 block text-xs font-medium text-muted">
                 비밀번호
               </label>
               <input
@@ -104,23 +104,23 @@ export default function LoginForm({
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="비밀번호"
                 autoComplete="current-password"
-                className="w-full rounded-admin-md border border-admin-border bg-admin-bg p-3 text-base text-admin-ink placeholder:text-admin-faint transition-colors focus:border-admin-cyan focus:ring-2 focus:ring-admin-cyan/20 focus:outline-none"
+                className="w-full rounded-admin-md border border-border bg-white p-3 text-base text-fg placeholder:text-muted transition-colors focus:border-brand-500 focus:ring-2 focus:ring-brand-500/15 focus:outline-none"
               />
             </div>
             {error && (
-              <p role="alert" className="rounded-admin-md border border-admin-red/25 bg-admin-red/10 p-3 text-sm font-medium text-admin-red">
+              <p role="alert" className="rounded-admin-md border border-red-200 bg-red-50 p-3 text-sm font-medium text-red-600">
                 {error}
               </p>
             )}
             <button
               type="submit"
               disabled={busy || !loginId || !password}
-              className="flex h-14 w-full items-center justify-center rounded-admin-md bg-admin-cyan text-lg font-bold text-admin-bg transition disabled:cursor-not-allowed disabled:opacity-50 enabled:hover:opacity-90 enabled:active:scale-[0.98] enabled:active:opacity-80"
+              className="flex h-14 w-full items-center justify-center rounded-admin-md bg-brand-600 text-lg font-bold text-white transition disabled:cursor-not-allowed disabled:opacity-50 enabled:hover:opacity-90 enabled:active:scale-[0.98] enabled:active:opacity-80"
             >
               {busy ? '로그인 중…' : '로그인'}
             </button>
           </form>
-          {footer && <div className="mt-4 text-center text-sm text-admin-dim">{footer}</div>}
+          {footer && <div className="mt-4 text-center text-sm text-muted">{footer}</div>}
         </div>
       </main>
     );

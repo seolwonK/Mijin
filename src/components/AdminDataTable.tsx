@@ -2,10 +2,7 @@
 
 import { useMemo, useState } from 'react';
 
-// "관제탑"(B) 정렬 가능 데이터 테이블 — admin-* 토큰 전용 프리미티브.
-// `tone='dark'`(대시보드, admin-bg 위) / `tone='light'`(providers·technicians 목록 등
-// "B-라이트" 화면, 기존 라이트 뉴트럴 배경 위) 둘 다 지원한다. 기존 SortTh.tsx는 이 컴포넌트로
-// 대체돼 더 이상 쓰이지 않는다(레인4 admin 11화면 롤아웃에서 정리).
+// "관제탑"(B) 정렬 가능 데이터 테이블 — 라이트 관리자 화면용 프리미티브.
 export type SortState<K extends string> = { key: K; dir: 1 | -1 };
 
 export type Column<T, K extends string> = {
@@ -18,25 +15,6 @@ export type Column<T, K extends string> = {
   render: (row: T) => React.ReactNode;
 };
 
-const TONE = {
-  dark: {
-    head: 'border-admin-border bg-admin-surface text-admin-faint',
-    headHover: 'hover:text-admin-ink',
-    row: 'border-admin-border text-admin-ink',
-    rowHover: 'hover:bg-admin-surface',
-    rowSelected: 'bg-admin-cyan/10',
-    focusRing: 'focus-visible:outline-admin-cyan',
-  },
-  light: {
-    head: 'border-border bg-neutral-50 text-muted',
-    headHover: 'hover:text-fg',
-    row: 'border-border text-fg',
-    rowHover: 'hover:bg-neutral-50',
-    rowSelected: 'bg-admin-cyan-ink/10',
-    focusRing: 'focus-visible:outline-admin-cyan-ink',
-  },
-} as const;
-
 export default function AdminDataTable<T, K extends string>({
   columns,
   rows,
@@ -45,7 +23,6 @@ export default function AdminDataTable<T, K extends string>({
   onRowClick,
   selectedKey,
   rowClassName,
-  tone = 'dark',
 }: {
   columns: Column<T, K>[];
   rows: T[];
@@ -54,10 +31,8 @@ export default function AdminDataTable<T, K extends string>({
   onRowClick?: (row: T) => void;
   selectedKey?: string | null;
   rowClassName?: (row: T) => string;
-  tone?: 'dark' | 'light';
 }) {
   const [sort, setSort] = useState<SortState<K> | null>(defaultSort ?? null);
-  const t = TONE[tone];
 
   const sortedRows = useMemo(() => {
     if (!sort) return rows;
@@ -79,14 +54,14 @@ export default function AdminDataTable<T, K extends string>({
 
   return (
     <div className="overflow-x-auto">
-      <table className="w-full min-w-[880px] border-collapse text-[13px]">
+      <table className="w-full min-w-[880px] border-collapse text-[13px] md:text-[14px]">
         <thead>
           <tr>
             {columns.map((col) => (
               <th
                 key={col.key}
                 style={col.width ? { width: col.width } : undefined}
-                className={`sticky top-0 border-b px-3.5 py-2.5 font-mono text-[10px] font-semibold tracking-wide uppercase ${t.head} ${
+                className={`sticky top-0 border-b border-border bg-neutral-50 px-3.5 py-2.5 font-mono text-[10px] font-semibold tracking-wide text-muted uppercase md:text-[12px] ${
                   col.align === 'right' ? 'text-right' : 'text-left'
                 }`}
               >
@@ -99,7 +74,7 @@ export default function AdminDataTable<T, K extends string>({
                         dir: s?.key === col.key && s.dir === 1 ? -1 : 1,
                       }))
                     }
-                    className={`inline-flex items-center gap-1 normal-case ${t.headHover}`}
+                    className="inline-flex items-center gap-1 normal-case hover:text-fg"
                   >
                     {col.label}
                     <span className="opacity-70">
@@ -136,11 +111,11 @@ export default function AdminDataTable<T, K extends string>({
                       }
                     : undefined
                 }
-                className={`border-b ${t.row} ${
+                className={`border-b border-border text-fg ${
                   onRowClick
-                    ? `cursor-pointer focus-visible:outline-2 focus-visible:-outline-offset-2 ${t.focusRing}`
+                    ? 'cursor-pointer focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-admin-cyan-ink'
                     : ''
-                } ${selected ? t.rowSelected : t.rowHover} ${rowClassName?.(row) ?? ''}`}
+                } ${selected ? 'bg-admin-cyan-ink/10' : 'hover:bg-neutral-50'} ${rowClassName?.(row) ?? ''}`}
               >
                 {columns.map((col) => (
                   <td

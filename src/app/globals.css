@@ -1,16 +1,10 @@
 @import "tailwindcss";
 
 /* ── 디자인 토큰 (Tailwind v4 @theme) ──
-   "신뢰 블루 프로" 파운데이션(redesign/blue-pro): 모바일/고객 화면은 화이트 베이스 + 딥블루
-   브랜드를 기본으로 채택하고, 관리자 셸/대시보드는 딥네이비 다크 톤을 별도 `admin-*`
-   네임스페이스로 둔다. 두 팔레트 모두 같은 블루 hue 계열(≈258-265, 히어로 이미지
-   `.omc/research/blue-pro/candidates/hero-1-panel.png`의 배전반 네이비/케이블 블루에서
-   앵커)을 공유해 모바일↔관리자 전환 시 톤 일관성을 준다. 두 톤은 서로 다른 화면(모바일 vs
-   관리자)에서만 쓰이므로 CSS 변수 스코프 오버라이드 대신 완전히 별도의 색 팔레트로 분리했다 —
-   관리자 화면이라고 전부 어두워지는 게 아니라, `admin-*` 유틸을 실제로 사용하는 컴포넌트
-   (AdminShell/AdminDataTable/AdminInspector 등)만 다크 톤이 적용된다. 토큰명은 이전 "결×관제탑"
-   단계(`.omc/research/concepts/rationale.md`)에서 그대로 승계 — re-value in place로만 전환해
-   소비 파일(brand 28·admin 20개) 무접촉. 3계층 구조(Primitive→Semantic→Component) 원칙은 유지.
+   "신뢰 블루 프로" 파운데이션(redesign/blue-pro): 전 화면 화이트 베이스 + 딥블루 브랜드.
+   관리자 화면도 전면 라이트로 통일됐다(작업 큐 재설계) — 과거 다크 "관제탑" 셸 팔레트는
+   삭제됐고, 관리자 전용으로는 라이트 액센트 잉크(`admin-cyan-ink`/`admin-violet-ink`)와
+   admin 라디우스만 남는다. 3계층 구조(Primitive→Semantic→Component) 원칙은 유지.
    게이트 산출물: `.omc/research/blue-pro/gate/gate-artifact.md`. */
 @theme {
   /* ── Primitive — 브랜드 (딥블루, hue≈258-264). 흰 텍스트 대비용 solid는 600~800
@@ -66,42 +60,16 @@
   --shadow-surface-md: 0 2px 4px rgb(23 24 27 / 0.05), 0 18px 40px -16px rgb(23 24 27 / 0.16);
   --shadow-surface-lg: 0 4px 10px rgb(23 24 27 / 0.06), 0 28px 56px -18px rgb(23 24 27 / 0.20);
 
-  /* ── "관제탑" 다크 셸 전용 네임스페이스 — 관리자 셸/대시보드 컴포넌트에서만 사용.
-     일반 화면 토큰(brand-* 및 neutral-*)과 분리해 관리자 다크 톤이 미마이그레이션 admin
-     하위 화면(providers/technicians/settings 등, 아직 라이트 콘텐츠)에 새어나가지 않게 한다.
-     딥네이비화(blue-pro): 구조 토큰(bg~faint)과 cyan/cyan-ink 계열을 brand-*와 같은 hue
-     패밀리(≈262)로 재배치 — 밝기(L) 구조는 원래 값 그대로 유지해 대비 관계는 불변, hue와
-     채도만 이동해 무채색에 가깝던 회색조가 실제로 "네이비"로 읽히게 했다. amber/emerald/red/
-     slate는 블루 인접 색이 아닌 상태·긴급도 앵커라 hue 불변(AC-8 원칙 — 완료·경고 앵커 불변,
-     블루 인접 색만 이동). admin-cyan을 AdminStatusTag.tsx의 ACCEPTED 점 색으로도 재사용 중이라
-     그 용도만 브랜드 블루와 시각 충돌 — 컴포넌트별 재배치안은 게이트 산출물 참고, 이번 단계는
-     토큰 re-value만(AdminStatusTag.tsx 코드 불변, post-gate 작업). */
-  --color-admin-bg: oklch(0.19 0.02 262);
-  --color-admin-surface: oklch(0.23 0.024 262);
-  --color-admin-surface-2: oklch(0.27 0.028 262);
-  --color-admin-border: oklch(0.33 0.032 262);
-  --color-admin-border-strong: oklch(0.40 0.038 262);
-  --color-admin-ink: oklch(0.94 0.012 262);
-  --color-admin-dim: oklch(0.66 0.03 262);
-  --color-admin-faint: oklch(0.46 0.026 262);
-  --color-admin-cyan: oklch(0.78 0.11 262);
-  --color-admin-amber: oklch(0.75 0.11 75);
-  --color-admin-emerald: oklch(0.72 0.13 155);
-  --color-admin-red: oklch(0.68 0.17 25);
-  --color-admin-slate: oklch(0.62 0.02 250);
-  /* admin-cyan(L 0.78)은 다크 배경 전용 — 흰 배경 위 텍스트/링크로 쓰면 WCAG 대비 미달이라
-     폼 화면("B-라이트" 변형: providers/technicians 폼, requests 상세, settings, 계약서)에서
-     쓸 짙은 블루 잉크를 별도로 둔다. 배경은 기존 라이트 뉴트럴(neutral-* 및 border, surface)을
-     그대로 재사용 — "라이트"는 새 뉴트럴 스케일이 아니라 이 잉크 색 + 절제된 라디우스가 만든다.
+  /* ── 관리자 라이트 액센트 잉크 — 다크 "관제탑" 셸 토큰군은 전면 라이트 통일(작업 큐 재설계)로
+     소비처가 모두 제거되어 정의를 삭제했다. 남는 것은 흰 배경 위 대비가 검증된 잉크 2종과
+     admin 라디우스뿐이다. */
+  /* admin-cyan-ink: 관리자 라이트 화면(폼·상세·목록·작업 큐)의 짙은 블루 잉크 액센트.
+     배경은 기존 라이트 뉴트럴(neutral-* 및 border, surface)을 그대로 재사용 — "라이트"는
+     새 뉴트럴 스케일이 아니라 이 잉크 색 + 절제된 라디우스가 만든다.
      vs 화이트 텍스트 대비 7.21:1(AA 초과 충족). */
   --color-admin-cyan-ink: oklch(0.46 0.11 262);
-  /* admin-violet/-violet-ink — AdminStatusTag.tsx의 ACCEPTED 전용 신규 토큰(Phase D-3).
-     admin-cyan이 brand-*와 같은 hue(262)로 재배치되며 ACCEPTED 상태 점 색으로 재사용되던
-     그 한 용도만 "상태=브랜드"로 오인되는 충돌이 발생해, admin-cyan/-cyan-ink와 동일한
-     dark+light 2단 구조를 복제해 전용 상태 앵커로 분리했다(hue 300 — 브랜드 258-264·완료
-     emerald 155·경고 amber 75 어느 쪽과도 안 겹치는 밴드). admin-violet vs admin-bg = 7.03:1,
-     admin-violet-ink vs 흰 배경 = 7.60:1(둘 다 WCAG AA 4.5:1 이상). */
-  --color-admin-violet: oklch(0.72 0.16 300);
+  /* admin-violet-ink — AdminStatusTag.tsx의 ACCEPTED 전용 상태 앵커(hue 300 — 브랜드 258-264·
+     완료 emerald 155·경고 amber 75 어느 쪽과도 안 겹치는 밴드). vs 흰 배경 7.60:1(WCAG AA 이상). */
   --color-admin-violet-ink: oklch(0.46 0.14 300);
   --radius-admin-sm: 0.375rem;
   --radius-admin-md: 0.5rem;

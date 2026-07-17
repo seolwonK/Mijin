@@ -24,7 +24,7 @@ type ProviderRow = {
 
 type Col = 'name' | 'loginId' | 'phone' | 'address' | 'status';
 
-// "관제탑"(B) B-라이트 롤아웃 — 목록은 AdminDataTable(tone="light")로, 승인대기/거절 섹션은
+// "관제탑"(B) B-라이트 롤아웃 — 목록은 AdminDataTable로, 승인대기/거절 섹션은
 // 정밀한 sharp-radius 카드로 재도색한다. toggleActive 등 데이터 로직은 완전히 동일하게 유지.
 export default function AdminProvidersPage() {
   const { data, error, refresh } = usePolling<{ providers: ProviderRow[] }>(
@@ -196,7 +196,6 @@ export default function AdminProvidersPage() {
           {!loading && approved.length > 0 && (
             <div className="rounded-admin-md border border-border bg-white">
               <AdminDataTable
-                tone="light"
                 columns={columns}
                 rows={approved}
                 rowKey={(p) => p.id}
@@ -224,7 +223,7 @@ export default function AdminProvidersPage() {
                     </span>
                   </div>
                   {p.rejectReason && (
-                    <p className="mt-1 text-xs text-muted">사유: {p.rejectReason}</p>
+                    <p className="mt-1 text-xs md:text-sm text-muted">사유: {p.rejectReason}</p>
                   )}
                 </Link>
               ))}

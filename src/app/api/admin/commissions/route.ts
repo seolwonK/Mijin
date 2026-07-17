@@ -16,8 +16,16 @@ export async function GET(req: NextRequest) {
 
   if (referrerUserId) {
     const cursor = searchParams.get('cursor');
+    // ?month=YYYY-MM → 해당 월(서버 로컬 TZ) 적립분만 조회. 정산 업무 단위(월별)와 CSV
+    // 내보내기의 범위 필터로 쓰인다. 형식이 어긋나면 조용히 무시(전체 조회).
+    const month = searchParams.get('month');
+    let createdAt: { gte: Date; lt: Date } | undefined;
+    if (month && /^\d{4}-(0[1-9]|1[0-2])$/.test(month)) {
+      const [y, m] = month.split('-').map(Number);
+      createdAt = { gte: new Date(y, m - 1, 1), lt: new Date(y, m, 1) };
+    }
     const entries = await prisma.commissionEntry.findMany({
-      where: { referrerUserId },
+      where: { referrerUserId, ...(createdAt ? { createdAt } : {}) },
       orderBy: { createdAt: 'desc' },
       take: DETAIL_PAGE_SIZE + 1,
       ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),

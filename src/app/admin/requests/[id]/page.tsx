@@ -1,12 +1,12 @@
 'use client';
 
-import { use, useEffect, useState } from 'react';
+import { use, useState } from 'react';
 import BackButton from '@/components/BackButton';
 import { usePolling } from '@/components/usePolling';
 import { AdminStatusTag, AdminUrgencyTag } from '@/components/AdminStatusTag';
 import { useConfirm } from '@/components/useConfirm';
-import { AlertIcon, ClockIcon, StarIcon } from '@/components/icons';
-import { deriveRankingBadge, findAutoAssignCandidateIndex } from '@/lib/candidateRankingDisplay';
+import { AlertIcon, StarIcon } from '@/components/icons';
+import AdminCandidatePanel, { type AdminCandidate } from '@/components/AdminCandidatePanel';
 
 type Assignee = { kind: 'PROVIDER' | 'TECHNICIAN'; name: string; phone: string };
 
@@ -52,82 +52,6 @@ type RequestDetail = {
   survey: SurveyInfo | null;
 };
 
-type Candidate = {
-  kind: 'PROVIDER' | 'TECHNICIAN';
-  id: string;
-  name: string;
-  phone: string;
-  address: string;
-  distanceKm: number | null;
-  coversRegion: boolean;
-  rejectedThisRequest: boolean;
-  assigned30d: number;
-  avgRating: number;
-  reviewCount: number;
-};
-
-// 현재 시각 틱 — 초기값은 지연 초기화(useState 콜백, 렌더 1회 한정 실행)로만 얻고, 이후
-// 갱신은 setInterval 콜백(비동기) 안에서만 setState한다 — effect 본문에서 동기 setState를
-// 피해야 하는 규칙(react-hooks/set-state-in-effect) 때문. active일 때만 1초 간격 갱신.
-function useNow(active: boolean, intervalMs = 1000): number {
-  const [now, setNow] = useState(() => Date.now());
-  useEffect(() => {
-    if (!active) return;
-    const timer = setInterval(() => setNow(Date.now()), intervalMs);
-    return () => clearInterval(timer);
-  }, [active, intervalMs]);
-  return now;
-}
-
-function formatRemaining(ms: number): string {
-  const totalSec = Math.max(0, Math.ceil(ms / 1000));
-  const m = Math.floor(totalSec / 60);
-  const s = totalSec % 60;
-  return `${m}:${String(s).padStart(2, '0')}`;
-}
-
-// 자동배정 예측 상태(AC-1c). needsAttention 건은 워커가 매 주기 assignBaseAt을
-// 리셋하므로(autoAssign.ts:37,53) 타이머를 보여주면 "곧 배정된다"는 오해를 유발해 —
-// 상태 문구로 대체한다(Critic 지적 반영). 워커 30초 주기 오차는 툴팁으로 명시.
-function AutoAssignCountdown({
-  autoAssignEnabled,
-  needsAttention,
-  assignBaseAt,
-  waitMinutes,
-}: {
-  autoAssignEnabled: boolean;
-  needsAttention: boolean;
-  assignBaseAt: string;
-  waitMinutes: number | null;
-}) {
-  const active = autoAssignEnabled && !needsAttention && waitMinutes != null;
-  const now = useNow(active);
-
-  if (!autoAssignEnabled) {
-    return <span className="font-mono text-xs font-medium text-muted">자동배정 꺼짐</span>;
-  }
-  if (needsAttention) {
-    return <span className="font-mono text-xs font-medium text-red-500">관리자 확인 필요</span>;
-  }
-  if (waitMinutes == null) return null;
-
-  const deadline = new Date(assignBaseAt).getTime() + waitMinutes * 60_000;
-  const remaining = deadline - now;
-  if (remaining <= 0) {
-    return (
-      <span className="font-mono text-xs font-medium text-admin-cyan-ink">곧 자동배정 실행</span>
-    );
-  }
-  return (
-    <span
-      className="inline-flex items-center gap-1 font-mono text-xs font-medium text-admin-cyan-ink"
-      title="워커 주기(약 30초) 오차가 있는 근사치입니다"
-    >
-      <ClockIcon className="h-3.5 w-3.5" />
-      자동배정까지 {formatRemaining(remaining)}
-    </span>
-  );
-}
 
 const ASSIGNMENT_STATUS_LABEL: Record<string, string> = {
   REQUESTED: '응답 대기',
@@ -147,34 +71,14 @@ export default function AdminRequestDetailPage({
     `/api/admin/requests/${id}`,
     8_000,
   );
-  const { data: candData, refresh: refreshCands } = usePolling<{
-    candidates: Candidate[];
-  }>(req?.status === 'RECEIVED' ? `/api/admin/requests/${id}/candidates` : null, 15_000);
+  const { data: candData, refresh: refreshCands } = usePolling<{ candidates: AdminCandidate[] }>(
+    req?.status === 'RECEIVED' ? `/api/admin/requests/${id}/candidates` : null,
+    15_000,
+  );
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [confirm, confirmUI] = useConfirm();
 
-  async function assign(assigneeKind: 'PROVIDER' | 'TECHNICIAN', assigneeId: string) {
-    setBusy(true);
-    setError(null);
-    try {
-      const res = await fetch(`/api/admin/requests/${id}/assign`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ assigneeKind, assigneeId }),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        setError(data.error ?? '배정에 실패했습니다');
-        return;
-      }
-      await Promise.all([refresh(), refreshCands()]);
-    } catch {
-      setError('네트워크 오류가 발생했습니다');
-    } finally {
-      setBusy(false);
-    }
-  }
 
   async function unassign() {
     if (
@@ -247,8 +151,8 @@ export default function AdminRequestDetailPage({
         <BackButton fallback="/admin" />
         <h1 className="font-mono text-lg font-bold">접수 #{req.lookupCode}</h1>
         <div className="ml-auto flex items-center gap-3">
-          <AdminUrgencyTag urgency={req.urgency} tone="light" />
-          <AdminStatusTag status={req.status} tone="light" />
+          <AdminUrgencyTag urgency={req.urgency} />
+          <AdminStatusTag status={req.status} />
         </div>
       </header>
 
@@ -298,7 +202,7 @@ export default function AdminRequestDetailPage({
                 지도에서 보기
               </a>
             )}
-            <p className="text-xs text-muted">
+            <p className="text-xs text-muted md:text-sm">
               접수 {new Date(req.createdAt).toLocaleString('ko-KR')}
             </p>
           </div>
@@ -326,117 +230,21 @@ export default function AdminRequestDetailPage({
         )}
 
         {req.status === 'RECEIVED' && (
-          <section className="rounded-admin-md border border-admin-cyan-ink/25 p-4">
-            <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-              <h2 className="font-semibold text-admin-cyan-ink">거리순 추천 (업체·기술자)</h2>
-              <AutoAssignCountdown
-                autoAssignEnabled={req.autoAssignEnabled}
-                needsAttention={req.needsAttention}
-                assignBaseAt={req.assignBaseAt}
-                waitMinutes={req.waitMinutes}
-              />
-            </div>
-            {!candData ? (
-              <p className="text-sm text-muted">불러오는 중…</p>
-            ) : candData.candidates.length === 0 ? (
-              <p className="text-sm text-muted">
-                배정 가능한 활성 업체·기술자가 없습니다
-              </p>
-            ) : (
-              (() => {
-                const list = candData.candidates;
-                const autoAssignIndex = findAutoAssignCandidateIndex(list);
-                return (
-                  <>
-                    <p className="mb-2 text-xs text-muted">
-                      근거 순서: 거절이력 → 지역 → 30일 배정(전체) → 평균 별점 → 거리
-                      {req.urgency === 'CRITICAL' && ' (초긴급은 30일 배정·별점 단계 미적용)'}
-                    </p>
-                    {autoAssignIndex === -1 && (
-                      <p className="mb-2 text-xs text-muted">
-                        자동배정이 선택할 후보가 없습니다 — 대기시간 경과 시 관리자 확인으로
-                        전환됩니다
-                      </p>
-                    )}
-                    <div className="grid gap-2 sm:grid-cols-2">
-                      {list.map((c, i) => {
-                        const badge =
-                          i === 0 ? null : deriveRankingBadge(list[i - 1], c, req.urgency);
-                        const isAutoAssignPick = i === autoAssignIndex;
-                        return (
-                          <div
-                            key={`${c.kind}:${c.id}`}
-                            className={`flex items-center justify-between rounded-admin-md border p-3 ${
-                              isAutoAssignPick
-                                ? 'border-admin-cyan-ink/40 bg-admin-cyan-ink/5'
-                                : 'border-border'
-                            }`}
-                          >
-                            <div>
-                              <p className="font-bold">
-                                {c.name}{' '}
-                                <span
-                                  className={`ml-1 rounded-admin-sm px-1.5 py-0.5 text-xs font-medium ${
-                                    c.kind === 'TECHNICIAN'
-                                      ? 'bg-emerald-100 text-emerald-700'
-                                      : 'bg-neutral-100 text-neutral-600'
-                                  }`}
-                                >
-                                  {c.kind === 'TECHNICIAN' ? '기술자' : '업체'}
-                                </span>{' '}
-                                {c.rejectedThisRequest && (
-                                  <span className="text-xs font-medium text-red-500">
-                                    (이 건 거절함)
-                                  </span>
-                                )}
-                              </p>
-                              <p className="font-mono text-xs text-muted">
-                                {c.distanceKm != null
-                                  ? `${c.distanceKm.toFixed(1)}km`
-                                  : '거리 미확인'}{' '}
-                                · {c.address}
-                              </p>
-                              <p className="mt-0.5 font-mono text-xs text-muted">
-                                30일 배정(수락+거절) {c.assigned30d}회 · 평균 별점{' '}
-                                {c.avgRating.toFixed(1)}
-                                {c.reviewCount > 0 ? ` (${c.reviewCount}건)` : ' (리뷰 없음)'}
-                              </p>
-                              <p className="mt-1 flex flex-wrap items-center gap-1.5">
-                                {isAutoAssignPick && (
-                                  <span className="rounded-admin-sm bg-admin-cyan-ink px-1.5 py-0.5 text-[10.5px] font-bold text-white">
-                                    자동배정 예정
-                                  </span>
-                                )}
-                                {i === 0 ? (
-                                  <span className="rounded-admin-sm bg-neutral-100 px-1.5 py-0.5 text-[10.5px] font-medium text-neutral-500">
-                                    1순위
-                                  </span>
-                                ) : (
-                                  badge && (
-                                    <span className="rounded-admin-sm bg-neutral-100 px-1.5 py-0.5 text-[10.5px] font-medium text-neutral-500">
-                                      {badge}
-                                    </span>
-                                  )
-                                )}
-                              </p>
-                            </div>
-                            <button
-                              type="button"
-                              onClick={() => assign(c.kind, c.id)}
-                              disabled={busy}
-                              className="rounded-admin-sm bg-admin-cyan-ink px-4 py-2 text-sm font-bold text-white disabled:opacity-60"
-                            >
-                              배정
-                            </button>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </>
-                );
-              })()
-            )}
-          </section>
+          <AdminCandidatePanel
+            requestId={id}
+            candidates={candData?.candidates ?? null}
+            urgency={req.urgency}
+            autoAssignEnabled={req.autoAssignEnabled}
+            needsAttention={req.needsAttention}
+            assignBaseAt={req.assignBaseAt}
+            waitMinutes={req.waitMinutes}
+            busy={busy}
+            setBusy={setBusy}
+            confirm={confirm}
+            onAssigned={async () => {
+              await Promise.all([refresh(), refreshCands()]);
+            }}
+          />
         )}
 
         {req.assignments.length > 0 && (
@@ -449,14 +257,14 @@ export default function AdminRequestDetailPage({
                     <span className="min-w-0 font-bold">
                       {a.assignee?.name ?? '—'}
                       {a.assignee?.kind === 'TECHNICIAN' && (
-                        <span className="ml-1 text-xs font-medium text-emerald-600">
+                        <span className="ml-1 text-xs font-medium text-emerald-600 md:text-sm">
                           (기술자)
                         </span>
                       )}{' '}
                       {a.assignee && (
                         <a
                           href={`tel:${a.assignee.phone}`}
-                          className="font-mono text-xs font-medium whitespace-nowrap text-admin-cyan-ink underline"
+                          className="font-mono text-xs font-medium whitespace-nowrap text-admin-cyan-ink underline md:text-sm"
                         >
                           {a.assignee.phone}
                         </a>
@@ -474,13 +282,13 @@ export default function AdminRequestDetailPage({
                       {ASSIGNMENT_STATUS_LABEL[a.status] ?? a.status}
                     </span>
                   </div>
-                  <p className="mt-1 font-mono text-xs text-muted">
+                  <p className="mt-1 font-mono text-xs text-muted md:text-sm">
                     {a.assignedBy === 'AUTO' ? '자동배정' : '수동배정'}
                     {a.distanceKm != null && ` · ${a.distanceKm.toFixed(1)}km`} ·{' '}
                     {new Date(a.createdAt).toLocaleString('ko-KR')}
                   </p>
                   {a.rejectReason && (
-                    <p className="mt-1 text-xs text-red-500">사유: {a.rejectReason}</p>
+                    <p className="mt-1 text-xs text-red-500 md:text-sm">사유: {a.rejectReason}</p>
                   )}
                 </div>
               ))}
@@ -522,7 +330,7 @@ export default function AdminRequestDetailPage({
                       : '미확인'}
                   </p>
                   {survey.submittedAt && (
-                    <p className="text-xs text-muted">
+                    <p className="text-xs text-muted md:text-sm">
                       {new Date(survey.submittedAt).toLocaleString('ko-KR')} 제출
                     </p>
                   )}

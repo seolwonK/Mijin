@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import PageHeader from '@/components/PageHeader';
+import { useConfirm } from '@/components/useConfirm';
 
 type Settings = {
   autoAssignEnabled: boolean;
@@ -26,19 +27,84 @@ const inputClass =
 const fieldClass =
   'w-full rounded-admin-md border border-border p-3 text-base focus:border-admin-cyan-ink focus:outline-none';
 
+// PUT 페이로드 직렬화 — 전체 저장(save)과 토글 즉시 저장(toggleAutoAssign)이 공유한다.
+function toPayload(s: Settings) {
+  return {
+    autoAssignEnabled: s.autoAssignEnabled,
+    waitMinutesCritical: Number(s.waitMinutesCritical),
+    waitMinutesUrgent: Number(s.waitMinutesUrgent),
+    waitMinutesNormal: Number(s.waitMinutesNormal),
+    employerName: s.employerName?.trim() || '미진전기',
+    employerCeo: s.employerCeo?.trim() || null,
+    employerAddress: s.employerAddress?.trim() || null,
+    employerPhone: s.employerPhone?.trim() || null,
+    employerBizRegNo: s.employerBizRegNo?.trim() || null,
+    employerSignatureDataUrl: s.employerSignatureDataUrl || null,
+    defaultDailyWage: s.defaultDailyWage ?? null,
+    defaultMonthlyWage: s.defaultMonthlyWage ?? null,
+    defaultPayDate: s.defaultPayDate?.trim() || null,
+    defaultPayMethod: s.defaultPayMethod || null,
+  };
+}
+
 export default function AdminSettingsPage() {
   const [settings, setSettings] = useState<Settings | null>(null);
+  // 마지막으로 서버에 저장된 값 — 토글 즉시 저장이 편집 중인 다른 필드를 함께 커밋하지 않도록
+  // 토글 PUT은 이 스냅샷 + 새 토글 값으로만 구성한다.
+  const [saved, setSaved] = useState<Settings | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [toggleBusy, setToggleBusy] = useState(false);
+  const [confirm, confirmUI] = useConfirm();
 
   useEffect(() => {
     (async () => {
       const res = await fetch('/api/admin/settings', { cache: 'no-store' });
-      if (res.ok) setSettings(await res.json());
-      else setError('설정을 불러오지 못했습니다');
+      if (res.ok) {
+        const data = (await res.json()) as Settings;
+        setSettings(data);
+        setSaved(data);
+      } else setError('설정을 불러오지 못했습니다');
     })();
   }, []);
+
+  // 토글 변경은 확인 후 즉시 저장하고, 실패 시 토글을 되돌린다.
+  async function toggleAutoAssign() {
+    if (!settings || !saved || toggleBusy) return;
+    const next = !settings.autoAssignEnabled;
+    if (
+      !(await confirm({
+        title: '자동배정 설정 변경',
+        message: `자동배정을 ${next ? '켜기' : '끄기'}로 변경하시겠습니까?\n변경 후 즉시 적용됩니다.`,
+        confirmText: '변경',
+      }))
+    )
+      return;
+    setSettings({ ...settings, autoAssignEnabled: next });
+    setToggleBusy(true);
+    setError(null);
+    try {
+      const res = await fetch('/api/admin/settings', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...toPayload(saved), autoAssignEnabled: next }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setSettings((s) => (s ? { ...s, autoAssignEnabled: !next } : s));
+        setError(data.error ?? '자동배정 설정 변경에 실패했습니다');
+        return;
+      }
+      setSaved(data);
+      setSettings((s) => (s ? { ...s, autoAssignEnabled: data.autoAssignEnabled } : s));
+    } catch {
+      setSettings((s) => (s ? { ...s, autoAssignEnabled: !next } : s));
+      setError('네트워크 오류가 발생했습니다');
+    } finally {
+      setToggleBusy(false);
+    }
+  }
 
   async function save() {
     if (!settings) return;
@@ -49,22 +115,7 @@ export default function AdminSettingsPage() {
       const res = await fetch('/api/admin/settings', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          autoAssignEnabled: settings.autoAssignEnabled,
-          waitMinutesCritical: Number(settings.waitMinutesCritical),
-          waitMinutesUrgent: Number(settings.waitMinutesUrgent),
-          waitMinutesNormal: Number(settings.waitMinutesNormal),
-          employerName: settings.employerName?.trim() || '미진전기',
-          employerCeo: settings.employerCeo?.trim() || null,
-          employerAddress: settings.employerAddress?.trim() || null,
-          employerPhone: settings.employerPhone?.trim() || null,
-          employerBizRegNo: settings.employerBizRegNo?.trim() || null,
-          employerSignatureDataUrl: settings.employerSignatureDataUrl || null,
-          defaultDailyWage: settings.defaultDailyWage ?? null,
-          defaultMonthlyWage: settings.defaultMonthlyWage ?? null,
-          defaultPayDate: settings.defaultPayDate?.trim() || null,
-          defaultPayMethod: settings.defaultPayMethod || null,
-        }),
+        body: JSON.stringify(toPayload(settings)),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -72,6 +123,7 @@ export default function AdminSettingsPage() {
         return;
       }
       setSettings(data);
+      setSaved(data);
       setMessage('저장되었습니다');
     } catch {
       setError('네트워크 오류가 발생했습니다');
@@ -103,12 +155,15 @@ export default function AdminSettingsPage() {
                 수동 배정이 기본입니다. 켜면 아래 대기시간 안에 수동 배정이 없을 때
                 가장 가까운 활성 업체에 자동 배정됩니다.
               </p>
+              <p className="mt-1 text-xs text-muted">
+                {toggleBusy ? '적용 중…' : '변경 시 확인 후 즉시 적용됩니다.'}
+              </p>
             </div>
             <button
               type="button"
-              onClick={() =>
-                setSettings({ ...settings, autoAssignEnabled: !settings.autoAssignEnabled })
-              }
+              onClick={toggleAutoAssign}
+              disabled={toggleBusy}
+              aria-pressed={settings.autoAssignEnabled}
               className={`relative h-8 w-14 shrink-0 rounded-full transition-colors ${
                 settings.autoAssignEnabled ? 'bg-admin-cyan-ink' : 'bg-neutral-300'
               }`}
@@ -161,7 +216,7 @@ export default function AdminSettingsPage() {
           </p>
           <div className="space-y-2">
             <div>
-              <label className="mb-1 block text-xs text-muted">사업체명</label>
+              <label className="mb-1 block text-xs md:text-sm text-muted">사업체명</label>
               <input
                 type="text"
                 value={settings.employerName ?? ''}
@@ -172,7 +227,7 @@ export default function AdminSettingsPage() {
               />
             </div>
             <div>
-              <label className="mb-1 block text-xs text-muted">대표자</label>
+              <label className="mb-1 block text-xs md:text-sm text-muted">대표자</label>
               <input
                 type="text"
                 value={settings.employerCeo ?? ''}
@@ -182,7 +237,7 @@ export default function AdminSettingsPage() {
               />
             </div>
             <div>
-              <label className="mb-1 block text-xs text-muted">주소</label>
+              <label className="mb-1 block text-xs md:text-sm text-muted">주소</label>
               <input
                 type="text"
                 value={settings.employerAddress ?? ''}
@@ -195,7 +250,7 @@ export default function AdminSettingsPage() {
             </div>
             <div className="flex gap-2">
               <div className="flex-1">
-                <label className="mb-1 block text-xs text-muted">전화</label>
+                <label className="mb-1 block text-xs md:text-sm text-muted">전화</label>
                 <input
                   type="tel"
                   value={settings.employerPhone ?? ''}
@@ -207,7 +262,7 @@ export default function AdminSettingsPage() {
                 />
               </div>
               <div className="flex-1">
-                <label className="mb-1 block text-xs text-muted">사업자등록번호</label>
+                <label className="mb-1 block text-xs md:text-sm text-muted">사업자등록번호</label>
                 <input
                   type="text"
                   value={settings.employerBizRegNo ?? ''}
@@ -231,7 +286,7 @@ export default function AdminSettingsPage() {
           <div className="space-y-2">
             <div className="flex gap-2">
               <div className="flex-1">
-                <label className="mb-1 block text-xs text-muted">
+                <label className="mb-1 block text-xs md:text-sm text-muted">
                   일용 기본 일급 (원)
                 </label>
                 <input
@@ -249,7 +304,7 @@ export default function AdminSettingsPage() {
                 />
               </div>
               <div className="flex-1">
-                <label className="mb-1 block text-xs text-muted">
+                <label className="mb-1 block text-xs md:text-sm text-muted">
                   상시 기본 월급 (원)
                 </label>
                 <input
@@ -268,7 +323,7 @@ export default function AdminSettingsPage() {
               </div>
             </div>
             <div>
-              <label className="mb-1 block text-xs text-muted">임금지급일</label>
+              <label className="mb-1 block text-xs md:text-sm text-muted">임금지급일</label>
               <input
                 type="text"
                 value={settings.defaultPayDate ?? ''}
@@ -281,7 +336,7 @@ export default function AdminSettingsPage() {
               />
             </div>
             <div>
-              <label className="mb-1 block text-xs text-muted">지급방법</label>
+              <label className="mb-1 block text-xs md:text-sm text-muted">지급방법</label>
               <div className="grid grid-cols-2 gap-2">
                 {[
                   { value: 'BANK_TRANSFER', label: '예금통장 입금' },
@@ -312,10 +367,10 @@ export default function AdminSettingsPage() {
             </div>
 
             <div>
-              <label className="mb-1 block text-xs text-muted">
+              <label className="mb-1 block text-xs md:text-sm text-muted">
                 회사 서명/직인 이미지
               </label>
-              <p className="mb-2 text-xs text-muted">
+              <p className="mb-2 text-xs md:text-sm text-muted">
                 한 번 등록하면 모든 계약서 사업주 서명란에 자동 삽입됩니다.
               </p>
               {settings.employerSignatureDataUrl ? (
@@ -380,6 +435,7 @@ export default function AdminSettingsPage() {
           {busy ? '저장 중…' : '저장'}
         </button>
       </div>
+      {confirmUI}
     </main>
   );
 }

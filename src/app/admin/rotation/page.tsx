@@ -29,11 +29,11 @@ type RotationResponse = {
 type ColKey = 'rank' | 'name' | 'kind' | 'assigned30d' | 'avgRating' | 'reviewCount';
 
 const selectClass =
-  'rounded-admin-md border border-admin-border bg-admin-surface px-3 py-1.5 text-[12.5px] text-admin-ink focus:border-admin-cyan focus:outline-none disabled:text-admin-faint';
+  'rounded-admin-md border border-border bg-white px-3 py-1.5 text-[12.5px] md:text-sm text-fg focus:border-admin-cyan-ink focus:outline-none disabled:text-muted';
 
 function KindBadge({ kind }: { kind: 'PROVIDER' | 'TECHNICIAN' }) {
   return (
-    <span className="inline-block rounded-admin-sm bg-admin-surface-2 px-1.5 py-0.5 font-mono text-[10.5px] font-bold text-admin-dim">
+    <span className="inline-block rounded-admin-sm bg-neutral-100 px-1.5 py-0.5 font-mono text-[10.5px] font-bold text-muted">
       {kind === 'PROVIDER' ? '업체' : '기술자'}
     </span>
   );
@@ -44,12 +44,12 @@ function KindBadge({ kind }: { kind: 'PROVIDER' | 'TECHNICIAN' }) {
 // "지금은 정확하다"는 오해를 유발한다.
 function LimitBadges() {
   return (
-    <div className="flex flex-wrap gap-2 px-4 py-2.5">
-      <span className="inline-flex items-center gap-1.5 rounded-admin-md border border-admin-amber/30 bg-admin-amber/10 px-2.5 py-1 text-[11.5px] text-admin-amber">
+    <div className="flex flex-wrap gap-2">
+      <span className="inline-flex items-center gap-1.5 rounded-admin-md border border-amber-300 bg-amber-50 px-2.5 py-1 text-[11.5px] text-amber-700">
         <AlertIcon className="h-3.5 w-3.5 shrink-0" />
         동률 시 거리로 결정될 수 있음
       </span>
-      <span className="inline-flex items-center gap-1.5 rounded-admin-md border border-admin-red/30 bg-admin-red/10 px-2.5 py-1 text-[11.5px] text-admin-red">
+      <span className="inline-flex items-center gap-1.5 rounded-admin-md border border-red-200 bg-red-50 px-2.5 py-1 text-[11.5px] text-red-600">
         <AlertIcon className="h-3.5 w-3.5 shrink-0" />
         초긴급(CRITICAL)은 거리 우선 — 이 순번 미적용
       </span>
@@ -84,7 +84,7 @@ export default function AdminRotationPage() {
       label: '순위',
       width: '64px',
       render: (r) => (
-        <span className={`font-mono font-bold ${r.rank === 1 ? 'text-admin-cyan' : 'text-admin-faint'}`}>
+        <span className={`font-mono font-bold ${r.rank === 1 ? 'text-admin-cyan-ink' : 'text-muted'}`}>
           {r.rank}
         </span>
       ),
@@ -96,21 +96,21 @@ export default function AdminRotationPage() {
       label: '30일 배정(전체)',
       width: '140px',
       align: 'right',
-      render: (r) => <span className="font-mono text-admin-dim">{r.assigned30d}건</span>,
+      render: (r) => <span className="font-mono text-muted">{r.assigned30d}건</span>,
     },
     {
       key: 'avgRating',
       label: '평균 별점',
       width: '100px',
       align: 'right',
-      render: (r) => <span className="font-mono text-admin-dim">★{r.avgRating.toFixed(1)}</span>,
+      render: (r) => <span className="font-mono text-muted">★{r.avgRating.toFixed(1)}</span>,
     },
     {
       key: 'reviewCount',
       label: '후기 수',
       width: '90px',
       align: 'right',
-      render: (r) => <span className="font-mono text-admin-dim">{r.reviewCount}건</span>,
+      render: (r) => <span className="font-mono text-muted">{r.reviewCount}건</span>,
     },
   ];
 
@@ -125,9 +125,9 @@ export default function AdminRotationPage() {
         </p>
       </div>
 
-      <div className="hidden bg-admin-bg text-admin-ink md:block">
-        <div className="flex flex-wrap items-center gap-3 border-b border-admin-border px-4 py-3">
-          <h1 className="text-sm font-bold">지역 순환 현황</h1>
+      <div className="hidden md:block">
+        <div className="flex flex-wrap items-center gap-3 border-b border-border px-4 py-3">
+          <h1 className="text-sm font-bold text-fg">지역 순환 현황</h1>
           <select
             value={sido}
             onChange={(e) => {
@@ -159,40 +159,54 @@ export default function AdminRotationPage() {
             ))}
           </select>
           {data?.meta && (
-            <span className="ml-auto font-mono text-[10.5px] text-admin-faint">
+            <span className="ml-auto font-mono text-[10.5px] text-muted">
               {data.meta.chainLabel}
             </span>
           )}
         </div>
 
-        <LimitBadges />
+        <div className="space-y-4 px-4 pt-2 pb-4">
+          <LimitBadges />
 
-        {!sido ? (
-          <p className="p-8 text-center text-sm text-admin-faint">
-            지역(시/도)을 선택하면 해당 지역의 순번 예측을 볼 수 있습니다
-          </p>
-        ) : error ? (
-          <p className="px-4 py-2 text-sm text-admin-red">{error}</p>
-        ) : !data ? (
-          <p className="p-8 text-center text-sm text-admin-faint">불러오는 중…</p>
-        ) : (
-          <>
-            <AdminMetricStrip
-              metrics={[
-                { label: '총 후보 수', value: candidates.length },
-                { label: '30일 배정 합계', value: `${totalAssigned30d}건` },
-                { label: '평균 별점', value: avgRating != null ? `★${avgRating.toFixed(1)}` : '—' },
-              ]}
-            />
-            {rankedRows.length === 0 ? (
-              <p className="p-8 text-center text-sm text-admin-faint">
-                해당 지역을 담당하는 배정 대상이 없습니다
-              </p>
-            ) : (
-              <AdminDataTable columns={columns} rows={rankedRows} rowKey={(r) => `${r.kind}:${r.name}:${r.rank}`} />
-            )}
-          </>
-        )}
+          {!sido ? (
+            <p className="rounded-admin-md border border-border bg-neutral-50 p-6 text-center text-sm text-muted">
+              지역(시/도)을 선택하면 해당 지역의 순번 예측을 볼 수 있습니다
+            </p>
+          ) : error ? (
+            <p className="rounded-admin-md border border-border bg-neutral-50 p-6 text-center text-sm text-red-600">
+              {error}
+            </p>
+          ) : !data ? (
+            <p className="rounded-admin-md border border-border bg-neutral-50 p-6 text-center text-sm text-muted">
+              불러오는 중…
+            </p>
+          ) : (
+            <>
+              <div className="overflow-hidden rounded-admin-md border border-border bg-white">
+                <AdminMetricStrip
+                  metrics={[
+                    { label: '총 후보 수', value: candidates.length },
+                    { label: '30일 배정 합계', value: `${totalAssigned30d}건` },
+                    { label: '평균 별점', value: avgRating != null ? `★${avgRating.toFixed(1)}` : '—' },
+                  ]}
+                />
+              </div>
+              {rankedRows.length === 0 ? (
+                <p className="rounded-admin-md border border-border bg-neutral-50 p-6 text-center text-sm text-muted">
+                  해당 지역을 담당하는 배정 대상이 없습니다
+                </p>
+              ) : (
+                <div className="overflow-hidden rounded-admin-md border border-border bg-white">
+                  <AdminDataTable
+                    columns={columns}
+                    rows={rankedRows}
+                    rowKey={(r) => `${r.kind}:${r.name}:${r.rank}`}
+                  />
+                </div>
+              )}
+            </>
+          )}
+        </div>
       </div>
     </main>
   );
