@@ -7,33 +7,77 @@
 // 258-264·완료 teal/emerald 140-185·긴급 amber 어느 쪽과도 안 겹치는 밴드)으로 분리했다.
 // text-violet-700 on bg-violet-50 대비 6.64:1(WCAG AA 4.5:1 이상) — 게이트 산출물 상태색
 // 재배치 테이블 참고.
-const STATUS: Record<
-  string,
-  { label: string; dot: string; bg: string; text: string; strike?: boolean }
-> = {
-  RECEIVED: { label: '배정대기', dot: 'bg-neutral-400', bg: 'bg-neutral-100', text: 'text-neutral-600' },
+type StatusVisual = {
+  label: string;
+  dot: string;
+  border: string;
+  bg: string;
+  text: string;
+  strike?: boolean;
+};
+
+const STATUS: Record<string, StatusVisual> = {
+  RECEIVED: {
+    label: '배정대기',
+    dot: 'bg-neutral-400',
+    border: 'border-neutral-400',
+    bg: 'bg-neutral-100',
+    text: 'text-neutral-600',
+  },
   // ASSIGNED: blue-pro 전환으로 sky(hue 242)가 브랜드 인접색이 되어 slate(hue 257, 저채도
   // 0.04)로 이동 — text-slate-700 on bg-slate-100 대비 9.44:1(WCAG AA 이상), 게이트 산출물 참고.
-  ASSIGNED: { label: '배정됨', dot: 'bg-slate-600', bg: 'bg-slate-100', text: 'text-slate-700' },
-  ACCEPTED: { label: '수락됨', dot: 'bg-violet-600', bg: 'bg-violet-50', text: 'text-violet-700' },
-  DISPATCHED: { label: '출동중', dot: 'bg-teal-600', bg: 'bg-teal-50', text: 'text-teal-700' },
-  COMPLETED: { label: '완료', dot: 'bg-emerald-600', bg: 'bg-emerald-50', text: 'text-emerald-700' },
+  ASSIGNED: {
+    label: '배정됨',
+    dot: 'bg-slate-600',
+    border: 'border-slate-600',
+    bg: 'bg-slate-100',
+    text: 'text-slate-700',
+  },
+  ACCEPTED: {
+    label: '수락됨',
+    dot: 'bg-violet-600',
+    border: 'border-violet-600',
+    bg: 'bg-violet-50',
+    text: 'text-violet-700',
+  },
+  DISPATCHED: {
+    label: '출동중',
+    dot: 'bg-teal-600',
+    border: 'border-teal-600',
+    bg: 'bg-teal-50',
+    text: 'text-teal-700',
+  },
+  COMPLETED: {
+    label: '완료',
+    dot: 'bg-emerald-600',
+    border: 'border-emerald-600',
+    bg: 'bg-emerald-50',
+    text: 'text-emerald-700',
+  },
   CANCELED: {
     label: '취소',
     dot: 'bg-neutral-400',
+    border: 'border-neutral-400',
     bg: 'bg-neutral-100',
     text: 'text-neutral-500',
     strike: true,
   },
 };
 
+const UNKNOWN_STATUS: Readonly<StatusVisual> = {
+  label: '',
+  dot: 'bg-neutral-400',
+  border: 'border-neutral-400',
+  bg: 'bg-neutral-100',
+  text: 'text-neutral-600',
+};
+
+export function statusVisual(status: string): Readonly<StatusVisual> {
+  return STATUS[status] ?? { ...UNKNOWN_STATUS, label: status };
+}
+
 export function StatusPill({ status }: { status: string }) {
-  const s = STATUS[status] ?? {
-    label: status,
-    dot: 'bg-neutral-400',
-    bg: 'bg-neutral-100',
-    text: 'text-neutral-600',
-  };
+  const s = statusVisual(status);
   return (
     <span
       className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ${s.bg} ${s.text} ${s.strike ? 'line-through' : ''}`}

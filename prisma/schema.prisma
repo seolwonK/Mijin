@@ -225,6 +225,8 @@ model ServiceRequest {
 
   @@index([status, assignBaseAt]) // 자동배정 워커 스캔용
   @@index([customerPhone])
+  @@index([createdAt]) // 분석: 기간별 접수 추이·성능 집계 (사용자 승인 — 조회 전용)
+  @@index([completedAt]) // 분석: 기간별 완료 추이 (사용자 승인 — 조회 전용)
 }
 
 // 배정 이력 보존 — 재배정 추적. 현재 유효 배정 = REQUESTED/ACCEPTED 상태의 최신 1건
@@ -248,6 +250,7 @@ model Assignment {
   @@index([providerId, status, respondedAt])
   @@index([technicianId, status, respondedAt])
   @@index([requestId])
+  @@index([status, respondedAt]) // 분석: 전역 수락률 집계 (사용자 승인 — 조회 전용, 기존 인덱스는 subject 스코프)
 }
 
 // 완료된 접수의 고객 만족도 조사 — 조사 링크 SMS 1건당 1행, 1회 제출.
@@ -269,6 +272,7 @@ model SatisfactionSurvey {
 
   @@index([providerId])
   @@index([technicianId])
+  @@index([submittedAt]) // 분석: 응답률·미제출·결제 기간 집계 (사용자 승인 — 조회 전용)
 }
 
 // 소개(추천) 수수료 원장 — 조사 1건당 최대 1건(surveyId 멱등), 지급액은 생성 시점에 동결한다.
@@ -294,6 +298,7 @@ model CommissionEntry {
   paidAt         DateTime?
 
   @@index([referrerUserId, status])
+  @@index([status, createdAt]) // 분석: 전역 수수료 기간 집계 (사용자 승인 — 조회 전용, 기존 인덱스는 소개자 스코프)
 }
 
 // 싱글턴 (id=1)

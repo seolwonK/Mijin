@@ -48,12 +48,12 @@ export default function PortalReviewSection({ url }: { url: string }) {
       <h2 className="mb-2 font-semibold">받은 후기</h2>
       <Surface as="section" className="rounded-2xl p-4">
         <div className="flex items-center gap-3">
-          <span className="text-2xl font-extrabold text-fg">
+          <span className="text-2xl font-extrabold tabular-nums text-fg">
             {avgRating != null ? avgRating.toFixed(1) : '-'}
           </span>
           <div>
             <StarRow rating={avgRating != null ? Math.round(avgRating) : 0} />
-            <p className="mt-0.5 text-xs text-muted">{reviewCount.toLocaleString('ko-KR')}건</p>
+            <p className="mt-0.5 text-xs tabular-nums text-muted">{reviewCount.toLocaleString('ko-KR')}건</p>
           </div>
         </div>
 
@@ -63,11 +63,11 @@ export default function PortalReviewSection({ url }: { url: string }) {
             const pct = reviewCount > 0 ? Math.round((count / reviewCount) * 100) : 0;
             return (
               <div key={n} className="flex items-center gap-2 text-xs text-muted">
-                <span className="w-3 shrink-0 text-right">{n}</span>
+                <span className="w-3 shrink-0 text-right tabular-nums">{n}</span>
                 <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-neutral-100">
                   <div className="h-full rounded-full bg-brand-600" style={{ width: `${pct}%` }} />
                 </div>
-                <span className="w-8 shrink-0 text-right">{pct}%</span>
+                <span className="w-8 shrink-0 text-right tabular-nums">{pct}%</span>
               </div>
             );
           })}

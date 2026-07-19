@@ -1,12 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePolling } from '@/components/usePolling';
 import { StatusBadge, UrgencyBadge } from '@/components/StatusBadge';
 import LogoutButton from '@/components/LogoutButton';
 import { CardSkeleton } from '@/components/Skeleton';
 import AdminWorkQueue from '@/components/AdminWorkQueue';
+import type { Metric } from '@/components/AdminMetricStrip';
 import { AlertIcon } from '@/components/icons';
 
 type RequestRow = {
@@ -32,28 +33,65 @@ const TABS: { key: string; label: string; statuses: string[] | null }[] = [
   { key: 'ACTIVE', label: '진행중', statuses: ['ACCEPTED', 'DISPATCHED'] },
   { key: 'DONE', label: '완료/취소', statuses: ['COMPLETED', 'CANCELED'] },
 ];
+function useMediaQuery(query: string) {
+  const [matches, setMatches] = useState(false);
+
+  useEffect(() => {
+    const media = window.matchMedia(query);
+    const update = () => setMatches(media.matches);
+    update();
+    media.addEventListener('change', update);
+    return () => media.removeEventListener('change', update);
+  }, [query]);
+
+  return matches;
+}
+
 
 export default function AdminDashboardPage() {
   const [tab, setTab] = useState('ALL');
   const [q, setQ] = useState('');
+  const isLg = useMediaQuery('(min-width: 1024px)');
+  const isMobile = useMediaQuery('(max-width: 767px)');
   const { data, error, refresh } = usePolling<{ requests: RequestRow[] }>(
     '/api/admin/requests',
     8_000,
   );
-  // 승인 대기 업체·기술자 수 배지용 — 모바일 퀵링크 전용. 데스크톱 배지는 AdminShell이
-  // 동일 API를 별도로 폴링한다(뷰포트 무관하게 항상 1회 마운트, 중복 아님).
+  // 승인 대기 업체·기술자 수 배지용 — 모바일 퀵링크 전용.
   const { data: provData } = usePolling<{
     providers: { approvalStatus: string }[];
-  }>('/api/admin/providers', 30_000);
+  }>(isMobile ? '/api/admin/providers' : null, 30_000);
   const pendingProviders = (provData?.providers ?? []).filter(
     (p) => p.approvalStatus === 'PENDING',
   ).length;
   const { data: techData } = usePolling<{
     technicians: { approvalStatus: string }[];
-  }>('/api/admin/technicians', 30_000);
+  }>(isMobile ? '/api/admin/technicians' : null, 30_000);
   const pendingTechnicians = (techData?.technicians ?? []).filter(
     (t) => t.approvalStatus === 'PENDING',
   ).length;
+  const { data: summaryData } = usePolling<{
+    received: number;
+    needsAttention: number;
+    urgentOpen: number;
+    updatedAt: string;
+  }>(isLg ? '/api/admin/analytics/summary' : null, 8_000);
+  const extraMetrics: Metric[] = [
+    {
+      label: '긴급 미완료',
+      value: summaryData?.urgentOpen ?? '—',
+      tone: 'warn',
+      href: '/admin/analytics/dashboard#operational',
+      className: 'hidden lg:block',
+    },
+    {
+      label: '분석 보기',
+      value: '→',
+      sub: '운영 현황',
+      href: '/admin/analytics/dashboard',
+      className: 'hidden lg:block',
+    },
+  ];
   const all = data?.requests ?? [];
   const loading = !data && !error;
   const statuses = TABS.find((t) => t.key === tab)?.statuses ?? null;
@@ -218,7 +256,9 @@ export default function AdminDashboardPage() {
         {loading ? (
           <p className="p-4 text-sm text-muted">불러오는 중…</p>
         ) : (
-          <AdminWorkQueue requests={all} refresh={refresh} />
+          <Suspense fallback={<p className="p-4 text-sm text-muted">불러오는 중…</p>}>
+            <AdminWorkQueue requests={all} refresh={refresh} extraMetrics={extraMetrics} summary={isLg ? { received: summaryData?.received ?? null, needsAttention: summaryData?.needsAttention ?? null } : undefined} />
+          </Suspense>
         )}
       </div>
     </main>

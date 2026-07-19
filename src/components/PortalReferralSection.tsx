@@ -102,10 +102,10 @@ export default function PortalReferralSection({ url }: { url: string }) {
                 <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
                   <span className="text-muted">
                     적립 대기{' '}
-                    <span className="font-semibold text-amber-700">{won(r.accruedPending)}</span>
+                    <span className="font-semibold tabular-nums text-amber-700">{won(r.accruedPending)}</span>
                   </span>
                   <span className="text-muted">
-                    지급 완료 <span className="font-semibold text-fg">{won(r.accruedPaid)}</span>
+                    지급 완료 <span className="font-semibold tabular-nums text-fg">{won(r.accruedPaid)}</span>
                   </span>
                 </div>
                 {r.pendingSurveyCount > 0 && (

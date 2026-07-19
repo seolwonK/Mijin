@@ -1,0 +1,6 @@
+{
+  "url": "https://api.vworld.kr/req/wfs?service=WFS&request=GetFeature&version=2.0.0&typename=lt_c_adsigg_info&srsname=EPSG%3A4326&outputFormat=application%2Fjson",
+  "referenceDate": "2026-07-18",
+  "sha256": "f9cb921412fb097afa956c494da241d5307e51919449c9744b6d139742f7ab45",
+  "license": "공공누리 제1유형 (출처표시)"
+}

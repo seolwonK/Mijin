@@ -135,7 +135,7 @@ export default function TechJobDetailPage({
                 href={`https://map.kakao.com/link/map/고객위치,${r.lat},${r.lng}`}
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex items-center gap-1.5 rounded-lg bg-yellow-400 px-3 py-1.5 text-sm font-bold text-neutral-900"
+                className="inline-flex min-h-11 items-center gap-1.5 rounded-lg bg-yellow-400 px-4 py-2 text-sm font-bold text-neutral-900"
               >
                 <MapPinIcon className="h-4 w-4" />
                 지도 보기
@@ -144,7 +144,7 @@ export default function TechJobDetailPage({
                 href={`https://map.kakao.com/link/to/고객위치,${r.lat},${r.lng}`}
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex items-center gap-1.5 rounded-lg bg-yellow-400 px-3 py-1.5 text-sm font-bold text-neutral-900"
+                className="inline-flex min-h-11 items-center gap-1.5 rounded-lg bg-yellow-400 px-4 py-2 text-sm font-bold text-neutral-900"
               >
                 <TruckIcon className="h-4 w-4" />
                 길찾기
@@ -159,7 +159,7 @@ export default function TechJobDetailPage({
             <span className="font-bold text-fg">{r.customerName}</span>
             <a
               href={`tel:${r.customerPhone}`}
-              className="inline-flex items-center gap-1.5 rounded-lg bg-brand-600 px-3 py-1.5 text-sm font-bold text-white"
+              className="inline-flex min-h-11 items-center gap-1.5 rounded-lg bg-brand-600 px-4 py-2 text-sm font-bold text-white"
             >
               <PhoneIcon className="h-4 w-4" />
               {r.customerPhone}

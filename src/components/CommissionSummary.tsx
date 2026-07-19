@@ -1,10 +1,9 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { usePolling } from '@/components/usePolling';
 import Surface from '@/components/Surface';
 
-type CommissionEntry = {
+export type CommissionEntry = {
   id: string;
   refereeName: string;
   refereeType: '업체' | '기술자' | null;
@@ -12,25 +11,24 @@ type CommissionEntry = {
   status: 'PENDING' | 'PAID';
   createdAt: string;
 };
-
+export type CommissionSummaryData = {
+  pendingTotal: number;
+  paidTotal: number;
+  entries: CommissionEntry[];
+};
 const TOP_N = 5;
 
 function won(n: number) {
   return `${n.toLocaleString('ko-KR')}원`;
 }
 
-// "결"(C) 카드 관례의 소개 수수료 요약 — partner·tech 대시보드 공용(url만 다르게 넘긴다).
+// "결"(C) 카드 관례의 소개 수수료 요약 — partner·tech 대시보드 공용.
 // 평생 한 번도 적립된 적이 없으면 대시보드를 어지럽히지 않도록 아무것도 렌더하지 않는다.
-// AC-6: 상위 5건 제한은 UI 전용이었던 것을 "전체 보기" 토글로 해제 + 월별 집계를 추가한다.
-// 월별 집계는 이미 받아온 entries(최근 50건)를 클라이언트에서 월 단위로 묶은 것 —
-// 신규 원장 API는 물론 기존 partner|tech/commissions 응답도 건드리지 않는다(백엔드 무접촉).
-export default function CommissionSummary({ url }: { url: string }) {
+// 정직 수치 원칙: 정확 총액은 서버 전체 원장 집계(pendingTotal/paidTotal)만 표시하고,
+// 월 단위 묶음은 받아온 entries(최근 50건)의 부분합이므로 반드시 "최근 내역 소계(최대 50건)"
+// 라벨로만 노출한다(정확 월합계처럼 표기 금지 — GATE-COMM 승인). 백엔드 무접촉.
+export default function CommissionSummary({ data }: { data: CommissionSummaryData | null }) {
   const [showAll, setShowAll] = useState(false);
-  const { data } = usePolling<{
-    pendingTotal: number;
-    paidTotal: number;
-    entries: CommissionEntry[];
-  }>(url, 30_000);
 
   const monthly = useMemo(() => {
     if (!data) return [];
@@ -58,17 +56,21 @@ export default function CommissionSummary({ url }: { url: string }) {
         <div className="flex gap-6">
           <div>
             <p className="text-xs text-muted">대기</p>
-            <p className="text-lg font-bold text-amber-700">{won(data.pendingTotal)}</p>
+            <p className="text-2xl font-extrabold tabular-nums leading-none text-amber-700">
+              {won(data.pendingTotal)}
+            </p>
           </div>
           <div>
             <p className="text-xs text-muted">지급 완료</p>
-            <p className="text-lg font-bold text-muted">{won(data.paidTotal)}</p>
+            <p className="text-2xl font-extrabold tabular-nums leading-none text-muted">
+              {won(data.paidTotal)}
+            </p>
           </div>
         </div>
 
         {monthly.length > 0 && (
           <div className="mt-3 space-y-1 border-t border-border pt-3">
-            <p className="text-xs font-semibold text-muted">월별 집계</p>
+            <p className="text-xs font-semibold text-muted">최근 내역 소계(최대 50건)</p>
             {monthly.map((m) => (
               <div key={m.month} className="flex items-center justify-between text-sm">
                 <span className="text-muted">

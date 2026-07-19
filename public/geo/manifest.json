@@ -1,0 +1,99 @@
+{
+  "schemaVersion": 1,
+  "version": "2026-07-18-05ab777b",
+  "referenceDate": "2026-07-18",
+  "license": "공공누리 제1유형 (출처표시)",
+  "sourceUrl": "https://api.vworld.kr/req/wfs?service=WFS&request=GetFeature&version=2.0.0&typename=lt_c_adsido_info&srsname=EPSG%3A4326&outputFormat=application%2Fjson",
+  "sido": {
+    "file": "kr-sido.2026-07-18-05ab777b.geo.json",
+    "sha256": "1d04283717fa85d6f0abe2ec25adba442406af3a2f55baeae5ba7dddb55cbed0",
+    "featureCount": 17
+  },
+  "sigungu": {
+    "서울특별시": {
+      "file": "kr-sigungu.11.2026-07-18-05ab777b.geo.json",
+      "sha256": "95f6ef066f9e7828dba7c6ed1790dc40f661a9c5429a2ba21907c6790fc63691",
+      "featureCount": 25
+    },
+    "부산광역시": {
+      "file": "kr-sigungu.26.2026-07-18-05ab777b.geo.json",
+      "sha256": "7c8fb15382aade99bb43fc5ebd23ac1c2ab085adf50994fa0bfd11bbcd52a6e8",
+      "featureCount": 16
+    },
+    "대구광역시": {
+      "file": "kr-sigungu.27.2026-07-18-05ab777b.geo.json",
+      "sha256": "f4ba48246ef77ba7963321cb4d37bf8326a021ebcac0293f1a97446d0c71d05e",
+      "featureCount": 9
+    },
+    "인천광역시": {
+      "file": "kr-sigungu.28.2026-07-18-05ab777b.geo.json",
+      "sha256": "50eaf2d949e97874c966be80898472ded5aa2c003f41eb50efc689c0a3365e8d",
+      "featureCount": 10
+    },
+    "광주광역시": {
+      "file": "kr-sigungu.12-gwangju.2026-07-18-05ab777b.geo.json",
+      "sha256": "e18479d6b359415b5824beb89dcb604e85cee7de99e911d900ab835480a2c35a",
+      "featureCount": 5
+    },
+    "대전광역시": {
+      "file": "kr-sigungu.30.2026-07-18-05ab777b.geo.json",
+      "sha256": "5aef096dac45735e42d00ce270e0f0077718dc55c9f59c96c2e7e5d9109dccc3",
+      "featureCount": 5
+    },
+    "울산광역시": {
+      "file": "kr-sigungu.31.2026-07-18-05ab777b.geo.json",
+      "sha256": "db1644fb5416d26f2f78173965e4fadb64ea52f8b0f9f3d3650cbeb5fafe1f95",
+      "featureCount": 5
+    },
+    "세종특별자치시": {
+      "file": "kr-sigungu.36.2026-07-18-05ab777b.geo.json",
+      "sha256": "6d18edfe75b3149104038dcbca4d0096bbcb923f0f9fa4b49f4815344e75bb90",
+      "featureCount": 0
+    },
+    "경기도": {
+      "file": "kr-sigungu.41.2026-07-18-05ab777b.geo.json",
+      "sha256": "d09b522c87bc5b829e5ee47070dff3dad1306efa32230909c1ac223b72b2faac",
+      "featureCount": 31
+    },
+    "강원특별자치도": {
+      "file": "kr-sigungu.51.2026-07-18-05ab777b.geo.json",
+      "sha256": "1c03deb85052b3c6c8c2205db43b4c34a633b39dfa423c0cd247221498104138",
+      "featureCount": 18
+    },
+    "충청북도": {
+      "file": "kr-sigungu.43.2026-07-18-05ab777b.geo.json",
+      "sha256": "8eefdd64197b0569120808f67c8ccb828b8d60acd9a4a397ff956ca360a559f9",
+      "featureCount": 11
+    },
+    "충청남도": {
+      "file": "kr-sigungu.44.2026-07-18-05ab777b.geo.json",
+      "sha256": "24056ad0f670431d0d6de47e23957412f2e924df56da0eed0efc097901187dcc",
+      "featureCount": 15
+    },
+    "전북특별자치도": {
+      "file": "kr-sigungu.52.2026-07-18-05ab777b.geo.json",
+      "sha256": "8f34093839dc7c304a176e58cff6e822198b87a068630b87b4e8c2da3cd77596",
+      "featureCount": 14
+    },
+    "전라남도": {
+      "file": "kr-sigungu.12-jeonnam.2026-07-18-05ab777b.geo.json",
+      "sha256": "a6ea0cb168fe7a72a9efc361b6f22769fbb41a16d726937a3f8117cf37a189f3",
+      "featureCount": 22
+    },
+    "경상북도": {
+      "file": "kr-sigungu.47.2026-07-18-05ab777b.geo.json",
+      "sha256": "3c13fa69e16bce3443c120505b21692562ac5e9182e96f86a1cdf9b4244763d0",
+      "featureCount": 22
+    },
+    "경상남도": {
+      "file": "kr-sigungu.48.2026-07-18-05ab777b.geo.json",
+      "sha256": "647e426a51c51241bd3741f42292491f2254b1a30bf92ab3bfcd0f4189fc62c1",
+      "featureCount": 18
+    },
+    "제주특별자치도": {
+      "file": "kr-sigungu.50.2026-07-18-05ab777b.geo.json",
+      "sha256": "3fae98550f679c892719f8f6a8ec56a4f1853dd88ee1bfadf815cd4c837efa35",
+      "featureCount": 2
+    }
+  }
+}

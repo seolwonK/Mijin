@@ -5,72 +5,26 @@ import Link from 'next/link';
 import Image from 'next/image';
 import PageHeader from '@/components/PageHeader';
 import { usePolling } from '@/components/usePolling';
-import { StatusPill, UrgencyPill } from '@/components/StatusPill';
-import Surface from '@/components/Surface';
 import { buttonClasses } from '@/components/Button';
 import LogoutButton from '@/components/LogoutButton';
 import { CardSkeletonGrid } from '@/components/Skeleton';
-import CommissionSummary from '@/components/CommissionSummary';
+import CommissionSummary, { type CommissionSummaryData } from '@/components/CommissionSummary';
+import PortalHeadline from '@/components/PortalHeadline';
+import PortalJobCard, { type PortalJob } from '@/components/PortalJobCard';
 import PortalReferralSection from '@/components/PortalReferralSection';
-import PortalStatsCard from '@/components/PortalStatsCard';
+import PortalStatsCard, { type PortalStats } from '@/components/PortalStatsCard';
 import PortalReviewSection from '@/components/PortalReviewSection';
 import { useNewJobAlert } from '@/components/useNewJobAlert';
-import { BellIcon, WrenchIcon, MapPinIcon } from '@/components/icons';
+import { BellIcon, WrenchIcon } from '@/components/icons';
 
-type Job = {
-  id: string;
-  status: string;
-  distanceKm: number | null;
-  createdAt: string;
-  request: {
-    id: string;
-    status: string;
-    urgency: string;
-    description: string;
-    address: string | null;
-    createdAt: string;
-  };
-};
-
-function JobCard({ job, highlight }: { job: Job; highlight?: boolean }) {
-  return (
-    <Surface
-      as="section"
-      tint={highlight}
-      className="rounded-2xl transition-transform hover:-translate-y-0.5 active:translate-y-0"
-    >
-      <Link href={`/partner/jobs/${job.id}`} className="block p-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <UrgencyPill urgency={job.request.urgency} />
-            <StatusPill status={job.request.status} />
-          </div>
-          {job.distanceKm != null && (
-            <span className="text-sm font-medium text-muted">
-              {job.distanceKm.toFixed(1)}km
-            </span>
-          )}
-        </div>
-        <p className="mt-2 line-clamp-2 text-sm text-fg">{job.request.description}</p>
-        {job.request.address && (
-          <p className="mt-1 flex items-center gap-1 text-sm text-muted">
-            <MapPinIcon className="h-3.5 w-3.5 shrink-0" />
-            {job.request.address}
-          </p>
-        )}
-        <p className="mt-1 text-xs text-muted">
-          배정 {new Date(job.createdAt).toLocaleString('ko-KR')}
-        </p>
-      </Link>
-    </Surface>
-  );
-}
 
 const PAST_TOP_N = 20;
 
 export default function PartnerHomePage() {
   const [showAllPast, setShowAllPast] = useState(false);
-  const { data, error } = usePolling<{ jobs: Job[] }>('/api/partner/jobs', 5_000);
+  const { data, error } = usePolling<{ jobs: PortalJob[] }>('/api/partner/jobs', 5_000);
+  const { data: statsData } = usePolling<PortalStats>('/api/partner/stats', 30_000);
+  const { data: commissionData } = usePolling<CommissionSummaryData>('/api/partner/commissions', 30_000);
   const jobs = data?.jobs ?? [];
   const loading = !data && !error;
 
@@ -81,16 +35,37 @@ export default function PartnerHomePage() {
     ready: !!data,
     baseTitle: '업체 포털',
   });
-  const inProgress = jobs.filter(
-    (j) =>
-      j.status === 'ACCEPTED' &&
-      (j.request.status === 'ACCEPTED' || j.request.status === 'DISPATCHED'),
-  );
+  const inProgress = jobs
+    .filter(
+      (j) =>
+        j.status === 'ACCEPTED' &&
+        (j.request.status === 'ACCEPTED' || j.request.status === 'DISPATCHED'),
+    )
+    .sort((a, b) => Date.parse(a.createdAt) - Date.parse(b.createdAt));
   const past = jobs.filter((j) => !waiting.includes(j) && !inProgress.includes(j));
   const visiblePast = showAllPast ? past : past.slice(0, PAST_TOP_N);
+  const priorHistory = (job: PortalJob) => {
+    const identity = job.request.address ?? job.request.customerPhone;
+    if (!identity) return [];
+    const seenRequestIds = new Set<string>();
+    return jobs
+      .filter((candidate) => {
+        const candidateIdentity = candidate.request.address ?? candidate.request.customerPhone;
+        return (
+          // Assignment는 requestId 유일 제약이 없는 이력 모델 — 같은 접수의 과거 배정이
+          // "자기 이력"으로 잡히지 않도록 request 단위로 현재 건을 제외한다.
+          candidate.request.id !== job.request.id &&
+          candidateIdentity === identity &&
+          Date.parse(candidate.createdAt) < Date.parse(job.createdAt) &&
+          !seenRequestIds.has(candidate.request.id) &&
+          (seenRequestIds.add(candidate.request.id), true)
+        );
+      })
+      .sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt));
+  };
 
   return (
-    <main className="min-h-screen">
+    <main className="min-h-screen bg-surface">
       <PageHeader
         title="업체 포털"
         width="max-w-5xl"
@@ -125,6 +100,8 @@ export default function PartnerHomePage() {
           </div>
         </div>
 
+        <PortalHeadline stats={statsData ?? null} commission={commissionData ?? null} />
+
         {error && <p className="text-sm text-red-600">{error}</p>}
 
         {notifPermission === 'default' && (
@@ -140,8 +117,6 @@ export default function PartnerHomePage() {
           </div>
         )}
 
-        <PortalStatsCard url="/api/partner/stats" />
-
         <section>
           <h2 className="mb-2 flex items-center gap-1.5 font-semibold text-brand-700">
             <BellIcon className="h-4 w-4" />
@@ -156,7 +131,14 @@ export default function PartnerHomePage() {
           ) : (
             <div className="space-y-2 md:grid md:grid-cols-2 md:gap-3 md:space-y-0 xl:grid-cols-3">
               {waiting.map((j) => (
-                <JobCard key={j.id} job={j} highlight />
+                <PortalJobCard
+                  key={j.id}
+                  job={j}
+                  scope="partner"
+                  highlight
+                  activeQueue
+                  priorHistory={priorHistory(j)}
+                />
               ))}
             </div>
           )}
@@ -165,27 +147,39 @@ export default function PartnerHomePage() {
         <section>
           <h2 className="mb-2 flex items-center gap-1.5 font-semibold">
             <WrenchIcon className="h-4 w-4 text-muted" />
-            진행중
+            진행 중
           </h2>
           {loading ? null : inProgress.length === 0 ? (
             <p className="rounded-xl bg-neutral-50 p-4 text-center text-sm text-muted">
-              진행중인 건이 없습니다
+              진행 중인 건이 없습니다
             </p>
           ) : (
-            <div className="space-y-2 md:grid md:grid-cols-2 md:gap-3 md:space-y-0 xl:grid-cols-3">
+            <div className="space-y-2">
               {inProgress.map((j) => (
-                <JobCard key={j.id} job={j} />
+                <PortalJobCard
+                  key={j.id}
+                  job={j}
+                  scope="partner"
+                  activeQueue
+                  timeline
+                  priorHistory={priorHistory(j)}
+                />
               ))}
             </div>
           )}
         </section>
+
+
+        <PortalStatsCard data={statsData ?? null} />
+
+        <CommissionSummary data={commissionData ?? null} />
 
         {past.length > 0 && (
           <section>
             <h2 className="mb-2 font-semibold text-muted">지난 내역</h2>
             <div className="space-y-2 opacity-70 md:grid md:grid-cols-2 md:gap-3 md:space-y-0 xl:grid-cols-3">
               {visiblePast.map((j) => (
-                <JobCard key={j.id} job={j} />
+                <PortalJobCard key={j.id} job={j} scope="partner" priorHistory={priorHistory(j)} />
               ))}
             </div>
             {past.length > PAST_TOP_N && (
@@ -201,8 +195,6 @@ export default function PartnerHomePage() {
         )}
 
         <PortalReferralSection url="/api/partner/referrals" />
-
-        <CommissionSummary url="/api/partner/commissions" />
 
         <PortalReviewSection url="/api/partner/reviews" />
       </div>

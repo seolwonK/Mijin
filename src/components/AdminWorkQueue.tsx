@@ -1,7 +1,8 @@
 'use client';
 
-import { useMemo, useState } from 'react';
-import AdminMetricStrip from '@/components/AdminMetricStrip';
+import { useEffect, useMemo, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
+import AdminMetricStrip, { type Metric } from '@/components/AdminMetricStrip';
 import AdminDataTable, { type Column } from '@/components/AdminDataTable';
 import SelectedRequestPanel from '@/components/SelectedRequestPanel';
 import { AdminStatusTag, AdminUrgencyTag } from '@/components/AdminStatusTag';
@@ -30,14 +31,22 @@ const TABS = [
 ] as const;
 type ColKey = 'status' | 'code' | 'urgency' | 'desc' | 'who' | 'time' | 'assignee' | 'survey';
 
-export default function AdminWorkQueue({ requests, refresh }: { requests: AdminWorkQueueRequest[]; refresh: () => void | Promise<void> }) {
+export default function AdminWorkQueue({ requests, refresh, extraMetrics = [], summary }: { requests: AdminWorkQueueRequest[]; refresh: () => void | Promise<void>; extraMetrics?: Metric[]; summary?: { received: number | null; needsAttention: number | null } }) {
+  const searchParams = useSearchParams();
   const [tab, setTab] = useState('ALL');
   const [query, setQuery] = useState('');
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  useEffect(() => {
+    const requestedTab = searchParams.get('tab');
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (TABS.some((item) => item.key === requestedTab)) setTab(requestedTab!);
+  }, [searchParams]);
   const received = requests.filter((request) => request.status === 'RECEIVED').length;
   const active = requests.filter((request) => ['ACCEPTED', 'DISPATCHED'].includes(request.status)).length;
   const done = requests.filter((request) => ['COMPLETED', 'CANCELED'].includes(request.status)).length;
   const needsAttention = requests.filter((request) => request.needsAttention).length;
+  const displayedReceived = summary ? (summary.received ?? '—') : received;
+  const displayedNeedsAttention = summary ? (summary.needsAttention ?? null) : needsAttention;
   const rows = useMemo(() => {
     const statuses = TABS.find((item) => item.key === tab)?.statuses;
     const q = query.trim().toLowerCase();
@@ -61,7 +70,7 @@ export default function AdminWorkQueue({ requests, refresh }: { requests: AdminW
   const panel = selected && <SelectedRequestPanel key={selected.id} requestId={selected.id} onAssigned={refresh} />;
 
   return <section className="bg-white text-fg">
-    <AdminMetricStrip metrics={[{ label: '오늘 접수', value: requests.length }, { label: '배정 대기', value: received, tone: needsAttention > 0 ? 'warn' : 'default', sub: needsAttention > 0 ? `확인 필요 ${needsAttention}건` : undefined }, { label: '진행중', value: active, tone: 'accent' }, { label: '완료 · 취소', value: done }]} />
+    <AdminMetricStrip metrics={[{ label: '오늘 접수', value: requests.length }, { label: '배정 대기', value: displayedReceived, tone: (displayedNeedsAttention ?? 0) > 0 ? 'warn' : 'default', sub: displayedNeedsAttention != null && displayedNeedsAttention > 0 ? `확인 필요 ${displayedNeedsAttention}건` : undefined, onClick: () => setTab('RECEIVED'), ariaLabel: '배정 대기 탭으로 이동' }, { label: '진행중', value: active, tone: 'accent' }, { label: '완료 · 취소', value: done }, ...extraMetrics]} />
     <div className="flex flex-wrap items-center gap-3 border-y border-border px-4 py-2.5">
       <div className="flex gap-1">{TABS.map((item) => { const count = item.statuses ? requests.filter((request) => item.statuses.includes(request.status as never)).length : requests.length; return <button key={item.key} type="button" onClick={() => setTab(item.key)} aria-pressed={tab === item.key} className={`rounded-admin-md border px-3 py-1.5 text-sm font-semibold ${tab === item.key ? 'border-admin-cyan-ink bg-neutral-100 text-fg' : 'border-transparent text-neutral-600 hover:bg-neutral-100'}`}>{item.label} {count > 0 && <span className="font-mono">{count}</span>}</button>; })}</div>
       <input type="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="접수번호 · 이름 · 전화 · 내용 검색" aria-label="접수 검색" className="ml-auto w-full rounded-admin-md border border-border bg-white px-3 py-1.5 text-sm focus:border-admin-cyan-ink focus:outline-none xl:w-80" />

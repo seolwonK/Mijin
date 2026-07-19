@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 // 세션 만료(401) 시 돌아갈 로그인 경로를 현재 위치로 판별
@@ -12,15 +12,35 @@ function loginPathFor(pathname: string): string {
 }
 
 // url이 null이면 폴링하지 않는다.
+// URL은 데이터 identity 경계다 — 상태는 그것을 만든 url과 함께 저장되고,
+// 반환값은 현재 url과 일치할 때만 노출된다(전환 커밋 1프레임의 이전 대상 표시 차단).
+// 느리게 도착한 이전 URL 응답은 세대(generation) 가드로 폐기한다.
+type PollingState<T> = {
+  url: string | null;
+  data: T | null;
+  error: string | null;
+  // 마지막으로 성공 응답을 받은 시각 (ms epoch) — 실패/401 시에는 갱신하지 않는다.
+  lastUpdatedAt: number | null;
+};
+
 export function usePolling<T>(url: string | null, intervalMs: number) {
   const router = useRouter();
-  const [data, setData] = useState<T | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  // 마지막으로 성공 응답을 받은 시각 (ms epoch) — 실패/401 시에는 갱신하지 않는다.
-  const [lastUpdatedAt, setLastUpdatedAt] = useState<number | null>(null);
+  const [state, setState] = useState<PollingState<T>>({
+    url,
+    data: null,
+    error: null,
+    lastUpdatedAt: null,
+  });
+  const generationRef = useRef(0);
+
+  useEffect(() => {
+    // url 변경 = 다른 대상(identity) — 지연 도착한 이전 URL 응답의 상태 갱신을 차단한다.
+    generationRef.current += 1;
+  }, [url]);
 
   const refresh = useCallback(async () => {
     if (!url) return;
+    const generation = generationRef.current;
     try {
       const res = await fetch(url, { cache: 'no-store' });
       if (!res.ok) {
@@ -37,11 +57,18 @@ export function usePolling<T>(url: string | null, intervalMs: number) {
         }
         throw new Error(`요청 실패 (${res.status})`);
       }
-      setData(await res.json());
-      setError(null);
-      setLastUpdatedAt(Date.now());
+      const body = (await res.json()) as T;
+      if (generation !== generationRef.current) return; // 이전 URL 응답 — 폐기
+      setState({ url, data: body, error: null, lastUpdatedAt: Date.now() });
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      if (generation !== generationRef.current) return; // 이전 URL 응답 — 폐기
+      const message = e instanceof Error ? e.message : String(e);
+      setState((prev) => ({
+        url,
+        data: prev.url === url ? prev.data : null,
+        error: message,
+        lastUpdatedAt: prev.url === url ? prev.lastUpdatedAt : null,
+      }));
     }
   }, [url, router]);
 
@@ -63,5 +90,12 @@ export function usePolling<T>(url: string | null, intervalMs: number) {
     };
   }, [refresh, intervalMs]);
 
-  return { data, error, refresh, lastUpdatedAt };
+  // identity 게이트 — 저장된 상태가 현재 url의 것일 때만 노출한다(전환 1프레임 stale 차단).
+  const current = state.url === url;
+  return {
+    data: current ? state.data : null,
+    error: current ? state.error : null,
+    refresh,
+    lastUpdatedAt: current ? state.lastUpdatedAt : null,
+  };
 }
