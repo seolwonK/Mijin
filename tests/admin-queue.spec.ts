@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
+import { loginAsAdmin } from './helpers/auth';
 
 const REQUEST_CODE = '900011';
 const CANDIDATE = {
@@ -18,13 +19,6 @@ const CANDIDATE = {
   reviewCount: 1,
 };
 
-async function login(page: Page) {
-  await page.goto('/admin/login');
-  await page.locator('#loginId').fill('admin');
-  await page.locator('#password').fill('admin1234');
-  await page.getByRole('button', { name: '로그인', exact: true }).click();
-  await expect(page).toHaveURL(/\/admin$/);
-}
 
 function requestRow(page: Page) {
   return page.locator('table tbody tr').filter({ hasText: REQUEST_CODE });
@@ -57,7 +51,7 @@ test.describe('관리자 작업 큐 배정', () => {
       if (/\/api\/admin\/requests\/[^/]+\/candidates$/.test(request.url())) candidateCalls += 1;
     });
 
-    await login(page);
+    await loginAsAdmin(page);
     await expect(requestRow(page)).toHaveCount(1);
     expect(candidateCalls).toBe(0);
   });
@@ -70,7 +64,7 @@ test.describe('관리자 작업 큐 배정', () => {
       }
     });
 
-    await login(page);
+    await loginAsAdmin(page);
     await selectRequest(page);
     await expect.poll(() => candidateUrls.length).toBeGreaterThan(0);
     expect(candidateUrls).toContainEqual(expect.stringMatching(/\/api\/admin\/requests\/[^/]+\/candidates$/));
@@ -87,7 +81,7 @@ test.describe('관리자 작업 큐 배정', () => {
       await route.fulfill({ json: { candidates: [{ ...CANDIDATE, name: '이전 후보' }], hasCoords: true } });
     });
 
-    await login(page);
+    await loginAsAdmin(page);
     await selectRequest(page);
     const otherRow = page.locator('table tbody tr').filter({ hasNotText: REQUEST_CODE }).first();
     await expect(otherRow).toBeVisible();
@@ -103,7 +97,7 @@ test.describe('관리자 작업 큐 배정', () => {
       await route.fulfill({ status: 409, json: { error: '이미 배정되었습니다' } });
     });
 
-    await login(page);
+    await loginAsAdmin(page);
     await openAssignConfirm(page);
     await page.getByRole('dialog').getByRole('button', { name: '배정', exact: true }).click();
     await expect.poll(() => assignBody).toEqual({ assigneeKind: CANDIDATE.kind, assigneeId: CANDIDATE.id });
@@ -117,7 +111,7 @@ test.describe('관리자 작업 큐 배정', () => {
       return route.fulfill({ json: { ok: true } });
     });
 
-    await login(page);
+    await loginAsAdmin(page);
     await openAssignConfirm(page);
     await page.getByRole('dialog').getByRole('button', { name: '취소', exact: true }).click();
     await expect(page.getByRole('dialog')).toHaveCount(0);
@@ -133,7 +127,7 @@ test.describe('관리자 작업 큐 배정', () => {
       await route.fulfill({ json: { ok: true } });
     });
 
-    await login(page);
+    await loginAsAdmin(page);
     await openAssignConfirm(page);
     const confirm = page.getByRole('dialog').getByRole('button', { name: '배정', exact: true });
     await confirm.dblclick();
@@ -146,7 +140,7 @@ test.describe('관리자 작업 큐 배정', () => {
       route.fulfill({ status: 409, json: { error: '이미 배정되었습니다' } }),
     );
 
-    await login(page);
+    await loginAsAdmin(page);
     await openAssignConfirm(page);
     await page.getByRole('dialog').getByRole('button', { name: '배정', exact: true }).click();
     await expect(page.getByText('이미 배정되었습니다', { exact: true })).toBeVisible();
@@ -160,7 +154,7 @@ test.describe('관리자 작업 큐 배정', () => {
       if (new URL(request.url()).pathname === '/api/admin/requests') queueRefreshes += 1;
     });
 
-    await login(page);
+    await loginAsAdmin(page);
     await openAssignConfirm(page);
     const beforeAssign = queueRefreshes;
     await page.getByRole('dialog').getByRole('button', { name: '배정', exact: true }).click();

@@ -1,19 +1,18 @@
 import { expect, test, type Page } from '@playwright/test';
+import { loginAsAdmin } from './helpers/auth';
+import { buildMock, RATINGS_SHAPE, RATING_SUBJECT_SHAPE } from './helpers/shapes';
 
-const ranking = {
+// 목 본문은 shapes.ts 상수에서 생성한다 — 같은 상수를 Layer 1 이 실응답에 대해
+// 단언하므로 목과 실API의 드리프트가 구조적으로 불가능해진다.
+const ranking = buildMock(RATINGS_SHAPE, {
   ranking: [
     { subjectKey: 'PROVIDER:p1', name: '가 업체', type: 'PROVIDER', avgRating: 4.5, reviewCount: 12, completed: 20 },
     { subjectKey: 'TECHNICIAN:t1', name: '나 기술자', type: 'TECHNICIAN', avgRating: 3.5, reviewCount: 2, completed: 4 },
   ],
-};
+});
 
-async function login(page: Page) {
-  await page.goto('/admin/login');
-  await page.locator('#loginId').fill('admin');
-  await page.locator('#password').fill('admin1234');
-  await page.getByRole('button', { name: '로그인', exact: true }).click();
-  await expect(page).toHaveURL(/\/admin$/);
-}
+const subjectDetail = (overrides: unknown) => buildMock(RATING_SUBJECT_SHAPE, overrides);
+
 
 async function mockRatings(page: Page) {
   let requestCount = 0;
@@ -22,7 +21,7 @@ async function mockRatings(page: Page) {
     const url = new URL(route.request().url());
     if (route.request().method() !== 'GET') return route.fulfill({ status: 405 });
     if (url.pathname.endsWith('/PROVIDER%3Ainvalid') || url.pathname.endsWith('/PROVIDER:invalid')) return route.fulfill({ status: 400, contentType: 'application/json', body: JSON.stringify({ error: '잘못된 subject' }) });
-    if (url.pathname.endsWith('/PROVIDER%3Ap1') || url.pathname.endsWith('/PROVIDER:p1')) return route.fulfill({ contentType: 'application/json', body: JSON.stringify({ monthly: [{ bucket: '2026-07', avgRating: 4.5, reviewCount: 12 }], reviews: { items: [{ rating: 5, comment: '친절합니다', submittedAt: '2026-07-18T00:00:00.000Z' }], total: 3, hasNext: true, nextCursor: 'review-1' } }) });
+    if (url.pathname.endsWith('/PROVIDER%3Ap1') || url.pathname.endsWith('/PROVIDER:p1')) return route.fulfill({ contentType: 'application/json', body: JSON.stringify(subjectDetail({ monthly: [{ bucket: '2026-07', avgRating: 4.5, reviewCount: 12 }], reviews: { items: [{ rating: 5, comment: '친절합니다', submittedAt: '2026-07-18T00:00:00.000Z' }], total: 3, hasNext: true, nextCursor: 'review-1' } })) });
     return route.fulfill({ contentType: 'application/json', body: JSON.stringify(ranking) });
   });
   return () => requestCount;
@@ -31,7 +30,7 @@ async function mockRatings(page: Page) {
 test.describe('관리자 평점 현황', () => {
   test('does not request ratings data below the lg breakpoint', async ({ page }) => {
     await page.setViewportSize({ width: 1023, height: 800 });
-    await login(page);
+    await loginAsAdmin(page);
     const requestCount = await mockRatings(page);
     await page.goto('/admin/analytics/ratings');
 
@@ -39,7 +38,7 @@ test.describe('관리자 평점 현황', () => {
     expect(requestCount()).toBe(0);
   });
   test('sorts, filters, and loads a selected subject detail through GET', async ({ page }) => {
-    await login(page);
+    await loginAsAdmin(page);
     await mockRatings(page);
     await page.goto('/admin/analytics/ratings');
     await expect(page.getByText('가 업체')).toBeVisible();
@@ -58,7 +57,7 @@ test.describe('관리자 평점 현황', () => {
   });
 
   test('loads the next bounded review page and formats rating chart values in points', async ({ page }) => {
-    await login(page);
+    await loginAsAdmin(page);
     const firstPage = Array.from({ length: 30 }, (_, index) => ({ rating: 5, comment: `후기 ${index + 1}`, submittedAt: `2026-07-${String(30 - index).padStart(2, '0')}T00:00:00.000Z` }));
     const nextPage = [{ rating: 4, comment: '후기 31', submittedAt: '2026-06-30T00:00:00.000Z' }];
     await page.route('**/api/admin/analytics/ratings**', async (route) => {
@@ -67,7 +66,7 @@ test.describe('관리자 평점 현황', () => {
         const reviews = url.searchParams.get('cursor') === 'review-30'
           ? { items: nextPage, total: 31, hasNext: false, nextCursor: null }
           : { items: firstPage, total: 31, hasNext: true, nextCursor: 'review-30' };
-        return route.fulfill({ contentType: 'application/json', body: JSON.stringify({ monthly: [{ bucket: '2026-07', avgRating: 4.5, reviewCount: 31 }], reviews }) });
+        return route.fulfill({ contentType: 'application/json', body: JSON.stringify(subjectDetail({ monthly: [{ bucket: '2026-07', avgRating: 4.5, reviewCount: 31 }], reviews })) });
       }
       return route.fulfill({ contentType: 'application/json', body: JSON.stringify(ranking) });
     });
@@ -86,7 +85,7 @@ test.describe('관리자 평점 현황', () => {
   
   test('실제 API — 잘못된 subject 400, 미존재 404, 쓰기 메서드 거부', async ({ page }) => {
     // page.request 는 route mock을 우회하므로 실제 라우트 계약을 검증한다.
-    await login(page);
+    await loginAsAdmin(page);
     const malformed = await page.request.get('/api/admin/analytics/ratings/USER:abc');
     expect(malformed.status()).toBe(400);
     const missing = await page.request.get('/api/admin/analytics/ratings/PROVIDER:nonexistent');
@@ -96,16 +95,16 @@ test.describe('관리자 평점 현황', () => {
   });
 
   test('대상 전환 시 이전 대상의 상세가 남지 않는다 (역순 응답 격리)', async ({ page }) => {
-    await login(page);
+    await loginAsAdmin(page);
     await page.route('**/api/admin/analytics/ratings**', async (route) => {
       const url = new URL(route.request().url());
       if (url.pathname.includes('PROVIDER%3Ap1') || url.pathname.includes('PROVIDER:p1')) {
         // A(가 업체) 상세는 늦게 도착 — B 선택 후 완료되는 역순 응답
         await new Promise((resolve) => setTimeout(resolve, 700));
-        return route.fulfill({ contentType: 'application/json', body: JSON.stringify({ monthly: [], reviews: { items: [{ rating: 1, comment: 'A업체 늦은 후기', submittedAt: '2026-07-18T00:00:00.000Z' }], total: 1, hasNext: false } }) });
+        return route.fulfill({ contentType: 'application/json', body: JSON.stringify(subjectDetail({ monthly: [], reviews: { items: [{ rating: 1, comment: 'A업체 늦은 후기', submittedAt: '2026-07-18T00:00:00.000Z' }], total: 1, hasNext: false } })) });
       }
       if (url.pathname.includes('TECHNICIAN%3At1') || url.pathname.includes('TECHNICIAN:t1')) {
-        return route.fulfill({ contentType: 'application/json', body: JSON.stringify({ monthly: [], reviews: { items: [{ rating: 4, comment: 'B기술자 후기', submittedAt: '2026-07-18T00:00:00.000Z' }], total: 1, hasNext: false } }) });
+        return route.fulfill({ contentType: 'application/json', body: JSON.stringify(subjectDetail({ monthly: [], reviews: { items: [{ rating: 4, comment: 'B기술자 후기', submittedAt: '2026-07-18T00:00:00.000Z' }], total: 1, hasNext: false } })) });
       }
       return route.fulfill({ contentType: 'application/json', body: JSON.stringify(ranking) });
     });

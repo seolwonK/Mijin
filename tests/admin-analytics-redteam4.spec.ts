@@ -1,20 +1,14 @@
 import { expect, test, type Page } from '@playwright/test';
+import { loginAsAdmin } from './helpers/auth';
 import { appendFile, mkdir, writeFile } from 'node:fs/promises';
 
 const REGIONS_URL = '/api/admin/analytics/map/regions';
 const DISPATCH_URL = '/api/admin/analytics/map/dispatch';
 const RESULTS_PATH = 'artifacts/g005-qa/redteam4-results.txt';
 
-async function login(page: Page) {
-  await page.goto('/admin/login');
-  await page.locator('#loginId').fill('admin');
-  await page.locator('#password').fill('admin1234');
-  await page.getByRole('button', { name: '로그인', exact: true }).click();
-  await expect(page).toHaveURL(/\/admin$/);
-}
 
 async function openMap(page: Page) {
-  await login(page);
+  await loginAsAdmin(page);
   await page.goto('/admin/analytics/map');
   await expect(page.getByRole('heading', { name: '전국 지도 현황' })).toBeVisible();
 }
@@ -109,7 +103,7 @@ test.describe('G005 코로플레스·경계 파이프라인 레드팀', () => {
   });
 
   test('실API는 좌표 전용 접수의 경계 미탑재 사유를 관찰하고 500 없이 응답한다', async ({ page }) => {
-    await login(page);
+    await loginAsAdmin(page);
     const result = await page.evaluate(async (url) => {
       const response = await fetch(url);
       return { status: response.status, body: await response.json() };
@@ -127,14 +121,14 @@ test.describe('G005 코로플레스·경계 파이프라인 레드팀', () => {
     narrowPage.on('request', (request) => {
       if ([REGIONS_URL, DISPATCH_URL].includes(new URL(request.url()).pathname)) calls.push(request.method());
     });
-    await login(narrowPage);
+    await loginAsAdmin(narrowPage);
     await narrowPage.goto('/admin/analytics/map');
     await expect(narrowPage.getByText('지도 현황은 데스크톱에서 이용할 수 있습니다.')).toBeVisible();
     await narrowPage.waitForTimeout(300);
     expect(calls).toEqual([]);
     await narrow.close();
 
-    await login(page);
+    await loginAsAdmin(page);
     for (const url of [REGIONS_URL, DISPATCH_URL]) {
       expect((await page.request.get(url)).status()).toBe(200);
       expect((await page.request.post(url)).status()).toBe(405);

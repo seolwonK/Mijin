@@ -240,10 +240,74 @@ export function emptyFromShape(shape: ShapeNode): unknown {
   }
 }
 
-/** 빈 골격 위에 원하는 값만 덮어쓴 목 본문. */
+/** 빈 골격 위에 원하는 값만 덮어쓴 목 본문 (얕은 병합). */
 export function mockFromShape<T extends Record<string, unknown>>(
   shape: ShapeNode,
   overrides: Partial<T> = {} as Partial<T>,
 ): T {
   return { ...(emptyFromShape(shape) as T), ...overrides };
+}
+
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+  return value !== null && typeof value === 'object' && !Array.isArray(value);
+}
+
+function deepMerge(base: unknown, override: unknown): unknown {
+  if (!isPlainObject(base) || !isPlainObject(override)) return override;
+  const out: Record<string, unknown> = { ...base };
+  for (const [key, value] of Object.entries(override)) {
+    out[key] = key in base ? deepMerge(base[key], value) : value;
+  }
+  return out;
+}
+
+/** shape 에 선언되지 않은 키 — 목이 실API에 없는 필드를 지어내는 것을 잡는다. */
+function unknownKeys(value: unknown, shape: ShapeNode, path = '$'): string[] {
+  if (shape.kind === 'array') {
+    return Array.isArray(value)
+      ? value.flatMap((item, i) => unknownKeys(item, shape.of, `${path}[${i}]`))
+      : [];
+  }
+  if (shape.kind !== 'object' || !isPlainObject(value)) return [];
+  const out: string[] = [];
+  for (const key of Object.keys(value)) {
+    if (!(key in shape.of)) {
+      out.push(`${path}.${key}`);
+      continue;
+    }
+    out.push(...unknownKeys(value[key], shape.of[key], `${path}.${key}`));
+  }
+  return out;
+}
+
+/**
+ * **목킹 스펙이 써야 하는 유일한 진입점 (S1 결박).**
+ *
+ * shape 로부터 완전한 골격을 만들고 그 위에 테스트가 신경 쓰는 값만 깊게 덮어쓴 뒤,
+ * 결과가 shape 를 정확히 만족하는지 검사해 위반이면 **즉시 throw** 한다.
+ *
+ * 이렇게 하면 목과 실응답의 드리프트가 구조적으로 불가능해진다:
+ *   · 실API에 필드가 늘면 → shapes.ts 가 갱신되고 골격이 그 필드를 공급한다
+ *     (목이 조용히 필드를 빠뜨린 채 통과하지 못한다)
+ *   · 목이 실API에 없는 필드를 지어내면 → unknownKeys 가 잡는다
+ *   · 오버라이드 타입이 틀리면 → shapeViolations 가 잡는다
+ *
+ * 같은 상수를 Layer 1(계약 테스트)이 **실응답**에 대해 단언하므로, 양쪽이 한 정의를 공유한다.
+ */
+export function buildMock<T = Record<string, unknown>>(
+  shape: ShapeNode,
+  overrides: unknown = {},
+): T {
+  const merged = deepMerge(emptyFromShape(shape), overrides);
+  const problems = [
+    ...shapeViolations(merged, shape),
+    ...unknownKeys(merged, shape).map((p) => `${p}: shape 에 없는 키입니다 (실API에 없는 필드)`),
+  ];
+  if (problems.length > 0) {
+    throw new Error(
+      `목 본문이 shapes.ts 계약을 위반합니다:\n  ${problems.join('\n  ')}\n` +
+        `실API 응답이 정말 바뀌었다면 tests/helpers/shapes.ts 를 먼저 고치세요.`,
+    );
+  }
+  return merged as T;
 }

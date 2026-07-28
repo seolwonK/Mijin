@@ -1,17 +1,14 @@
-import { expect, test, type Page } from '@playwright/test';
+import { expect, test } from '@playwright/test';
+import { loginAsAdmin } from './helpers/auth';
+import { buildMock, DASHBOARD_SHAPE } from './helpers/shapes';
 
 const artifactsDir = 'artifacts/g001-qa';
 
-async function login(page: Page) {
-  await page.goto('/admin/login');
-  await page.locator('#loginId').fill('admin');
-  await page.locator('#password').fill('admin1234');
-  await page.getByRole('button', { name: '로그인', exact: true }).click();
-  await expect(page).toHaveURL(/\/admin$/);
-}
 
+// 목 본문은 shapes.ts 상수에서 생성한다 — 같은 상수를 Layer 1 이 실응답에 대해
+// 단언하므로 목과 실API의 드리프트가 구조적으로 불가능해진다.
 function dashboardFixture(period: string) {
-  return {
+  return buildMock(DASHBOARD_SHAPE, {
     operational: {
       byStatus: { RECEIVED: period === 'month' ? 29029 : 70007 },
       needsAttention: 1,
@@ -24,7 +21,7 @@ function dashboardFixture(period: string) {
     },
     money: { surveyPaid: { sum: 1000, count: 1, avg: 1000 }, commission: { PENDING: 100, PAID: 900 } },
     updatedAt: '2026-07-18T00:00:00.000Z',
-  };
+  });
 }
 
 test.describe('G001 관리자 분석 레드팀', () => {
@@ -43,7 +40,7 @@ test.describe('G001 관리자 분석 레드팀', () => {
   });
 
   test('dashboard period 경계 입력은 500 없이 거부하거나 안전하게 기본화한다', async ({ page }) => {
-    await login(page);
+    await loginAsAdmin(page);
     for (const suffix of ['?period=year', "?period=';DROP%20TABLE", '?period=', '?period=week&period=month']) {
       const response = await page.request.fetch(`/api/admin/analytics/dashboard${suffix}`);
       expect(response.status()).not.toBe(500);
@@ -56,7 +53,7 @@ test.describe('G001 관리자 분석 레드팀', () => {
   });
 
   test('인증 API 응답은 계약 스키마만 제공하고 수수료 상태를 분리한다', async ({ page }) => {
-    await login(page);
+    await loginAsAdmin(page);
     const summary = await page.request.get('/api/admin/analytics/summary');
     expect(summary.status()).toBe(200);
     expect(Object.keys(await summary.json()).sort()).toEqual(['needsAttention', 'received', 'updatedAt', 'urgentOpen']);
@@ -71,7 +68,7 @@ test.describe('G001 관리자 분석 레드팀', () => {
 
   test('dashboard 500은 오류를 표시하고 앱을 크래시하지 않는다', async ({ page }) => {
     await page.route('**/api/admin/analytics/dashboard?period=week', (route) => route.fulfill({ status: 500, contentType: 'application/json', body: JSON.stringify({ error: 'redteam failure' }) }));
-    await login(page);
+    await loginAsAdmin(page);
     await page.goto('/admin/analytics/dashboard');
     await expect(page.getByText(/redteam failure|분석 데이터를 불러오는 중/)).toBeVisible();
     await expect(page.getByRole('heading', { name: '분석 현황' })).toBeVisible();
@@ -79,7 +76,7 @@ test.describe('G001 관리자 분석 레드팀', () => {
 
   test('summary 500에도 관리 큐는 정상 동작한다', async ({ page }) => {
     await page.route('**/api/admin/analytics/summary', (route) => route.fulfill({ status: 500, contentType: 'application/json', body: JSON.stringify({ error: 'summary failure' }) }));
-    await login(page);
+    await loginAsAdmin(page);
     await expect(page.locator('table tbody tr').first()).toBeVisible();
     await expect(page.getByRole('button', { name: '배정 대기 탭으로 이동' })).toBeVisible();
   });
@@ -97,7 +94,7 @@ test.describe('G001 관리자 분석 레드팀', () => {
       }
       await route.fulfill({ contentType: 'application/json', body: JSON.stringify(dashboardFixture(period)) });
     });
-    await login(page);
+    await loginAsAdmin(page);
     await page.goto('/admin/analytics/dashboard', { waitUntil: 'domcontentloaded' });
     await weekSeen;
     await page.getByLabel('분석 기간').getByRole('button', { name: '월', exact: true }).click();
@@ -116,7 +113,7 @@ test.describe('G001 관리자 분석 레드팀', () => {
       if (request.url().includes('/api/admin/analytics/summary')) narrowSummary += 1;
       if (request.url().includes('/api/admin/analytics/dashboard')) narrowDashboard += 1;
     });
-    await login(narrow);
+    await loginAsAdmin(narrow);
     await narrow.goto('/admin/analytics/dashboard');
     await narrow.waitForTimeout(250);
     expect(narrowSummary).toBe(0);
@@ -130,7 +127,7 @@ test.describe('G001 관리자 분석 레드팀', () => {
       if (request.url().includes('/api/admin/analytics/summary')) wideSummary += 1;
       if (request.url().includes('/api/admin/analytics/dashboard')) wideDashboard += 1;
     });
-    await login(wide);
+    await loginAsAdmin(wide);
     await expect.poll(() => wideSummary, { timeout: 3_000 }).toBeGreaterThan(0);
     await wide.goto('/admin/analytics/dashboard');
     await expect.poll(() => wideDashboard, { timeout: 3_000 }).toBeGreaterThan(0);
@@ -138,7 +135,7 @@ test.describe('G001 관리자 분석 레드팀', () => {
   });
 
   test('실제 로그인 화면 증거를 저장한다', async ({ page }) => {
-    await login(page);
+    await loginAsAdmin(page);
     await expect(page.getByText('오늘 접수', { exact: true })).toBeVisible();
     await page.screenshot({ path: `${artifactsDir}/strip.png`, fullPage: false });
     await page.goto('/admin/analytics/dashboard');

@@ -1,4 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
+import { loginAsAdmin } from './helpers/auth';
+import { buildMock, MAP_DISPATCH_SHAPE, MAP_REGIONS_SHAPE } from './helpers/shapes';
 
 const REGIONS_URL = '/api/admin/analytics/map/regions';
 const DISPATCH_URL = '/api/admin/analytics/map/dispatch';
@@ -13,30 +15,30 @@ const region = (key: string, demand: number, supply = 1) => ({
   state: supply ? (demand ? 'NORMAL' : 'ZERO') : (demand ? 'CRITICAL_ALERT' : 'INACTIVE'),
 });
 
-const regionsPayload = (regions = [region('서울특별시', 3)]) => ({
+// 목 본문은 shapes.ts 상수에서 생성한다 — 같은 상수를 Layer 1 이 실응답에 대해
+// 단언하므로 목과 실API의 드리프트가 구조적으로 불가능해진다.
+// gapAlerts 도 인자로 받는다 — 호출부에서 스프레드로 덮어쓰면 그 값만 buildMock
+// 검증을 빠져나가 목의 일부가 shape 결박에서 이탈한다.
+const regionsPayload = (
+  regions = [region('서울특별시', 3)],
+  gapAlerts: Array<{ key: string; name: string; demand: number }> = [],
+) => buildMock(MAP_REGIONS_SHAPE, {
   level: 'sido',
   sido: null,
   regions,
-  gapAlerts: [],
+  gapAlerts,
   unknownLocation: { count: 2, reasons: { '주소 미상': 2 } },
   sigunguUnknown: 0,
   sourceLabel: '경계 시각화: VWorld 스냅샷 확보 후 제공 예정',
   asOf: '2026-07-18T00:00:00.000Z',
 });
 
-const dispatchPayload = {
+const dispatchPayload = buildMock(MAP_DISPATCH_SHAPE, {
   pins: [{ requestId: 'req-1', lookupCode: '900001', lat: 37.5, lng: 127.0, address: '서울특별시' }],
   unknownCount: 1,
   asOf: '2026-07-18T00:00:00.000Z',
-};
+});
 
-async function login(page: Page) {
-  await page.goto('/admin/login');
-  await page.locator('#loginId').fill('admin');
-  await page.locator('#password').fill('admin1234');
-  await page.getByRole('button', { name: '로그인', exact: true }).click();
-  await expect(page).toHaveURL(/\/admin$/);
-}
 
 async function jsonFromPage(page: Page, url: string) {
   return page.evaluate(async (endpoint) => {
@@ -58,7 +60,7 @@ test.describe('G003 지도 API/UI 레드팀', () => {
   });
 
   test('sido 경계값은 500 없이 정직하게 처리한다', async ({ page }) => {
-    await login(page);
+    await loginAsAdmin(page);
     for (const sido of ['서울', 'toString', '__proto__', '세종특별자치시']) {
       const result = await jsonFromPage(page, `${REGIONS_URL}?sido=${encodeURIComponent(sido)}`);
       expect(result.status, sido).toBe(400);
@@ -69,7 +71,7 @@ test.describe('G003 지도 API/UI 레드팀', () => {
   });
 
   test('인증된 읽기 응답은 읽기 전용 스키마를 정확히 제공한다', async ({ page }) => {
-    await login(page);
+    await loginAsAdmin(page);
     const regions = await jsonFromPage(page, REGIONS_URL);
     const dispatch = await jsonFromPage(page, DISPATCH_URL);
     expect(regions.status).toBe(200);
@@ -97,7 +99,7 @@ test.describe('G003 지도 API/UI 레드팀', () => {
   test('regions 500이어도 출동 패널은 독립적으로 렌더된다', async ({ page }) => {
     await page.route(`**${REGIONS_URL}`, (route) => route.fulfill({ status: 500, json: { error: 'regions failed' } }));
     await page.route(`**${DISPATCH_URL}`, (route) => route.fulfill({ json: dispatchPayload }));
-    await login(page);
+    await loginAsAdmin(page);
     await page.goto('/admin/analytics/map');
     await expect(page.getByText('요청 실패 (500)', { exact: true })).toBeVisible();
     await expect(page.getByRole('heading', { name: '출동 현황' })).toBeVisible();
@@ -107,7 +109,7 @@ test.describe('G003 지도 API/UI 레드팀', () => {
   test('dispatch 500이어도 지역 표는 독립적으로 렌더된다', async ({ page }) => {
     await page.route(`**${REGIONS_URL}`, (route) => route.fulfill({ json: regionsPayload() }));
     await page.route(`**${DISPATCH_URL}`, (route) => route.fulfill({ status: 500, json: { error: 'dispatch failed' } }));
-    await login(page);
+    await loginAsAdmin(page);
     await page.goto('/admin/analytics/map');
     await expect(page.getByText('요청 실패 (500)', { exact: true })).toBeVisible();
     await expect(page.getByRole('heading', { name: '수급 압력 순위표' })).toBeVisible();
@@ -117,9 +119,9 @@ test.describe('G003 지도 API/UI 레드팀', () => {
   test('17시도와 10개 갭 경보를 렌더하며 경보 수요 내림차순을 유지한다', async ({ page }) => {
     const regions = Array.from({ length: 17 }, (_, index) => region(`지역${index + 1}`, 17 - index));
     const gapAlerts = Array.from({ length: 10 }, (_, index) => ({ key: `경보${index + 1}`, name: `경보${index + 1}`, demand: 10 - index }));
-    await page.route(`**${REGIONS_URL}`, (route) => route.fulfill({ json: { ...regionsPayload(regions), gapAlerts } }));
+    await page.route(`**${REGIONS_URL}`, (route) => route.fulfill({ json: regionsPayload(regions, gapAlerts) }));
     await page.route(`**${DISPATCH_URL}`, (route) => route.fulfill({ json: dispatchPayload }));
-    await login(page);
+    await loginAsAdmin(page);
     await page.goto('/admin/analytics/map');
     await expect(page.locator('tbody tr')).toHaveCount(18);
     const alertText = await page.locator('[aria-labelledby="gap-alerts-heading"] li').allTextContents();
@@ -130,7 +132,7 @@ test.describe('G003 지도 API/UI 레드팀', () => {
   test('경계 미확보 시 안내 배너, 확보 시 코로플레스와 차량 추적 아님 라벨을 표시한다', async ({ page }) => {
     // 미확보(unavailable) 경로 — manifest 404
     await page.route('**/geo/manifest.json', (route) => route.fulfill({ status: 404 }));
-    await login(page);
+    await loginAsAdmin(page);
     await page.goto('/admin/analytics/map');
     await expect(page.getByLabel('지도 안내')).toContainText('제공 예정');
     await expect(page.getByText('차량 추적 아님 — 고객 목적지 기준').first()).toBeVisible();
@@ -154,7 +156,7 @@ test.describe('G003 지도 API/UI 레드팀', () => {
       dispatchCalls += 1;
       return route.fulfill({ json: dispatchPayload });
     });
-    await login(page);
+    await loginAsAdmin(page);
     await page.goto('/admin/analytics/map');
     await expect.poll(() => dispatchCalls).toBeGreaterThanOrEqual(1);
     await page.waitForTimeout(8_500);
@@ -168,7 +170,7 @@ test.describe('G003 지도 API/UI 레드팀', () => {
     narrowPage.on('request', (request) => {
       if ([REGIONS_URL, DISPATCH_URL].includes(new URL(request.url()).pathname)) mapCalls += 1;
     });
-    await login(narrowPage);
+    await loginAsAdmin(narrowPage);
     await narrowPage.goto('/admin/analytics/map');
     await expect(narrowPage.getByText('지도 현황은 데스크톱에서 이용할 수 있습니다.')).toBeVisible();
     await narrowPage.waitForTimeout(300);
@@ -179,7 +181,7 @@ test.describe('G003 지도 API/UI 레드팀', () => {
     const widePage = await wide.newPage();
     await widePage.route(`**${REGIONS_URL}`, (route) => route.fulfill({ json: regionsPayload() }));
     await widePage.route(`**${DISPATCH_URL}`, (route) => route.fulfill({ json: dispatchPayload }));
-    await login(widePage);
+    await loginAsAdmin(widePage);
     await widePage.goto('/admin/analytics/map');
     await expect(widePage.getByRole('heading', { name: '수급 압력 순위표' })).toBeVisible();
     await wide.close();

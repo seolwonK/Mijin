@@ -1,7 +1,11 @@
 import { createHash } from 'node:crypto';
 import { expect, test, type Page } from '@playwright/test';
+import { loginAsAdmin } from './helpers/auth';
+import { buildMock, MAP_DISPATCH_SHAPE, MAP_REGIONS_SHAPE } from './helpers/shapes';
 
-const regions = {
+// 목 본문은 shapes.ts 상수에서 생성한다 — 같은 상수를 Layer 1 이 실응답에 대해
+// 단언하므로 목과 실API의 드리프트가 구조적으로 불가능해진다.
+const regions = buildMock(MAP_REGIONS_SHAPE, {
   level: 'sido' as const,
   sido: null,
   regions: [
@@ -15,30 +19,23 @@ const regions = {
   sigunguUnknown: 0,
   sourceLabel: '경계 시각화: VWorld 스냅샷 확보 후 제공 예정',
   asOf: '2026-07-18T12:00:00.000Z',
-};
+});
 
-const sigunguRegions = {
+const sigunguRegions = buildMock(MAP_REGIONS_SHAPE, {
   ...regions,
   level: 'sigungu' as const,
   sido: '서울특별시',
   regions: [{ key: 'seoul-gangnam', name: '강남구', hasSigungu: false, supply: 1, demand: 4, pressure: 4, state: 'NORMAL' as const }],
   gapAlerts: [],
   sigunguUnknown: 3,
-};
+});
 
-const dispatch = {
+const dispatch = buildMock(MAP_DISPATCH_SHAPE, {
   pins: [{ requestId: 'request-1', lookupCode: 'REQ-001', lat: 37.4979, lng: 127.0276, address: '서울 강남구 테헤란로 1' }],
   unknownCount: 1,
   asOf: '2026-07-18T12:00:00.000Z',
-};
+});
 
-async function login(page: Page) {
-  await page.goto('/admin/login');
-  await page.locator('#loginId').fill('admin');
-  await page.locator('#password').fill('admin1234');
-  await page.getByRole('button', { name: '로그인', exact: true }).click();
-  await expect(page).toHaveURL(/\/admin$/);
-}
 
 const sidoGeo = {
   type: 'FeatureCollection',
@@ -97,7 +94,7 @@ async function mockMap(page: Page, { regionsStatus = 200, geoStatus = 200, corru
 test.describe('관리자 전국 지도 현황', () => {
   test('갭 경보, 수급 순위, 위치 미상과 출동 현황을 조회 전용으로 표시하고 시군구로 드릴다운한다', async ({ page }) => {
     await mockMap(page);
-    await login(page);
+    await loginAsAdmin(page);
     await page.getByRole('navigation', { name: '관리자 이동' }).getByRole('button', { name: '분석' }).click();
     await page.getByRole('menuitem', { name: '지도', exact: true }).click();
 
@@ -132,14 +129,14 @@ test.describe('관리자 전국 지도 현황', () => {
 
   test('출동 현황은 8초 간격으로 재폴링한다', async ({ page }) => {
     const dispatchRequests = await mockMap(page);
-    await login(page);
+    await loginAsAdmin(page);
     await page.goto('/admin/analytics/map');
     await expect(page.getByText('REQ-001')).toBeVisible();
     await expect.poll(dispatchRequests, { timeout: 12_000 }).toBeGreaterThanOrEqual(2);
   });
   test('지역 집계가 실패해도 출동 현황을 표시한다', async ({ page }) => {
     await mockMap(page, { regionsStatus: 500 });
-    await login(page);
+    await loginAsAdmin(page);
     await page.goto('/admin/analytics/map');
 
     await expect(page.getByRole('heading', { name: '출동 현황' })).toBeVisible();
@@ -149,7 +146,7 @@ test.describe('관리자 전국 지도 현황', () => {
 
   test('경계 파일이 없으면 순위표와 안내 배너를 유지한다', async ({ page }) => {
     await mockMap(page, { geoStatus: 404 });
-    await login(page);
+    await loginAsAdmin(page);
     await page.goto('/admin/analytics/map');
 
     await expect(page.getByText('지도 시각화(코로플레스)는 VWorld 행정경계 스냅샷 확보 후 제공 예정 — 현재는 지역 순위표로 제공됩니다')).toBeVisible();
@@ -157,7 +154,7 @@ test.describe('관리자 전국 지도 현황', () => {
   });
   test('checksum mismatch displays a corrupt-boundary banner while retaining the ranking table', async ({ page }) => {
     await mockMap(page, { corruptGeo: true });
-    await login(page);
+    await loginAsAdmin(page);
     await page.goto('/admin/analytics/map');
 
     await expect(page.locator('section[role="alert"]')).toContainText('경계 데이터를 불러오지 못했습니다 — boundary checksum mismatch');
@@ -170,7 +167,7 @@ test.describe('관리자 전국 지도 현황', () => {
     page.on('request', (request) => {
       if (new URL(request.url()).pathname.startsWith('/api/admin/analytics/map/')) requests.push(request.method());
     });
-    await login(page);
+    await loginAsAdmin(page);
     await page.goto('/admin/analytics/map');
     await expect(page.getByText('지도 현황은 데스크톱에서 이용할 수 있습니다.')).toBeVisible();
     expect(requests).toHaveLength(0);
@@ -180,7 +177,7 @@ test.describe('관리자 전국 지도 현황', () => {
     const anonymous = await request.get('/api/admin/analytics/map/regions');
     expect(anonymous.status()).toBe(401);
 
-    await login(page);
+    await loginAsAdmin(page);
     expect((await page.request.get('/api/admin/analytics/map/regions')).status()).toBe(200);
     expect((await page.request.post('/api/admin/analytics/map/regions')).status()).toBe(405);
     expect((await page.request.get('/api/admin/analytics/map/regions?sido=not-a-region')).status()).toBe(400);

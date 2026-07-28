@@ -1,20 +1,15 @@
-import { expect, test, type Page } from '@playwright/test';
+import { expect, test } from '@playwright/test';
+import { loginAsAdmin } from './helpers/auth';
+import { buildMock, SUMMARY_SHAPE } from './helpers/shapes';
 
-async function login(page: Page) {
-  await page.goto('/admin/login');
-  await page.locator('#loginId').fill('admin');
-  await page.locator('#password').fill('admin1234');
-  await page.getByRole('button', { name: '로그인', exact: true }).click();
-  await expect(page).toHaveURL(/\/admin$/);
-}
 
 test.describe('관리자 요약 스트립 · 분석 대시보드', () => {
   test('① 스트립은 단일 렌더이며 summary 값을 개입 신호에 사용한다', async ({ page }) => {
     await page.route('**/api/admin/analytics/summary', (route) => route.fulfill({
       contentType: 'application/json',
-      body: JSON.stringify({ received: 7777, needsAttention: 8888, urgentOpen: 9999, updatedAt: new Date().toISOString() }),
+      body: JSON.stringify(buildMock(SUMMARY_SHAPE, { received: 7777, needsAttention: 8888, urgentOpen: 9999, updatedAt: new Date().toISOString() })),
     }));
-    await login(page);
+    await loginAsAdmin(page);
 
     await expect(page.getByText('오늘 접수', { exact: true })).toHaveCount(1);
     await expect(page.getByRole('button', { name: '배정 대기 탭으로 이동' })).toContainText('7777');
@@ -28,20 +23,20 @@ test.describe('관리자 요약 스트립 · 분석 대시보드', () => {
     page.on('request', (request) => {
       if (request.url().includes('/api/admin/analytics/summary')) summaryCalls += 1;
     });
-    await login(page);
+    await loginAsAdmin(page);
     await expect.poll(() => summaryCalls, { timeout: 2_000 }).toBeGreaterThan(0);
     const initial = summaryCalls;
     await expect.poll(() => summaryCalls, { timeout: 12_000, intervals: [250, 500, 1_000] }).toBeGreaterThan(initial);
   });
 
   test('③ 배정 대기 카드는 배정대기 탭으로 전환한다', async ({ page }) => {
-    await login(page);
+    await loginAsAdmin(page);
     await page.getByRole('button', { name: '배정 대기 탭으로 이동' }).click();
     await expect(page.getByRole('button', { name: /^배정대기( \d+)?$/ })).toHaveAttribute('aria-pressed', 'true');
   });
 
   test('④ 긴급 미완료 카드는 운영 상태 긴급도 분포로 딥링크한다', async ({ page }) => {
-    await login(page);
+    await loginAsAdmin(page);
     await page.getByRole('link', { name: /긴급 미완료/ }).click();
     await expect(page).toHaveURL(/\/admin\/analytics\/dashboard#operational$/);
     await expect(page.locator('#operational')).toBeVisible();
@@ -53,7 +48,7 @@ test.describe('관리자 요약 스트립 · 분석 대시보드', () => {
     page.on('request', (request) => {
       if (request.url().includes('/api/admin/analytics/summary')) summaryCalls += 1;
     });
-    await login(page);
+    await loginAsAdmin(page);
     await expect(page.getByText('긴급 미완료', { exact: true })).toBeHidden();
     await expect(page.getByText('분석 보기', { exact: true })).toBeHidden();
     await page.waitForTimeout(250);
@@ -63,7 +58,7 @@ test.describe('관리자 요약 스트립 · 분석 대시보드', () => {
   });
 
   test('⑥ 대시보드는 4개 섹션, 긴급도 분포와 접근 가능한 산식 툴팁을 제공한다', async ({ page }) => {
-    await login(page);
+    await loginAsAdmin(page);
     await page.goto('/admin/analytics/dashboard');
 
     for (const heading of ['운영 상태', '접수 · 완료 추이', '처리 성능', '돈 흐름']) {
@@ -91,7 +86,7 @@ test.describe('관리자 요약 스트립 · 분석 대시보드', () => {
     page.on('request', (request) => {
       if (request.url().includes('/api/admin/analytics/dashboard')) dashboardCalls += 1;
     });
-    await login(page);
+    await loginAsAdmin(page);
     await page.goto('/admin/analytics/dashboard');
     await expect.poll(() => dashboardCalls, { timeout: 5_000 }).toBeGreaterThan(0);
     const initial = dashboardCalls;

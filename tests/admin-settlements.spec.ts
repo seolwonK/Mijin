@@ -1,13 +1,7 @@
 import { expect, test, type Page } from '@playwright/test';
+import { loginAsAdmin } from './helpers/auth';
 import { mkdirSync, writeFileSync } from 'node:fs';
 
-async function login(page: Page) {
-  await page.goto('/admin/login');
-  await page.locator('#loginId').fill('admin');
-  await page.locator('#password').fill('admin1234');
-  await page.getByRole('button', { name: '로그인', exact: true }).click();
-  await expect(page).toHaveURL(/\/admin$/);
-}
 
 function settlementSection(page: Page, title: '업체' | '기술자') {
   return page.locator('section').filter({ has: page.getByRole('heading', { name: title, exact: true }) });
@@ -23,7 +17,7 @@ test.describe('관리자 정산 집계 리포트', () => {
   });
 
   test('NAV+RENDER: admin can reach the report and see its reference-value warning', async ({ page }) => {
-    await login(page);
+    await loginAsAdmin(page);
     const settlementLink = page.getByRole('link', { name: '정산 집계', exact: true });
     if (await settlementLink.count()) {
       await settlementLink.click();
@@ -39,7 +33,7 @@ test.describe('관리자 정산 집계 리포트', () => {
     // 2x 디바이스 스케일 전체 페이지를 JPEG로 캡처 — 내비·필터·캡션·업체/기술자 섹션 전부 포함한 실제 렌더 증거.
     const context = await browser.newContext({ deviceScaleFactor: 2 });
     const page = await context.newPage();
-    await login(page);
+    await loginAsAdmin(page);
     await page.goto('/admin/settlements');
 
     const providers = settlementSection(page, '업체');
@@ -50,14 +44,14 @@ test.describe('관리자 정산 집계 리포트', () => {
   });
 
   test('SEPARATION: technician paid data is not merged into the provider section', async ({ page }) => {
-    await login(page);
+    await loginAsAdmin(page);
     await page.goto('/admin/settlements');
 
     await expect(settlementSection(page, '기술자')).toContainText('해당 기간 집계 데이터 없음');
   });
 
   test('CSV: source-level export is complete and has the expected content type', async ({ page }) => {
-    await login(page);
+    await loginAsAdmin(page);
     const response = await page.request.get('/api/admin/settlements?month=2026-07&format=csv');
     const body = await response.text();
     const lines = body.trim().split(/\r?\n/);
@@ -71,7 +65,7 @@ test.describe('관리자 정산 집계 리포트', () => {
   });
 
   test('EMPTY MONTH RED-TEAM: a month without data empties both distinct sections', async ({ page }) => {
-    await login(page);
+    await loginAsAdmin(page);
     await page.goto('/admin/settlements');
     const month = page.locator('input[type=month]');
     await month.fill('2020-01');
@@ -81,7 +75,7 @@ test.describe('관리자 정산 집계 리포트', () => {
   });
 
   test('INJECTION/GARBAGE MONTH RED-TEAM: invalid month safely falls back to KST current month', async ({ page }) => {
-    await login(page);
+    await loginAsAdmin(page);
     const response = await page.request.get('/api/admin/settlements?month=not-a-month');
 
     expect(response.status()).toBe(200);
@@ -93,6 +87,9 @@ test.describe('관리자 정산 집계 리포트', () => {
     const actions: Array<Record<string, unknown>> = [];
     const assertions: Array<Record<string, unknown>> = [];
 
+    // 이 테스트만 loginAsAdmin() 을 쓰지 않고 로그인 단계를 인라인으로 둔다 —
+    // 산출물이 "각 조작 1건 = transcript 1행"이라, 헬퍼로 감싸면 기록해야 할
+    // goto/fill/click 세 단계가 통째로 사라진다. 의도된 예외다.
     await page.goto('/admin/login');
     actions.push({ type: 'goto', url: '/admin/login', selector: '#loginId', timestamp: Date.now() });
     await page.locator('#loginId').fill('admin');

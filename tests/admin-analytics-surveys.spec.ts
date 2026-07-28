@@ -1,14 +1,11 @@
-import { expect, test, type Page } from '@playwright/test';
+import { expect, test } from '@playwright/test';
+import { loginAsAdmin } from './helpers/auth';
+import { buildMock, SURVEYS_SHAPE } from './helpers/shapes';
 
-async function login(page: Page) {
-  await page.goto('/admin/login');
-  await page.locator('#loginId').fill('admin');
-  await page.locator('#password').fill('admin1234');
-  await page.getByRole('button', { name: '로그인', exact: true }).click();
-  await expect(page).toHaveURL(/\/admin$/);
-}
 
-const surveyOverview = {
+// 목 본문은 shapes.ts 상수에서 생성한다 — 같은 상수를 Layer 1 이 실응답에 대해
+// 단언하므로 목과 실API의 드리프트가 구조적으로 불가능해진다.
+const surveyOverview = buildMock(SURVEYS_SHAPE, {
   responseRate: 0.625,
   submitted: 5,
   total: 8,
@@ -25,7 +22,7 @@ const surveyOverview = {
   },
   paidStats: { sum: 123456, count: 4, avg: 30864 },
   updatedAt: '2026-07-18T12:00:00.000Z',
-};
+});
 
 test.describe('관리자 설문 현황', () => {
   test('① 설문 메뉴에서 3개 영역과 미제출 연락처를 조회 전용으로 표시한다', async ({ page }) => {
@@ -36,7 +33,7 @@ test.describe('관리자 설문 현황', () => {
       }
       await route.continue();
     });
-    await login(page);
+    await loginAsAdmin(page);
     await page.getByRole('navigation', { name: '관리자 이동' }).getByRole('button', { name: '분석' }).click();
     await page.getByRole('menuitem', { name: '설문', exact: true }).click();
     await expect(page).toHaveURL(/\/admin\/analytics\/surveys$/);
@@ -56,7 +53,7 @@ test.describe('관리자 설문 현황', () => {
     const anonymousResponse = await request.get('/api/admin/analytics/surveys');
     expect(anonymousResponse.status()).toBe(401);
 
-    await login(page);
+    await loginAsAdmin(page);
     const getResponse = await page.request.get('/api/admin/analytics/surveys');
     expect(getResponse.status()).toBe(200);
 
@@ -73,7 +70,7 @@ test.describe('관리자 설문 현황', () => {
       }
     });
 
-    await login(page);
+    await loginAsAdmin(page);
     // 1023px에서는 분석 내비 그룹 자체가 숨겨지므로(lg 게이트) URL로 직접 진입한다.
     await page.goto('/admin/analytics/surveys');
     await expect(page.getByText('설문 현황은 데스크톱에서 이용할 수 있습니다.', { exact: true })).toBeVisible();

@@ -1,4 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
+import { loginAsAdmin } from './helpers/auth';
+import { buildMock, RATINGS_SHAPE, RATING_SUBJECT_SHAPE, SURVEYS_SHAPE } from './helpers/shapes';
 
 const artifactsDir = 'artifacts/g002-qa';
 const endpoints = [
@@ -7,23 +9,20 @@ const endpoints = [
   '/api/admin/analytics/ratings/PROVIDER:missing',
 ];
 
-const ranking = {
+// 목 본문은 shapes.ts 상수에서 생성한다 — 같은 상수를 Layer 1 이 실응답에 대해
+// 단언하므로 목과 실API의 드리프트가 구조적으로 불가능해진다.
+const ranking = buildMock(RATINGS_SHAPE, {
   ranking: [
     { subjectKey: 'PROVIDER:a', name: '알파 업체', type: 'PROVIDER', avgRating: 4.9, reviewCount: 9, completed: 12 },
     { subjectKey: 'TECHNICIAN:b', name: '베타 기술자', type: 'TECHNICIAN', avgRating: 4.1, reviewCount: 4, completed: 8 },
   ],
-};
+});
 
-async function login(page: Page) {
-  await page.goto('/admin/login');
-  await page.locator('#loginId').fill('admin');
-  await page.locator('#password').fill('admin1234');
-  await page.getByRole('button', { name: '로그인', exact: true }).click();
-  await expect(page).toHaveURL(/\/admin$/);
-}
+const subjectDetail = (overrides: unknown) => buildMock(RATING_SUBJECT_SHAPE, overrides);
+
 
 function surveyFixture(itemCount = 1, total = itemCount) {
-  return {
+  return buildMock(SURVEYS_SHAPE, {
     responseRate: 0.5,
     submitted: 25,
     total: 50,
@@ -40,7 +39,7 @@ function surveyFixture(itemCount = 1, total = itemCount) {
     },
     paidStats: { sum: 500000, count: 25, avg: 20000 },
     updatedAt: '2026-07-18T00:00:00.000Z',
-  };
+  });
 }
 
 async function mockRatings(page: Page) {
@@ -48,10 +47,10 @@ async function mockRatings(page: Page) {
     const path = new URL(route.request().url()).pathname;
     if (path.endsWith('/PROVIDER%3Aa') || path.endsWith('/PROVIDER:a')) {
       await new Promise((resolve) => setTimeout(resolve, 100));
-      return route.fulfill({ json: { monthly: [], reviews: { items: [{ rating: 1, comment: 'A 후기', submittedAt: '2026-07-18T00:00:00.000Z' }], total: 1, hasNext: false } } });
+      return route.fulfill({ json: subjectDetail({ monthly: [], reviews: { items: [{ rating: 1, comment: 'A 후기', submittedAt: '2026-07-18T00:00:00.000Z' }], total: 1, hasNext: false } }) });
     }
     if (path.endsWith('/TECHNICIAN%3Ab') || path.endsWith('/TECHNICIAN:b')) {
-      return route.fulfill({ json: { monthly: [], reviews: { items: [{ rating: 5, comment: 'B 후기', submittedAt: '2026-07-18T00:00:00.000Z' }], total: 1, hasNext: false } } });
+      return route.fulfill({ json: subjectDetail({ monthly: [], reviews: { items: [{ rating: 5, comment: 'B 후기', submittedAt: '2026-07-18T00:00:00.000Z' }], total: 1, hasNext: false } }) });
     }
     return route.fulfill({ json: ranking });
   });
@@ -64,7 +63,7 @@ test.describe('G002 설문·평점 레드팀', () => {
       expect([401, 403]).toContain(response.status());
     }
 
-    await login(page);
+    await loginAsAdmin(page);
     for (const endpoint of endpoints) {
       for (const method of ['POST', 'PUT', 'DELETE'] as const) {
         const response = await page.request.fetch(endpoint, { method });
@@ -74,7 +73,7 @@ test.describe('G002 설문·평점 레드팀', () => {
   });
 
   test('subject 경계 입력은 500 없이 안전하게 거부된다', async ({ page }) => {
-    await login(page);
+    await loginAsAdmin(page);
     for (const subject of ['USER:x', 'PROVIDER:', 'PROVIDER:%20', 'PROVIDER:..%2F..']) {
       const response = await page.request.get(`/api/admin/analytics/ratings/${subject}`);
       expect(response.status(), subject).not.toBe(500);
@@ -83,7 +82,7 @@ test.describe('G002 설문·평점 레드팀', () => {
   });
 
   test('실제 인증 API는 AC4/AC5 스키마와 읽기 전용 집계를 지킨다', async ({ page }) => {
-    await login(page);
+    await loginAsAdmin(page);
     const surveysResponse = await page.request.get('/api/admin/analytics/surveys');
     expect(surveysResponse.status()).toBe(200);
     const surveys = await surveysResponse.json();
@@ -110,7 +109,7 @@ test.describe('G002 설문·평점 레드팀', () => {
   test('surveys와 ratings 500은 오류를 보이고 다른 관리 화면으로 이동할 수 있다', async ({ page }) => {
     await page.route('**/api/admin/analytics/surveys', (route) => route.fulfill({ status: 500, json: { error: 'survey redteam failure' } }));
     await page.route('**/api/admin/analytics/ratings', (route) => route.fulfill({ status: 500, json: { error: 'ratings redteam failure' } }));
-    await login(page);
+    await loginAsAdmin(page);
     await page.goto('/admin/analytics/surveys');
     await expect(page.getByText('요청 실패 (500)')).toBeVisible();
     await expect(page.getByRole('heading', { name: '설문 현황' })).toBeVisible();
@@ -123,7 +122,7 @@ test.describe('G002 설문·평점 레드팀', () => {
 
   test('큰 미제출 목록은 50개만 렌더하고 나머지 건수를 표시한다', async ({ page }) => {
     await page.route('**/api/admin/analytics/surveys', (route) => route.fulfill({ json: surveyFixture(50, 5000) }));
-    await login(page);
+    await loginAsAdmin(page);
     await page.goto('/admin/analytics/surveys');
     await expect(page.locator('tbody tr')).toHaveCount(50);
     await expect(page.getByText('외 4950건', { exact: true })).toBeVisible();
@@ -131,7 +130,7 @@ test.describe('G002 설문·평점 레드팀', () => {
 
   test('순위표 A↔B 10회 전환 후 최종 B 상세만 남는다', async ({ page }) => {
     await mockRatings(page);
-    await login(page);
+    await loginAsAdmin(page);
     await page.goto('/admin/analytics/ratings');
     const a = page.getByRole('button', { name: /알파 업체/ });
     const b = page.getByRole('button', { name: /베타 기술자/ });
@@ -147,7 +146,7 @@ test.describe('G002 설문·평점 레드팀', () => {
   });
 
   test('인증된 실데이터 설문과 평점 드릴다운 증거를 저장한다', async ({ page }) => {
-    await login(page);
+    await loginAsAdmin(page);
     await page.goto('/admin/analytics/surveys');
     await expect(page.getByRole('heading', { name: '설문 현황' })).toBeVisible();
     await expect(page.getByRole('heading', { name: '응답률' })).toBeVisible();

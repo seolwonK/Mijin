@@ -3,7 +3,14 @@ import { PrismaClient } from '@prisma/client';
 import { apiContextOptions, sessionCookieHeader, signSessionToken } from '../helpers/auth';
 import { uniqueIp, runNonce } from '../helpers/ip';
 import { FixtureFactory } from '../helpers/fixtures';
-import { ANALYTICS_SHAPES, emptyFromShape, shapeViolations } from '../helpers/shapes';
+import {
+  ANALYTICS_SHAPES,
+  buildMock,
+  emptyFromShape,
+  shapeViolations,
+  SUMMARY_SHAPE,
+  SURVEYS_SHAPE,
+} from '../helpers/shapes';
 
 const prisma = new PrismaClient();
 test.afterAll(async () => prisma.$disconnect());
@@ -101,6 +108,35 @@ test('shapes: 목 골격도 같은 shape 를 만족한다 (Step 9 드리프트 �
   for (const [key, shape] of Object.entries(ANALYTICS_SHAPES)) {
     expect(shapeViolations(emptyFromShape(shape), shape), key).toEqual([]);
   }
+});
+
+// buildMock 이 실제로 드리프트를 막는지 — 통과만 확인하면 no-op 이어도 초록이다.
+test('shapes: buildMock 은 목이 실API에 없는 필드를 지어내면 거부한다', () => {
+  expect(() => buildMock(SUMMARY_SHAPE, { received: 1, resendButton: true })).toThrow(
+    /shape 에 없는 키/,
+  );
+  expect(() =>
+    buildMock(SURVEYS_SHAPE, { pending: { items: [{ surveyId: 's', bogusField: 1 }] } }),
+  ).toThrow(/shape 에 없는 키/);
+});
+
+test('shapes: buildMock 은 오버라이드 타입이 틀리면 거부한다', () => {
+  expect(() => buildMock(SUMMARY_SHAPE, { received: '일곱' })).toThrow(/유한 number/);
+  expect(() => buildMock(SUMMARY_SHAPE, { updatedAt: 'not-a-date' })).toThrow(/ISO 8601/);
+  expect(() => buildMock(SURVEYS_SHAPE, { pending: { items: [{ elapsedDays: null }] } })).toThrow(
+    /유한 number/,
+  );
+});
+
+test('shapes: buildMock 은 목이 빠뜨린 필드를 shape 골격으로 채운다', () => {
+  // 목이 nextCursor 를 몰라도 실API 계약대로 키가 존재해야 한다 —
+  // 실API에 필드가 늘면 목이 조용히 빠뜨린 채 통과하지 못한다는 뜻이다.
+  const built = buildMock(SURVEYS_SHAPE, { submitted: 5 });
+  expect(Object.keys(built).sort()).toEqual(
+    ['paidStats', 'pending', 'responseRate', 'submitted', 'total', 'updatedAt'].sort(),
+  );
+  expect(Object.keys(built.pending as object).sort()).toEqual(['hasNext', 'items', 'total']);
+  expect(built.submitted).toBe(5);
 });
 
 test('auth: 쿠키 헤더 형태가 미들웨어를 통과한다', async ({ browser }) => {
