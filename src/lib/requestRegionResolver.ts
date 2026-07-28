@@ -10,63 +10,13 @@ export interface GeoProvider {
   sidoAt?(lat: number, lng: number): string | null;
 }
 
-const SIDO_ALIASES: ReadonlyArray<readonly [string, string]> = [
-  ['서울시', '서울특별시'],
-  ['서울', '서울특별시'],
-  ['부산시', '부산광역시'],
-  ['부산', '부산광역시'],
-  ['대구시', '대구광역시'],
-  ['대구', '대구광역시'],
-  ['인천시', '인천광역시'],
-  ['인천', '인천광역시'],
-  ['대전시', '대전광역시'],
-  ['대전', '대전광역시'],
-  ['울산시', '울산광역시'],
-  ['울산', '울산광역시'],
-  ['세종시', '세종특별자치시'],
-  ['세종', '세종특별자치시'],
-  ['경기도', '경기도'],
-  ['경기', '경기도'],
-  ['강원도', '강원특별자치도'],
-  ['강원', '강원특별자치도'],
-  ['충청북도', '충청북도'],
-  ['충북', '충청북도'],
-  ['충청남도', '충청남도'],
-  ['충남', '충청남도'],
-  ['전북특별자치도', '전북특별자치도'],
-  ['전라북도', '전북특별자치도'],
-  ['전북', '전북특별자치도'],
-  ['전라남도', '전라남도'],
-  ['전남', '전라남도'],
-  ['경상북도', '경상북도'],
-  ['경북', '경상북도'],
-  ['경상남도', '경상남도'],
-  ['경남', '경상남도'],
-  ['제주도', '제주특별자치도'],
-  ['제주', '제주특별자치도'],
-];
-
-function normalizeAddress(address: string): string {
-  const normalized = address.trim().replace(/\s+/g, ' ');
-  for (const [alias, sido] of SIDO_ALIASES) {
-    if (new RegExp(`^${alias}(?=\\s|$)`).test(normalized)) {
-      return normalized.replace(new RegExp(`^${alias}(?=\\s|$)`), sido);
-    }
-  }
-
-  // "광주" alone is ambiguous with 경기도 광주시. Treat it as the metropolitan city
-  // only when its formal name is present or the following token is a district (구).
-  if (/^광주(?=\s|$)/.test(normalized)) {
-    const [, following = ''] = normalized.split(' ', 2);
-    if (following.endsWith('구')) return normalized.replace(/^광주(?=\s|$)/, '광주광역시');
-  }
-
-  return normalized;
-}
-
 function fromAddress(address: string | null): ResolvedRegion | null {
   if (!address?.trim()) return null;
-  const region = regionFromAddress(normalizeAddress(address));
+  // 시/도 축약형 정규화는 regions.ts 의 regionFromAddress 안으로 옮겼다.
+  // 여기 사본이 있던 동안 배차 경로(autoAssign·matching)는 정규화를 거치지
+  // 않아 축약 주소를 판별하지 못했다 — 그래서 호출부가 아니라 판별 함수가
+  // 정규화를 책임진다.
+  const region = regionFromAddress(address);
   if (!region) return null;
   return region.sigungu
     ? { kind: 'region', ...region }

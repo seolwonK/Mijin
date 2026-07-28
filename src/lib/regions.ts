@@ -108,17 +108,89 @@ export function sanitizeRegionKeys(input: unknown, max = 50): string[] {
   return out;
 }
 
+// ── 주소 정규화 ────────────────────────────────────────────────────────
+// REGIONS 키는 정식 명칭("서울특별시")인데 고객은 "서울 강남구"처럼 줄여 쓴다.
+// 정규화 없이 매칭하면 축약 주소가 전부 판별 불가로 떨어지므로, 선두 시/도만
+// 정식 명칭으로 바꾼다. 뒤쪽(도로명·건물)은 건드리지 않는다.
+//
+// 긴 별칭이 먼저 와야 "서울시"가 "서울"에 가로채이지 않는다.
+const SIDO_ALIAS_PAIRS: ReadonlyArray<readonly [string, string]> = [
+  ['서울시', '서울특별시'],
+  ['서울', '서울특별시'],
+  ['부산시', '부산광역시'],
+  ['부산', '부산광역시'],
+  ['대구시', '대구광역시'],
+  ['대구', '대구광역시'],
+  ['인천시', '인천광역시'],
+  ['인천', '인천광역시'],
+  ['대전시', '대전광역시'],
+  ['대전', '대전광역시'],
+  ['울산시', '울산광역시'],
+  ['울산', '울산광역시'],
+  ['세종시', '세종특별자치시'],
+  ['세종', '세종특별자치시'],
+  ['경기도', '경기도'],
+  ['경기', '경기도'],
+  ['강원도', '강원특별자치도'],
+  ['강원', '강원특별자치도'],
+  ['충청북도', '충청북도'],
+  ['충북', '충청북도'],
+  ['충청남도', '충청남도'],
+  ['충남', '충청남도'],
+  ['전북특별자치도', '전북특별자치도'],
+  ['전라북도', '전북특별자치도'],
+  ['전북', '전북특별자치도'],
+  ['전라남도', '전라남도'],
+  ['전남', '전라남도'],
+  ['경상북도', '경상북도'],
+  ['경북', '경상북도'],
+  ['경상남도', '경상남도'],
+  ['경남', '경상남도'],
+  ['제주도', '제주특별자치도'],
+  ['제주', '제주특별자치도'],
+];
+
+// regionFromAddress 는 접수마다(지도 집계에서는 루프로) 불리므로 정규식을
+// 모듈 로드 시 한 번만 만든다. g 플래그가 없어 lastIndex 가 없으므로 재사용해도 안전하다.
+const SIDO_ALIASES: ReadonlyArray<readonly [RegExp, string]> = SIDO_ALIAS_PAIRS.map(
+  ([alias, sido]) => [new RegExp(`^${alias}(?=\\s|$)`), sido] as const,
+);
+const GWANGJU_PREFIX = /^광주(?=\s|$)/;
+
+// 선두 시/도 축약형을 정식 명칭으로 펼친다. 판별에 쓰는 표준형을 만들 뿐이라
+// 원본 주소를 대체하지 않는다. 같은 문자열에 두 번 적용해도 결과가 같다(멱등).
+//
+// ⚠️ 이 정규화는 판별 성공률만 올리는 게 아니라 **coversRegion 필터를 실제로
+// 켜는** 효과가 있다 — 근거와 파급은 아래 coversRegion 주석 참조.
+export function normalizeAddress(address: string): string {
+  const normalized = address.trim().replace(/\s+/g, ' ');
+  for (const [pattern, sido] of SIDO_ALIASES) {
+    if (pattern.test(normalized)) return normalized.replace(pattern, sido);
+  }
+
+  // "광주"는 경기도 광주시와 모호하다. 뒤 토큰이 구(區)일 때만 광역시로 본다.
+  if (GWANGJU_PREFIX.test(normalized)) {
+    const [, following = ''] = normalized.split(' ', 2);
+    if (following.endsWith('구')) return normalized.replace(GWANGJU_PREFIX, '광주광역시');
+  }
+
+  return normalized;
+}
+
 // 주소 문자열에서 시/도·시/군/구를 판별. 카카오 역지오코딩 주소는 풀네임
-// ("서울특별시 강남구 …")이라 풀 시/도명이 포함된 지역으로 한정해 시/군/구를 찾는다.
+// ("서울특별시 강남구 …")이지만 고객 직접 입력은 축약형이 흔하므로
+// 먼저 normalizeAddress 로 표준화한 뒤 매칭한다 — 호출부가 정규화를 기억할
+// 필요 없이 기본적으로 옳도록.
 // 판별 불가 시 null (호출부는 지역 필터를 적용하지 않고 거리만으로 처리).
 export function regionFromAddress(
   address: string | null | undefined,
 ): { sido: string; sigungu: string } | null {
   if (!address) return null;
+  const normalized = normalizeAddress(address);
   for (const [sido, sigungus] of Object.entries(REGIONS)) {
-    if (!address.includes(sido)) continue;
+    if (!normalized.includes(sido)) continue;
     for (const g of sigungus) {
-      if (address.includes(g)) return { sido, sigungu: g };
+      if (normalized.includes(g)) return { sido, sigungu: g };
     }
     return { sido, sigungu: '' }; // 시/도만 확인됨
   }
@@ -130,6 +202,20 @@ export function regionFromAddress(
 //   - 지역 판별불가 = 필터 불가 → 담당으로 간주 (배차를 막지 않음)
 //   - "시/도"      = 그 시/도의 모든 시/군/구 담당
 //   - "시/도 구"   = 해당 시/군/구만 담당
+//
+// ⚠️ 배차 거동이 바뀐 것 같으면 여기부터 보라.
+// 이 함수는 reqRegion 이 null 이면 **모두 true** 를 돌려준다. 즉 지역을 판별하지
+// 못하던 시절에는 필터가 실패한 게 아니라 **조용히 통째로 꺼져** 전국 매칭이었다.
+// regionFromAddress 가 축약형까지 정규화하게 되면서(위 참조) 그동안 null 이던
+// 접수들이 실제 지역을 갖게 됐고, 그 순간부터 이 필터가 **진짜로 동작하기 시작한다**.
+//
+// 도입 시점(2026-07-28) 실측으로는 후보 집합 변화가 0건이었다. 다만 그건
+// 불변식이 아니라 그때 데이터의 성질이다 — 승인·계약확정된 후보 전원이
+// regions=[] 였고(빈 목록은 항상 true), regions 가 비어 있지 않던 유일한 후보는
+// 계약 미확정이라 matching.ts:50-55 에서 애초에 제외됐다.
+// **regions 를 채운 업체·기술자가 승인+계약확정되는 순간부터** 이 필터는 실제로
+// 후보를 걸러내고, "후보 0건 → 관리자 반환"이 새로운 사유로 발생할 수 있다.
+// 그때 이 주석이 설명이다. 결함이 아니라 의도된 동작이다.
 export function coversRegion(
   regions: string[],
   reqRegion: { sido: string; sigungu: string } | null,
