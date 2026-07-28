@@ -6,6 +6,26 @@ import { sendSms } from '@/lib/sms';
 import { smsRequestReceived } from '@/lib/sms/templates';
 import { transcribeVoiceNote, VOICE_PLACEHOLDER } from '@/lib/stt';
 
+// 인메모리 레이트리밋: IP당 10분에 10회 (identity/verify·tech/signup 등과 동형).
+// 이 라우트는 접수 1건마다 sendSms 를 await 로 실발송하므로(아래 POST 말미),
+// 제한이 없으면 인증·캡차 없이 임의 번호로 무한 반복해 과금과 제3자 문자 폭탄을
+// 만들 수 있다. 긴급 출동 접수라 정상 사용자를 막으면 안 되므로 가입 계열(5회)보다
+// 여유를 두되, IP당 10분 10건으로 비용 상한을 건다.
+const hits = new Map<string, { count: number; resetAt: number }>();
+function rateLimited(ip: string): boolean {
+  const now = Date.now();
+  if (hits.size > 10_000) {
+    for (const [k, v] of hits) if (v.resetAt < now) hits.delete(k);
+  }
+  const h = hits.get(ip);
+  if (!h || h.resetAt < now) {
+    hits.set(ip, { count: 1, resetAt: now + 10 * 60_000 });
+    return false;
+  }
+  h.count++;
+  return h.count > 10;
+}
+
 const MAX_VOICE_BYTES = 15 * 1024 * 1024; // 3분 녹음도 수 MB 수준 — 여유 상한
 
 // 지원 녹음 포맷 (브라우저 MediaRecorder 산출물)
@@ -51,6 +71,14 @@ function formNum(v: FormDataEntryValue | null): number | null {
 }
 
 export async function POST(req: NextRequest) {
+  const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'local';
+  if (rateLimited(ip)) {
+    return NextResponse.json(
+      { error: '접수 요청이 너무 많습니다. 잠시 후 다시 시도해 주세요.' },
+      { status: 429 },
+    );
+  }
+
   const contentType = req.headers.get('content-type') ?? '';
   let body: unknown;
   let voice: File | null = null;
