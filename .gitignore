@@ -40,6 +40,8 @@
 # Playwright 산출물
 /test-results/
 /playwright-report/
+# E2E 가드가 원래 AppSettings.autoAssignEnabled 값을 적어두는 실행 상태 파일
+/tests/.pretest-state.json
 
 # debug
 npm-debug.log*

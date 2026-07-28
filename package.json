@@ -8,7 +8,8 @@
     "start": "next start",
     "https-proxy": "node scripts/https-proxy.mjs",
     "lint": "eslint",
-    "test:e2e": "playwright test",
+    "test:e2e": "node scripts/e2e-lock.mjs npx playwright test",
+    "test:e2e:unlocked": "playwright test",
     "test": "vitest run"
   },
   "prisma": {
@@ -36,6 +37,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@types/topojson-client": "^3.1.5",
+    "dotenv": "^17.4.2",
     "eslint": "^9",
     "eslint-config-next": "16.2.10",
     "prisma": "^6.19.3",
