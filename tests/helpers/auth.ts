@@ -139,17 +139,45 @@ async function submitLogin(page: Page, path: string, creds: Credentials) {
   await page.getByRole('button', { name: '로그인', exact: true }).click();
 }
 
-export async function loginAsAdmin(page: Page, creds: Credentials = ADMIN_CREDENTIALS) {
+/**
+ * 로그인 완료 판정 — **로그인 페이지에 머무는 동안에는 반드시 거짓이어야 한다.**
+ *
+ * 이 불변식을 깨는 게 쉽다: `/\/tech(\/|$)/` 같은 패턴은 출발지인 `/tech/login`
+ * 자체에 매치돼, 로그인이 아직 진행 중이거나 아예 실패했는데도 통과한다
+ * (=인증 없는 세션으로 후속 단언이 돌아가는 false-green).
+ *
+ * 정규식 대신 pathname 완전일치 술어를 쓴다. 정규식은 `toHaveURL` 에서 비앵커
+ * 검색이라 `/tech/login?returnTo=/tech` 처럼 쿼리에 목적지가 들어간 URL 까지
+ * 매치될 수 있다. 술어는 그런 우회가 원천적으로 불가능하다.
+ */
+function arrivedAt(expectedPath: string) {
+  if (/\/login$/.test(expectedPath)) {
+    throw new Error(
+      `로그인 완료 대상이 로그인 페이지입니다(${expectedPath}) — 이 단언은 항상 참이라 무의미합니다.`,
+    );
+  }
+  return (url: URL) => url.pathname === expectedPath;
+}
+
+// LoginForm.tsx:51-63 — returnTo 가 없으면 목적지는 역할 접두 그 자체(/admin·/tech·/partner)이고,
+// returnTo 가 그 역할의 경로면 그쪽으로 간다. submitLogin 은 쿼리 없는 로그인 경로로만
+// 이동하므로 기본 목적지는 역할 접두다. returnTo 흐름을 태우는 호출부는 expectedPath 를 넘긴다
+// (패턴을 다시 느슨하게 푸는 대신).
+export async function loginAsAdmin(
+  page: Page,
+  creds: Credentials = ADMIN_CREDENTIALS,
+  expectedPath = '/admin',
+) {
   await submitLogin(page, '/admin/login', creds);
-  await expect(page).toHaveURL(/\/admin$/);
+  await expect(page).toHaveURL(arrivedAt(expectedPath));
 }
 
-export async function loginAsTech(page: Page, creds: Credentials) {
+export async function loginAsTech(page: Page, creds: Credentials, expectedPath = '/tech') {
   await submitLogin(page, '/tech/login', creds);
-  await expect(page).toHaveURL(/\/tech(\/|$)/);
+  await expect(page).toHaveURL(arrivedAt(expectedPath));
 }
 
-export async function loginAsPartner(page: Page, creds: Credentials) {
+export async function loginAsPartner(page: Page, creds: Credentials, expectedPath = '/partner') {
   await submitLogin(page, '/partner/login', creds);
-  await expect(page).toHaveURL(/\/partner(\/|$)/);
+  await expect(page).toHaveURL(arrivedAt(expectedPath));
 }

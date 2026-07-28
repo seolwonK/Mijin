@@ -53,7 +53,20 @@ export function ephemeralPhone(): string {
 export type SweepResult = Record<string, number>;
 
 export async function sweepEphemeral(prisma: PrismaClient): Promise<SweepResult> {
-  const codeFilter = { lookupCode: { startsWith: EPHEMERAL_CODE_PREFIX } };
+  // ⚠️ lookupCode 만으로는 **제품이 만든 접수를 절대 볼 수 없다.**
+  // 스펙이 실제 POST /api/requests 를 태우면 조회코드는 제품이 생성하므로
+  // (requests/route.ts:140 generateLookupCode) 9001 대역에 들어오지 않는다.
+  // 실제로 그렇게 샌 행이 있었다 — lookupCode=568365, customerPhone=0109001737.
+  // 이 부류는 어떤 스윕에도 안 잡혀 Step 0 의 239431(8일 방치)과 같은 모양이 된다.
+  //
+  // 이런 행에서 하네스가 통제하는 식별자는 전화번호뿐이다(ephemeralPhone 이 발급).
+  // 그래서 조회코드 **또는** 픽스처 전화번호로 건다.
+  const codeFilter = {
+    OR: [
+      { lookupCode: { startsWith: EPHEMERAL_CODE_PREFIX } },
+      { customerPhone: { startsWith: EPHEMERAL_PHONE_PREFIX } },
+    ],
+  };
   const loginFilter = { loginId: { startsWith: EPHEMERAL_LOGIN_PREFIX } };
 
   const requests = await prisma.serviceRequest.findMany({
