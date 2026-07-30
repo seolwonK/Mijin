@@ -123,7 +123,7 @@ export default function TechnicianForm({
       </div>
 
       <div className="space-y-2">
-        <label className="text-sm font-semibold">기술자 정보</label>
+        <label className="text-sm font-semibold">전기기사 정보</label>
         <input
           type="text"
           value={v.name}
@@ -205,7 +205,7 @@ export default function TechnicianForm({
         disabled={busy}
         className="flex h-14 w-full items-center justify-center rounded-admin-md bg-admin-cyan-ink text-lg font-bold text-white transition-opacity enabled:hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
       >
-        {busy ? '저장 중…' : isEdit ? '수정 저장' : '기술자 등록'}
+        {busy ? '저장 중…' : isEdit ? '수정 저장' : '전기기사 등록'}
       </button>
     </form>
   );

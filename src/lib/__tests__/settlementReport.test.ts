@@ -55,7 +55,7 @@ function settlementPrismaStub(surveys: Survey[]): SettlementReportPrisma {
   return {
     satisfactionSurvey: { groupBy, findMany },
     provider: { findMany: payees('업체') },
-    technician: { findMany: payees('기술자') },
+    technician: { findMany: payees('전기기사') },
   } as unknown as SettlementReportPrisma;
 }
 
@@ -93,7 +93,7 @@ describe('settlement report', () => {
       aggregatedCount: 1, completedCount: 2, missingCount: 1, coverage: 0.5,
     }]);
     expect(report.technicians).toEqual([expect.objectContaining({
-      payeeId: 'same-id', name: '기술자-same-id', type: '기술자', total: 500, coverage: 1,
+      payeeId: 'same-id', name: '전기기사-same-id', type: '전기기사', total: 500, coverage: 1,
     })]);
   });
 

@@ -172,7 +172,7 @@ test.describe('POST /api/tech/jobs/[id]/accept', () => {
 
     const ctx = await techCtx(playwright, me, 'accept-rejected');
     expect((await ctx.post(`/api/tech/jobs/${rejected.id}/accept`)).status()).toBe(409);
-    // 양성 대조 — 같은 기술자·같은 접수의 REQUESTED 배정은 수락된다.
+    // 양성 대조 — 같은 전기기사·같은 접수의 REQUESTED 배정은 수락된다.
     // 이게 없으면 위 409 가 "accept 가 늘 409" 인 결함과 구분되지 않는다.
     expect((await ctx.post(`/api/tech/jobs/${fresh.id}/accept`)).status()).toBe(200);
     await ctx.dispose();
@@ -248,7 +248,7 @@ test.describe('POST /api/tech/jobs/[id]/reject', () => {
     playwright,
   }) => {
     // 좌표가 없는 접수를 쓴다 — reject/route.ts:54 의 `c.distanceKm != null` 필터가
-    // 모든 후보를 걸러내므로 **실 운영 업체·기술자에게 배정이 흘러가지 않는다**.
+    // 모든 후보를 걸러내므로 **실 운영 업체·전기기사에게 배정이 흘러가지 않는다**.
     // AUTO 분기(:48-66)를 안전하게 통과시키는 유일한 방법이다.
     //
     // ⚠️ 안전장치는 **좌표 뿐**이다. 같은 줄의 `c.coversRegion` 은 여기서 아무것도 막지

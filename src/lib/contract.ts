@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-// 기술자가 작성하는 근로계약서 항목 (인적사항 + 근무장소·업무·근로개시일).
+// 전기기사가 작성하는 근로확인서 항목 (인적사항 + 근무장소·업무·근로개시일).
 // 소정근로시간·근무일·주휴일은 서버가 근로형태에 따라 세팅하므로 여기에 없다.
 export const techContractSchema = z.object({
   contractStartDate: z

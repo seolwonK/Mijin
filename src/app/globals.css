@@ -114,7 +114,7 @@ h3 {
   background: color-mix(in oklch, var(--color-brand-600) 16%, transparent);
 }
 
-/* 근로계약서 인쇄 — A4, 화면 전용 요소(헤더·버튼)는 숨긴다.
+/* 근로확인서 인쇄 — A4, 화면 전용 요소(헤더·버튼)는 숨긴다.
    관리자 다크 톤(admin-*)은 인쇄 문맥에 절대 새어나가지 않아야 한다 — 인쇄는 무조건
    black-on-white 유지(V 콘셉트 rationale.md 원칙 재확인, 이번 F 단계에서도 그대로 승계). */
 @media print {

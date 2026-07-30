@@ -426,7 +426,7 @@ test('identity/verify: 429 — 같은 IP 10분 10회 초과 (:16-28)', async () 
 // POST /api/referrer/lookup
 // ───────────────────────────────────────────────────────────────────────────
 
-test('referrer/lookup: 승인·활성 기술자만 마스킹된 이름으로 노출된다', async () => {
+test('referrer/lookup: 승인·활성 전기기사만 마스킹된 이름으로 노출된다', async () => {
   const ctx = await anonCtx('cust-referrer');
   const approved = await f.createTechFixture();
   const pending = await f.createTechFixture({ approvalStatus: 'PENDING' });
@@ -435,8 +435,8 @@ test('referrer/lookup: 승인·활성 기술자만 마스킹된 이름으로 노
   expect(hit.status()).toBe(200);
   const matches = (await hit.json()).matches as Array<Record<string, unknown>>;
   const mine = matches.find((m) => m.userId === approved.userId);
-  expect(mine, '승인·활성 기술자가 조회되지 않았습니다').toBeTruthy();
-  expect(mine!.type).toBe('기술자');
+  expect(mine, '승인·활성 전기기사가 조회되지 않았습니다').toBeTruthy();
+  expect(mine!.type).toBe('전기기사');
   // maskName(:32-37) — 이름 원문이 그대로 노출되면 안 된다.
   expect(mine!.maskedName).not.toBe(approved.name);
   expect(String(mine!.maskedName)).toContain('○');

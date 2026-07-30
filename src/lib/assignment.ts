@@ -25,7 +25,7 @@ export async function claimAndAssign(params: {
 // 접수 상태 전이 없이 Assignment만 생성.
 // claimAndAssign과, 거절 직후 재배정(접수가 이미 ASSIGNED 유지)에서 공용.
 // 수동·자동·재배정 모두 이 함수를 거치므로 배정 안내 문자도 여기서 발송한다.
-// 배정 대상은 업체(provider) 또는 기술자(technician) 중 정확히 하나(DB CHECK로 보장).
+// 배정 대상은 업체(provider) 또는 전기기사(technician) 중 정확히 하나(DB CHECK로 보장).
 export async function createAssignment(params: {
   requestId: string;
   target: AssigneeTarget;

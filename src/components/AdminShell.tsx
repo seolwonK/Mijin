@@ -18,7 +18,7 @@ type NavItem = {
 const NAV: NavItem[] = [
   { href: '/admin', label: '대시보드' },
   { href: '/admin/providers', label: '업체 관리' },
-  { href: '/admin/technicians', label: '기술자 관리' },
+  { href: '/admin/technicians', label: '전기기사 관리' },
   { href: '/admin/rotation', label: '순환 현황' },
   { href: '/admin/commissions', label: '정산' },
   { href: '/admin/settlements', label: '정산 집계' },

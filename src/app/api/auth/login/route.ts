@@ -38,7 +38,7 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  // 승인 전 업체·기술자는 로그인 차단 (관리자는 승인 대상 아님)
+  // 승인 전 업체·전기기사는 로그인 차단 (관리자는 승인 대상 아님)
   const profile =
     user.role === 'PROVIDER'
       ? user.provider

@@ -26,7 +26,7 @@ test.afterAll(async () => {
 });
 
 // 설문 픽스처는 **과거 달**에 심는다. tests/admin-settlements.spec.ts:50,55-64 가
-// 현재 KST 월(2026-07)의 기술자 정산 집계가 비어 있고 CSV 가 정확히 3줄임을 단언하므로,
+// 현재 KST 월(2026-07)의 전기기사 정산 집계가 비어 있고 CSV 가 정확히 3줄임을 단언하므로,
 // 이번 달에 제출·지급 설문을 만들면 그 스펙이 붉어진다 (수정 금지 대상 11스펙).
 const PAST_SUBMITTED_AT = new Date('2026-05-15T03:00:00.000Z');
 const PAST_BUCKET = '2026-05';
@@ -247,7 +247,7 @@ test('analytics/ratings/[subject] GET 200 — 리뷰 0건 대상은 빈 상세�
   });
 });
 
-test('analytics/ratings/[subject] GET 200 — 내 기술자의 제출 리뷰가 월 버킷과 목록에 잡힌다', async () => {
+test('analytics/ratings/[subject] GET 200 — 내 전기기사의 제출 리뷰가 월 버킷과 목록에 잡힌다', async () => {
   const tech = await f.createTechFixture();
   const request = await f.createRequestFixture({ status: 'COMPLETED' });
   await prisma.satisfactionSurvey.create({
@@ -281,7 +281,7 @@ test('analytics/ratings/[subject] GET 200 — 내 기술자의 제출 리뷰가 
     ranking: Array<{ subjectKey: string; avgRating: number | null; reviewCount: number; name: string }>;
   };
   const mine = ranking.ranking.find((r) => r.subjectKey === `TECHNICIAN:${tech.technicianId}`);
-  expect(mine, '랭킹에 내 기술자가 없다').toBeTruthy();
+  expect(mine, '랭킹에 내 전기기사가 없다').toBeTruthy();
   expect(mine).toMatchObject({ avgRating: 5, reviewCount: 1, name: tech.name });
 });
 

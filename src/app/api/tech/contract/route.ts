@@ -5,9 +5,9 @@ import { requireSession } from '@/lib/auth';
 import { contractDefaults, wageDefaultsFor } from '@/lib/contractDefaults';
 import { techContractSchema } from '@/lib/contract';
 
-// 로그인한 기술자의 근로계약서를 로드(없으면 DRAFT 생성)한다.
+// 로그인한 전기기사의 근로확인서를 로드(없으면 DRAFT 생성)한다.
 // DRAFT 동안엔 근무조건(소정근로시간·근무일)을 현재 근로형태 기준으로 다시 세팅해
-// 기술자가 변조할 수 없도록 서버가 강제한다.
+// 전기기사가 변조할 수 없도록 서버가 강제한다.
 async function loadOrCreate(technicianId: string) {
   const tech = await prisma.technician.findUnique({
     where: { id: technicianId },
@@ -116,7 +116,7 @@ export async function GET() {
   }
   const loaded = await loadOrCreate(session.technicianId);
   if (!loaded) {
-    return NextResponse.json({ error: '기술자 정보를 찾을 수 없습니다' }, { status: 404 });
+    return NextResponse.json({ error: '전기기사 정보를 찾을 수 없습니다' }, { status: 404 });
   }
   return NextResponse.json({ contract: serialize(loaded.contract) });
 }
@@ -144,11 +144,11 @@ export async function PUT(req: NextRequest) {
 
   const loaded = await loadOrCreate(session.technicianId);
   if (!loaded) {
-    return NextResponse.json({ error: '기술자 정보를 찾을 수 없습니다' }, { status: 404 });
+    return NextResponse.json({ error: '전기기사 정보를 찾을 수 없습니다' }, { status: 404 });
   }
   if (loaded.contract.status === 'CONFIRMED') {
     return NextResponse.json(
-      { error: '이미 확정된 계약서는 수정할 수 없습니다. 관리자에게 문의해 주세요.' },
+      { error: '이미 확정된 근로확인서는 수정할 수 없습니다. 관리자에게 문의해 주세요.' },
       { status: 409 },
     );
   }
@@ -162,7 +162,7 @@ export async function PUT(req: NextRequest) {
   }
 
   // 근무조건은 서버가 근로형태로 강제 (클라이언트 값 무시), 일일 근로자는 계약기간 = 근로개시일 당일.
-  // 기술자의 손글씨 서명이 곧 계약 확정이다 → 서명 저장 + status CONFIRMED.
+  // 전기기사의 손글씨 서명이 곧 계약 확정이다 → 서명 저장 + status CONFIRMED.
   const d = contractDefaults(loaded.employmentType);
   const startDate = new Date(data.contractStartDate);
   const now = new Date();

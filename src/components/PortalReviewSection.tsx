@@ -23,7 +23,7 @@ function StarRow({ rating }: { rating: number }) {
   );
 }
 
-// 받은 후기(AC-5) — 업체·기술자 포털 공용(url만 다르게 넘긴다, CommissionSummary.tsx와 동일
+// 받은 후기(AC-5) — 업체·전기기사 포털 공용(url만 다르게 넘긴다, CommissionSummary.tsx와 동일
 // 관례). 건 미연결·시점 무작위화·n≥5 코멘트 임계는 API 계약 수준(portalStats.getPortalReviews +
 // stats/reviews 라우트)에서 보장되므로 이 컴포넌트는 받은 응답을 그대로 표시할 뿐이다 — 코멘트에
 // requestId·시각·고객 필드가 없어 목록 key는 인덱스를 쓴다(자연 키가 없는 게 설계 의도).

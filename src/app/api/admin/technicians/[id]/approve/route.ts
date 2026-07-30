@@ -12,10 +12,10 @@ export async function POST(
   const { id } = await params;
   const technician = await prisma.technician.findUnique({ where: { id } });
   if (!technician) {
-    return NextResponse.json({ error: '기술자를 찾을 수 없습니다' }, { status: 404 });
+    return NextResponse.json({ error: '전기기사를 찾을 수 없습니다' }, { status: 404 });
   }
   if (technician.approvalStatus === 'APPROVED') {
-    return NextResponse.json({ error: '이미 승인된 기술자입니다' }, { status: 409 });
+    return NextResponse.json({ error: '이미 승인된 전기기사입니다' }, { status: 409 });
   }
 
   await prisma.technician.update({

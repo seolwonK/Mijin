@@ -40,7 +40,7 @@ export async function GET(
       referredBy: { select: { id: true, name: true, role: true } },
     },
   });
-  if (!t) return NextResponse.json({ error: '기술자를 찾을 수 없습니다' }, { status: 404 });
+  if (!t) return NextResponse.json({ error: '전기기사를 찾을 수 없습니다' }, { status: 404 });
 
   // 만족도 조사 요약(평균·건수) + 최근 20건 — 제출된(rating != null) 것만 집계 대상.
   const [reviewAgg, reviews] = await Promise.all([
@@ -84,7 +84,7 @@ export async function GET(
       ? {
           userId: t.referredBy.id,
           name: t.referredBy.name,
-          type: t.referredBy.role === 'PROVIDER' ? '업체' : '기술자',
+          type: t.referredBy.role === 'PROVIDER' ? '업체' : '전기기사',
         }
       : null,
     reviewCount: reviewAgg._count._all,
@@ -118,7 +118,7 @@ export async function PATCH(
 
   const technician = await prisma.technician.findUnique({ where: { id } });
   if (!technician) {
-    return NextResponse.json({ error: '기술자를 찾을 수 없습니다' }, { status: 404 });
+    return NextResponse.json({ error: '전기기사를 찾을 수 없습니다' }, { status: 404 });
   }
 
   const technicianData: Record<string, unknown> = {};

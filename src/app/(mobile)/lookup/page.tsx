@@ -65,7 +65,7 @@ function RequestCard({ r }: { r: LookupRequest }) {
       {r.assignee && (
         <div className="rounded-xl bg-brand-50 p-3">
           <p className="text-sm text-neutral-600">
-            배정 {r.assignee.kind === 'TECHNICIAN' ? '기술자' : '업체'}
+            배정 {r.assignee.kind === 'TECHNICIAN' ? '전기기사' : '업체'}
           </p>
           <div className="mt-1 flex items-center justify-between">
             <span className="font-bold text-fg">{r.assignee.name}</span>

@@ -25,7 +25,7 @@ function won(n: number) {
 
 const KIND_LABEL: Record<ReferralOverviewReferee['kind'], string> = {
   PROVIDER: '업체',
-  TECHNICIAN: '기술자',
+  TECHNICIAN: '전기기사',
 };
 
 const APPROVAL_BADGE: Record<
@@ -39,7 +39,7 @@ const APPROVAL_BADGE: Record<
 
 // "결"(C) 카드 관례의 내 추천 현황 섹션 — partner·tech 대시보드 공용(url만 다르게 넘긴다,
 // CommissionSummary.tsx·PortalReviewSection.tsx와 동일한 usePolling 관례). 가입 시
-// referredByUserId로 지정된 업체·기술자만 대상 — 소급 지정은 관리자 전용이라 여기 나타나지
+// referredByUserId로 지정된 업체·전기기사만 대상 — 소급 지정은 관리자 전용이라 여기 나타나지
 // 않는다. CommissionSummary와 달리 0건이어도 섹션을 숨기지 않고 안내 문구를 보여준다
 // (추천은 가입 시 1회만 결정되는 관계라, 있으면 알려줘야 하는 CommissionSummary의 "평생
 // 무적립" 숨김과는 성격이 다르다). 설문 대기 건수는 금액을 절대 추정하지 않는다 — API 계약
@@ -52,7 +52,7 @@ export default function PortalReferralSection({ url }: { url: string }) {
       <section>
         <h2 className="mb-2 font-semibold">내 추천 현황</h2>
         <Surface as="section" className="rounded-2xl p-4 text-center">
-          <p className="text-sm text-muted">아직 추천한 업체·기술자가 없습니다</p>
+          <p className="text-sm text-muted">아직 추천한 업체·전기기사가 없습니다</p>
           <p className="mt-1 text-xs text-muted">
             추천인은 가입 시에만 지정할 수 있어요 — 나중에 추가할 수 없습니다
           </p>

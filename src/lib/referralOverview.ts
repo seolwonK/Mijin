@@ -19,7 +19,7 @@ export type ReferralOverview = {
   totals: { refereeCount: number; pendingSurveyCount: number };
 };
 
-// 소개인(User) 기준 "내 추천 현황" — 가입 시 referredByUserId로 지정된 업체·기술자 목록(소급
+// 소개인(User) 기준 "내 추천 현황" — 가입 시 referredByUserId로 지정된 업체·전기기사 목록(소급
 // 지정은 관리자 전용이라 이 목록엔 나타나지 않는다) + 각자의 누적 적립(대기/지급완료)과 설문
 // 대기 건수. groupBy + Map 병합은 rankingStats.ts:14-103과 동형 패턴(배치 집계, N+1 회피).
 // 설문 대기(pendingSurveyCount)는 SatisfactionSurvey.submittedAt이 null인 건수만 센다 —

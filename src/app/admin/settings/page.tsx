@@ -210,9 +210,9 @@ export default function AdminSettingsPage() {
         </section>
 
         <section className="rounded-admin-md border border-border p-4">
-          <p className="mb-1 font-bold">근로계약서 사업주(고용주) 정보</p>
+          <p className="mb-1 font-bold">근로확인서 사업주(고용주) 정보</p>
           <p className="mb-3 text-sm text-muted">
-            개인기술자 근로계약서에 자동 기입됩니다.
+            전기기사 근로확인서에 자동 기입됩니다.
           </p>
           <div className="space-y-2">
             <div>
@@ -278,10 +278,10 @@ export default function AdminSettingsPage() {
         </section>
 
         <section className="rounded-admin-md border border-border p-4">
-          <p className="mb-1 font-bold">근로계약서 기본값</p>
+          <p className="mb-1 font-bold">근로확인서 기본값</p>
           <p className="mb-3 text-sm text-muted">
-            계약서 생성 시 자동 기입됩니다. 비워두면 계약서에 &ldquo;추후 협의&rdquo;로
-            표기됩니다.
+            근로확인서 생성 시 자동 기입됩니다. 비워두면 근로확인서에
+            &ldquo;추후 협의&rdquo;로 표기됩니다.
           </p>
           <div className="space-y-2">
             <div className="flex gap-2">
@@ -371,7 +371,7 @@ export default function AdminSettingsPage() {
                 회사 서명/직인 이미지
               </label>
               <p className="mb-2 text-xs md:text-sm text-muted">
-                한 번 등록하면 모든 계약서 사업주 서명란에 자동 삽입됩니다.
+                한 번 등록하면 모든 근로확인서 사업주 서명란에 자동 삽입됩니다.
               </p>
               {settings.employerSignatureDataUrl ? (
                 <div className="flex items-center gap-3">

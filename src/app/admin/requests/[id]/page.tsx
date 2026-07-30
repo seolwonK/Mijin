@@ -258,7 +258,7 @@ export default function AdminRequestDetailPage({
                       {a.assignee?.name ?? '—'}
                       {a.assignee?.kind === 'TECHNICIAN' && (
                         <span className="ml-1 text-xs font-medium text-emerald-600 md:text-sm">
-                          (기술자)
+                          (전기기사)
                         </span>
                       )}{' '}
                       {a.assignee && (

@@ -7,7 +7,7 @@ import { getRankingStats } from '@/lib/rankingStats';
 import type { Urgency } from '@prisma/client';
 
 export type Candidate = {
-  kind: AssigneeKind; // 업체(PROVIDER) / 개인기술자(TECHNICIAN)
+  kind: AssigneeKind; // 업체(PROVIDER) / 전기기사(TECHNICIAN)
   id: string; // provider.id 또는 technician.id
   key: string; // `${kind}:${id}` — 안정 정렬 최종 타이브레이크용
   name: string;
@@ -23,7 +23,7 @@ export type Candidate = {
   reviewCount: number;
 };
 
-// 승인(APPROVED)된 활성 업체·기술자를 정렬해 반환.
+// 승인(APPROVED)된 활성 업체·전기기사를 정렬해 반환.
 // 정렬 순서: ①거절이력 없음 ②지역 커버 ③(non-CRITICAL) 30일 배정 횟수(수락+거절) asc
 // ④(non-CRITICAL) 평균 별점 desc ⑤거리 asc ⑥안정 키(`kind:id`) asc.
 // urgency는 필수 필드 — 관리자 후보 route처럼 select 누락 시 CRITICAL 오정렬이
@@ -46,7 +46,7 @@ export async function getCandidates(
       where: { isActive: true, approvalStatus: 'APPROVED' },
       include: { user: { select: { name: true, phone: true } } },
     }),
-    // 기술자는 근로계약서 서명 완료(CONFIRMED) 후에만 배정 대상이 된다
+    // 전기기사는 근로확인서 서명 완료(CONFIRMED) 후에만 배정 대상이 된다
     prisma.technician.findMany({
       where: {
         isActive: true,

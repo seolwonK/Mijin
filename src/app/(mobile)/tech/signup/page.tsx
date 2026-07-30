@@ -154,15 +154,15 @@ export default function TechSignupPage() {
           <p className="text-muted">
             자동으로 로그인되었습니다.
             <br />
-            이어서 <b>근로계약서에 서명</b>하면
+            이어서 <b>근로확인서에 서명</b>하면
             <br />
             바로 배정(일)을 받을 수 있습니다.
           </p>
           <Link href="/tech/contract" className={buttonClasses('primary', 'lg', 'w-full')}>
-            근로계약서 작성하러 가기
+            근로확인서 작성하러 가기
           </Link>
           <Link href="/tech" className="text-sm font-medium text-neutral-400 hover:text-neutral-600">
-            나중에 하기 (기술자 포털로)
+            나중에 하기 (전기기사 포털로)
           </Link>
         </div>
       </main>
@@ -171,7 +171,7 @@ export default function TechSignupPage() {
 
   return (
     <main className="min-h-screen">
-      <PageHeader title="개인기술자 가입 신청" back="/tech/login" />
+      <PageHeader title="전기기사 가입 신청" back="/tech/login" />
 
       <form
         onSubmit={submit}
@@ -220,7 +220,7 @@ export default function TechSignupPage() {
         </section>
 
         <section className="space-y-2 md:rounded-2xl md:bg-white md:p-6 md:shadow-surface-sm">
-          <h2 className="text-sm font-semibold">기술자 정보</h2>
+          <h2 className="text-sm font-semibold">전기기사 정보</h2>
           <input
             type="text"
             value={name}
@@ -310,7 +310,7 @@ export default function TechSignupPage() {
             className="mt-0.5 h-4 w-4 accent-brand-600"
           />
           <span>
-            가입 심사 및 근로계약을 위한 개인정보(성명, 연락처, 주소) 수집·이용에
+            가입 심사 및 근로확인을 위한 개인정보(성명, 연락처, 주소) 수집·이용에
             동의합니다.
           </span>
         </label>

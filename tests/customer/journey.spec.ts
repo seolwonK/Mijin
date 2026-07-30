@@ -104,7 +104,7 @@ test('고객 여정: 접수 → 접수완료 → 진행조회 → 만족도 조�
   await expect(page.getByRole('link', { name: '만족도 조사 참여' })).toHaveCount(0);
 
   // ── 4. 완료 처리 + 설문 발급 ───────────────────────────────────────────
-  // 완료 전이(기술자/업체 status 라우트)는 Step 5·6 이 계약으로 덮는다. 여기서는
+  // 완료 전이(전기기사/업체 status 라우트)는 Step 5·6 이 계약으로 덮는다. 여기서는
   // 고객이 보는 화면만이 관심사이므로 완료 상태를 DB 에 직접 만든다.
   const tech = await f.createTechFixture();
   await prisma.serviceRequest.update({

@@ -10,7 +10,7 @@ import { KST_OFFSET_MS } from '@/lib/kst';
 type Row = {
   payeeId: string;
   name: string;
-  type: '업체' | '기술자';
+  type: '업체' | '전기기사';
   total: number;
   aggregatedCount: number;
   completedCount: number;
@@ -81,7 +81,7 @@ const columns: Column<Row, ColumnKey>[] = [
   },
 ];
 
-function SettlementSection({ title, rows }: { title: '업체' | '기술자'; rows: Row[] }) {
+function SettlementSection({ title, rows }: { title: '업체' | '전기기사'; rows: Row[] }) {
   return (
     <section className="rounded-admin-md border border-border bg-white">
       <h2 className="border-b border-border px-3.5 py-2.5 text-sm font-bold text-fg">{title}</h2>
@@ -147,7 +147,7 @@ export default function AdminSettlementsPage() {
         ) : (
           <>
             <SettlementSection title="업체" rows={data?.providers ?? []} />
-            <SettlementSection title="기술자" rows={data?.technicians ?? []} />
+            <SettlementSection title="전기기사" rows={data?.technicians ?? []} />
           </>
         )}
       </div>

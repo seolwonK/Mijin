@@ -104,7 +104,7 @@ export async function GET(req: NextRequest) {
         userId: u.id,
         name: u.name,
         phone: u.phone,
-        type: u.provider ? ('업체' as const) : ('기술자' as const),
+        type: u.provider ? ('업체' as const) : ('전기기사' as const),
         isActive: account?.isActive ?? false,
         approvalStatus: account?.approvalStatus ?? null,
         pendingTotal: pending?._sum.amount ?? 0,

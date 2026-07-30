@@ -44,9 +44,9 @@ test.describe('관리자 분석 내비 그룹', () => {
     await loginAsAdmin(page);
     await expect(analyticsNavButton(page)).toBeHidden();
     const nav = page.getByRole('navigation', { name: '관리자 이동' });
-    // 업체·기술자 관리는 승인대기 뱃지 숫자가 링크 안에 함께 렌더되므로(AdminShell.tsx:174-180)
+    // 업체·전기기사 관리는 승인대기 뱃지 숫자가 링크 안에 함께 렌더되므로(AdminShell.tsx:174-180)
     // 접근성 이름이 "업체 관리 2" 형태가 된다 — 접두 매칭을 유지해야 한다.
-    for (const label of ['대시보드', '업체 관리', '기술자 관리', '순환 현황', '설정']) {
+    for (const label of ['대시보드', '업체 관리', '전기기사 관리', '순환 현황', '설정']) {
       await expect(nav.getByRole('link', { name: new RegExp(`^${label}`) })).toBeVisible();
     }
     // '정산'(/admin/commissions)과 '정산 집계'(/admin/settlements)는 접두가 겹쳐

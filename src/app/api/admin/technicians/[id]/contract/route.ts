@@ -41,7 +41,7 @@ export async function GET(
     include: { user: { select: { name: true, phone: true } }, contract: true },
   });
   if (!tech) {
-    return NextResponse.json({ error: '기술자를 찾을 수 없습니다' }, { status: 404 });
+    return NextResponse.json({ error: '전기기사를 찾을 수 없습니다' }, { status: 404 });
   }
 
   return NextResponse.json({
@@ -85,15 +85,15 @@ export async function PUT(
   });
   if (!contract) {
     return NextResponse.json(
-      { error: '기술자가 아직 계약서를 작성하지 않았습니다' },
+      { error: '전기기사가 아직 근로확인서를 작성하지 않았습니다' },
       { status: 404 },
     );
   }
 
-  // 계약 완료(CONFIRMED)는 기술자의 서명으로 이뤄진다. 서명 완료본은 수정 불가.
+  // 계약 완료(CONFIRMED)는 전기기사의 서명으로 이뤄진다. 서명 완료본은 수정 불가.
   if (contract.status === 'CONFIRMED') {
     return NextResponse.json(
-      { error: '기술자가 서명 완료한 계약서는 수정할 수 없습니다' },
+      { error: '전기기사가 서명 완료한 근로확인서는 수정할 수 없습니다' },
       { status: 409 },
     );
   }

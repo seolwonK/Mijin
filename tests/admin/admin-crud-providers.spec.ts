@@ -11,7 +11,7 @@ import { GATES, expectGate } from '../helpers/gates';
 //   src/app/api/admin/providers/route.ts        GET + POST
 //   src/app/api/admin/providers/[id]/route.ts   GET + PATCH
 //
-// 기술자 쪽과 거의 대칭이지만 두 가지가 다르다:
+// 전기기사 쪽과 거의 대칭이지만 두 가지가 다르다:
 //   · 사업자등록번호 체크섬 분기(:78-84)가 추가로 있다
 //   · employmentType 이 없다
 // G1/G2 는 tests/cross/auth-matrix.spec.ts 가 전수 단언한다 (여기서 반복하지 않음).
@@ -331,7 +331,7 @@ test('providers/[id] GET 200 — 상세 shape · 리뷰 0건 기본값 · 소개
     reviewCount: 0,
     avgRating: null,
     reviews: [],
-    referredBy: { userId: referrer.userId, name: referrer.name, type: '기술자' },
+    referredBy: { userId: referrer.userId, name: referrer.name, type: '전기기사' },
   });
 });
 
@@ -457,7 +457,7 @@ test('providers/[id] PATCH 200 — 소개자 지정 후 null 로 해제된다 (S
   ).toBeNull();
 });
 
-// ── 게이트 결박 (기술자 스펙의 같은 이름 테스트와 동일한 목적) ─────────────
+// ── 게이트 결박 (전기기사 스펙의 같은 이름 테스트와 동일한 목적) ─────────────
 test('gate map 결박 — 이 스펙이 커버하는 분기와 문구가 gates.ts 와 일치한다', () => {
   const covered: Array<[string, number, number, string | null]> = [
     ['POST /api/admin/providers', 64, 400, '잘못된 요청입니다'],

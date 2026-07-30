@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { buttonClasses } from '@/components/Button';
 
-// variant: 'c'(결, 소프트-프리미엄 — 업체·개인기술자 로그인) | 'b'(관리자).
+// variant: 'c'(결, 소프트-프리미엄 — 업체·전기기사 로그인) | 'b'(관리자).
 // 기존 4역할 공유 컴포넌트라 로그인 로직(제출·역할별 리다이렉트)은 완전히 동일하게 유지하고
 // 화면 톤만 분기한다.
 type Variant = 'c' | 'b';

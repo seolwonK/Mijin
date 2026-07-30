@@ -195,20 +195,20 @@ export default function AdminContractPage({
   return (
     <main className="min-h-screen">
       <PageHeader
-        title={`근로계약서 — ${d.technician.name}`}
+        title={`근로확인서 — ${d.technician.name}`}
         back={`/admin/technicians/${id}`}
         width="max-w-3xl"
         crumbs={[
-          { label: '개인기술자 관리', href: '/admin/technicians' },
+          { label: '전기기사 관리', href: '/admin/technicians' },
           { label: d.technician.name, href: `/admin/technicians/${id}` },
-          { label: '계약서', href: `/admin/technicians/${id}/contract` },
+          { label: '근로확인서', href: `/admin/technicians/${id}/contract` },
         ]}
       />
 
       <div className="mx-auto w-full max-w-3xl space-y-5 p-4 md:py-8">
         {!c ? (
           <p className="rounded-admin-md bg-neutral-50 p-6 text-center text-sm text-muted">
-            기술자가 아직 근로계약서를 작성하지 않았습니다.
+            전기기사가 아직 근로확인서를 작성하지 않았습니다.
           </p>
         ) : (
           <>
@@ -220,27 +220,27 @@ export default function AdminContractPage({
             {c.workerSignatureDataUrl ? (
               <div className="rounded-admin-md border border-green-200 bg-green-50 p-3">
                 <p className="text-sm font-medium text-green-700">
-                  기술자 서명 완료
+                  전기기사 서명 완료
                   {c.signedAt &&
                     ` · ${new Date(c.signedAt).toLocaleString('ko-KR')}`}
                 </p>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={c.workerSignatureDataUrl}
-                  alt="기술자 서명"
+                  alt="전기기사 서명"
                   className="mt-2 h-16 rounded-admin-sm border border-border bg-white object-contain p-1"
                 />
               </div>
             ) : (
               <p className="rounded-admin-md bg-amber-50 p-3 text-sm text-amber-700">
-                기술자 서명 대기 중입니다.
+                전기기사 서명 대기 중입니다.
               </p>
             )}
 
-            {/* 기술자 제출 내용 (읽기전용) */}
+            {/* 전기기사 제출 내용 (읽기전용) */}
             <section className="space-y-1 rounded-admin-md border border-border p-4">
               <h2 className="mb-1 text-sm font-semibold">
-                기술자 작성 내용 · {EMPLOYMENT_LABEL[c.employmentType]}
+                전기기사 작성 내용 · {EMPLOYMENT_LABEL[c.employmentType]}
               </h2>
               <Row label="근로개시일" value={c.contractStartDate ?? '-'} />
               {c.employmentType === 'DAILY' ? (
@@ -449,7 +449,7 @@ export default function AdminContractPage({
             </div>
             {!confirmed && (
               <p className="text-center text-xs text-muted">
-                기술자가 포털에서 서명하면 자동으로 완료됩니다. 임금은 비워두면 계약서에
+                전기기사가 포털에서 서명하면 자동으로 완료됩니다. 임금은 비워두면 근로확인서에
                 &ldquo;추후 협의&rdquo;로 표기됩니다.
               </p>
             )}

@@ -82,7 +82,7 @@ export async function GET(
       ? {
           userId: p.referredBy.id,
           name: p.referredBy.name,
-          type: p.referredBy.role === 'PROVIDER' ? '업체' : '기술자',
+          type: p.referredBy.role === 'PROVIDER' ? '업체' : '전기기사',
         }
       : null,
     reviewCount: reviewAgg._count._all,

@@ -1,4 +1,4 @@
-// 배정 대상(업체 Provider / 개인기술자 Technician)을 다형적으로 다루기 위한 공용 헬퍼.
+// 배정 대상(업체 Provider / 전기기사 Technician)을 다형적으로 다루기 위한 공용 헬퍼.
 // Assignment.provider / Assignment.technician 중 하나만 채워지므로, 조회·표시 코드가
 // 두 관계를 매번 분기하지 않도록 여기로 모은다.
 

@@ -8,7 +8,7 @@ import { ephemeralLoginId, ephemeralPhone, type FixtureFactory } from '../helper
 // ───────────────────────────────────────────────────────────────────────────
 // tests/partner/ 전용 보조 도구.
 //
-// ⚠️ 업체는 기술자와 **대칭이 아니다**. 기술자 가입은 즉시 APPROVED + 세션 발급
+// ⚠️ 업체는 전기기사와 **대칭이 아니다**. 전기기사 가입은 즉시 APPROVED + 세션 발급
 // (tech/signup/route.ts:176, :196-211) 이지만, 업체 가입은 PENDING 으로 만들어지고
 // (partner/signup/route.ts:184) 관리자 승인 전에는 **로그인 자체가 막힌다**
 // (auth/login/route.ts:48-53 → 403). tech 스펙을 복사하면 안 되는 이유.

@@ -6,7 +6,7 @@ import { FixtureFactory, ephemeralLoginId, ephemeralPhone } from '../helpers/fix
 import { GATES, expectGate } from '../helpers/gates';
 
 // ───────────────────────────────────────────────────────────────────────────
-// 계약: 관리자 기술자 CRUD (계획 Step 7 — V* / H1 / S1)
+// 계약: 관리자 전기기사 CRUD (계획 Step 7 — V* / H1 / S1)
 //
 //   src/app/api/admin/technicians/route.ts        GET + POST
 //   src/app/api/admin/technicians/[id]/route.ts   GET + PATCH
@@ -42,7 +42,7 @@ function techBody(over: Record<string, unknown> = {}): Record<string, unknown> {
   return {
     loginId: newLoginId(),
     password: PASSWORD,
-    name: 'E2E 등록기술자',
+    name: 'E2E 등록전기기사',
     phone: ephemeralPhone(),
     // 좌표를 직접 주면 geocode() 호출 분기를 건너뛴다 (:79-92).
     address: '서울특별시 강남구 테헤란로 152',
@@ -83,7 +83,7 @@ test('technicians GET 200 — 목록 항목 shape 와 내 픽스처의 값이 �
   expect(Array.isArray(body.technicians)).toBe(true);
 
   const row = body.technicians.find((t) => t.id === tech.technicianId);
-  expect(row, '방금 만든 기술자가 목록에 없다').toBeTruthy();
+  expect(row, '방금 만든 전기기사가 목록에 없다').toBeTruthy();
   // 핸들러가 명시적으로 매핑하는 키 집합 — 키가 늘거나 빠지면 여기서 잡힌다.
   expect(Object.keys(row!).sort()).toEqual(
     [
@@ -249,7 +249,7 @@ test('technicians POST 200 — 즉시 APPROVED 로 생성되고 추천인이 기
 test('technicians/[id] GET 404 (:43) — 없는 id', async () => {
   const res = await admin.get('/api/admin/technicians/e2e-no-such-technician');
   expect(res.status()).toBe(404);
-  expect(await res.json()).toMatchObject({ error: '기술자를 찾을 수 없습니다' });
+  expect(await res.json()).toMatchObject({ error: '전기기사를 찾을 수 없습니다' });
 });
 
 test('technicians/[id] GET 200 — 상세 shape · 리뷰 0건 기본값 · 소개자 표시', async () => {
@@ -335,7 +335,7 @@ test('technicians/[id] PATCH 404 (:121) — 본문은 유효하지만 대상이 
     data: { memo: '아무거나' },
   });
   expect(res.status()).toBe(404);
-  expect(await res.json()).toMatchObject({ error: '기술자를 찾을 수 없습니다' });
+  expect(await res.json()).toMatchObject({ error: '전기기사를 찾을 수 없습니다' });
 });
 
 test('technicians/[id] PATCH 400 (:155) — 소급 지정한 소개자가 유효하지 않다', async () => {
@@ -377,7 +377,7 @@ test('technicians/[id] PATCH 200 — Technician·User 양쪽이 갱신되고 지
 
   const res = await admin.patch(`/api/admin/technicians/${tech.technicianId}`, {
     data: {
-      name: 'E2E 수정된 기술자',
+      name: 'E2E 수정된 전기기사',
       phone: '01099990001',
       address: '서울특별시 서초구 서초대로 1',
       isActive: false,
@@ -403,7 +403,7 @@ test('technicians/[id] PATCH 200 — Technician·User 양쪽이 갱신되고 지
     employmentType: 'PERMANENT',
     regions: ['서울특별시 강남구'],
   });
-  expect(after!.user.name).toBe('E2E 수정된 기술자');
+  expect(after!.user.name).toBe('E2E 수정된 전기기사');
   expect(after!.user.phone).toBe('01099990001');
   expect(after!.user.passwordHash).not.toBe(before!.passwordHash);
   expect(await bcrypt.compare('newpass12345', after!.user.passwordHash)).toBe(true);
@@ -446,10 +446,10 @@ test('gate map 결박 — 이 스펙이 커버하는 분기와 문구가 gates.t
     ['POST /api/admin/technicians', 115, 400, '추천인을 찾을 수 없습니다'],
     ['POST /api/admin/technicians', 120, 400, '본인을 추천인으로 지정할 수 없습니다'],
     ['POST /api/admin/technicians', 154, 409, '이미 사용 중인 아이디입니다'],
-    ['GET /api/admin/technicians/[id]', 43, 404, '기술자를 찾을 수 없습니다'],
+    ['GET /api/admin/technicians/[id]', 43, 404, '전기기사를 찾을 수 없습니다'],
     ['PATCH /api/admin/technicians/[id]', 108, 400, '잘못된 요청입니다'],
     ['PATCH /api/admin/technicians/[id]', 114, 400, null],
-    ['PATCH /api/admin/technicians/[id]', 121, 404, '기술자를 찾을 수 없습니다'],
+    ['PATCH /api/admin/technicians/[id]', 121, 404, '전기기사를 찾을 수 없습니다'],
     ['PATCH /api/admin/technicians/[id]', 155, 400, '추천인을 찾을 수 없습니다'],
     ['PATCH /api/admin/technicians/[id]', 160, 400, '본인을 추천인으로 지정할 수 없습니다'],
   ];

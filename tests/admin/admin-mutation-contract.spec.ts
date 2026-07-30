@@ -6,10 +6,10 @@ import { adminCtx } from './admin-mutation-support';
 // ───────────────────────────────────────────────────────────────────────────
 // GET·PUT /api/admin/technicians/[id]/contract — 실계약 (계획 Step 7)
 //
-//   GET  404 :44  기술자 없음        · 200 :47 (계약 null 포함)
+//   GET  404 :44  전기기사 없음        · 200 :47 (계약 null 포함)
 //   PUT  400 :72  본문이 JSON 아님
 //        400 :78  adminWageSchema 실패
-//        404 :89  계약서 미작성
+//        404 :89  근로확인서 미작성
 //        409 :97  CONFIRMED 는 수정 불가
 //        200 :120 임금·보험 저장 + 조건부 널 처리
 // ───────────────────────────────────────────────────────────────────────────
@@ -25,14 +25,14 @@ test.afterEach(async () => {
   await f.cleanupAll();
 });
 
-test('GET 404 :44 / 200 :47 — 계약 없는 기술자는 contract: null 로 응답한다', async ({
+test('GET 404 :44 / 200 :47 — 계약 없는 전기기사는 contract: null 로 응답한다', async ({
   playwright,
 }) => {
   const ctx = await adminCtx(playwright, 'contract-get');
 
   const missing = await ctx.get('/api/admin/technicians/e2e-no-such/contract');
   expect(missing.status()).toBe(404);
-  expect((await missing.json()).error).toBe('기술자를 찾을 수 없습니다');
+  expect((await missing.json()).error).toBe('전기기사를 찾을 수 없습니다');
 
   const bare = await f.createTechFixture({ employmentType: 'PERMANENT' });
   const res = await ctx.get(`/api/admin/technicians/${bare.technicianId}/contract`);
@@ -114,7 +114,7 @@ test('PUT 400 :72/:78 — 깨진 JSON 과 스키마 위반은 다른 문구로 �
   await ctx.dispose();
 });
 
-test('PUT 404 :89 — 기술자가 계약서를 아직 작성하지 않았다', async ({ playwright }) => {
+test('PUT 404 :89 — 전기기사가 근로확인서를 아직 작성하지 않았다', async ({ playwright }) => {
   const ctx = await adminCtx(playwright, 'contract-put-404');
   const bare = await f.createTechFixture();
 
@@ -122,19 +122,19 @@ test('PUT 404 :89 — 기술자가 계약서를 아직 작성하지 않았다', 
     data: { wageType: 'MONTHLY', wageAmount: 3_000_000 },
   });
   expect(res.status()).toBe(404);
-  expect((await res.json()).error).toBe('기술자가 아직 계약서를 작성하지 않았습니다');
+  expect((await res.json()).error).toBe('전기기사가 아직 근로확인서를 작성하지 않았습니다');
 
-  // 존재하지 않는 기술자도 같은 404 다 — PUT 은 기술자 존재를 따로 보지 않고
-  // 계약서 유무만 본다(route.ts:83-91).
+  // 존재하지 않는 전기기사도 같은 404 다 — PUT 은 전기기사 존재를 따로 보지 않고
+  // 근로확인서 유무만 본다(route.ts:83-91).
   const ghost = await ctx.put('/api/admin/technicians/e2e-no-such/contract', {
     data: { wageType: 'MONTHLY' },
   });
   expect(ghost.status()).toBe(404);
-  expect((await ghost.json()).error).toBe('기술자가 아직 계약서를 작성하지 않았습니다');
+  expect((await ghost.json()).error).toBe('전기기사가 아직 근로확인서를 작성하지 않았습니다');
   await ctx.dispose();
 });
 
-test('PUT 409 :97 — 기술자가 서명 완료한 계약서는 수정할 수 없다', async ({ playwright }) => {
+test('PUT 409 :97 — 전기기사가 서명 완료한 근로확인서는 수정할 수 없다', async ({ playwright }) => {
   const ctx = await adminCtx(playwright, 'contract-put-409');
   const tech = await f.createTechFixture({ contractStatus: 'CONFIRMED' });
 
@@ -142,7 +142,7 @@ test('PUT 409 :97 — 기술자가 서명 완료한 계약서는 수정할 수 �
     data: { wageType: 'HOURLY', wageAmount: 12_000 },
   });
   expect(res.status()).toBe(409);
-  expect((await res.json()).error).toBe('기술자가 서명 완료한 계약서는 수정할 수 없습니다');
+  expect((await res.json()).error).toBe('전기기사가 서명 완료한 근로확인서는 수정할 수 없습니다');
 
   const c = await prisma.employmentContract.findUnique({
     where: { technicianId: tech.technicianId },
@@ -187,7 +187,7 @@ test('PUT 200 :120 — 임금·보험이 저장되고 미체크 항목은 널로
   expect(stored?.wageType).toBe('MONTHLY');
   expect(stored?.payMethod).toBe('BANK_TRANSFER');
   expect(stored?.payDate).toBe('매월 10일');
-  // 확정은 기술자 서명으로만 이뤄지므로 PUT 은 status 를 건드리지 않는다.
+  // 확정은 전기기사 서명으로만 이뤄지므로 PUT 은 status 를 건드리지 않는다.
   expect(stored?.status).toBe('SUBMITTED');
 
   // 조건부 널 처리 (route.ts:107-110) — 체크를 끄면 금액이 남지 않는다.

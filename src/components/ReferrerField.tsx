@@ -2,11 +2,11 @@
 
 import { useState } from 'react';
 
-export type ReferrerSelection = { userId: string; name: string; type: '업체' | '기술자' };
+export type ReferrerSelection = { userId: string; name: string; type: '업체' | '전기기사' };
 
-type Candidate = { userId: string; maskedName: string; type: '업체' | '기술자' };
+type Candidate = { userId: string; maskedName: string; type: '업체' | '전기기사' };
 
-// 가입 3경로(업체·기술자 셀프, 관리자 직접) + 관리자 소급 지정에서 공용으로 쓰는
+// 가입 3경로(업체·전기기사 셀프, 관리자 직접) + 관리자 소급 지정에서 공용으로 쓰는
 // 추천인 전화번호 조회 위젯. 결(mobile)·관제탑(admin) 두 톤을 variant로 구분한다.
 const VARIANT_CLASS = {
   mobile: {

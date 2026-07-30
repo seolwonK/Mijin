@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/db';
 
-// 공개 추천인 조회 — 전화번호 정확 일치 + 승인된 업체/기술자만. 회원 명부 브라우징 방지용으로
+// 공개 추천인 조회 — 전화번호 정확 일치 + 승인된 업체/전기기사만. 회원 명부 브라우징 방지용으로
 // 마스킹 이름·유형·userId 외 정보는 응답에 담지 않는다.
 // 인메모리 레이트리밋: IP당 분당 10회 (requests/lookup/route.ts:6-21과 동형).
 const hits = new Map<string, { count: number; resetAt: number }>();
@@ -85,7 +85,7 @@ export async function POST(req: NextRequest) {
     .map((u) => ({
       userId: u.id,
       maskedName: maskName(u.name),
-      type: u.role === 'PROVIDER' ? ('업체' as const) : ('기술자' as const),
+      type: u.role === 'PROVIDER' ? ('업체' as const) : ('전기기사' as const),
     }));
 
   return NextResponse.json({ matches });

@@ -13,7 +13,7 @@ type ReferrerRow = {
   userId: string;
   name: string;
   phone: string;
-  type: '업체' | '기술자';
+  type: '업체' | '전기기사';
   isActive: boolean;
   approvalStatus: string | null;
   pendingTotal: number;
@@ -24,7 +24,7 @@ type ReferrerRow = {
 type EntryRow = {
   id: string;
   refereeName: string;
-  refereeType: '업체' | '기술자' | null;
+  refereeType: '업체' | '전기기사' | null;
   requestId: string;
   baseAmount: number;
   amount: number;

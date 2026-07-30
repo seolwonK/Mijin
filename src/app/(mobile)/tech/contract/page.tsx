@@ -9,10 +9,6 @@ import { CheckIcon } from '@/components/icons';
 const inputClass =
   'w-full rounded-xl border border-neutral-300 bg-white p-3 text-base text-fg placeholder:text-muted focus:border-brand-500 focus:ring-2 focus:ring-brand-500/15 focus:outline-none disabled:bg-neutral-100 disabled:text-muted';
 
-const EMPLOYMENT_LABEL: Record<string, string> = {
-  DAILY: '일일 근로자',
-  PERMANENT: '상시 근로자',
-};
 const WAGE_TYPE_LABEL: Record<string, string> = {
   MONTHLY: '월급',
   DAILY: '일급',
@@ -48,14 +44,6 @@ type Contract = {
   submittedAt: string | null;
 };
 
-function hoursText(c: Contract): string {
-  const parts: string[] = [];
-  if (c.workStartTime && c.workEndTime) parts.push(`${c.workStartTime} ~ ${c.workEndTime}`);
-  if (c.breakStartTime && c.breakEndTime)
-    parts.push(`(휴게 ${c.breakStartTime} ~ ${c.breakEndTime})`);
-  if (c.hoursNote) parts.push(c.hoursNote);
-  return parts.join(' ');
-}
 
 function ReadOnlyRow({ label, value }: { label: string; value: string }) {
   return (
@@ -181,7 +169,7 @@ export default function TechContractPage() {
 
   return (
     <main className="min-h-screen">
-      <PageHeader title="근로계약서 작성" back="/tech" />
+      <PageHeader title="근로확인서 작성" back="/tech" />
 
       <form
         onSubmit={submit}
@@ -191,7 +179,7 @@ export default function TechContractPage() {
           <div className="rounded-xl bg-green-50 p-3 text-sm font-medium text-green-700">
             <p className="flex items-center gap-1.5">
               <CheckIcon className="h-4 w-4 shrink-0" />
-              서명 완료 — 계약이 체결되었습니다.
+              서명 완료 — 근로확인이 완료되었습니다.
             </p>
             {c.workerSignatureDataUrl && (
               // eslint-disable-next-line @next/next/no-img-element
@@ -207,29 +195,14 @@ export default function TechContractPage() {
           </div>
         ) : (
           <p className="rounded-xl bg-brand-50 p-3 text-sm font-medium text-brand-700">
-            아래 내용을 확인하고 서명하면 계약이 바로 완료됩니다.
+            아래 내용을 확인하고 서명하면 근로확인이 바로 완료됩니다.
           </p>
         )}
 
-        {/* 근로형태 + 근무조건 (읽기전용, 서버 확정) */}
-        <section className="space-y-1 rounded-2xl border border-border bg-neutral-50 p-4">
-          <div className="mb-1 flex items-center justify-between">
-            <h2 className="text-sm font-semibold">근무 조건</h2>
-            <span className="rounded bg-neutral-200 px-2 py-0.5 text-xs font-medium text-neutral-700">
-              {EMPLOYMENT_LABEL[c.employmentType]}
-            </span>
-          </div>
-          <ReadOnlyRow label="소정근로시간" value={hoursText(c)} />
-          <ReadOnlyRow label="근무일" value={c.workDays} />
-          {c.weeklyHoliday && <ReadOnlyRow label="주휴일" value={c.weeklyHoliday} />}
-          <p className="pt-1 text-xs text-muted">
-            근무 조건은 근로형태에 따라 자동 설정되며 수정할 수 없습니다.
-          </p>
-        </section>
 
-        {/* 기술자 작성 항목 */}
+        {/* 전기기사 작성 항목 */}
         <section className="space-y-3 md:rounded-2xl md:bg-white md:p-6 md:shadow-surface-sm">
-          <h2 className="text-sm font-semibold">계약 내용</h2>
+          <h2 className="text-sm font-semibold">확인 내용</h2>
           <div>
             <label className="mb-1 block text-xs text-muted">근로개시일</label>
             <input
@@ -317,7 +290,7 @@ export default function TechContractPage() {
           </p>
         </section>
 
-        {/* 서명 → 계약 완료 */}
+        {/* 서명 → 근로확인 완료 */}
         {!confirmed && c.wageAmount != null && (
           <section className="space-y-2 md:rounded-2xl md:bg-white md:p-6 md:shadow-surface-sm">
             <h2 className="text-sm font-semibold">근로자 서명</h2>

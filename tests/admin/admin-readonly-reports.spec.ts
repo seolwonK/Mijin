@@ -16,7 +16,7 @@ import { shapeViolations, type ShapeNode } from '../helpers/shapes';
 // 스코프**해 결정적으로 단언한다 — 그 대상의 모든 행을 이 스펙이 만들었기 때문이다.
 //
 // ⚠️ 픽스처는 **과거 달(2026-05)** 에 심는다. tests/admin-settlements.spec.ts:50,55-64 가
-//    현재 KST 월의 기술자 집계가 비어 있고 CSV 가 정확히 3줄임을 단언하므로,
+//    현재 KST 월의 전기기사 집계가 비어 있고 CSV 가 정확히 3줄임을 단언하므로,
 //    이번 달에 지급 설문을 만들면 수정 금지 대상인 그 스펙이 붉어진다.
 // G1/G2 는 tests/cross/auth-matrix.spec.ts 가 전수 단언한다.
 // ───────────────────────────────────────────────────────────────────────────
@@ -114,7 +114,7 @@ test.afterEach(async () => {
 
 /**
  * 이름으로 식별해야 하는 응답(rotation 은 id 를 내려주지 않는다)을 위해
- * 충돌하지 않는 이름을 붙인 기술자를 만든다.
+ * 충돌하지 않는 이름을 붙인 전기기사를 만든다.
  */
 async function namedTech(label: string, input: TechFixtureInput = {}): Promise<TechFixture> {
   const tech = await f.createTechFixture(input);
@@ -178,7 +178,7 @@ test('rotation GET 200 — 담당 지역이 맞는 후보만 보드에 남는다
   // 빈 regions = 전 지역 담당 (regions.ts:129).
   expect(names, '전 지역 담당 후보가 빠졌다').toContain(allRegions.name);
   expect(names, '다른 지역 담당이 남았다').not.toContain(elsewhere.name);
-  expect(names, '계약 미확정 기술자가 남았다').not.toContain(noContract.name);
+  expect(names, '계약 미확정 전기기사가 남았다').not.toContain(noContract.name);
 
   // 보드가 표현하는 사슬의 한계를 응답이 스스로 밝힌다 (route.ts:46-50).
   expect(body.meta).toEqual({
@@ -206,7 +206,7 @@ test('rotation GET 200 — 시/도만 줘도 유효한 키가 된다 (regions.ts
 
 /**
  * 정산·수수료용 픽스처 한 벌.
- * 같은 기술자에게 (지급 2건 + 미지급 1건) 을 과거 달에 심어
+ * 같은 전기기사에게 (지급 2건 + 미지급 1건) 을 과거 달에 심어
  * completedCount / aggregatedCount / missingCount / coverage 관계를 결정적으로 만든다.
  */
 async function settlementFixture() {
@@ -277,11 +277,11 @@ test('settlements GET 200 — 내 수취인 행의 집계 관계가 정확하다
   expect(body.month).toBe(FIXTURE_MONTH);
 
   const row = body.technicians.find((r) => r.payeeId === fx.payee.technicianId);
-  expect(row, '내 기술자 수취인 행이 없다').toBeTruthy();
+  expect(row, '내 전기기사 수취인 행이 없다').toBeTruthy();
   expect(row).toEqual({
     payeeId: fx.payee.technicianId,
     name: fx.payee.name,
-    type: '기술자',
+    type: '전기기사',
     // 지급액이 채워진 2건만 합산된다.
     total: 1_277_000,
     aggregatedCount: 2,
@@ -290,7 +290,7 @@ test('settlements GET 200 — 내 수취인 행의 집계 관계가 정확하다
     missingCount: 1,
     coverage: 2 / 3,
   });
-  // 기술자 수취인이 업체 섹션으로 새지 않는다 (settlementReport.ts:118-121).
+  // 전기기사 수취인이 업체 섹션으로 새지 않는다 (settlementReport.ts:118-121).
   expect(body.providers.some((r) => r.payeeId === fx.payee.technicianId)).toBe(false);
 });
 
@@ -334,7 +334,7 @@ test('settlements GET 200 (format=csv) — 원천 행 내보내기', async () =>
     fx.paidSmall.request.lookupCode,
     fx.paidSmall.survey.id,
     fx.payee.name,
-    '기술자',
+    '전기기사',
     '2026-05-15',
     '77000',
   ]);
@@ -431,7 +431,7 @@ test('commissions GET 200 (건별) — 최신순 · 후기 요약 절단 · 고�
 
   expect(body.entries[0]).toMatchObject({
     refereeName: fx.payee.name,
-    refereeType: '기술자',
+    refereeType: '전기기사',
     requestId: fx.paidBig.request.id,
     baseAmount: 1_200_000,
     amount: 24_000,

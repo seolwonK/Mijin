@@ -83,7 +83,7 @@ export default function AdminCandidatePanel({
 }: AdminCandidatePanelProps) {
   const [error, setError] = useState<string | null>(null);
   async function assign(candidate: Pick<AdminCandidate, 'kind' | 'id' | 'name'>) {
-    if (!(await confirm({ title: '배정', message: `${candidate.name}(${candidate.kind === 'TECHNICIAN' ? '기술자' : '업체'})에게 이 접수를 배정할까요?\n배정 안내 문자가 발송됩니다.`, confirmText: '배정' }))) return;
+    if (!(await confirm({ title: '배정', message: `${candidate.name}(${candidate.kind === 'TECHNICIAN' ? '전기기사' : '업체'})에게 이 접수를 배정할까요?\n배정 안내 문자가 발송됩니다.`, confirmText: '배정' }))) return;
     const { kind: assigneeKind, id: assigneeId } = candidate;
     setBusy(true);
     setError(null);
@@ -105,11 +105,11 @@ export default function AdminCandidatePanel({
   return (
     <section className="rounded-admin-md border border-admin-cyan-ink/25 bg-white p-4">
       <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-        <h2 className="font-semibold text-admin-cyan-ink">거리순 추천 (업체·기술자)</h2>
+        <h2 className="font-semibold text-admin-cyan-ink">거리순 추천 (업체·전기기사)</h2>
         <AutoAssignCountdown {...{ autoAssignEnabled, needsAttention, assignBaseAt, waitMinutes }} />
       </div>
       {error && <p className="mb-2 text-sm text-red-600">{error}</p>}
-      {!candidates ? <p className="text-sm text-muted">불러오는 중…</p> : candidates.length === 0 ? <p className="text-sm text-muted">배정 가능한 활성 업체·기술자가 없습니다</p> : (() => {
+      {!candidates ? <p className="text-sm text-muted">불러오는 중…</p> : candidates.length === 0 ? <p className="text-sm text-muted">배정 가능한 활성 업체·전기기사가 없습니다</p> : (() => {
         const autoAssignIndex = findAutoAssignCandidateIndex(candidates);
         return <>
           <p className="mb-2 text-xs text-muted md:text-sm">근거 순서: 거절이력 → 지역 → 30일 배정(전체) → 평균 별점 → 거리{urgency === 'CRITICAL' && ' (초긴급은 30일 배정·별점 단계 미적용)'}</p>
@@ -120,7 +120,7 @@ export default function AdminCandidatePanel({
               const isAutoAssignPick = index === autoAssignIndex;
               return <div key={`${candidate.kind}:${candidate.id}`} className={`flex items-center justify-between rounded-admin-md border p-3 ${isAutoAssignPick ? 'border-admin-cyan-ink/40 bg-admin-cyan-ink/5' : 'border-border'}`}>
                 <div>
-                  <p className="font-bold">{candidate.name} <span className={`ml-1 rounded-admin-sm px-1.5 py-0.5 text-xs font-medium md:text-sm ${candidate.kind === 'TECHNICIAN' ? 'bg-emerald-100 text-emerald-700' : 'bg-neutral-100 text-neutral-600'}`}>{candidate.kind === 'TECHNICIAN' ? '기술자' : '업체'}</span>{' '}{candidate.rejectedThisRequest && <span className="text-xs font-medium text-red-500 md:text-sm">(이 건 거절함)</span>}</p>
+                  <p className="font-bold">{candidate.name} <span className={`ml-1 rounded-admin-sm px-1.5 py-0.5 text-xs font-medium md:text-sm ${candidate.kind === 'TECHNICIAN' ? 'bg-emerald-100 text-emerald-700' : 'bg-neutral-100 text-neutral-600'}`}>{candidate.kind === 'TECHNICIAN' ? '전기기사' : '업체'}</span>{' '}{candidate.rejectedThisRequest && <span className="text-xs font-medium text-red-500 md:text-sm">(이 건 거절함)</span>}</p>
                   <p className="font-mono text-xs text-muted md:text-sm">{candidate.distanceKm != null ? `${candidate.distanceKm.toFixed(1)}km` : '거리 미확인'} · {candidate.address}</p>
                   <p className="mt-0.5 font-mono text-xs text-muted md:text-sm">30일 배정(수락+거절) {candidate.assigned30d}회 · 평균 별점 {candidate.avgRating.toFixed(1)}{candidate.reviewCount > 0 ? ` (${candidate.reviewCount}건)` : ' (리뷰 없음)'}</p>
                   <p className="mt-1 flex flex-wrap items-center gap-1.5">{isAutoAssignPick && <span className="rounded-admin-sm bg-admin-cyan-ink px-1.5 py-0.5 text-[10.5px] font-bold text-white md:text-sm">자동배정 예정</span>}{index === 0 ? <span className="rounded-admin-sm bg-neutral-100 px-1.5 py-0.5 text-[10.5px] font-medium text-neutral-500 md:text-sm">1순위</span> : badge && <span className="rounded-admin-sm bg-neutral-100 px-1.5 py-0.5 text-[10.5px] font-medium text-neutral-500 md:text-sm">{badge}</span>}</p>

@@ -34,7 +34,7 @@ const selectClass =
 function KindBadge({ kind }: { kind: 'PROVIDER' | 'TECHNICIAN' }) {
   return (
     <span className="inline-block rounded-admin-sm bg-neutral-100 px-1.5 py-0.5 font-mono text-[10.5px] font-bold text-muted">
-      {kind === 'PROVIDER' ? '업체' : '기술자'}
+      {kind === 'PROVIDER' ? '업체' : '전기기사'}
     </span>
   );
 }

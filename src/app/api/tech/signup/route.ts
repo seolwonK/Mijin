@@ -6,8 +6,8 @@ import { geocode } from '@/lib/geo/kakao';
 import { sanitizeRegionKeys } from '@/lib/regions';
 import { createSessionToken, SESSION_COOKIE } from '@/lib/auth';
 
-// 개인기술자 셀프 가입. 가입 즉시 자동 승인(APPROVED)되어 바로 로그인할 수 있다.
-// 단, 실제 배정(일)은 근로계약서 서명 완료 후에만 가능하다 (matching 에서 게이트).
+// 전기기사 셀프 가입. 가입 즉시 자동 승인(APPROVED)되어 바로 로그인할 수 있다.
+// 단, 실제 배정(일)은 근로확인서 서명 완료 후에만 가능하다 (matching 에서 게이트).
 // 업체 가입과 달리 사업자등록번호·증빙 파일이 없으므로 JSON 으로 받는다.
 
 const fieldsSchema = z.object({

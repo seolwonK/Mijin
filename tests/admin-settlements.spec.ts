@@ -3,7 +3,7 @@ import { loginAsAdmin } from './helpers/auth';
 import { mkdirSync, writeFileSync } from 'node:fs';
 
 
-function settlementSection(page: Page, title: '업체' | '기술자') {
+function settlementSection(page: Page, title: '업체' | '전기기사') {
   return page.locator('section').filter({ has: page.getByRole('heading', { name: title, exact: true }) });
 }
 
@@ -30,7 +30,7 @@ test.describe('관리자 정산 집계 리포트', () => {
   });
 
   test('POPULATED 업체 TABLE: current month renders the seeded provider aggregate', async ({ browser }) => {
-    // 2x 디바이스 스케일 전체 페이지를 JPEG로 캡처 — 내비·필터·캡션·업체/기술자 섹션 전부 포함한 실제 렌더 증거.
+    // 2x 디바이스 스케일 전체 페이지를 JPEG로 캡처 — 내비·필터·캡션·업체/전기기사 섹션 전부 포함한 실제 렌더 증거.
     const context = await browser.newContext({ deviceScaleFactor: 2 });
     const page = await context.newPage();
     await loginAsAdmin(page);
@@ -47,7 +47,7 @@ test.describe('관리자 정산 집계 리포트', () => {
     await loginAsAdmin(page);
     await page.goto('/admin/settlements');
 
-    await expect(settlementSection(page, '기술자')).toContainText('해당 기간 집계 데이터 없음');
+    await expect(settlementSection(page, '전기기사')).toContainText('해당 기간 집계 데이터 없음');
   });
 
   test('CSV: source-level export is complete and has the expected content type', async ({ page }) => {
@@ -71,7 +71,7 @@ test.describe('관리자 정산 집계 리포트', () => {
     await month.fill('2020-01');
 
     await expect(settlementSection(page, '업체')).toContainText('해당 기간 집계 데이터 없음');
-    await expect(settlementSection(page, '기술자')).toContainText('해당 기간 집계 데이터 없음');
+    await expect(settlementSection(page, '전기기사')).toContainText('해당 기간 집계 데이터 없음');
   });
 
   test('INJECTION/GARBAGE MONTH RED-TEAM: invalid month safely falls back to KST current month', async ({ page }) => {
@@ -105,8 +105,8 @@ test.describe('관리자 정산 집계 리포트', () => {
 
     await expect(settlementSection(page, '업체')).toContainText('2,500,000원');
     assertions.push({ type: 'toContainText', selector: "section:has(h2:text-is('업체'))", expected: '2,500,000원', status: 'passed', timestamp: Date.now() });
-    await expect(settlementSection(page, '기술자')).toContainText('해당 기간 집계 데이터 없음');
-    assertions.push({ type: 'toContainText', selector: "section:has(h2:text-is('기술자'))", expected: '해당 기간 집계 데이터 없음', status: 'passed', timestamp: Date.now() });
+    await expect(settlementSection(page, '전기기사')).toContainText('해당 기간 집계 데이터 없음');
+    assertions.push({ type: 'toContainText', selector: "section:has(h2:text-is('전기기사'))", expected: '해당 기간 집계 데이터 없음', status: 'passed', timestamp: Date.now() });
 
     mkdirSync('artifacts/g-settlement-qa', { recursive: true });
     writeFileSync(

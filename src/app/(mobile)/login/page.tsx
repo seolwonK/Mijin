@@ -11,7 +11,7 @@ const ROLES: {
   desc: string;
 }[] = [
   { href: '/partner/login', Icon: BuildingIcon, title: '업체', desc: '출동 업체 로그인' },
-  { href: '/tech/login', Icon: WrenchIcon, title: '개인기술자', desc: '기술자 로그인' },
+  { href: '/tech/login', Icon: WrenchIcon, title: '전기기사', desc: '전기기사 로그인' },
   // 관리자 로그인은 /admin/login 직접 접근 — 고객용 허브에는 노출하지 않는다(불필요한 공격면·혼란 제거).
 ];
 
@@ -74,7 +74,7 @@ export default function LoginHubPage() {
             className="flex items-center gap-3 rounded-2xl bg-brand-50 p-4 text-sm font-semibold text-brand-700 transition-colors hover:bg-brand-100"
           >
             <WrenchIcon className="h-5 w-5 shrink-0" />
-            개인기술자로 가입하기
+            전기기사로 가입하기
             <span className="ml-auto">→</span>
           </Link>
         </div>

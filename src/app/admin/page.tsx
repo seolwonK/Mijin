@@ -57,7 +57,7 @@ export default function AdminDashboardPage() {
     '/api/admin/requests',
     8_000,
   );
-  // 승인 대기 업체·기술자 수 배지용 — 모바일 퀵링크 전용.
+  // 승인 대기 업체·전기기사 수 배지용 — 모바일 퀵링크 전용.
   const { data: provData } = usePolling<{
     providers: { approvalStatus: string }[];
   }>(isMobile ? '/api/admin/providers' : null, 30_000);
@@ -133,7 +133,7 @@ export default function AdminDashboardPage() {
                 href="/admin/technicians"
                 className="relative rounded-xl border border-border bg-white px-4 py-2 text-sm font-semibold text-neutral-700 transition-colors hover:bg-neutral-50 active:bg-neutral-50"
               >
-                기술자 관리
+                전기기사 관리
                 {pendingTechnicians > 0 && (
                   <span className="absolute -top-2 -right-2 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1.5 text-xs font-bold text-white">
                     {pendingTechnicians}
@@ -241,7 +241,7 @@ export default function AdminDashboardPage() {
                   <p className="mt-1 text-xs font-medium text-brand-600">
                     → {r.assigneeName}
                     {r.assigneeKind === 'TECHNICIAN' && (
-                      <span className="ml-1 text-muted">(기술자)</span>
+                      <span className="ml-1 text-muted">(전기기사)</span>
                     )}
                   </p>
                 )}

@@ -128,13 +128,13 @@ export default function ContractPrintPage({
   if (!d.contract) {
     return (
       <main className="p-6 text-center text-muted">
-        기술자가 아직 근로계약서를 작성하지 않았습니다.
+        전기기사가 아직 근로확인서를 작성하지 않았습니다.
       </main>
     );
   }
   const c = d.contract;
   const isDaily = c.employmentType === 'DAILY';
-  const title = isDaily ? '일용근로자 표준근로계약서' : '표준근로계약서';
+  const title = isDaily ? '일용근로자 표준근로확인서' : '표준근로확인서';
 
   return (
     <main className="bg-white">
@@ -147,7 +147,7 @@ export default function ContractPrintPage({
           href={`/admin/technicians/${id}/contract`}
           className="text-sm font-semibold text-brand-600 hover:opacity-80"
         >
-          ← 계약서로 돌아가기
+          ← 근로확인서로 돌아가기
         </Link>
         <button
           type="button"
@@ -158,7 +158,7 @@ export default function ContractPrintPage({
         </button>
       </div>
 
-      {/* 계약서 본문 (A4) */}
+      {/* 근로확인서 본문 (A4) */}
       <div className="mx-auto max-w-[820px] px-6 py-8 text-[15px] text-gray-900 print:max-w-none print:px-0 print:py-0">
         <h1 className="mb-6 text-center text-2xl font-bold tracking-widest">{title}</h1>
 
@@ -167,13 +167,13 @@ export default function ContractPrintPage({
           <p>
             <b>{d.employer.name}</b>(이하 &ldquo;사업주&rdquo;라 함)과(와){' '}
             <b>{c.workerSignatureName ?? d.technician.name}</b>(이하
-            &ldquo;근로자&rdquo;라 함)은 다음과 같이 근로계약을 체결한다.
+            &ldquo;근로자&rdquo;라 함)은 다음과 같이 근로 내용을 확인한다.
           </p>
         </div>
 
         <div className="border-t-2 border-gray-800">
           {isDaily ? (
-            <Clause n={1} title="근로계약기간">
+            <Clause n={1} title="근로확인기간">
               {koDate(c.contractStartDate)} (근로개시일)
             </Clause>
           ) : (
@@ -229,16 +229,14 @@ export default function ContractPrintPage({
               <span>{c.insuranceHealth ? '☑' : '☐'} 건강보험</span>
             </div>
           </Clause>
-          <Clause n={9} title="근로계약서 교부">
-            사업주는 근로계약을 체결함과 동시에 본 계약서를 사본하여 근로자의 교부요구와
-            관계없이 근로자에게 교부한다. (근로기준법 제17조 이행)
+          <Clause n={9} title="근로확인서 교부">
+            사업주는 근로 내용을 확인함과 동시에 본 확인서를 근로자에게 교부한다.
           </Clause>
-          <Clause n={10} title="근로계약, 취업규칙 등의 성실한 이행의무">
-            사업주와 근로자는 각자가 근로계약, 취업규칙, 단체협약을 지키고 성실하게
-            이행하여야 한다.
+          <Clause n={10} title="확인 내용의 성실한 이행의무">
+            사업주와 근로자는 확인한 내용을 성실하게 이행하여야 한다.
           </Clause>
           <Clause n={11} title="기타">
-            이 계약에 정함이 없는 사항은 근로기준법령에 의한다.
+            이 확인서에 정함이 없는 사항은 근로기준법령에 의한다.
           </Clause>
         </div>
 

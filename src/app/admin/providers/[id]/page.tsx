@@ -22,7 +22,7 @@ type ProviderDetail = {
   hasCert: boolean;
   appliedAt: string;
   rejectReason: string | null;
-  referredBy: { userId: string; name: string; type: '업체' | '기술자' } | null;
+  referredBy: { userId: string; name: string; type: '업체' | '전기기사' } | null;
   reviewCount: number;
   avgRating: number | null;
   reviews: AdminReview[];

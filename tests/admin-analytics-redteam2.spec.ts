@@ -14,7 +14,7 @@ const endpoints = [
 const ranking = buildMock(RATINGS_SHAPE, {
   ranking: [
     { subjectKey: 'PROVIDER:a', name: '알파 업체', type: 'PROVIDER', avgRating: 4.9, reviewCount: 9, completed: 12 },
-    { subjectKey: 'TECHNICIAN:b', name: '베타 기술자', type: 'TECHNICIAN', avgRating: 4.1, reviewCount: 4, completed: 8 },
+    { subjectKey: 'TECHNICIAN:b', name: '베타 전기기사', type: 'TECHNICIAN', avgRating: 4.1, reviewCount: 4, completed: 8 },
   ],
 });
 
@@ -133,7 +133,7 @@ test.describe('G002 설문·평점 레드팀', () => {
     await loginAsAdmin(page);
     await page.goto('/admin/analytics/ratings');
     const a = page.getByRole('button', { name: /알파 업체/ });
-    const b = page.getByRole('button', { name: /베타 기술자/ });
+    const b = page.getByRole('button', { name: /베타 전기기사/ });
     await expect(a).toBeVisible();
     for (let index = 0; index < 5; index += 1) {
       await a.click();

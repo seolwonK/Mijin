@@ -16,7 +16,7 @@ import { FixtureFactory } from '../helpers/fixtures';
 // ⚠️ 게이트 테스트는 AppSettings 를 **뒤집지 않는다.**
 //    pretest-guard 가 실행 전체에 걸쳐 autoAssignEnabled=false 를 걸어 뒀고,
 //    여기서 잠깐이라도 true 로 만들면 dev 서버의 30초 워커가 다른 스펙의
-//    RECEIVED 픽스처를 물어 Assignment 를 만든다. 그 순간부터 기술자·업체
+//    RECEIVED 픽스처를 물어 Assignment 를 만든다. 그 순간부터 전기기사·업체
 //    삭제가 assignment_one_assignee CHECK(23514) 로 영구 차단된다.
 //    대신 **배정 조건을 전부 만족하는 미끼**를 만들어 두고 0건을 단언한다 —
 //    게이트가 없다면 반드시 배정될 요청이므로 단언이 공허하지 않다.

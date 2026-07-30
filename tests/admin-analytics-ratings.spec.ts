@@ -7,7 +7,7 @@ import { buildMock, RATINGS_SHAPE, RATING_SUBJECT_SHAPE } from './helpers/shapes
 const ranking = buildMock(RATINGS_SHAPE, {
   ranking: [
     { subjectKey: 'PROVIDER:p1', name: '가 업체', type: 'PROVIDER', avgRating: 4.5, reviewCount: 12, completed: 20 },
-    { subjectKey: 'TECHNICIAN:t1', name: '나 기술자', type: 'TECHNICIAN', avgRating: 3.5, reviewCount: 2, completed: 4 },
+    { subjectKey: 'TECHNICIAN:t1', name: '나 전기기사', type: 'TECHNICIAN', avgRating: 3.5, reviewCount: 2, completed: 4 },
   ],
 });
 
@@ -43,9 +43,9 @@ test.describe('관리자 평점 현황', () => {
     await page.goto('/admin/analytics/ratings');
     await expect(page.getByText('가 업체')).toBeVisible();
     await page.getByRole('button', { name: /응답 수/ }).click();
-    await expect(page.locator('tbody tr').first()).toContainText('나 기술자');
+    await expect(page.locator('tbody tr').first()).toContainText('나 전기기사');
     await page.getByRole('button', { name: /평균 별점/ }).click();
-    await page.getByLabel('이름 검색').fill('나 기술자');
+    await page.getByLabel('이름 검색').fill('나 전기기사');
     await expect(page.getByText('가 업체')).toHaveCount(0);
     await page.getByLabel('이름 검색').fill('가 업체');
     const detailRequest = page.waitForRequest((request) => request.url().includes('/api/admin/analytics/ratings/PROVIDER%3Ap1') && request.method() === 'GET');
@@ -104,17 +104,17 @@ test.describe('관리자 평점 현황', () => {
         return route.fulfill({ contentType: 'application/json', body: JSON.stringify(subjectDetail({ monthly: [], reviews: { items: [{ rating: 1, comment: 'A업체 늦은 후기', submittedAt: '2026-07-18T00:00:00.000Z' }], total: 1, hasNext: false } })) });
       }
       if (url.pathname.includes('TECHNICIAN%3At1') || url.pathname.includes('TECHNICIAN:t1')) {
-        return route.fulfill({ contentType: 'application/json', body: JSON.stringify(subjectDetail({ monthly: [], reviews: { items: [{ rating: 4, comment: 'B기술자 후기', submittedAt: '2026-07-18T00:00:00.000Z' }], total: 1, hasNext: false } })) });
+        return route.fulfill({ contentType: 'application/json', body: JSON.stringify(subjectDetail({ monthly: [], reviews: { items: [{ rating: 4, comment: 'B전기기사 후기', submittedAt: '2026-07-18T00:00:00.000Z' }], total: 1, hasNext: false } })) });
       }
       return route.fulfill({ contentType: 'application/json', body: JSON.stringify(ranking) });
     });
     await page.goto('/admin/analytics/ratings');
     await page.getByRole('button', { name: /가 업체/ }).click();
-    await page.getByRole('button', { name: /나 기술자/ }).click();
-    await expect(page.getByText('B기술자 후기')).toBeVisible();
+    await page.getByRole('button', { name: /나 전기기사/ }).click();
+    await expect(page.getByText('B전기기사 후기')).toBeVisible();
     // A의 늦은 응답이 도착한 뒤에도 B 아래에 A 상세가 나타나면 안 된다.
     await page.waitForTimeout(1_000);
     await expect(page.getByText('A업체 늦은 후기')).toHaveCount(0);
-    await expect(page.getByText('B기술자 후기')).toBeVisible();
+    await expect(page.getByText('B전기기사 후기')).toBeVisible();
   });
 });

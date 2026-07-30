@@ -73,7 +73,7 @@ export const GATES: Record<string, HandlerGates> = {
   'POST /api/admin/requests/[id]/assign': {
     file: 'src/app/api/admin/requests/[id]/assign/route.ts',
     note:
-      '409 CAS 는 앞의 게이트 5개를 **전부** 통과해야 도달한다. 특히 기술자 대상이면 ' +
+      '409 CAS 는 앞의 게이트 5개를 **전부** 통과해야 도달한다. 특히 전기기사 대상이면 ' +
       '계약 CONFIRMED 가 필수다 — createTechFixture() 기본값은 계약 행이 아예 없어 ' +
       'contract?.status !== "CONFIRMED" 가 참이 되고 :59 의 400 으로 떨어진다.',
     gates: [
@@ -115,7 +115,7 @@ export const GATES: Record<string, HandlerGates> = {
         status: 400,
         line: 59,
         kind: 'state',
-        message: '근로계약서 서명이 완료되지 않은 기술자입니다',
+        message: '근로확인서 서명이 완료되지 않은 전기기사입니다',
         reach: 'assigneeKind=TECHNICIAN 이고 계약이 CONFIRMED 가 아님(행 없음 포함)',
         trap: 'PROVIDER 대상은 이 게이트를 통째로 건너뛴다',
       },
@@ -127,8 +127,8 @@ export const GATES: Record<string, HandlerGates> = {
         message: '배정 대기 상태가 아닙니다. 이미 배정되었거나 취소되었을 수 있습니다.',
         reach:
           'claimAndAssign 의 CAS 실패 — 접수가 RECEIVED 가 아님. ' +
-          '대상은 활성·승인 상태여야 하고, 기술자면 계약 CONFIRMED 여야 여기까지 온다',
-        trap: '계약 미확정 기술자로 시도하면 409 가 아니라 :59 의 400 이 나온다',
+          '대상은 활성·승인 상태여야 하고, 전기기사면 계약 CONFIRMED 여야 여기까지 온다',
+        trap: '계약 미확정 전기기사로 시도하면 409 가 아니라 :59 의 400 이 나온다',
       },
     ],
   },
@@ -305,8 +305,8 @@ export const GATES: Record<string, HandlerGates> = {
         status: 404,
         line: 121,
         kind: 'not-found',
-        message: '기술자를 찾을 수 없습니다',
-        reach: '없는 기술자 id + **유효한** 본문',
+        message: '전기기사를 찾을 수 없습니다',
+        reach: '없는 전기기사 id + **유효한** 본문',
         trap: '본문이 부실하면 :114 의 400 이 먼저다',
       },
       {
@@ -365,8 +365,8 @@ export const GATES: Record<string, HandlerGates> = {
   'PUT /api/admin/technicians/[id]/contract': {
     file: 'src/app/api/admin/technicians/[id]/contract/route.ts',
     note:
-      ':89 의 404 는 **기술자**가 아니라 **계약서 행**이 없을 때다. 없는 기술자 id 와 ' +
-      '계약서 미작성 기술자가 같은 응답을 내므로 둘은 구별되지 않는다.',
+      ':89 의 404 는 **전기기사**가 아니라 **근로확인서 행**이 없을 때다. 없는 전기기사 id 와 ' +
+      '근로확인서 미작성 전기기사가 같은 응답을 내므로 둘은 구별되지 않는다.',
     gates: [
       { order: 1, status: 400, line: 72, kind: 'body-parse', message: '잘못된 요청입니다', reach: 'JSON 이 아닌 본문' },
       { order: 2, status: 400, line: 78, kind: 'schema', message: null, reach: 'adminWageSchema 위반' },
@@ -375,7 +375,7 @@ export const GATES: Record<string, HandlerGates> = {
         status: 404,
         line: 89,
         kind: 'not-found',
-        message: '기술자가 아직 계약서를 작성하지 않았습니다',
+        message: '전기기사가 아직 근로확인서를 작성하지 않았습니다',
         reach: 'EmploymentContract 행 없음 — createTechFixture() 를 contractStatus 없이 만들면 이 상태',
       },
       {
@@ -383,7 +383,7 @@ export const GATES: Record<string, HandlerGates> = {
         status: 409,
         line: 97,
         kind: 'conflict',
-        message: '기술자가 서명 완료한 계약서는 수정할 수 없습니다',
+        message: '전기기사가 서명 완료한 근로확인서는 수정할 수 없습니다',
         reach: "createTechFixture({ contractStatus: 'CONFIRMED' })",
       },
     ],
@@ -427,13 +427,13 @@ export const GATES: Record<string, HandlerGates> = {
   'POST /api/admin/technicians/[id]/approve': {
     file: 'src/app/api/admin/technicians/[id]/approve/route.ts',
     gates: [
-      { order: 1, status: 404, line: 15, kind: 'not-found', message: '기술자를 찾을 수 없습니다', reach: '없는 id' },
+      { order: 1, status: 404, line: 15, kind: 'not-found', message: '전기기사를 찾을 수 없습니다', reach: '없는 id' },
       {
         order: 2,
         status: 409,
         line: 18,
         kind: 'conflict',
-        message: '이미 승인된 기술자입니다',
+        message: '이미 승인된 전기기사입니다',
         reach: 'approvalStatus 가 이미 APPROVED — createTechFixture() **기본값이 APPROVED** 라 기본 픽스처가 곧 이 케이스',
         trap: "200 을 보려면 createTechFixture({ approvalStatus: 'PENDING' })",
       },
@@ -460,7 +460,7 @@ export const GATES: Record<string, HandlerGates> = {
     file: 'src/app/api/admin/technicians/[id]/reject/route.ts',
     note: '본문 파싱은 try 안에서 조용히 삼켜진다(:18) — 본문 없이 호출해도 400 이 아니다.',
     gates: [
-      { order: 1, status: 404, line: 26, kind: 'not-found', message: '기술자를 찾을 수 없습니다', reach: '없는 id' },
+      { order: 1, status: 404, line: 26, kind: 'not-found', message: '전기기사를 찾을 수 없습니다', reach: '없는 id' },
       { order: 2, status: 409, line: 31, kind: 'conflict', message: null, reach: '이미 반려된 상태' },
     ],
   },
@@ -620,7 +620,7 @@ export const GATES: Record<string, HandlerGates> = {
 
   'GET /api/admin/technicians/[id]': {
     file: 'src/app/api/admin/technicians/[id]/route.ts',
-    gates: [{ order: 1, status: 404, line: 43, kind: 'not-found', message: '기술자를 찾을 수 없습니다', reach: '없는 id' }],
+    gates: [{ order: 1, status: 404, line: 43, kind: 'not-found', message: '전기기사를 찾을 수 없습니다', reach: '없는 id' }],
   },
 
   'GET /api/admin/providers/[id]': {
@@ -630,10 +630,10 @@ export const GATES: Record<string, HandlerGates> = {
 
   'GET /api/admin/technicians/[id]/contract': {
     file: 'src/app/api/admin/technicians/[id]/contract/route.ts',
-    gates: [{ order: 1, status: 404, line: 44, kind: 'not-found', message: '기술자를 찾을 수 없습니다', reach: '없는 id' }],
+    gates: [{ order: 1, status: 404, line: 44, kind: 'not-found', message: '전기기사를 찾을 수 없습니다', reach: '없는 id' }],
   },
 
-  // ═══ 기술자 ════════════════════════════════════════════════════════════
+  // ═══ 전기기사 ════════════════════════════════════════════════════════════
 
   'POST /api/tech/jobs/[id]/status': {
     file: 'src/app/api/tech/jobs/[id]/status/route.ts',
@@ -744,7 +744,7 @@ export const GATES: Record<string, HandlerGates> = {
         status: 404,
         line: 147,
         kind: 'not-found',
-        message: '기술자 정보를 찾을 수 없습니다',
+        message: '전기기사 정보를 찾을 수 없습니다',
         reach: '세션의 technicianId 가 실재하지 않음',
       },
       {
@@ -752,7 +752,7 @@ export const GATES: Record<string, HandlerGates> = {
         status: 409,
         line: 152,
         kind: 'conflict',
-        message: '이미 확정된 계약서는 수정할 수 없습니다. 관리자에게 문의해 주세요.',
+        message: '이미 확정된 근로확인서는 수정할 수 없습니다. 관리자에게 문의해 주세요.',
         reach: "contractStatus: 'CONFIRMED'",
       },
       {
@@ -769,9 +769,9 @@ export const GATES: Record<string, HandlerGates> = {
 
   'GET /api/tech/contract': {
     file: 'src/app/api/tech/contract/route.ts',
-    note: 'loadOrCreate 가 계약서 행을 **없으면 만든다** — GET 이 부수효과를 낸다.',
+    note: 'loadOrCreate 가 근로확인서 행을 **없으면 만든다** — GET 이 부수효과를 낸다.',
     gates: [
-      { order: 1, status: 404, line: 119, kind: 'not-found', message: '기술자 정보를 찾을 수 없습니다', reach: '세션의 technicianId 미존재' },
+      { order: 1, status: 404, line: 119, kind: 'not-found', message: '전기기사 정보를 찾을 수 없습니다', reach: '세션의 technicianId 미존재' },
     ],
   },
 

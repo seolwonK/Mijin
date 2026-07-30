@@ -27,7 +27,7 @@ const EMPLOYMENT_LABEL: Record<string, string> = {
   DAILY: '일일',
   PERMANENT: '상시',
 };
-// SUBMITTED = 기술자가 서명을 제출하고 관리자 확정을 기다리는 상태(schema.prisma ContractStatus)
+// SUBMITTED = 전기기사가 서명을 제출하고 관리자 확정을 기다리는 상태(schema.prisma ContractStatus)
 // — "서명 전"으로 뭉개면 관리자가 확정할 일이 있다는 사실이 목록에서 보이지 않는다.
 const CONTRACT_LABEL: Record<string, string> = {
   DRAFT: '서명 전',
@@ -56,8 +56,8 @@ export default function AdminTechniciansPage() {
     if (
       t.isActive &&
       !(await confirm({
-        title: '기술자 비활성',
-        message: `${t.name}을(를) 비활성으로 바꿀까요?\n비활성 기술자는 배정 대상에서 제외됩니다.`,
+        title: '전기기사 비활성',
+        message: `${t.name}을(를) 비활성으로 바꿀까요?\n비활성 전기기사는 배정 대상에서 제외됩니다.`,
         confirmText: '비활성으로',
         danger: true,
       }))
@@ -108,7 +108,7 @@ export default function AdminTechniciansPage() {
     },
     {
       key: 'contractStatus',
-      label: '근로계약',
+      label: '근로확인',
       width: '180px',
       render: (t) => (
         <span
@@ -146,12 +146,12 @@ export default function AdminTechniciansPage() {
 
   return (
     <main className="min-h-screen">
-      {/* 모바일: 기존 PageHeader 그대로. 데스크톱: AdminShell 상단 탭이 이미 "기술자 관리"를
+      {/* 모바일: 기존 PageHeader 그대로. 데스크톱: AdminShell 상단 탭이 이미 "전기기사 관리"를
           표시하므로 PageHeader 대신 더 얇은 바로 교체 — AC-1 밀도 가드 회복(providers/page.tsx와
           동일 근거). */}
       <div className="md:hidden">
         <PageHeader
-          title="개인기술자 관리"
+          title="전기기사 관리"
           back="/admin"
           width="max-w-none"
           right={
@@ -162,7 +162,7 @@ export default function AdminTechniciansPage() {
         />
       </div>
       <div className="hidden items-center justify-between border-b border-border px-4 py-1.5 md:flex">
-        <h1 className="text-sm font-bold text-fg">개인기술자 관리</h1>
+        <h1 className="text-sm font-bold text-fg">전기기사 관리</h1>
         <Link href="/admin/technicians/new" className={buttonClasses('primary', 'sm')}>
           + 직접 등록
         </Link>
@@ -210,11 +210,11 @@ export default function AdminTechniciansPage() {
         )}
 
         <section>
-          <h2 className="mb-1.5 text-sm font-semibold">운영 중 기술자 ({approved.length})</h2>
+          <h2 className="mb-1.5 text-sm font-semibold">운영 중 전기기사 ({approved.length})</h2>
           {loading && <CardSkeletonGrid count={3} />}
           {!loading && approved.length === 0 && (
             <p className="rounded-admin-md border border-border bg-neutral-50 p-6 text-center text-sm text-muted">
-              운영 중인 기술자가 없습니다
+              운영 중인 전기기사가 없습니다
             </p>
           )}
           {!loading && approved.length > 0 && (

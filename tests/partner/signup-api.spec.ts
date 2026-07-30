@@ -18,8 +18,8 @@ import {
 // ───────────────────────────────────────────────────────────────────────────
 // POST /api/partner/signup — 계획 Step 6a
 //
-// 업체 가입은 기술자 가입과 **정반대**다:
-//   기술자  tech/signup:176      approvalStatus 'APPROVED' + :196-211 세션 쿠키 발급
+// 업체 가입은 전기기사 가입과 **정반대**다:
+//   전기기사  tech/signup:176      approvalStatus 'APPROVED' + :196-211 세션 쿠키 발급
 //   업체    partner/signup:184   approvalStatus 'PENDING'  + 쿠키 없음
 // 따라서 "가입 직후 API 를 태운다" 는 tech 패턴을 여기 옮기면 안 된다.
 // 승인 전 차단이 실제로 걸리는 지점은 **로그인**(auth/login/route.ts:48-53) 이다.
@@ -223,7 +223,7 @@ test('가입 성공은 PENDING 으로 만들고 (:184) 승인 전 로그인을 �
 
   const { providerId } = await trackSignedUpPartner(prisma, f, fields.loginId);
   const provider = await prisma.provider.findUnique({ where: { id: providerId } });
-  expect(provider?.approvalStatus, '업체는 기술자와 달리 PENDING 으로 생성된다').toBe('PENDING');
+  expect(provider?.approvalStatus, '업체는 전기기사와 달리 PENDING 으로 생성된다').toBe('PENDING');
   expect(provider?.approvedAt).toBeNull();
   expect(provider?.bizRegNo).toBe(fields.bizRegNo);
   // 증빙은 파일시스템이 아니라 DB(StoredFile)에 들어간다(:195-202).

@@ -297,7 +297,7 @@ test('candidates GET 404 (:19) — 없는 id', async () => {
 test('candidates GET 200 — 계약·승인·활성 게이트가 멤버십으로 드러난다', async () => {
   // 배정 후보가 되는 조건 (src/lib/matching.ts:44-58):
   //   업체  = isActive && approvalStatus APPROVED
-  //   기술자 = 위 + contract.status === 'CONFIRMED'
+  //   전기기사 = 위 + contract.status === 'CONFIRMED'
   const confirmed = await f.createTechFixture({ contractStatus: 'CONFIRMED' });
   const noContract = await f.createTechFixture();
   const draftContract = await f.createTechFixture({ contractStatus: 'DRAFT' });
@@ -316,10 +316,10 @@ test('candidates GET 200 — 계약·승인·활성 게이트가 멤버십으로
 
   const keys = new Set(body.candidates.map((c) => c.key));
   // 순서는 단언하지 않는다 — 좌표 유무·타 워커 픽스처에 따라 흔들린다 (계획 R8).
-  expect(keys.has(`TECHNICIAN:${confirmed.technicianId}`), 'CONFIRMED 기술자가 빠졌다').toBe(true);
+  expect(keys.has(`TECHNICIAN:${confirmed.technicianId}`), 'CONFIRMED 전기기사가 빠졌다').toBe(true);
   expect(keys.has(`PROVIDER:${activeProvider.providerId}`), '승인·활성 업체가 빠졌다').toBe(true);
-  expect(keys.has(`TECHNICIAN:${noContract.technicianId}`), '계약 없는 기술자가 들어왔다').toBe(false);
-  expect(keys.has(`TECHNICIAN:${draftContract.technicianId}`), 'DRAFT 계약 기술자가 들어왔다').toBe(false);
+  expect(keys.has(`TECHNICIAN:${noContract.technicianId}`), '계약 없는 전기기사가 들어왔다').toBe(false);
+  expect(keys.has(`TECHNICIAN:${draftContract.technicianId}`), 'DRAFT 계약 전기기사가 들어왔다').toBe(false);
   expect(keys.has(`PROVIDER:${pendingProvider.providerId}`), '미승인 업체가 들어왔다').toBe(false);
   expect(keys.has(`PROVIDER:${inactiveProvider.providerId}`), '비활성 업체가 들어왔다').toBe(false);
 
@@ -348,7 +348,7 @@ test('candidates GET 200 — 좌표가 있으면 hasCoords 와 거리 계산이 
   };
   expect(body.hasCoords).toBe(true);
   const mine = body.candidates.find((c) => c.key === `TECHNICIAN:${tech.technicianId}`);
-  expect(mine, '내 기술자가 후보에 없다').toBeTruthy();
+  expect(mine, '내 전기기사가 후보에 없다').toBeTruthy();
   expect(mine!.distanceKm).not.toBeNull();
   expect(mine!.distanceKm!).toBeGreaterThan(0);
   expect(mine!.distanceKm!).toBeLessThan(5);

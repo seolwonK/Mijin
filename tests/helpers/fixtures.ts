@@ -46,7 +46,7 @@ export function ephemeralPhone(): string {
 // ───────────────────────────────────────────────────────────────────────────
 // 스윕 — 직전 실행이 크래시해 남긴 9001 대역 잔재를 FK 역순으로 회수한다.
 // pretest-guard 가 **dev 서버 부팅 전에** 호출한다: 부팅 후면 자동배정 워커가
-// RECEIVED 잔재를 물어 Assignment 를 만들고, 그 시점부터 기술자/업체 삭제가
+// RECEIVED 잔재를 물어 Assignment 를 만들고, 그 시점부터 전기기사/업체 삭제가
 // `assignment_one_assignee` CHECK 위반(SQLSTATE 23514)으로 영구 불가능해진다.
 // ───────────────────────────────────────────────────────────────────────────
 
@@ -161,7 +161,7 @@ async function deleteInFkOrder(prisma: PrismaClient, scope: DeleteScope): Promis
     );
   }
 
-  // 픽스처 기술자·업체가 네임스페이스 밖 접수에 배정돼 있을 수 있다(워커 오작동 잔재).
+  // 픽스처 전기기사·업체가 네임스페이스 밖 접수에 배정돼 있을 수 있다(워커 오작동 잔재).
   // Assignment 를 먼저 끊지 않으면 assignment_one_assignee CHECK 로 삭제가 막힌다.
   if (providerIds.length || technicianIds.length) {
     const orphan = await prisma.assignment.findMany({
@@ -376,7 +376,7 @@ export class FixtureFactory {
       data: {
         loginId,
         passwordHash: await bcrypt.hash(password, 10),
-        name: 'E2E 기술자',
+        name: 'E2E 전기기사',
         phone,
         role: 'TECHNICIAN',
       },
@@ -460,7 +460,7 @@ export class FixtureFactory {
   }
 
   /**
-   * 기술자 가입(tech/signup:25-29)은 verificationId 를 필수로 요구한다.
+   * 전기기사 가입(tech/signup:25-29)은 verificationId 를 필수로 요구한다.
    * 가입 API 를 태우는 스펙은 이 팩토리로 선행 발급받아야 한다.
    */
   async createIdentityVerification(input: IdentityFixtureInput = {}) {
@@ -469,7 +469,7 @@ export class FixtureFactory {
       data: {
         provider: 'mock',
         providerRef: `e2e-${randomDigits(10)}`,
-        name: input.name ?? 'E2E 기술자',
+        name: input.name ?? 'E2E 전기기사',
         phone,
         expiresAt: input.expiresAt ?? new Date(Date.now() + 10 * 60_000),
         consumedAt: input.consumedAt ?? null,

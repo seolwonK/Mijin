@@ -5,12 +5,12 @@ import { ipHeaders } from '../helpers/ip';
 import { FixtureFactory, ephemeralLoginId, ephemeralPhone } from '../helpers/fixtures';
 
 // ───────────────────────────────────────────────────────────────────────────
-// 기술자 가입 계약 — POST /api/identity/verify → POST /api/tech/signup (계획 5a)
+// 전기기사 가입 계약 — POST /api/identity/verify → POST /api/tech/signup (계획 5a)
 //
 // ⚠️ 스펙 원문의 "가입 → 승인대기 → 어드민 승인"은 구현과 다르다.
 //    src/app/api/tech/signup/route.ts:176 이 approvalStatus:'APPROVED' 를 직접 쓰고
 //    :203-211 이 세션 쿠키까지 심는다 — **승인 게이트는 존재하지 않는다.**
-//    실제 게이트는 근로계약서 CONFIRMED 이며 matching.ts:54 가 강제한다
+//    실제 게이트는 근로확인서 CONFIRMED 이며 matching.ts:54 가 강제한다
 //    (tests/tech/contract-gate.spec.ts 가 그쪽을 단언한다).
 //    여기서는 현행 동작을 단언한다: 즉시 APPROVED + 즉시 로그인.
 //
@@ -54,7 +54,7 @@ function signupBody(over: Partial<SignupBody> = {}): Partial<SignupBody> {
   return {
     loginId: ephemeralLoginId('signup'),
     password: 'e2epass1234',
-    name: 'E2E 기술자',
+    name: 'E2E 전기기사',
     phone: ephemeralPhone(),
     // regions.ts:114-126 은 풀 시/도명("서울특별시")만 인식한다.
     address: '서울특별시 강남구 테헤란로 1',
@@ -294,7 +294,7 @@ test.describe('POST /api/tech/signup — 성공 계약', () => {
     expect(setCookie).toContain('mijin_session=');
     expect(setCookie).toContain('HttpOnly');
 
-    // ② 그 쿠키만으로 기술자 API 를 즉시 통과한다 — "자동 로그인"의 실질 단언.
+    // ② 그 쿠키만으로 전기기사 API 를 즉시 통과한다 — "자동 로그인"의 실질 단언.
     //    (APIRequestContext 가 Set-Cookie 를 쿠키 자에 보관하므로 같은 ctx 로 확인한다)
     const jobs = await ctx.get('/api/tech/jobs');
     expect(jobs.status()).toBe(200);

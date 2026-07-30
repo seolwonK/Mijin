@@ -5,12 +5,12 @@ import { ipHeaders } from '../helpers/ip';
 import { FixtureFactory } from '../helpers/fixtures';
 
 // ───────────────────────────────────────────────────────────────────────────
-// 계약 게이트 (계획 5b) — 기술자 가입에는 승인 대기가 없다(signup-api.spec.ts 참조).
-// 실제 배정 게이트는 **근로계약서 CONFIRMED** 이며 단 한 줄이 강제한다:
+// 계약 게이트 (계획 5b) — 전기기사 가입에는 승인 대기가 없다(signup-api.spec.ts 참조).
+// 실제 배정 게이트는 **근로확인서 CONFIRMED** 이며 단 한 줄이 강제한다:
 //   src/lib/matching.ts:50-55  technician.findMany({ where: { contract: { status: 'CONFIRMED' } } })
 //
 // ⚠️ 순서는 절대 단언하지 않는다. 카카오 지오코딩을 실호출하므로 좌표가 null 인
-//    기술자가 생길 수 있고, matching.ts:125-128 이 그런 후보를 최하위로 민다.
+//    전기기사가 생길 수 있고, matching.ts:125-128 이 그런 후보를 최하위로 민다.
 //    "N번째" 단언은 구조적으로 flaky 하다 — **멤버십만** 본다.
 // ───────────────────────────────────────────────────────────────────────────
 
@@ -31,7 +31,7 @@ async function adminCtx(playwright: Pw, seed: string): Promise<APIRequestContext
   return playwright.request.newContext(await apiContextOptions('ADMIN', {}, ipHeaders(seed)));
 }
 
-/** 후보 목록에서 이 기술자의 안정 키(matching.ts:12)가 보이는지. */
+/** 후보 목록에서 이 전기기사의 안정 키(matching.ts:12)가 보이는지. */
 async function candidateKeys(ctx: APIRequestContext, requestId: string): Promise<string[]> {
   const res = await ctx.get(`/api/admin/requests/${requestId}/candidates`);
   expect(res.status()).toBe(200);
@@ -43,7 +43,7 @@ async function candidateKeys(ctx: APIRequestContext, requestId: string): Promise
 const techKey = (technicianId: string) => `TECHNICIAN:${technicianId}`;
 
 test.describe('배정 후보 계약 게이트', () => {
-  test('계약이 없거나 DRAFT·SUBMITTED 인 기술자는 후보에서 제외된다', async ({ playwright }) => {
+  test('계약이 없거나 DRAFT·SUBMITTED 인 전기기사는 후보에서 제외된다', async ({ playwright }) => {
     const ctx = await adminCtx(playwright, 'gate-absent');
     const req = await f.createRequestFixture({ address: '서울특별시 강남구 테헤란로 1' });
 
@@ -80,7 +80,7 @@ test.describe('배정 후보 계약 게이트', () => {
 
     expect(await candidateKeys(ctx, req.id)).not.toContain(techKey(tech.technicianId));
 
-    // 제품 경로로 확정한다 — 기술자가 계약서에 서명하면 CONFIRMED 가 된다
+    // 제품 경로로 확정한다 — 전기기사가 근로확인서에 서명하면 CONFIRMED 가 된다
     // (tech/contract/route.ts:181). 게이트가 실제 사용자 행동으로 열리는지를 본다.
     const techCtx = await playwright.request.newContext(
       await apiContextOptions(
@@ -165,7 +165,7 @@ test.describe('배정 후보 계약 게이트', () => {
     await ctx.dispose();
   });
 
-  test('이 접수를 거절한 기술자는 후보에 남되 rejectedThisRequest 로 표시된다', async ({
+  test('이 접수를 거절한 전기기사는 후보에 남되 rejectedThisRequest 로 표시된다', async ({
     playwright,
   }) => {
     const ctx = await adminCtx(playwright, 'gate-rejected');

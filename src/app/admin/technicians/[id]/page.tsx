@@ -23,7 +23,7 @@ type TechnicianDetail = {
   contractStatus: 'DRAFT' | 'SUBMITTED' | 'CONFIRMED' | null;
   appliedAt: string;
   rejectReason: string | null;
-  referredBy: { userId: string; name: string; type: '업체' | '기술자' } | null;
+  referredBy: { userId: string; name: string; type: '업체' | '전기기사' } | null;
   reviewCount: number;
   avgRating: number | null;
   reviews: AdminReview[];
@@ -63,7 +63,7 @@ export default function EditTechnicianPage({
   const load = useCallback(async () => {
     const res = await fetch(`/api/admin/technicians/${id}`, { cache: 'no-store' });
     if (!res.ok) {
-      setError('기술자를 불러오지 못했습니다');
+      setError('전기기사를 불러오지 못했습니다');
       return;
     }
     setDetail(await res.json());
@@ -78,7 +78,7 @@ export default function EditTechnicianPage({
       detail &&
       (detail.lat == null || detail.lng == null) &&
       !window.confirm(
-        '좌표가 없는 기술자입니다. 서비스 지역이 설정돼 있으면 지역 기준으로 자동배정되며, 좌표를 입력하면 거리순 배정까지 됩니다.\n그래도 승인할까요?',
+        '좌표가 없는 전기기사입니다. 서비스 지역이 설정돼 있으면 지역 기준으로 자동배정되며, 좌표를 입력하면 거리순 배정까지 됩니다.\n그래도 승인할까요?',
       )
     )
       return;
@@ -190,7 +190,7 @@ export default function EditTechnicianPage({
         title={detail.name}
         back="/admin/technicians"
         crumbs={[
-          { label: '개인기술자 관리', href: '/admin/technicians' },
+          { label: '전기기사 관리', href: '/admin/technicians' },
           { label: detail.name, href: `/admin/technicians/${id}` },
         ]}
         right={
@@ -215,17 +215,17 @@ export default function EditTechnicianPage({
           )}
         </div>
 
-        {/* 근로계약서 */}
+        {/* 근로확인서 */}
         <Link
           href={`/admin/technicians/${id}/contract`}
           className="flex items-center justify-between rounded-admin-md border border-admin-cyan-ink/25 bg-admin-cyan-ink/5 p-4"
         >
           <div>
-            <p className="font-bold text-admin-cyan-ink">근로계약서</p>
+            <p className="font-bold text-admin-cyan-ink">근로확인서</p>
             <p className="mt-0.5 text-sm text-admin-cyan-ink/80">
               {detail.contractStatus
                 ? CONTRACT_LABEL[detail.contractStatus]
-                : '기술자 미작성'}
+                : '전기기사 미작성'}
             </p>
           </div>
           <span className="text-sm font-bold text-admin-cyan-ink">열기 →</span>

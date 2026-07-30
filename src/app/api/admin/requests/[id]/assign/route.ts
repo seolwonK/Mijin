@@ -35,7 +35,7 @@ export async function POST(
     return NextResponse.json({ error: '접수를 찾을 수 없습니다' }, { status: 404 });
   }
 
-  // 업체/기술자 각 테이블에서 활성·승인 여부와 좌표를 확인
+  // 업체/전기기사 각 테이블에서 활성·승인 여부와 좌표를 확인
   const target =
     assigneeKind === 'PROVIDER'
       ? await prisma.provider.findUnique({ where: { id: assigneeId } })
@@ -47,7 +47,7 @@ export async function POST(
     );
   }
 
-  // 기술자는 근로계약서 서명 완료 후에만 배정 가능
+  // 전기기사는 근로확인서 서명 완료 후에만 배정 가능
   if (assigneeKind === 'TECHNICIAN') {
     const contract = await prisma.employmentContract.findUnique({
       where: { technicianId: assigneeId },
@@ -55,7 +55,7 @@ export async function POST(
     });
     if (contract?.status !== 'CONFIRMED') {
       return NextResponse.json(
-        { error: '근로계약서 서명이 완료되지 않은 기술자입니다' },
+        { error: '근로확인서 서명이 완료되지 않은 전기기사입니다' },
         { status: 400 },
       );
     }

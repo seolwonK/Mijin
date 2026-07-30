@@ -20,7 +20,7 @@ function StarRow({ rating }: { rating: number }) {
   );
 }
 
-// 업체·기술자 상세 화면 공용 만족도 조사 섹션 — 평균 별점 요약 헤더 + 최근 리뷰 목록.
+// 업체·전기기사 상세 화면 공용 만족도 조사 섹션 — 평균 별점 요약 헤더 + 최근 리뷰 목록.
 // avgRating=null은 "리뷰 0건"을 뜻한다(랭킹용 3.0 중립값과 달리, 상세 화면은 실측값만 보여준다).
 export default function AdminReviewList({
   avgRating,

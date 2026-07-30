@@ -92,7 +92,7 @@ export const ROUTES: RouteEntry[] = [
   admin('/api/admin/technicians/[id]/contract', 'PUT'),
   admin('/api/admin/technicians/[id]/reject', 'POST'),
 
-  // ── 기술자 (11 핸들러, TECHNICIAN 세션 필요) ─────────────────────────
+  // ── 전기기사 (11 핸들러, TECHNICIAN 세션 필요) ─────────────────────────
   tech('/api/tech/commissions', 'GET'),
   tech('/api/tech/contract', 'GET'),
   tech('/api/tech/contract', 'PUT'),
@@ -131,7 +131,7 @@ export const ROUTES: RouteEntry[] = [
   open('/api/requests/lookup', 'POST', '고객 조회 — lookupCode + 전화번호'),
   open('/api/survey/[token]', 'GET', '만족도 조사 — 토큰이 곧 인증'),
   open('/api/survey/[token]', 'POST', '만족도 조사 제출 — 토큰이 곧 인증'),
-  open('/api/tech/signup', 'POST', '기술자 셀프 가입 — 즉시 APPROVED(signup:176)'),
+  open('/api/tech/signup', 'POST', '전기기사 셀프 가입 — 즉시 APPROVED(signup:176)'),
 ];
 
 /** 무세션 401 을 단언해야 하는 핸들러 (71 − 공개 13 = 58). */

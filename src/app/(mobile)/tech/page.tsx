@@ -68,7 +68,7 @@ export default function TechHomePage() {
   const { notifPermission, enableNotifications } = useNewJobAlert({
     waitingIds: waiting.map((j) => j.id),
     ready: !!data,
-    baseTitle: '기술자 포털',
+    baseTitle: '전기기사 포털',
   });
   const inProgress = jobs
     .filter(
@@ -102,7 +102,7 @@ export default function TechHomePage() {
   return (
     <main className="min-h-screen bg-surface">
       <PageHeader
-        title="기술자 포털"
+        title="전기기사 포털"
         width="max-w-5xl"
         right={<LogoutButton loginPath="/tech/login" />}
       />
@@ -176,7 +176,7 @@ export default function TechHomePage() {
                 <span
                   className={`block font-bold ${contractSigned ? 'text-green-800' : 'text-amber-800'}`}
                 >
-                  근로계약서 {contractSigned ? '서명 완료' : '작성 필요'}
+                  근로확인서 {contractSigned ? '서명 완료' : '작성 필요'}
                 </span>
                 {!contractSigned && (
                   <span className="mt-0.5 block text-xs text-amber-700">

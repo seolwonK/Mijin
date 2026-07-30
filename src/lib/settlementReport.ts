@@ -11,7 +11,7 @@ export type SettlementReportPrisma = {
 export type SettlementRow = {
   payeeId: string;
   name: string;
-  type: '업체' | '기술자';
+  type: '업체' | '전기기사';
   total: number;
   aggregatedCount: number;
   completedCount: number;
@@ -29,7 +29,7 @@ export type SettlementSourceRow = {
   lookupCode: string;
   surveyId: string;
   payeeName: string;
-  type: '업체' | '기술자';
+  type: '업체' | '전기기사';
   submittedAt: string;
   paidAmount: number;
 };
@@ -124,7 +124,7 @@ export async function getSettlementReport(
   return {
     month: resolved,
     providers: buildRows(providerCompleted, providerAggregated, 'providerId', '업체', names.providers),
-    technicians: buildRows(technicianCompleted, technicianAggregated, 'technicianId', '기술자', names.technicians),
+    technicians: buildRows(technicianCompleted, technicianAggregated, 'technicianId', '전기기사', names.technicians),
   };
 }
 
@@ -158,7 +158,7 @@ export async function getSettlementSourceRows(
       lookupCode: survey.request.lookupCode,
       surveyId: survey.id,
       payeeName: (isProvider ? names.providers : names.technicians).get(payeeId) ?? '-',
-      type: isProvider ? '업체' : '기술자',
+      type: isProvider ? '업체' : '전기기사',
       submittedAt: survey.submittedAt.toISOString(),
       paidAmount: survey.paidAmount,
     }];

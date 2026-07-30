@@ -5,8 +5,8 @@ import { ipHeaders } from '../helpers/ip';
 import { FixtureFactory, ephemeralLoginId, ephemeralPhone } from '../helpers/fixtures';
 
 // ───────────────────────────────────────────────────────────────────────────
-// 기술자 UI 종단 여정 (계획 5e)
-//   가입(본인인증 포함) → 로그아웃 → 로그인 → 근로계약서 서명 → 수락 → 출동 → 완료
+// 전기기사 UI 종단 여정 (계획 5e)
+//   가입(본인인증 포함) → 로그아웃 → 로그인 → 근로확인서 서명 → 수락 → 출동 → 완료
 //
 // 계약 층(다른 4개 스펙)이 상태코드를 단언한다면, 여기서는 **사용자가 실제로
 // 화면에서 그 값을 얻는지**를 단언한다. 두 층이 겹치는 것은 의도된 것이다.
@@ -34,7 +34,7 @@ test('가입 → 로그인 → 계약 서명 → 수락 → 출동 → 완료', 
   const loginId = ephemeralLoginId('journey');
   const password = 'e2epass1234';
   const phone = ephemeralPhone();
-  const name = 'E2E 여정기술자';
+  const name = 'E2E 여정전기기사';
 
   // ── ① 가입 (휴대폰 본인인증 → 즉시 APPROVED + 자동 로그인) ───────────────
   await page.goto('/tech/signup');
@@ -61,7 +61,7 @@ test('가입 → 로그인 → 계약 서명 → 수락 → 출동 → 완료', 
   await page.getByRole('button', { name: '가입 신청하기' }).click();
 
   await expect(page.getByRole('heading', { name: '가입이 완료되었습니다' })).toBeVisible();
-  // 화면이 약속하는 것: 승인 대기가 아니라 **자동 로그인 + 계약서 서명 안내**.
+  // 화면이 약속하는 것: 승인 대기가 아니라 **자동 로그인 + 근로확인서 서명 안내**.
   await expect(page.getByText('자동으로 로그인되었습니다.')).toBeVisible();
 
   const user = await prisma.user.findUnique({
@@ -80,14 +80,12 @@ test('가입 → 로그인 → 계약 서명 → 수락 → 출동 → 완료', 
   await loginAsTech(page, { loginId, password });
 
   // ── ③ 계약 미서명 상태에서는 포털이 배정을 못 받는다고 경고한다 ──────────
-  await expect(page.getByText('근로계약서 작성 필요')).toBeVisible();
+  await expect(page.getByText('근로확인서 작성 필요')).toBeVisible();
   await expect(page.getByText('서명을 완료해야 배정(일)을 받을 수 있습니다.')).toBeVisible();
 
-  // ── ④ 근로계약서 서명 = 계약 확정 ────────────────────────────────────────
+  // ── ④ 근로확인서 서명 = 근로확인 완료 ─────────────────────────────────────
   await page.goto('/tech/contract');
-  await expect(page.getByText('아래 내용을 확인하고 서명하면 계약이 바로 완료됩니다.')).toBeVisible();
-  // 근무조건은 서버가 근로형태로 강제하며 화면에서도 읽기전용으로 보여준다.
-  await expect(page.getByText('근로개시일 당일')).toBeVisible();
+  await expect(page.getByText('아래 내용을 확인하고 서명하면 근로확인이 바로 완료됩니다.')).toBeVisible();
   await expect(page.locator('#ct-loc')).not.toHaveValue('');
   await expect(page.locator('#ct-job')).not.toHaveValue('');
   await expect(page.locator('#ct-name')).toHaveValue(name);
@@ -111,7 +109,7 @@ test('가입 → 로그인 → 계약 서명 → 수락 → 출동 → 완료', 
   await expect(page.getByText('서명됨')).toBeVisible();
 
   await page.getByRole('button', { name: '서명하고 완료' }).click();
-  await expect(page.getByText('서명 완료 — 계약이 체결되었습니다.')).toBeVisible();
+  await expect(page.getByText('서명 완료 — 근로확인이 완료되었습니다.')).toBeVisible();
   expect(
     (
       await prisma.employmentContract.findUnique({
@@ -122,7 +120,7 @@ test('가입 → 로그인 → 계약 서명 → 수락 → 출동 → 완료', 
   ).toBe('CONFIRMED');
 
   await page.goto('/tech');
-  await expect(page.getByText('근로계약서 서명 완료')).toBeVisible();
+  await expect(page.getByText('근로확인서 서명 완료')).toBeVisible();
 
   // ── ⑤ 배정 도착 → 수락 ───────────────────────────────────────────────────
   const req = await f.createRequestFixture({

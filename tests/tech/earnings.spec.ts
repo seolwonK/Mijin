@@ -5,9 +5,9 @@ import { ipHeaders } from '../helpers/ip';
 import { FixtureFactory, type TechFixture } from '../helpers/fixtures';
 
 // ───────────────────────────────────────────────────────────────────────────
-// 기술자 정산·성과·계약서 계약 (계획 5d)
+// 전기기사 정산·성과·근로확인서 계약 (계획 5d)
 //   GET  /api/tech/commissions   소개 수수료 원장 (referrerUserId = 세션 userId)
-//   GET  /api/tech/referrals     내가 소개한 업체·기술자 현황
+//   GET  /api/tech/referrals     내가 소개한 업체·전기기사 현황
 //   GET  /api/tech/reviews       받은 후기 — n≥5 코멘트 임계
 //   GET  /api/tech/stats         30일 배정·수락·평균 별점
 //   GET  /api/tech/contract      없으면 DRAFT 생성 (임금 기본값 자동 기입)
@@ -40,7 +40,7 @@ async function techCtx(playwright: Pw, tech: TechFixture, seed: string): Promise
   );
 }
 
-/** 존재하지 않는 기술자를 가리키는 세션 — contract 404 분기 전용. */
+/** 존재하지 않는 전기기사를 가리키는 세션 — contract 404 분기 전용. */
 async function ghostCtx(playwright: Pw, seed: string): Promise<APIRequestContext> {
   return playwright.request.newContext(
     await apiContextOptions(
@@ -129,7 +129,7 @@ test.describe('GET /api/tech/commissions', () => {
 // ── 추천 현황 ──────────────────────────────────────────────────────────────
 
 test.describe('GET /api/tech/referrals', () => {
-  test('내가 소개한 기술자가 승인상태·적립과 함께 나온다', async ({ playwright }) => {
+  test('내가 소개한 전기기사가 승인상태·적립과 함께 나온다', async ({ playwright }) => {
     const me = await f.createTechFixture();
     const referee = await f.createTechFixture({ approvalStatus: 'APPROVED' });
     await prisma.technician.update({
@@ -290,20 +290,20 @@ test.describe('GET /api/tech/stats', () => {
   });
 });
 
-// ── 근로계약서 ─────────────────────────────────────────────────────────────
+// ── 근로확인서 ─────────────────────────────────────────────────────────────
 
 const signBody = (over: Record<string, unknown> = {}) => ({
   contractStartDate: new Date().toISOString().slice(0, 10),
   workLocation: '고객 현장 (출동)',
   jobDescription: '전기 설비 점검 및 출동 업무',
   workerAddress: '서울특별시 강남구 테헤란로 12',
-  workerSignatureName: 'E2E 기술자',
+  workerSignatureName: 'E2E 전기기사',
   workerSignatureDataUrl: 'data:image/png;base64,iVBORw0KGgo=',
   ...over,
 });
 
 test.describe('GET /api/tech/contract', () => {
-  test('계약서가 없으면 DRAFT 로 생성하고 근무조건·임금 기본값을 채운다', async ({
+  test('근로확인서가 없으면 DRAFT 로 생성하고 근무조건·임금 기본값을 채운다', async ({
     playwright,
   }) => {
     const me = await f.createTechFixture({ employmentType: 'DAILY' });
@@ -340,7 +340,7 @@ test.describe('GET /api/tech/contract', () => {
     await ctx.dispose();
   });
 
-  test('반복 조회해도 계약서는 1건만 생긴다 (멱등)', async ({ playwright }) => {
+  test('반복 조회해도 근로확인서는 1건만 생긴다 (멱등)', async ({ playwright }) => {
     const me = await f.createTechFixture();
     const ctx = await techCtx(playwright, me, 'contract-get-idem');
     expect((await ctx.get('/api/tech/contract')).status()).toBe(200);
@@ -351,14 +351,14 @@ test.describe('GET /api/tech/contract', () => {
     await ctx.dispose();
   });
 
-  test('기술자 정보가 없으면 404 (contract/route.ts:118-120)', async ({ playwright }) => {
+  test('전기기사 정보가 없으면 404 (contract/route.ts:118-120)', async ({ playwright }) => {
     const ghost = await ghostCtx(playwright, 'contract-get-404');
     const res = await ghost.get('/api/tech/contract');
     expect(res.status()).toBe(404);
-    expect((await res.json()).error).toBe('기술자 정보를 찾을 수 없습니다');
+    expect((await res.json()).error).toBe('전기기사 정보를 찾을 수 없습니다');
     await ghost.dispose();
 
-    // 양성 대조 — 실재하는 기술자에게는 같은 GET 이 200 이다.
+    // 양성 대조 — 실재하는 전기기사에게는 같은 GET 이 200 이다.
     const me = await f.createTechFixture();
     const real = await techCtx(playwright, me, 'contract-get-404-control');
     expect((await real.get('/api/tech/contract')).status()).toBe(200);
@@ -404,7 +404,7 @@ test.describe('PUT /api/tech/contract', () => {
     await ctx.dispose();
   });
 
-  test('확정된 계약서는 다시 고칠 수 없다 → 409 (contract/route.ts:149-154)', async ({
+  test('확정된 근로확인서는 다시 고칠 수 없다 → 409 (contract/route.ts:149-154)', async ({
     playwright,
   }) => {
     const me = await f.createTechFixture();
@@ -412,7 +412,7 @@ test.describe('PUT /api/tech/contract', () => {
     expect((await ctx.put('/api/tech/contract', { data: signBody() })).status()).toBe(200);
     const again = await ctx.put('/api/tech/contract', { data: signBody() });
     expect(again.status()).toBe(409);
-    expect((await again.json()).error).toContain('이미 확정된 계약서');
+    expect((await again.json()).error).toContain('이미 확정된 근로확인서');
     await ctx.dispose();
   });
 
@@ -493,7 +493,7 @@ test.describe('PUT /api/tech/contract', () => {
     await ctx.dispose();
   });
 
-  test('기술자 정보가 없으면 404 (contract/route.ts:146-148)', async ({ playwright }) => {
+  test('전기기사 정보가 없으면 404 (contract/route.ts:146-148)', async ({ playwright }) => {
     // 바디가 **유효해야** zod(:137-142)를 지나 loadOrCreate 의 404 까지 온다.
     // 빈 바디로 보냈다면 400 이 나고 이 분기는 실행조차 되지 않았을 것이다.
     const ghost = await ghostCtx(playwright, 'contract-put-404');
@@ -504,7 +504,7 @@ test.describe('PUT /api/tech/contract', () => {
     expect(shadowed.status()).toBe(400);
     await ghost.dispose();
 
-    // 양성 대조 — **같은 바디**를 실재하는 기술자로 보내면 200 이다.
+    // 양성 대조 — **같은 바디**를 실재하는 전기기사로 보내면 200 이다.
     const me = await f.createTechFixture();
     const real = await techCtx(playwright, me, 'contract-put-404-control');
     expect((await real.put('/api/tech/contract', { data: signBody() })).status()).toBe(200);

@@ -17,7 +17,7 @@ import { adminCtx, midflightTransition, pollSmsLog, warmRoute } from './admin-mu
 //   400 :29  zod 실패 (배정 대상 미선택)
 //   404 :35  접수 없음
 //   400 :46  대상 없음/비활성/미승인
-//   400 :59  기술자 계약 미확정
+//   400 :59  전기기사 계약 미확정
 //   409 :81  CAS 패배
 //   200 :84  + 상태전이 ASSIGNED · Assignment 생성 · 배정 SMS(지연 쓰기)
 // ───────────────────────────────────────────────────────────────────────────
@@ -79,7 +79,7 @@ test('404 :35 — 존재하지 않는 접수', async ({ playwright }) => {
   await ctx.dispose();
 });
 
-test('400 :46 — 미등록·비활성·미승인 대상은 업체/기술자 양쪽 다 거절된다', async ({
+test('400 :46 — 미등록·비활성·미승인 대상은 업체/전기기사 양쪽 다 거절된다', async ({
   playwright,
 }) => {
   const ctx = await adminCtx(playwright, 'assign-target');
@@ -89,7 +89,7 @@ test('400 :46 — 미등록·비활성·미승인 대상은 업체/기술자 양
   const inactive = await f.createPartnerFixture({ isActive: false });
   const pending = await f.createPartnerFixture({ approvalStatus: 'PENDING' });
   const rejected = await f.createPartnerFixture({ approvalStatus: 'REJECTED' });
-  // 기술자 쪽도 같은 분기를 탄다 — 계약 게이트(:59) 이전에 걸린다.
+  // 전기기사 쪽도 같은 분기를 탄다 — 계약 게이트(:59) 이전에 걸린다.
   const inactiveTech = await f.createTechFixture({
     isActive: false,
     contractStatus: 'CONFIRMED',
@@ -97,11 +97,11 @@ test('400 :46 — 미등록·비활성·미승인 대상은 업체/기술자 양
 
   const cases: Array<[string, { assigneeKind: string; assigneeId: string }]> = [
     ['미등록 업체', { assigneeKind: 'PROVIDER', assigneeId: 'e2e-no-such-provider' }],
-    ['미등록 기술자', { assigneeKind: 'TECHNICIAN', assigneeId: 'e2e-no-such-technician' }],
+    ['미등록 전기기사', { assigneeKind: 'TECHNICIAN', assigneeId: 'e2e-no-such-technician' }],
     ['비활성 업체', { assigneeKind: 'PROVIDER', assigneeId: inactive.providerId }],
     ['승인대기 업체', { assigneeKind: 'PROVIDER', assigneeId: pending.providerId }],
     ['반려 업체', { assigneeKind: 'PROVIDER', assigneeId: rejected.providerId }],
-    ['비활성 기술자', { assigneeKind: 'TECHNICIAN', assigneeId: inactiveTech.technicianId }],
+    ['비활성 전기기사', { assigneeKind: 'TECHNICIAN', assigneeId: inactiveTech.technicianId }],
   ];
   for (const [label, data] of cases) {
     const res = await ctx.post(url, { data });
@@ -118,7 +118,7 @@ test('400 :46 — 미등록·비활성·미승인 대상은 업체/기술자 양
   await ctx.dispose();
 });
 
-test('400 :59 — 계약 미확정 기술자는 배정 불가, CONFIRMED 면 통과한다', async ({ playwright }) => {
+test('400 :59 — 계약 미확정 전기기사는 배정 불가, CONFIRMED 면 통과한다', async ({ playwright }) => {
   const ctx = await adminCtx(playwright, 'assign-contract');
   const req = await f.createRequestFixture({ status: 'RECEIVED', address: ADDRESS });
   const url = `/api/admin/requests/${req.id}/assign`;
@@ -134,13 +134,13 @@ test('400 :59 — 계약 미확정 기술자는 배정 불가, CONFIRMED 면 통
   ] as const) {
     const res = await ctx.post(url, { data: { assigneeKind: 'TECHNICIAN', assigneeId: id } });
     expect(res.status(), label).toBe(400);
-    expect((await res.json()).error, label).toBe('근로계약서 서명이 완료되지 않은 기술자입니다');
+    expect((await res.json()).error, label).toBe('근로확인서 서명이 완료되지 않은 전기기사입니다');
   }
   expect((await prisma.serviceRequest.findUnique({ where: { id: req.id } }))?.status).toBe(
     'RECEIVED',
   );
 
-  // 양성 대조 — 게이트가 "기술자는 무조건 거절"이 아님을 같은 접수에서 보인다.
+  // 양성 대조 — 게이트가 "전기기사는 무조건 거절"이 아님을 같은 접수에서 보인다.
   const confirmed = await f.createTechFixture({ contractStatus: 'CONFIRMED' });
   const ok = await ctx.post(url, {
     data: { assigneeKind: 'TECHNICIAN', assigneeId: confirmed.technicianId },

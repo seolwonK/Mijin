@@ -13,7 +13,7 @@ import { BoltIcon, ClipboardIcon, ShieldIcon, MapPinIcon, CheckIcon } from '@/co
 const PROCESS_STEPS = [
   { n: 1, title: '접수', desc: '음성 또는 텍스트로 고장 내용을 30초 만에 남겨요.', image: '/images/landing/process-1.webp' },
   { n: 2, title: '배정', desc: '관리자 확인 또는 자동배정으로 담당자를 연결해요.', image: '/images/landing/process-2.webp' },
-  { n: 3, title: '출동', desc: '배정된 업체·기술자가 현장으로 출동해요.', image: '/images/landing/process-3.webp' },
+  { n: 3, title: '출동', desc: '배정된 업체·전기기사가 현장으로 출동해요.', image: '/images/landing/process-3.webp' },
   { n: 4, title: '완료', desc: '수리가 끝나면 처리 완료로 표시돼요.', image: '/images/landing/process-4.webp' },
 ] as const;
 
@@ -35,7 +35,7 @@ const FAQ_ITEMS = [
   },
   {
     q: '접수하면 얼마나 빨리 배정되나요?',
-    a: '접수 시 선택한 긴급도에 따라 목표 응대 시간이 다릅니다. 초긴급은 1시간 내, 긴급은 2시간 내, 일반은 순차적으로 처리됩니다. 실제 배정은 담당 지역의 업체·기술자 현황에 따라 달라질 수 있습니다.',
+    a: '접수 시 선택한 긴급도에 따라 목표 응대 시간이 다릅니다. 초긴급은 1시간 내, 긴급은 2시간 내, 일반은 순차적으로 처리됩니다. 실제 배정은 담당 지역의 업체·전기기사 현황에 따라 달라질 수 있습니다.',
   },
   {
     q: '긴급도는 어떻게 구분되나요?',
@@ -43,11 +43,11 @@ const FAQ_ITEMS = [
   },
   {
     q: '서비스 가능 지역은 어디인가요?',
-    a: '전국 시/도·시/군/구 단위로 접수 가능합니다. 다만 지역별 실제 배정은 등록된 업체·기술자 현황에 따라 다르며, 담당 업체가 없는 지역은 관리자가 직접 확인 후 연결합니다.',
+    a: '전국 시/도·시/군/구 단위로 접수 가능합니다. 다만 지역별 실제 배정은 등록된 업체·전기기사 현황에 따라 다르며, 담당 업체가 없는 지역은 관리자가 직접 확인 후 연결합니다.',
   },
   {
-    q: '기술자·업체는 어떻게 신뢰할 수 있나요?',
-    a: '업체·기술자 모두 관리자 승인을 거친 후에만 활동하며, 개인기술자는 추가로 근로계약서에 전자 서명을 완료해야 배정 대상이 됩니다.',
+    q: '전기기사·업체는 어떻게 신뢰할 수 있나요?',
+    a: '업체·전기기사 모두 관리자 승인을 거친 후에만 활동하며, 전기기사는 추가로 근로확인서에 전자 서명을 완료해야 배정 대상이 됩니다.',
   },
   {
     q: '진행 상황은 어떻게 확인하나요?',
@@ -215,7 +215,7 @@ export default function Home() {
       <section className="mt-8 w-full md:mt-10 md:max-w-2xl">
         <h2 className="text-2xl font-extrabold text-fg md:text-3xl">믿고 맡기세요</h2>
         <p className="mt-1.5 text-[15px] leading-relaxed text-muted">
-          근로계약을 마친 기술자와 관리자의 배정 확인을 거쳐 연결해 드립니다.
+          근로확인을 마친 전기기사와 관리자의 배정 확인을 거쳐 연결해 드립니다.
         </p>
         <div className="mt-5 flex flex-col gap-5 md:flex-row md:items-center md:gap-8">
           <div className="relative -mx-5 aspect-[4/3] w-[calc(100%+2.5rem)] overflow-hidden md:mx-0 md:aspect-square md:w-2/5 md:shrink-0 md:rounded-3xl">
@@ -231,7 +231,7 @@ export default function Home() {
             <li className="flex gap-3">
               <ShieldIcon className="h-5 w-5 shrink-0 text-brand-600" />
               <span className="text-sm text-fg">
-                <strong className="font-bold">계약 기술자</strong> — 근로계약 전자 서명을 완료한 기술자만
+                <strong className="font-bold">계약 전기기사</strong> — 근로확인 전자 서명을 완료한 전기기사만
                 배정 대상이 됩니다.
               </span>
             </li>
@@ -245,7 +245,7 @@ export default function Home() {
             <li className="flex gap-3">
               <CheckIcon className="h-5 w-5 shrink-0 text-brand-600" />
               <span className="text-sm text-fg">
-                <strong className="font-bold">관리자 배정 시스템</strong> — 업체·기술자 모두 승인 절차를 거친
+                <strong className="font-bold">관리자 배정 시스템</strong> — 업체·전기기사 모두 승인 절차를 거친
                 후에만 배정 후보가 됩니다.
               </span>
             </li>
@@ -308,7 +308,7 @@ export default function Home() {
           href="/login"
           className="inline-block rounded-full px-4 py-2 text-sm font-medium text-muted transition-colors hover:bg-white hover:text-fg"
         >
-          업체 · 개인기술자 로그인 →
+          업체 · 전기기사 로그인 →
         </Link>
       </div>
     </main>

@@ -1,6 +1,6 @@
 import { prisma } from '@/lib/db';
 
-export type RefereeInfo = { name: string; type: '업체' | '기술자' };
+export type RefereeInfo = { name: string; type: '업체' | '전기기사' };
 
 // CommissionEntry의 피소개자 표시용 키 — providerId/technicianId는 XOR이라 항상 하나만 존재한다.
 // rankingStats.ts의 p:/t: 접두 관례를 그대로 따른다.
@@ -38,6 +38,6 @@ export async function resolveRefereeNames(
         }),
   ]);
   for (const p of providers) map.set(`p:${p.id}`, { name: p.user.name, type: '업체' });
-  for (const t of technicians) map.set(`t:${t.id}`, { name: t.user.name, type: '기술자' });
+  for (const t of technicians) map.set(`t:${t.id}`, { name: t.user.name, type: '전기기사' });
   return map;
 }

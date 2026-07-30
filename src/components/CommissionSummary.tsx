@@ -6,7 +6,7 @@ import Surface from '@/components/Surface';
 export type CommissionEntry = {
   id: string;
   refereeName: string;
-  refereeType: '업체' | '기술자' | null;
+  refereeType: '업체' | '전기기사' | null;
   amount: number;
   status: 'PENDING' | 'PAID';
   createdAt: string;

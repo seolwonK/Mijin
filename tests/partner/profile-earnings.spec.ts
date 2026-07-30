@@ -37,7 +37,7 @@ test.afterEach(async () => {
  *
  * ⚠️ `submittedAt` 을 **2026-05 로 고정**한다. 현재 KST 월(`new Date()`)로 두면
  * `tests/admin-settlements.spec.ts` 를 붉게 만든다: 그 스펙은 `month=2026-07` 을
- * 하드코딩하고 CSV 3줄·업체 '2건'·기술자 '해당 기간 집계 데이터 없음' 을 기대하는데,
+ * 하드코딩하고 CSV 3줄·업체 '2건'·전기기사 '해당 기간 집계 데이터 없음' 을 기대하는데,
  * settlementReport.ts:131-140 의 소스 행 필터가 정확히 `submittedAt ∈ KST월 범위`
  * + `paidAmount != null` 이라 여기서 만든 행이 그대로 섞여 든다.
  * `paidAmount` 를 null 로 두는 것으로는 부족하다 — :110 의 `completedWhere` 는
@@ -252,7 +252,7 @@ test('GET /api/partner/commissions 는 내가 소개자인 적립만 합산한�
 
 // ── referrals ──────────────────────────────────────────────────────────────
 
-test('GET /api/partner/referrals 는 내가 소개한 업체·기술자만 보여준다', async ({ playwright }) => {
+test('GET /api/partner/referrals 는 내가 소개한 업체·전기기사만 보여준다', async ({ playwright }) => {
   const partner = await f.createPartnerFixture();
   const referredPartner = await f.createPartnerFixture({ approvalStatus: 'PENDING' });
   const referredTech = await f.createTechFixture();

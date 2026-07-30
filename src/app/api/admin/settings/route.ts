@@ -14,7 +14,7 @@ const settingsSchema = z.object({
   waitMinutesCritical: z.number().int().min(1).max(1440),
   waitMinutesUrgent: z.number().int().min(1).max(1440),
   waitMinutesNormal: z.number().int().min(1).max(1440),
-  // 근로계약서 사업주(고용주) 정보 — 미진전기
+  // 근로확인서 사업주(고용주) 정보 — 미진전기
   employerName: z.string().trim().min(1).max(100),
   employerCeo: z.string().trim().max(50).nullish(),
   employerAddress: z.string().trim().max(200).nullish(),
@@ -22,7 +22,7 @@ const settingsSchema = z.object({
   employerBizRegNo: z.string().trim().max(20).nullish(),
   // 회사 서명/직인 이미지 (data URL, null 이면 미등록/삭제)
   employerSignatureDataUrl: signatureDataUrl.nullish(),
-  // 근로형태별 기본 임금 — 계약서 자동 기입
+  // 근로형태별 기본 임금 — 근로확인서 자동 기입
   defaultDailyWage: z.coerce.number().int().nonnegative().nullish(),
   defaultMonthlyWage: z.coerce.number().int().nonnegative().nullish(),
   defaultPayDate: z.string().trim().max(50).nullish(),

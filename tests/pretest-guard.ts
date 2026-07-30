@@ -106,7 +106,7 @@ async function main() {
     }
 
     // 잔재 스윕은 반드시 여기서 — 서버가 뜬 뒤면 워커가 RECEIVED 잔재를 물어
-    // Assignment 를 만들고, 그 순간부터 기술자/업체 삭제가
+    // Assignment 를 만들고, 그 순간부터 전기기사/업체 삭제가
     // assignment_one_assignee CHECK(23514) 로 영구 차단된다.
     const swept = await sweepEphemeral(prisma);
     const sweptTotal = Object.values(swept).reduce((a, b) => a + b, 0);

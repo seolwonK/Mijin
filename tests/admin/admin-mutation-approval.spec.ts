@@ -4,7 +4,7 @@ import { FixtureFactory } from '../helpers/fixtures';
 import { adminCtx } from './admin-mutation-support';
 
 // ───────────────────────────────────────────────────────────────────────────
-// 승인·반려 4핸들러 — 기술자/업체가 완전 동형이라 한 표로 돌린다.
+// 승인·반려 4핸들러 — 전기기사/업체가 완전 동형이라 한 표로 돌린다.
 //
 //   technicians/[id]/approve  404 :15 · 409 :18 · 200
 //   technicians/[id]/reject   404 :26 · 409 :31 · 200
@@ -44,7 +44,7 @@ async function readStatus(kind: Subject, id: string) {
 }
 
 for (const kind of ['technicians', 'providers'] as const) {
-  const label = kind === 'technicians' ? '기술자' : '업체';
+  const label = kind === 'technicians' ? '전기기사' : '업체';
 
   test(`${label} approve — 404·409·200 과 승인 부수효과`, async ({ playwright }) => {
     const ctx = await adminCtx(playwright, `approve-${kind}`);
