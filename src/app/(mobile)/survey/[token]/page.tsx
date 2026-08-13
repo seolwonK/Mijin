@@ -1,9 +1,11 @@
 'use client';
 
+import Image from 'next/image';
 import { use, useEffect, useState } from 'react';
 import PageHeader from '@/components/PageHeader';
 import { buttonClasses } from '@/components/Button';
-import { CheckIcon, AlertIcon, StarIcon } from '@/components/icons';
+import { surfaceClasses } from '@/components/Surface';
+import { StarIcon } from '@/components/icons';
 
 type SurveyStatus = {
   submitted: boolean;
@@ -20,11 +22,11 @@ function StarRating({ value, onChange }: { value: number | null; onChange: (v: n
           aria-pressed={value === n}
           aria-label={`${n}점`}
           onClick={() => onChange(n)}
-          className="rounded-lg p-1 text-neutral-300 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500"
+          className="rounded-lg p-1 text-neutral-300 transition-colors ease-brand duration-brand-base focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500"
         >
           <StarIcon
             filled={value != null && n <= value}
-            className={`h-10 w-10 ${value != null && n <= value ? 'text-amber-400' : ''}`}
+            className={`h-11 w-11 ${value != null && n <= value ? 'text-amber-400' : ''}`}
           />
         </button>
       ))}
@@ -32,28 +34,27 @@ function StarRating({ value, onChange }: { value: number | null; onChange: (v: n
   );
 }
 
-// 무효 토큰/제출 완료 화면 공통 골격 — request/complete 페이지의 중앙 정렬 결과 화면과 같은 계열.
+// 완료/무효(=만료) 결과 화면 공통 골격 — 아이콘 대신 전기아저씨 캐릭터가 톤을 전달한다
+// (G0 §5: 완료 포즈/난감 포즈). request/complete 페이지의 결과 화면과 같은 시각 계열.
 function CenterScreen({
-  tone,
-  icon,
+  image,
   title,
   desc,
 }: {
-  tone: 'success' | 'neutral';
-  icon: React.ReactNode;
+  image: { src: string; width: number; height: number };
   title: string;
   desc?: string;
 }) {
   return (
     <div className="flex flex-1 flex-col items-center justify-center p-6">
       <div className="flex w-full flex-col items-center gap-4 text-center md:max-w-md md:rounded-3xl md:bg-white md:p-12 md:shadow-surface-md">
-        <div
-          className={`flex h-20 w-20 items-center justify-center rounded-full ${
-            tone === 'success' ? 'bg-emerald-100' : 'bg-neutral-100'
-          }`}
-        >
-          {icon}
-        </div>
+        <Image
+          src={image.src}
+          alt=""
+          width={image.width}
+          height={image.height}
+          className="h-28 w-auto md:h-36"
+        />
         <h1 className="text-xl font-bold text-fg">{title}</h1>
         {desc && <p className="text-muted">{desc}</p>}
       </div>
@@ -152,13 +153,12 @@ export default function SurveyPage({ params }: { params: Promise<{ token: string
   }
 
   if (status === 'invalid') {
-    // 접수 존재 여부에 대한 힌트를 주지 않는 중립 문구 — 참여 완료 화면과 같은 시각 계열.
+    // 접수 존재 여부에 대한 힌트를 주지 않는 중립 문구 — 링크 오류·만료를 구분하지 않는다.
     return (
       <main className="flex min-h-screen flex-col">
         <PageHeader title="만족도 조사" width="max-w-lg" />
         <CenterScreen
-          tone="neutral"
-          icon={<AlertIcon className="h-9 w-9 text-neutral-500" />}
+          image={{ src: '/brand/ajeossi-puzzled.webp', width: 418, height: 723 }}
           title="설문을 찾을 수 없습니다"
           desc="링크를 다시 확인해 주세요."
         />
@@ -185,8 +185,7 @@ export default function SurveyPage({ params }: { params: Promise<{ token: string
       <main className="flex min-h-screen flex-col">
         <PageHeader title="만족도 조사" width="max-w-lg" />
         <CenterScreen
-          tone="success"
-          icon={<CheckIcon className="h-9 w-9 text-emerald-600" />}
+          image={{ src: '/brand/ajeossi-complete.webp', width: 401, height: 689 }}
           title="참여 완료"
           desc="소중한 의견 감사합니다."
         />
@@ -205,9 +204,10 @@ export default function SurveyPage({ params }: { params: Promise<{ token: string
         }}
         className="contents"
       >
-        <div className="mx-auto w-full max-w-lg flex-1 space-y-6 p-4 pb-32 md:space-y-5 md:py-8 md:pb-6">
-          <section className="text-center md:rounded-2xl md:bg-white md:p-6 md:shadow-surface-sm">
-            <h2 className="text-lg font-bold text-fg">전기 수리 만족도 조사</h2>
+        <div className="mx-auto w-full max-w-lg flex-1 p-4 pb-32 md:py-10 md:pb-8">
+          <div className="text-center">
+            <p className="text-sm font-semibold text-brand-600">전기아저씨가 여쭤봐요</p>
+            <h1 className="mt-1 text-2xl font-bold text-fg">수리는 어떠셨나요?</h1>
             {completedAt && (
               <p className="mt-1 text-sm text-muted">
                 {new Date(completedAt).toLocaleDateString('ko-KR', {
@@ -218,58 +218,63 @@ export default function SurveyPage({ params }: { params: Promise<{ token: string
                 완료
               </p>
             )}
-          </section>
+          </div>
 
-          <section id="survey-rating" className="md:rounded-2xl md:bg-white md:p-6 md:shadow-surface-sm">
-            <h3 className="mb-3 text-center text-base font-bold text-fg">
+          {/* 핵심 존 — 유일한 필수 입력(별점)을 브랜드 틴트 카드로 격상. */}
+          <section
+            id="survey-rating"
+            className={surfaceClasses('mt-6 rounded-3xl p-6 text-center md:p-8', true)}
+          >
+            <h2 className="mb-3 text-lg font-bold text-fg">
               서비스에 만족하셨나요? <span className="text-red-500">*</span>
               <span className="sr-only"> 필수</span>
-            </h3>
+            </h2>
             <StarRating value={rating} onChange={setRating} />
           </section>
 
-          <section className="md:rounded-2xl md:bg-white md:p-6 md:shadow-surface-sm">
-            <h3 className="mb-2 text-base font-bold text-fg">후기 (선택)</h3>
+          {/* 부가 존 — 후기·지불 금액은 둘 다 선택 입력이라 카드 표면 없이 가볍게 묶는다. */}
+          <section className="mt-6 border-t border-border pt-6 md:mt-8">
+            <h2 className="mb-2 text-base font-bold text-fg">후기 (선택)</h2>
             <textarea
               value={comment}
               onChange={(e) => setComment(e.target.value.slice(0, 500))}
               maxLength={500}
               rows={4}
               placeholder="수리 과정에 대한 의견을 남겨 주세요"
-              className="w-full resize-none rounded-xl border border-neutral-300 bg-white p-3 text-base text-fg placeholder:text-muted focus:border-brand-500 focus:ring-2 focus:ring-brand-500/15 focus:outline-none"
+              className="w-full resize-none rounded-xl border border-neutral-300 bg-white p-3 text-base text-fg transition-colors ease-brand duration-brand-base placeholder:text-muted focus:border-brand-500 focus:ring-2 focus:ring-brand-500/15 focus:outline-none"
             />
             <p className="mt-1 text-right text-xs text-muted">{comment.length}/500</p>
-          </section>
 
-          <section id="survey-amount" className="md:rounded-2xl md:bg-white md:p-6 md:shadow-surface-sm">
-            <h3 className="mb-2 text-base font-bold text-fg">
-              실제 지불 금액 <span className="font-normal text-muted">(선택)</span>
-            </h3>
-            <p className="mb-2 text-xs text-muted">
-              지불하신 금액을 알려 주시면 서비스 품질 관리에 활용됩니다.
-            </p>
-            <div className="relative">
-              <input
-                type="text"
-                inputMode="numeric"
-                value={amountDigits ? Number(amountDigits).toLocaleString('ko-KR') : ''}
-                onChange={(e) => setAmountDigits(e.target.value.replace(/\D/g, '').slice(0, 9))}
-                placeholder="0"
-                className="w-full rounded-xl border border-neutral-300 bg-white p-3 pr-10 text-right text-base text-fg placeholder:text-muted focus:border-brand-500 focus:ring-2 focus:ring-brand-500/15 focus:outline-none"
-              />
-              <span className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-muted">
-                원
-              </span>
+            <div id="survey-amount" className="mt-6">
+              <h2 className="mb-2 text-base font-bold text-fg">
+                실제 지불 금액 <span className="font-normal text-muted">(선택)</span>
+              </h2>
+              <p className="mb-2 text-xs text-muted">
+                지불하신 금액을 알려 주시면 서비스 품질 관리에 활용됩니다.
+              </p>
+              <div className="relative">
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  value={amountDigits ? Number(amountDigits).toLocaleString('ko-KR') : ''}
+                  onChange={(e) => setAmountDigits(e.target.value.replace(/\D/g, '').slice(0, 9))}
+                  placeholder="0"
+                  className="w-full rounded-xl border border-neutral-300 bg-white p-3 pr-10 text-right text-base text-fg transition-colors ease-brand duration-brand-base placeholder:text-muted focus:border-brand-500 focus:ring-2 focus:ring-brand-500/15 focus:outline-none"
+                />
+                <span className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-muted">
+                  원
+                </span>
+              </div>
+              {amountDigits && !amountValid && (
+                <p className="mt-1 text-sm font-medium text-red-600">지불 금액이 너무 큽니다</p>
+              )}
             </div>
-            {amountDigits && !amountValid && (
-              <p className="mt-1 text-sm font-medium text-red-600">지불 금액이 너무 큽니다</p>
-            )}
           </section>
 
           {error && (
             <p
               role="alert"
-              className="rounded-xl border border-red-100 bg-red-50 p-3 text-sm font-medium text-red-600"
+              className="mt-6 rounded-xl border border-red-100 bg-red-50 p-3 text-sm font-medium text-red-600"
             >
               {error}
             </p>
