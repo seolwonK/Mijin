@@ -1,6 +1,10 @@
 // 절제된 라인 아이콘 세트 — 이모지 마커(⚡🏢🔧🛠️🕐📍 등) 대체용.
 // 토스 문법의 "색 절제" 원칙에 맞춰 currentColor로 텍스트 색을 그대로 상속한다(별도 팔레트 없음).
-// 신규 아이콘이 필요하면 이 파일에 같은 stroke-width(1.75)·viewBox(0 0 24 24) 규격으로 추가할 것.
+//
+// 스트로크 규약(G0 §1a-4·점검 완료 — 아래 18개 아이콘 전량 `base` 공유로 이미 준수 중):
+// viewBox(0 0 24 24) · stroke-width(1.75) · stroke-linecap/linejoin('round') 4가지를
+// 반드시 `base`를 스프레드해 그대로 상속한다. 개별 아이콘에서 이 값을 오버라이드하지 않는다
+// (StarIcon의 fill만 filled prop으로 예외 — stroke 규약 자체는 동일). 신규 아이콘도 동일 규격.
 type IconProps = { className?: string };
 
 const base = {

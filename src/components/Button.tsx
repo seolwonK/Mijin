@@ -3,8 +3,11 @@
 type Variant = 'primary' | 'secondary' | 'ghost' | 'danger';
 type Size = 'sm' | 'md' | 'lg';
 
+// 상태 전환 모션은 G0 §2 토큰을 소비한다 — ease-brand(감속이 빠르고 확실하게 멎는 "숙련자의
+// 동작")·duration-brand-base(200ms, 기본 호버/포커스 전환). active 스케일까지 같은 transition에
+// 실려 있어(transition이 transform 포함) 별도 프로퍼티 분리 없이 동일 질감으로 눌린다.
 const BASE =
-  'inline-flex items-center justify-center gap-2 rounded-2xl font-bold transition disabled:cursor-not-allowed disabled:opacity-50 enabled:active:scale-[0.98]';
+  'inline-flex items-center justify-center gap-2 rounded-2xl font-bold transition ease-brand duration-brand-base disabled:cursor-not-allowed disabled:opacity-50 enabled:active:scale-[0.98]';
 
 const VARIANT: Record<Variant, string> = {
   // 토스 문법: 버튼은 색 대비만으로 정의 — 그림자 절제(구 shadow-sm 제거).
