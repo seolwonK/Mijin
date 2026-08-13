@@ -4,27 +4,28 @@ import Surface from '@/components/Surface';
 import TrackStepper from '@/components/TrackStepper';
 import SectionCta from '@/components/SectionCta';
 import ReviewSection from '@/components/ReviewSection';
+import BrandLogo from '@/components/BrandLogo';
+import { buttonClasses } from '@/components/Button';
 import { UrgencyPill } from '@/components/StatusPill';
 import { BoltIcon, ClipboardIcon, ShieldIcon, MapPinIcon, CheckIcon } from '@/components/icons';
 
-// 롱폼 증축 섹션(§2~§7) 데이터 — 카피 방향은 .omc/research/longform/gate/section-plan.md 승인안 그대로.
-// 이미지 파이프라인: .omc/research/longform/gate/images/{scope-*,raw/process-*,raw/band-*}.png
-// → cwebp/PIL 변환, public/images/landing/*.webp (각 ≤250KB).
+// 롱폼 증축 섹션(§2~§7) 데이터 — 카피 방향은 .omc/research/longform/gate/section-plan.md 승인안 승계.
+// §2·§3의 시각 자료는 Phase 2에서 캐릭터 브랜드로 전환하며 이미지 필드를 걷어냈다(아래 주석 참조).
 const PROCESS_STEPS = [
-  { n: 1, title: '접수', desc: '음성 또는 텍스트로 고장 내용을 30초 만에 남겨요.', image: '/images/landing/process-1.webp' },
-  { n: 2, title: '배정', desc: '관리자 확인 또는 자동배정으로 담당자를 연결해요.', image: '/images/landing/process-2.webp' },
-  { n: 3, title: '출동', desc: '배정된 업체·전기기사가 현장으로 출동해요.', image: '/images/landing/process-3.webp' },
-  { n: 4, title: '완료', desc: '수리가 끝나면 처리 완료로 표시돼요.', image: '/images/landing/process-4.webp' },
+  { n: 1, title: '접수', desc: '음성 또는 텍스트로 고장 내용을 30초 만에 남겨요.' },
+  { n: 2, title: '배정', desc: '관리자 확인 또는 자동배정으로 담당자를 연결해요.' },
+  { n: 3, title: '출동', desc: '배정된 업체·전기기사가 현장으로 출동해요.' },
+  { n: 4, title: '완료', desc: '수리가 끝나면 처리 완료로 표시돼요.' },
 ] as const;
 
 // 6칸은 예시 카테고리 — ServiceRequest.description은 자유 텍스트라 이 목록으로 한정되지 않는다(카피에서도 단정 금지).
 const SCOPE_ITEMS = [
-  { title: '콘센트', image: '/images/landing/scope-outlet.webp' },
-  { title: '배선', image: '/images/landing/scope-wiring.webp' },
-  { title: '조명', image: '/images/landing/scope-light.webp' },
-  { title: '차단기', image: '/images/landing/scope-breaker.webp' },
-  { title: '누전', image: '/images/landing/scope-short.webp' },
-  { title: '설비', image: '/images/landing/scope-facility.webp' },
+  { title: '콘센트' },
+  { title: '배선' },
+  { title: '조명' },
+  { title: '차단기' },
+  { title: '누전' },
+  { title: '설비' },
 ] as const;
 
 // section-plan.md §2 FAQ 초안 8개 중 #5(취소/변경)는 게이트 결정으로 제외 — 공개 채널 미확정.
@@ -59,43 +60,63 @@ const FAQ_ITEMS = [
   },
 ] as const;
 
-// "신뢰 블루 프로" 히어로 재구성(redesign/blue-pro, blue-pro-gate 승인 대상) — 기존 텍스트
-// 인트로 카드(Surface tint + 아이콘 배지) 대신 생성 이미지 중심 히어로로 교체했다.
-// 이미지: public/images/hero-main.webp(hero-1-panel.png를 webp 변환, 배전반+블루 케이블 —
-// .omc/research/blue-pro/candidates/hero-1-panel.png). Next 16: `priority`는 deprecated라
-// `preload={true}`를 쓴다(node_modules/next/dist/docs/01-app/03-api-reference/02-components/image.md).
-// 오버레이는 admin-* 대신 brand-950(모바일 네임스페이스 딥블루)을 써서 관리자 다크 톤 스코프를
-// 침범하지 않는다. CTA/링크(고장 접수·접수 내역 조회·로그인 허브)는 기존과 동일하게 유지.
+// "전기아저씨" 캐릭터 히어로 재구축(redesign/ajeossi, Phase 2 선발대 — G3 게이트 승인 전 후보안).
+// 이전 "신뢰 블루 프로" 단계의 사진 히어로(hero-main.webp, 배전반+블루 케이블)를 캐릭터
+// 중심으로 교체했다 — G0 브리프(.omc/research/ajeossi/g0-brief.md §5) "고객 표면은 전신·맥락
+// 포즈로 크게 등장" 원칙. 히어로=인사(ajeossi-hero.webp) · §4 신뢰=작업중(ajeossi-working.webp)
+// · §7 최종CTA=완료 엄지척(ajeossi-complete.webp), 세 포즈를 겹치지 않게 배치해 페이지 전체가
+// 한 캐릭터의 자연스러운 등장 흐름처럼 읽히게 했다.
+//
+// 기존 Higgsfield 이미지(공정 아이콘 4·범위 아이콘 6·밴드 사진 2, 총 12개, public/images/landing/)는
+// 전량 미사용 처리했다 — 공정/범위 아이콘은 구 "블루 프로" 라인아이콘 문법(얇은 스트로크+시안
+// 듀오톤)이라 새 캐릭터의 굵은 라인+플랫 컬러 언어와 부딪히고, 밴드 사진 2장은 전기 업종과
+// 무관한 무드 스톡컷이라 어느 쪽으로도 톤이 안 맞았다 — 세 가지 이상의 이미지 문법이 한 화면에
+// 공존하는 것 자체가 이전 3회 개편의 실패축(디테일·질감 부재/브랜드 개성 부재)을 재현하므로
+// files 자체를 제거했다(ralplan 2-1 "미사용 파일 제거").
+//
+// §2 프로세스는 카드 그리드 대신 연결선이 있는 세로 타임라인으로, §3 서비스 범위는 아이콘
+// 대신 칩 태그로 바꿔 §5(리뷰)·§6(아코디언)까지 포함해 화면 전체의 구조 리듬이 실제로
+// 갈리도록 했다(원칙 1 "구조 획일성" — 이전 개편은 어디든 같은 카드 스택이었다).
+//
+// 타이포는 G0 승인 스케일(전/후: 13px→text-xs 12px, 15px→text-sm 14px)로 정리했고, 히어로
+// h1은 md:text-4xl(36px) 자리 대신 새 스케일의 3xl→5xl(34px→56px) 자리로 올렸다(디스플레이는
+// 더 크고 타이트하게). CTA 버튼은 이제 흰 배경 하드코딩 대신 Button.tsx의 buttonClasses()를
+// 그대로 쓴다 — 히어로 배경이 사진 오버레이에서 밝은 브랜드 틴트로 바뀌어 표준 primary
+// 배색(brand-600 배경+흰 텍스트)이 그대로 맞기 때문(특수 케이스 코드 제거).
 export default function Home() {
   return (
     <main className="flex min-h-screen flex-col px-5 pb-28 md:items-center md:justify-center md:px-6 md:py-16">
-      <section className="relative -mx-5 aspect-[4/5] w-[calc(100%+2.5rem)] overflow-hidden md:mx-0 md:aspect-[21/9] md:w-full md:max-w-2xl md:rounded-3xl md:shadow-surface-lg">
-        <Image
-          src="/images/hero-main.webp"
-          alt=""
-          fill
-          sizes="(min-width: 768px) 42rem, 100vw"
-          style={{ objectFit: 'cover' }}
-          preload={true}
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-brand-950/85 via-brand-950/35 to-transparent" />
-        <div className="absolute inset-x-0 bottom-0 p-6 md:p-8">
-          <p className="text-[13px] font-semibold text-brand-200">
-            가까운 출동 업체를 바로 연결해 드려요
-          </p>
-          <h1 className="mt-2 text-[28px] leading-tight font-extrabold text-white md:text-4xl">
-            전기 출동 서비스
-          </h1>
-          <p className="mt-2 max-w-xs text-[15px] leading-relaxed text-white/85 md:max-w-md md:text-lg">
-            전기 고장이 나셨나요? 접수하시면 가까운 출동 업체를 빠르게 연결해 드립니다.
-          </p>
-          <Link
-            href="/request/new"
-            className="mt-4 inline-flex w-fit items-center gap-1.5 rounded-xl bg-white px-5 py-3 text-sm font-bold text-brand-700 shadow-surface-md transition-transform active:scale-[0.98]"
-          >
-            <BoltIcon className="h-4 w-4" />
-            고장 접수하기
-          </Link>
+      <div className="w-full md:max-w-2xl">
+        <BrandLogo size="sm" />
+      </div>
+
+      <section className="relative -mx-5 mt-1 w-[calc(100%+2.5rem)] overflow-hidden bg-gradient-to-br from-brand-50 via-white to-brand-100/50 md:mx-0 md:mt-3 md:w-full md:max-w-2xl md:rounded-3xl md:shadow-surface-lg">
+        <div className="flex flex-col md:flex-row md:items-center">
+          <div className="px-5 pt-6 pb-3 md:w-3/5 md:px-8 md:py-12">
+            <p className="text-xs font-bold text-brand-600">가까운 출동 업체를 바로 연결해 드려요</p>
+            <h1 className="mt-2 text-3xl leading-tight font-extrabold text-fg md:text-5xl">
+              전기 고장?
+              <br />
+              아저씨가 갑니다
+            </h1>
+            <p className="mt-3 max-w-xs text-sm leading-relaxed text-muted md:max-w-sm md:text-base">
+              전기 고장이 나셨나요? 접수하시면 가까운 출동 업체를 빠르게 연결해 드립니다.
+            </p>
+            <Link href="/request/new" className={buttonClasses('primary', 'lg', 'mt-5 w-fit')}>
+              <BoltIcon className="h-4 w-4" />
+              고장 접수하기
+            </Link>
+          </div>
+          <div className="flex justify-center px-5 pb-1 md:w-2/5 md:justify-end md:px-6 md:pb-0">
+            <Image
+              src="/brand/ajeossi-hero.webp"
+              alt=""
+              width={436}
+              height={689}
+              preload={true}
+              className="h-52 w-auto md:h-72"
+            />
+          </div>
         </div>
       </section>
 
@@ -117,7 +138,7 @@ export default function Home() {
                 음성 또는 텍스트로, 1분이면 접수 완료
               </span>
             </span>
-            <span className="ml-auto text-xl text-brand-400 transition-transform group-hover:translate-x-0.5 md:hidden">
+            <span className="ml-auto text-xl text-brand-400 transition-transform ease-brand duration-brand-base group-hover:translate-x-0.5 md:hidden">
               ›
             </span>
           </Link>
@@ -139,7 +160,7 @@ export default function Home() {
                 전화번호로 진행 상황 확인
               </span>
             </span>
-            <span className="ml-auto text-xl text-neutral-300 transition-transform group-hover:translate-x-0.5 md:hidden">
+            <span className="ml-auto text-xl text-neutral-300 transition-transform ease-brand duration-brand-base group-hover:translate-x-0.5 md:hidden">
               ›
             </span>
           </Link>
@@ -148,7 +169,7 @@ export default function Home() {
 
       {/* 서비스 소개 — 처리 파이프라인 */}
       <Surface as="section" className="mt-3 rounded-3xl p-6 md:mt-4 md:max-w-2xl md:p-7">
-        <p className="text-[13px] font-semibold text-muted">접수하면 이렇게 진행돼요</p>
+        <p className="text-xs font-semibold text-muted">접수하면 이렇게 진행돼요</p>
         <div className="mt-4">
           <TrackStepper currentIndex={0} />
         </div>
@@ -159,72 +180,68 @@ export default function Home() {
         </div>
       </Surface>
 
-      {/* §2 프로세스 4단계 */}
+      {/* §2 프로세스 4단계 — 카드 그리드 대신 연결선 타임라인(§3 칩 그리드와 구조를 갈랐다) */}
       <section className="mt-8 w-full md:mt-10 md:max-w-2xl">
         <h2 className="text-2xl font-extrabold text-fg md:text-3xl">이렇게 진행돼요</h2>
-        <p className="mt-1.5 text-[15px] leading-relaxed text-muted">
+        <p className="mt-1.5 text-sm leading-relaxed text-muted">
           접수부터 완료까지, 각 단계가 어떻게 이어지는지 미리 알려 드립니다.
         </p>
-        <div className="mt-5 grid grid-cols-1 gap-3 md:grid-cols-2">
-          {PROCESS_STEPS.map((step) => (
-            <Surface key={step.n} className="flex items-center gap-4 rounded-2xl p-4">
-              <Image
-                src={step.image}
-                alt=""
-                width={96}
-                height={96}
-                className="h-16 w-16 shrink-0 md:h-20 md:w-20"
-              />
-              <div className="min-w-0">
-                <p className="flex items-center gap-2 text-sm font-bold text-fg">
-                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-brand-100 text-xs font-bold text-brand-700">
-                    {step.n}
-                  </span>
-                  {step.title}
-                </p>
+        <ol className="mt-6">
+          {PROCESS_STEPS.map((step, i) => (
+            <li key={step.n} className="relative flex gap-4 pb-6 last:pb-0">
+              {i < PROCESS_STEPS.length - 1 && (
+                <span
+                  aria-hidden="true"
+                  className="absolute top-10 left-[19px] h-[calc(100%-1.5rem)] w-px bg-neutral-200"
+                />
+              )}
+              <span className="relative z-10 flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brand-600 text-sm font-bold text-white">
+                {step.n}
+              </span>
+              <div className="flex-1 pt-1.5">
+                <p className="text-base font-bold text-fg">{step.title}</p>
                 <p className="mt-1 text-sm text-muted">{step.desc}</p>
               </div>
-            </Surface>
+            </li>
           ))}
-        </div>
-        <div className="mt-5">
+        </ol>
+        <div className="mt-2">
           <SectionCta />
         </div>
       </section>
 
-      {/* §3 서비스 범위 */}
+      {/* §3 서비스 범위 — 칩 태그(아이콘 매칭 없이도 항목 나열이 깔끔하게 끝난다) */}
       <section className="mt-8 w-full md:mt-10 md:max-w-2xl">
         <h2 className="text-2xl font-extrabold text-fg md:text-3xl">어떤 고장이든 문의해 주세요</h2>
-        <p className="mt-1.5 text-[15px] leading-relaxed text-muted">
+        <p className="mt-1.5 text-sm leading-relaxed text-muted">
           콘센트부터 배전반까지, 전기와 관련된 문제라면 접수 시 자유롭게 설명해 주세요.
         </p>
-        <div className="mt-5 grid grid-cols-2 gap-3 md:grid-cols-3">
+        <div className="mt-5 flex flex-wrap gap-2.5">
           {SCOPE_ITEMS.map((item) => (
-            <Surface
+            <span
               key={item.title}
-              className="flex flex-col items-center gap-2 rounded-2xl p-4 text-center"
+              className="rounded-xl border border-border bg-white px-4 py-2.5 text-sm font-semibold text-fg shadow-surface-sm"
             >
-              <Image src={item.image} alt="" width={640} height={640} className="h-16 w-16 md:h-20 md:w-20" />
-              <span className="text-sm font-semibold text-fg">{item.title}</span>
-            </Surface>
+              {item.title}
+            </span>
           ))}
         </div>
       </section>
 
-      {/* §4 신뢰 요소 */}
+      {/* §4 신뢰 요소 — 밴드 사진 대신 작업중 포즈(ajeossi-working.webp) */}
       <section className="mt-8 w-full md:mt-10 md:max-w-2xl">
         <h2 className="text-2xl font-extrabold text-fg md:text-3xl">믿고 맡기세요</h2>
-        <p className="mt-1.5 text-[15px] leading-relaxed text-muted">
+        <p className="mt-1.5 text-sm leading-relaxed text-muted">
           근로확인을 마친 전기기사와 관리자의 배정 확인을 거쳐 연결해 드립니다.
         </p>
         <div className="mt-5 flex flex-col gap-5 md:flex-row md:items-center md:gap-8">
-          <div className="relative -mx-5 aspect-[4/3] w-[calc(100%+2.5rem)] overflow-hidden md:mx-0 md:aspect-square md:w-2/5 md:shrink-0 md:rounded-3xl">
+          <div className="mx-auto flex w-48 shrink-0 items-end justify-center rounded-3xl bg-gradient-to-b from-brand-50 to-white pt-4 md:mx-0 md:h-64 md:w-2/5">
             <Image
-              src="/images/landing/band-trust.webp"
+              src="/brand/ajeossi-working.webp"
               alt=""
-              fill
-              sizes="(min-width: 768px) 24rem, 100vw"
-              style={{ objectFit: 'cover' }}
+              width={563}
+              height={688}
+              className="h-40 w-auto md:h-56"
             />
           </div>
           <ul className="space-y-3 md:flex-1">
@@ -267,7 +284,7 @@ export default function Home() {
             <details key={item.q} className="group p-5">
               <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-sm font-bold text-fg [&::-webkit-details-marker]:hidden">
                 {item.q}
-                <span className="shrink-0 text-lg text-neutral-300 transition-transform group-open:rotate-45">
+                <span className="shrink-0 text-lg text-neutral-300 transition-transform ease-brand duration-brand-base group-open:rotate-45">
                   +
                 </span>
               </summary>
@@ -277,25 +294,21 @@ export default function Home() {
         </div>
       </section>
 
-      {/* §7 최종 CTA 밴드 — 히어로 오버레이 그라디언트 패턴 재사용 */}
-      <section className="relative -mx-5 mt-8 aspect-[16/9] w-[calc(100%+2.5rem)] overflow-hidden md:mx-0 md:mt-10 md:aspect-[21/9] md:w-full md:max-w-2xl md:rounded-3xl md:shadow-surface-lg">
-        <Image
-          src="/images/landing/band-final.webp"
-          alt=""
-          fill
-          sizes="(min-width: 768px) 42rem, 100vw"
-          style={{ objectFit: 'cover' }}
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-brand-950/85 via-brand-950/35 to-transparent" />
-        <div className="absolute inset-x-0 bottom-0 p-6 md:p-8">
-          <h2 className="text-2xl font-extrabold text-white md:text-3xl">전기 고장, 지금 접수하세요</h2>
-          <p className="mt-2 max-w-xs text-[15px] leading-relaxed text-white/85 md:max-w-md md:text-lg">
+      {/* §7 최종 CTA — 완료 엄지척 포즈(ajeossi-complete.webp)로 마무리, 히어로와 같은 틴트 문법으로 페이지를 여닫는다 */}
+      <section className="relative -mx-5 mt-8 w-[calc(100%+2.5rem)] overflow-hidden bg-gradient-to-b from-brand-50 to-white md:mx-0 md:mt-10 md:w-full md:max-w-2xl md:rounded-3xl md:shadow-surface-lg">
+        <div className="flex flex-col items-center px-5 py-8 text-center md:py-12">
+          <Image
+            src="/brand/ajeossi-complete.webp"
+            alt=""
+            width={401}
+            height={689}
+            className="h-40 w-auto md:h-48"
+          />
+          <h2 className="mt-4 text-2xl font-extrabold text-fg md:text-3xl">전기 고장, 지금 접수하세요</h2>
+          <p className="mt-2 max-w-xs text-sm leading-relaxed text-muted md:max-w-sm">
             출동 가능한 업체를 바로 연결해 드립니다.
           </p>
-          <Link
-            href="/request/new"
-            className="mt-4 inline-flex w-fit items-center gap-1.5 rounded-xl bg-white px-5 py-3 text-sm font-bold text-brand-700 shadow-surface-md transition-transform active:scale-[0.98]"
-          >
+          <Link href="/request/new" className={buttonClasses('primary', 'lg', 'mt-5 w-fit')}>
             <BoltIcon className="h-4 w-4" />
             고장 접수하기
           </Link>
@@ -306,7 +319,7 @@ export default function Home() {
       <div className="mt-6 text-center md:mt-8">
         <Link
           href="/login"
-          className="inline-block rounded-full px-4 py-2 text-sm font-medium text-muted transition-colors hover:bg-white hover:text-fg"
+          className="inline-block rounded-full px-4 py-2 text-sm font-medium text-muted transition-colors ease-brand duration-brand-base hover:bg-white hover:text-fg"
         >
           업체 · 전기기사 로그인 →
         </Link>
