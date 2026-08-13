@@ -3,8 +3,8 @@ import './globals.css';
 import NavDepthTracker from '@/components/useNavDepthTracker';
 
 export const metadata: Metadata = {
-  title: '전기 출동 서비스',
-  description: '전기 고장 접수 및 출동 업체 매칭 서비스',
+  title: '전기아저씨 — 전기 출동 서비스',
+  description: '전기아저씨가 전기 고장 접수부터 가까운 출동 업체 연결까지 빠르게 도와드립니다.',
 };
 
 export const viewport: Viewport = {
@@ -12,7 +12,9 @@ export const viewport: Viewport = {
   initialScale: 1,
   // 노치/홈바 영역까지 사용 — 하단 고정 버튼은 safe-area-inset 패딩으로 보호
   viewportFit: 'cover',
-  themeColor: '#ffffff',
+  // brand-50(인디고 틴트 화이트, G2 팔레트) — 전면 화이트 베이스 위에 얹히는 실제 헤더 톤과
+  // 부딪히지 않으면서도, 순수 '#ffffff' 추측값 대신 확정 팔레트에서 값을 가져온다.
+  themeColor: '#f2f5ff',
 };
 
 export default function RootLayout({

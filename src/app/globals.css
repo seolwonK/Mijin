@@ -1,29 +1,39 @@
 @import "tailwindcss";
 
 /* ── 디자인 토큰 (Tailwind v4 @theme) ──
-   "신뢰 블루 프로" 파운데이션(redesign/blue-pro): 전 화면 화이트 베이스 + 딥블루 브랜드.
-   관리자 화면도 전면 라이트로 통일됐다(작업 큐 재설계) — 과거 다크 "관제탑" 셸 팔레트는
-   삭제됐고, 관리자 전용으로는 라이트 액센트 잉크(`admin-cyan-ink`/`admin-violet-ink`)와
-   admin 라디우스만 남는다. 3계층 구조(Primitive→Semantic→Component) 원칙은 유지.
-   게이트 산출물: `.omc/research/blue-pro/gate/gate-artifact.md`. */
+   "전기아저씨" 브랜드 파운데이션(redesign/ajeossi): 화이트 베이스는 유지하되 브랜드 앵커를
+   캐릭터 작업복 실측 클러스터에서 역산출한 인디고-네이비(hue 272)로 교체했다(구 "신뢰 블루
+   프로" hue 258-264에서 전환, G2 게이트 승인 — `.omc/research/ajeossi/g2-palette.md`).
+   관리자 화면은 전면 라이트 통일(작업 큐 재설계)이 그대로 유지되며 과거 다크 "관제탑" 셸
+   팔레트는 여전히 삭제 상태 — 관리자 전용으로는 라이트 액센트 잉크(`admin-cyan-ink`/
+   `admin-violet-ink`)와 admin 라디우스만 남는다. 뉴트럴은 G2 정책상 의도적으로 불변(고객
+   표면의 웜함은 캐릭터·radius·모션이 담당 — 이중 웜 회피). 3계층 구조(Primitive→Semantic→
+   Component) 원칙은 유지. 타이포·모션·radius 기반 토큰: G0 게이트
+   (`.omc/research/ajeossi/g0-foundation-ramp.md`). 구 파운데이션 이력:
+   `.omc/research/blue-pro/gate/gate-artifact.md`. */
 @theme {
-  /* ── Primitive — 브랜드 (딥블루, hue≈258-264). 흰 텍스트 대비용 solid는 600~800
-     (600=6.85:1, 700=9.63:1, 800=12.89:1 vs white — 전부 WCAG AA 4.5:1 이상),
-     50~200은 배경/틴트 전용(WCAG 4.5:1 가드레일 유지). */
-  --color-brand-50: oklch(0.976 0.010 258);
-  --color-brand-100: oklch(0.95 0.024 259);
-  --color-brand-200: oklch(0.89 0.045 260);
-  --color-brand-300: oklch(0.80 0.075 261);
-  --color-brand-400: oklch(0.69 0.105 262);
-  --color-brand-500: oklch(0.58 0.135 263);
-  --color-brand-600: oklch(0.475 0.145 264);
-  --color-brand-700: oklch(0.395 0.13 264);
-  --color-brand-800: oklch(0.32 0.105 263);
-  --color-brand-900: oklch(0.25 0.08 262);
-  --color-brand-950: oklch(0.17 0.055 260);
+  /* ── Primitive — 브랜드 (인디고-네이비, hue 272 고정 — G2 팔레트 §2·3: 캐릭터 작업복
+     실측 클러스터 질량중심에서 역산출했고, admin-violet-ink(hue 300)와 28° 분리를 확보하도록
+     이동시켰다 — 0-5 선확정 규칙 적용). 흰 텍스트 대비용 solid는 600~800
+     (600=8.11:1, 700=10.69:1, 800=13.28:1 vs white — 전부 WCAG AA 4.5:1 이상, G2 §3 실측),
+     900~950은 히어로 오버레이 등 그라디언트 틴트 전용(15.72:1·17.66:1, 더 짙음),
+     50~300은 배경/틴트 전용(4.5:1 미달, 텍스트 배경으로만 사용). */
+  --color-brand-50: oklch(0.970 0.014 272);
+  --color-brand-100: oklch(0.940 0.028 272);
+  --color-brand-200: oklch(0.890 0.050 272);
+  --color-brand-300: oklch(0.810 0.075 272);
+  --color-brand-400: oklch(0.680 0.100 272);
+  --color-brand-500: oklch(0.540 0.115 272);
+  --color-brand-600: oklch(0.435 0.110 272);
+  --color-brand-700: oklch(0.370 0.095 272);
+  --color-brand-800: oklch(0.310 0.075 272);
+  --color-brand-900: oklch(0.260 0.058 272);
+  --color-brand-950: oklch(0.215 0.048 272);
 
   /* ── Primitive — 뉴트럴. 쿨톤 페일 뉴트럴(크림 아님) — hue 250대의 아주 낮은 채도.
-     브랜드 블루(258-265)와 인접한 hue라 화이트 베이스 위에서 톤이 자연스럽게 붙는다. */
+     G2 정책상 의도적으로 불변(`.omc/research/ajeossi/g2-palette.md` §2) — 브랜드 hue가
+     258-264→272로 이동했지만 모노크롬 프로 표면과의 정합을 위해 뉴트럴은 재조정하지 않는다;
+     고객 표면의 웜함은 캐릭터·radius·모션이 담당한다(뉴트럴까지 틀면 이중 웜이 된다). */
   --color-neutral-50: oklch(0.978 0.003 250);
   --color-neutral-100: oklch(0.955 0.004 250);
   --color-neutral-200: oklch(0.910 0.006 250);
