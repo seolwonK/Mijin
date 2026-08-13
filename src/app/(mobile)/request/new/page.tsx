@@ -1,9 +1,10 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import PageHeader from '@/components/PageHeader';
 import { buttonClasses } from '@/components/Button';
+import { surfaceClasses } from '@/components/Surface';
 import SpeechInput, { type VoiceNote } from '@/components/SpeechInput';
 import LocationPicker, { type LocationValue } from '@/components/LocationPicker';
 import UrgencySelect, { type UrgencyValue } from '@/components/UrgencySelect';
@@ -23,6 +24,33 @@ export default function NewRequestPage() {
   const [agreed, setAgreed] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+
+  // 진행감(단계 위계) — 3개 스텝 카드가 뷰포트 중간선을 지날 때마다 상단 레일을 갱신한다.
+  // 순수 시각 보조(aria-hidden)이므로 옵저버가 실패해도 폼 기능에는 영향이 없다.
+  const [activeStep, setActiveStep] = useState(1);
+  const step1Ref = useRef<HTMLElement>(null);
+  const step2Ref = useRef<HTMLElement>(null);
+  const step3Ref = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    const targets: [React.RefObject<HTMLElement | null>, number][] = [
+      [step1Ref, 1],
+      [step2Ref, 2],
+      [step3Ref, 3],
+    ];
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visibleSteps = entries
+          .filter((e) => e.isIntersecting)
+          .map((e) => targets.find(([ref]) => ref.current === e.target)?.[1])
+          .filter((n): n is number => n != null);
+        if (visibleSteps.length > 0) setActiveStep(Math.max(...visibleSteps));
+      },
+      { rootMargin: '-15% 0px -60% 0px', threshold: 0 },
+    );
+    for (const [ref] of targets) if (ref.current) observer.observe(ref.current);
+    return () => observer.disconnect();
+  }, []);
 
   // 새로고침/뒤로가기로 작성분이 사라지지 않도록 텍스트 입력을 임시저장한다.
   useEffect(() => {
@@ -130,46 +158,85 @@ export default function NewRequestPage() {
       <PageHeader title="고장 접수" back="/" width="max-w-2xl" />
 
       <form onSubmit={(e) => { e.preventDefault(); submit(); }} className="contents">
-      <div className="mx-auto w-full max-w-2xl flex-1 space-y-6 p-4 pb-32 md:space-y-5 md:py-8 md:pb-6">
-        <section id="req-desc" className="md:rounded-2xl md:bg-white md:p-6 md:shadow-surface-sm">
-          <h2 className="mb-3 flex items-center gap-2 text-base font-bold text-fg md:mb-4 md:text-lg">
-            <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-brand-100 text-xs font-bold text-brand-700">1</span>
+      <div className="mx-auto w-full max-w-2xl flex-1 p-4 pb-32 md:py-10 md:pb-8">
+        <p className="sr-only">이 접수는 총 3단계로 진행됩니다.</p>
+        {/* 진행 레일 — 스크롤 위치에 따라 채워지는 3단 스텝 표시 (장식용, 스크린리더는 위 sr-only 문장으로 대체) */}
+        <div aria-hidden="true" className="mb-6 flex items-center gap-2 md:mb-10">
+          {[1, 2, 3].map((n, i) => (
+            <div key={n} className="flex flex-1 items-center gap-2 last:flex-none">
+              <span
+                className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold transition-colors ease-brand duration-brand-base ${
+                  activeStep >= n ? 'bg-brand-600 text-white' : 'bg-neutral-200 text-neutral-500'
+                }`}
+              >
+                {n}
+              </span>
+              {i < 2 && (
+                <span
+                  className={`h-0.5 flex-1 rounded-full transition-colors ease-brand duration-brand-base ${
+                    activeStep > n ? 'bg-brand-600' : 'bg-neutral-200'
+                  }`}
+                />
+              )}
+            </div>
+          ))}
+        </div>
+
+        {/* 1단계 — 이 화면의 핵심 행위(고장 설명+긴급도)를 하나의 무게감 있는 카드로 묶는다.
+            브랜드 틴트는 여기서만 쓴다: "1차 액션 표면" 원칙(Surface.tsx)에 맞는 유일한 지점. */}
+        <section
+          ref={step1Ref}
+          className={surfaceClasses('rounded-3xl p-6 md:p-8', true)}
+        >
+          <p className="mb-1 text-xs font-bold text-brand-600">1단계</p>
+          <h2 className="text-2xl font-bold text-fg">
             어떤 고장인가요? <span className="text-red-500">*</span>
             <span className="sr-only"> 필수</span>
           </h2>
-          <SpeechInput
-            value={description}
-            onChange={setDescription}
-            voice={voice}
-            onVoiceChange={setVoice}
-          />
+          <div id="req-desc" className="mt-4">
+            <SpeechInput
+              value={description}
+              onChange={setDescription}
+              voice={voice}
+              onVoiceChange={setVoice}
+            />
+          </div>
+
+          <div id="req-urgency" className="mt-6 border-t border-border/70 pt-6">
+            <h2 className="text-base font-bold text-fg">
+              얼마나 급한가요? <span className="text-red-500">*</span>
+              <span className="sr-only"> 필수</span>
+            </h2>
+            <div className="mt-3">
+              <UrgencySelect value={urgency} onChange={setUrgency} />
+            </div>
+          </div>
         </section>
 
-        <section id="req-urgency" className="md:rounded-2xl md:bg-white md:p-6 md:shadow-surface-sm">
-          <h2 className="mb-3 flex items-center gap-2 text-base font-bold text-fg md:mb-4 md:text-lg">
-            <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-brand-100 text-xs font-bold text-brand-700">2</span>
-            얼마나 급한가요? <span className="text-red-500">*</span>
-            <span className="sr-only"> 필수</span>
-          </h2>
-          <UrgencySelect value={urgency} onChange={setUrgency} />
-        </section>
-
-        <section id="req-loc" className="md:rounded-2xl md:bg-white md:p-6 md:shadow-surface-sm">
-          <h2 className="mb-3 flex items-center gap-2 text-base font-bold text-fg md:mb-4 md:text-lg">
-            <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-brand-100 text-xs font-bold text-brand-700">3</span>
+        {/* 2단계 — 위치. 1단계보다 한 단 낮은 무게(틴트 없음)로 카드 자체의 존재감을 낮춘다. */}
+        <section
+          ref={step2Ref}
+          id="req-loc"
+          className={surfaceClasses('mt-6 rounded-2xl p-6 md:mt-8', false)}
+        >
+          <p className="mb-1 text-xs font-bold text-muted">2단계</p>
+          <h2 className="text-xl font-bold text-fg">
             어디로 가야 하나요? <span className="text-red-500">*</span>
             <span className="sr-only"> 필수</span>
           </h2>
-          <LocationPicker value={location} onChange={setLocation} />
+          <div className="mt-4">
+            <LocationPicker value={location} onChange={setLocation} />
+          </div>
         </section>
 
-        <section className="md:rounded-2xl md:bg-white md:p-6 md:shadow-surface-sm">
-          <h2 className="mb-3 flex items-center gap-2 text-base font-bold text-fg md:mb-4 md:text-lg">
-            <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-brand-100 text-xs font-bold text-brand-700">4</span>
+        {/* 3단계 — 연락처+동의. 카드 표면을 아예 걷어내 "마무리 절차"로서 가장 낮은 무게를 준다. */}
+        <section ref={step3Ref} className="mt-6 border-t border-border pt-6 md:mt-8">
+          <p className="mb-1 text-xs font-bold text-muted">3단계</p>
+          <h2 className="text-lg font-bold text-fg">
             연락처 <span className="text-red-500">*</span>
             <span className="sr-only"> 필수</span>
           </h2>
-          <div className="space-y-2">
+          <div className="mt-3 space-y-2">
             <input
               type="text"
               autoComplete="name"
@@ -177,7 +244,7 @@ export default function NewRequestPage() {
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="이름"
-              className="w-full rounded-xl border border-neutral-300 bg-white p-3 text-base text-fg placeholder:text-muted focus:border-brand-500 focus:ring-2 focus:ring-brand-500/15 focus:outline-none"
+              className="w-full rounded-xl border border-neutral-300 bg-white p-3 text-base text-fg transition-colors ease-brand duration-brand-base placeholder:text-muted focus:border-brand-500 focus:ring-2 focus:ring-brand-500/15 focus:outline-none"
             />
             <input
               type="tel"
@@ -187,27 +254,27 @@ export default function NewRequestPage() {
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
               placeholder="전화번호 (예: 01012345678)"
-              className="w-full rounded-xl border border-neutral-300 bg-white p-3 text-base text-fg placeholder:text-muted focus:border-brand-500 focus:ring-2 focus:ring-brand-500/15 focus:outline-none"
+              className="w-full rounded-xl border border-neutral-300 bg-white p-3 text-base text-fg transition-colors ease-brand duration-brand-base placeholder:text-muted focus:border-brand-500 focus:ring-2 focus:ring-brand-500/15 focus:outline-none"
             />
           </div>
+
+          <label className="mt-4 flex items-start gap-2 text-sm text-neutral-600">
+            <input
+              type="checkbox"
+              id="req-agree"
+              checked={agreed}
+              onChange={(e) => setAgreed(e.target.checked)}
+              className="mt-0.5 h-4 w-4 accent-brand-600"
+            />
+            <span>
+              접수 처리 및 업체 연결을 위한 개인정보(이름, 연락처, 위치)의 수집·이용에
+              동의합니다.
+            </span>
+          </label>
         </section>
 
-        <label className="flex items-start gap-2 text-sm text-neutral-600">
-          <input
-            type="checkbox"
-            id="req-agree"
-            checked={agreed}
-            onChange={(e) => setAgreed(e.target.checked)}
-            className="mt-0.5 h-4 w-4 accent-brand-600"
-          />
-          <span>
-            접수 처리 및 업체 연결을 위한 개인정보(이름, 연락처, 위치)의 수집·이용에
-            동의합니다.
-          </span>
-        </label>
-
         {error && (
-          <p role="alert" className="rounded-xl border border-red-100 bg-red-50 p-3 text-sm font-medium text-red-600">
+          <p role="alert" className="mt-6 rounded-xl border border-red-100 bg-red-50 p-3 text-sm font-medium text-red-600">
             {error}
           </p>
         )}
