@@ -152,7 +152,7 @@ export default function ContractPrintPage({
         <button
           type="button"
           onClick={() => window.print()}
-          className="rounded-admin-md bg-brand-600 px-5 py-2.5 text-sm font-bold text-white transition-opacity hover:opacity-90"
+          className="rounded-admin-md bg-brand-600 px-5 py-2.5 text-sm font-bold text-white transition-opacity ease-portal hover:opacity-90"
         >
           인쇄 / PDF 저장
         </button>

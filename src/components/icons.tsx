@@ -192,6 +192,15 @@ export function WonIcon({ className }: IconProps) {
   );
 }
 
+// 어드민 내비 드롭다운 화살표용(G0 §1a-4 스트로크 규약 통일 — AdminShell 인라인 12x12 svg 대체).
+export function ChevronDownIcon({ className }: IconProps) {
+  return (
+    <svg {...base} className={className} aria-hidden="true">
+      <path d="M5 8 12 15 19 8" />
+    </svg>
+  );
+}
+
 // 만족도 조사 별점 표시용. filled=true면 currentColor로 채운다(다른 아이콘과 달리 fill 사용).
 export function StarIcon({ className, filled = false }: IconProps & { filled?: boolean }) {
   return (

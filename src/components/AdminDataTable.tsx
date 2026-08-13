@@ -54,14 +54,14 @@ export default function AdminDataTable<T, K extends string>({
 
   return (
     <div className="overflow-x-auto">
-      <table className="w-full min-w-[880px] border-collapse text-[13px] md:text-[14px]">
+      <table className="w-full min-w-[880px] border-collapse text-sm">
         <thead>
           <tr>
             {columns.map((col) => (
               <th
                 key={col.key}
                 style={col.width ? { width: col.width } : undefined}
-                className={`sticky top-0 border-b border-border bg-neutral-50 px-3.5 py-2.5 font-mono text-[10px] font-semibold tracking-wide text-muted uppercase md:text-[12px] ${
+                className={`sticky top-0 border-b border-border bg-neutral-50 px-3.5 py-2.5 font-mono text-xs font-semibold tracking-wide text-muted uppercase ${
                   col.align === 'right' ? 'text-right' : 'text-left'
                 }`}
               >

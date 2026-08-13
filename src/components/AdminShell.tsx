@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { usePolling } from '@/components/usePolling';
 import LogoutButton from '@/components/LogoutButton';
+import { BoltIcon, ChevronDownIcon } from '@/components/icons';
 
 // 관리자 셸 — 상단 탭으로 주요 관리 화면을 이동한다.
 // 데스크톱(md+) 전용 — 모바일은 각 admin 페이지가 보유한 인라인 내비를 그대로 쓴다(변경 없음).
@@ -63,9 +64,7 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
         <header className="flex h-11 items-center gap-1 px-4 text-fg">
           <span className="mr-3 flex items-center gap-2 text-sm font-bold">
             <span className="flex h-6 w-6 items-center justify-center rounded-admin-sm bg-brand-50 text-brand-600">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-3.5 w-3.5">
-                <path d="M13 2 4 14h6l-1 8 9-12h-6l1-8z" />
-              </svg>
+              <BoltIcon className="h-3.5 w-3.5" />
             </span>
             관제탑
           </span>
@@ -103,19 +102,17 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
                       ref={(element) => {
                         navButtonRefs.current[n.label] = element;
                       }}
-                      className={`flex h-11 items-center gap-1 border-b-2 px-3 text-[13px] font-semibold transition-colors md:text-[14px] ${
+                      className={`flex h-11 items-center gap-1 border-b-2 px-3 text-sm font-semibold transition-colors ease-portal ${
                         active
                           ? 'border-brand-600 text-fg'
                           : 'border-transparent text-muted hover:text-fg'
                       }`}
                     >
                       {n.label}
-                      <svg viewBox="0 0 12 12" aria-hidden="true" className={`h-3 w-3 transition-transform ${open ? 'rotate-180' : ''}`}>
-                        <path d="m2.5 4 3.5 3.5L9.5 4" fill="none" stroke="currentColor" strokeWidth="1.5" />
-                      </svg>
+                      <ChevronDownIcon className={`h-3 w-3 transition-transform ease-portal ${open ? 'rotate-180' : ''}`} />
                     </button>
                     {open && (
-                      <div id={`admin-nav-${n.label}`} role="menu" className="absolute top-full left-0 z-30 min-w-28 border border-border bg-white py-1 shadow-card">
+                      <div id={`admin-nav-${n.label}`} role="menu" className="absolute top-full left-0 z-30 min-w-28 border border-border bg-white py-1">
                         {n.children.map((child) => {
                           const childActive = pathname.startsWith(child.href);
                           return (
@@ -144,7 +141,7 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
                                 items[nextIndex]?.focus();
                               }}
                               onClick={() => setOpenNav(null)}
-                              className={`block px-3 py-2 text-[13px] font-semibold whitespace-nowrap ${
+                              className={`block px-3 py-2 text-sm font-semibold whitespace-nowrap ${
                                 childActive
                                   ? 'bg-neutral-100 text-fg'
                                   : 'text-muted hover:bg-neutral-50 hover:text-fg'
@@ -165,7 +162,7 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
                   key={n.href}
                   href={n.href!}
                   aria-current={active ? 'page' : undefined}
-                  className={`flex h-11 items-center gap-2 border-b-2 px-3 text-[13px] font-semibold transition-colors md:text-[14px] ${
+                  className={`flex h-11 items-center gap-2 border-b-2 px-3 text-sm font-semibold transition-colors ease-portal ${
                     active
                       ? 'border-brand-600 text-fg'
                       : 'border-transparent text-muted hover:text-fg'
@@ -173,7 +170,7 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
                 >
                   {n.label}
                   {count > 0 && (
-                    <span className="font-mono text-[11px] font-bold text-brand-600">
+                    <span className="font-mono text-xs font-bold text-brand-600">
                       {count}
                     </span>
                   )}

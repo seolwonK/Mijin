@@ -164,13 +164,13 @@ export default function AdminSettingsPage() {
               onClick={toggleAutoAssign}
               disabled={toggleBusy}
               aria-pressed={settings.autoAssignEnabled}
-              className={`relative h-8 w-14 shrink-0 rounded-full transition-colors ${
+              className={`relative h-8 w-14 shrink-0 rounded-full transition-colors ease-portal ${
                 settings.autoAssignEnabled ? 'bg-admin-cyan-ink' : 'bg-neutral-300'
               }`}
               aria-label="자동배정 토글"
             >
               <span
-                className={`absolute top-1 h-6 w-6 rounded-full bg-white transition-all ${
+                className={`absolute top-1 h-6 w-6 rounded-full bg-white transition-all ease-portal ${
                   settings.autoAssignEnabled ? 'left-7' : 'left-1'
                 }`}
               />
@@ -430,7 +430,7 @@ export default function AdminSettingsPage() {
           type="button"
           onClick={save}
           disabled={busy}
-          className="flex h-14 w-full items-center justify-center rounded-admin-md bg-admin-cyan-ink text-lg font-bold text-white transition-opacity enabled:hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+          className="flex h-14 w-full items-center justify-center rounded-admin-md bg-admin-cyan-ink text-lg font-bold text-white transition-opacity ease-portal enabled:hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
         >
           {busy ? '저장 중…' : '저장'}
         </button>

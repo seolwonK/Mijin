@@ -32,7 +32,7 @@ export default function AnalyticsSurveys() {
   );
 
   return (
-    <main className="min-h-screen bg-neutral-50 text-[14px] text-fg">
+    <main className="min-h-screen bg-neutral-50 text-sm text-fg">
       <div className="p-4 lg:hidden">
         <p className="rounded-admin-md border border-border bg-white p-5 text-center text-sm text-muted">
           설문 현황은 데스크톱에서 이용할 수 있습니다.
@@ -45,7 +45,7 @@ export default function AnalyticsSurveys() {
               <h1 className="text-xl font-bold">설문 현황</h1>
               <p className="mt-1 text-sm text-muted">설문 응답과 미제출 현황, 결제 통계를 확인합니다.</p>
             </div>
-            <span className="font-mono text-[11px] text-muted">{refreshTime(data?.updatedAt)}</span>
+            <span className="font-mono text-xs text-muted">{refreshTime(data?.updatedAt)}</span>
           </div>
           {error && <p className="mb-4 text-sm text-red-600">{error}</p>}
           {!data ? (

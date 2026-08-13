@@ -70,7 +70,7 @@ function Section({ title, tip, updatedAt, children, id }: { title: string; tip: 
           <h2 className="text-base font-bold text-fg">{title}</h2>
           <InfoTip text={tip} />
         </div>
-        <span className="font-mono text-[11px] text-muted">{refreshTime(updatedAt)}</span>
+        <span className="font-mono text-xs text-muted">{refreshTime(updatedAt)}</span>
       </div>
       {children}
     </section>
@@ -102,7 +102,7 @@ function AnalyticsDashboardData({ period, setPeriod, isLg }: { period: Period; s
   const updatedAt = data?.updatedAt;
 
   return (
-    <main className="min-h-screen bg-neutral-50 text-[14px] text-fg">
+    <main className="min-h-screen bg-neutral-50 text-sm text-fg">
       <div className="p-4 lg:hidden">
         <p className="rounded-admin-md border border-border bg-white p-5 text-center text-sm text-muted">분석 대시보드는 데스크톱에서 이용할 수 있습니다.</p>
       </div>

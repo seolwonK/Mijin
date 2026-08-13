@@ -29,11 +29,11 @@ type RotationResponse = {
 type ColKey = 'rank' | 'name' | 'kind' | 'assigned30d' | 'avgRating' | 'reviewCount';
 
 const selectClass =
-  'rounded-admin-md border border-border bg-white px-3 py-1.5 text-[12.5px] md:text-sm text-fg focus:border-admin-cyan-ink focus:outline-none disabled:text-muted';
+  'rounded-admin-md border border-border bg-white px-3 py-1.5 text-xs md:text-sm text-fg focus:border-admin-cyan-ink focus:outline-none disabled:text-muted';
 
 function KindBadge({ kind }: { kind: 'PROVIDER' | 'TECHNICIAN' }) {
   return (
-    <span className="inline-block rounded-admin-sm bg-neutral-100 px-1.5 py-0.5 font-mono text-[10.5px] font-bold text-muted">
+    <span className="inline-block rounded-admin-sm bg-neutral-100 px-1.5 py-0.5 font-mono text-xs font-bold text-muted">
       {kind === 'PROVIDER' ? '업체' : '전기기사'}
     </span>
   );
@@ -45,11 +45,11 @@ function KindBadge({ kind }: { kind: 'PROVIDER' | 'TECHNICIAN' }) {
 function LimitBadges() {
   return (
     <div className="flex flex-wrap gap-2">
-      <span className="inline-flex items-center gap-1.5 rounded-admin-md border border-amber-300 bg-amber-50 px-2.5 py-1 text-[11.5px] text-amber-700">
+      <span className="inline-flex items-center gap-1.5 rounded-admin-md border border-amber-300 bg-amber-50 px-2.5 py-1 text-xs text-amber-700">
         <AlertIcon className="h-3.5 w-3.5 shrink-0" />
         동률 시 거리로 결정될 수 있음
       </span>
-      <span className="inline-flex items-center gap-1.5 rounded-admin-md border border-red-200 bg-red-50 px-2.5 py-1 text-[11.5px] text-red-600">
+      <span className="inline-flex items-center gap-1.5 rounded-admin-md border border-red-200 bg-red-50 px-2.5 py-1 text-xs text-red-600">
         <AlertIcon className="h-3.5 w-3.5 shrink-0" />
         초긴급(CRITICAL)은 거리 우선 — 이 순번 미적용
       </span>
@@ -159,7 +159,7 @@ export default function AdminRotationPage() {
             ))}
           </select>
           {data?.meta && (
-            <span className="ml-auto font-mono text-[10.5px] text-muted">
+            <span className="ml-auto font-mono text-xs text-muted">
               {data.meta.chainLabel}
             </span>
           )}

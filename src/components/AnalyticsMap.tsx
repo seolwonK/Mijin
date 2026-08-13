@@ -96,7 +96,7 @@ export default function AnalyticsMap() {
   const gapAlerts = [...(regionsData?.gapAlerts ?? [])].sort((a, b) => b.demand - a.demand);
 
   return (
-    <main className="min-h-screen bg-neutral-50 text-[14px] text-fg">
+    <main className="min-h-screen bg-neutral-50 text-sm text-fg">
       <div className="p-4 lg:hidden">
         <p className="rounded-admin-md border border-border bg-white p-5 text-center text-sm text-muted">
           지도 현황은 데스크톱에서 이용할 수 있습니다.
@@ -131,7 +131,7 @@ export default function AnalyticsMap() {
               <section className="rounded-admin-md border border-amber-300 bg-amber-50 p-5" aria-labelledby="gap-alerts-heading">
                 <div className="flex items-baseline justify-between gap-3">
                   <h2 id="gap-alerts-heading" className="text-base font-bold">갭 경보</h2>
-                  <span className="font-mono text-[11px] text-muted">{refreshTime(regionsUpdatedAt)}</span>
+                  <span className="font-mono text-xs text-muted">{refreshTime(regionsUpdatedAt)}</span>
                 </div>
                 {gapAlerts.length === 0 ? (
                   <p className="mt-3 text-sm text-muted">공급 0명·수요 있음 지역이 없습니다.</p>
@@ -152,7 +152,7 @@ export default function AnalyticsMap() {
                     <h2 id="pressure-heading" className="text-base font-bold">수급 압력 순위표</h2>
                     <InfoTip text="최근 30일 유효 요청 ÷ 명시 커버 활성·승인 공급자 수, KST 귀속" />
                   </div>
-                  <span className="font-mono text-[11px] text-muted">{refreshTime(regionsUpdatedAt)}</span>
+                  <span className="font-mono text-xs text-muted">{refreshTime(regionsUpdatedAt)}</span>
                 </div>
                 {regionsData.level === 'sigungu' && (
                   <div className="mt-3 flex items-center justify-between gap-3">
@@ -195,7 +195,7 @@ export default function AnalyticsMap() {
           <section className="mt-5 rounded-admin-md border border-border bg-white p-5" aria-labelledby="dispatch-heading">
             <div className="flex items-baseline justify-between gap-3">
               <div><h2 id="dispatch-heading" className="text-base font-bold">출동 현황</h2><p className="mt-1 text-sm text-muted">차량 추적 아님 — 고객 목적지 기준</p></div>
-              <span className="font-mono text-[11px] text-muted">{refreshTime(dispatchUpdatedAt)} · 8초 갱신</span>
+              <span className="font-mono text-xs text-muted">{refreshTime(dispatchUpdatedAt)} · 8초 갱신</span>
             </div>
             {!dispatchData ? <p className="mt-4 text-sm text-muted">출동 현황을 불러오는 중…</p> : (
               <><div className="mt-4 overflow-x-auto"><table className="w-full min-w-[620px] text-left text-sm"><thead className="border-b border-border text-muted"><tr><th className="px-3 py-2 font-semibold">접수번호</th><th className="px-3 py-2 font-semibold">주소</th><th className="px-3 py-2 font-semibold">좌표</th></tr></thead><tbody>{dispatchData.pins.map((pin) => <tr key={pin.requestId} className="border-b border-border last:border-0"><td className="px-3 py-3 font-mono">{pin.lookupCode}</td><td className="px-3 py-3">{pin.address ?? '주소 미상'}</td><td className="px-3 py-3 font-mono">{pin.lat}, {pin.lng}</td></tr>)}{dispatchData.pins.length === 0 && <tr><td colSpan={3} className="px-3 py-6 text-center text-muted">출동 중인 고객 목적지가 없습니다.</td></tr>}</tbody></table></div><p className="mt-3 text-sm text-muted">좌표 미상 {dispatchData.unknownCount}건</p></>

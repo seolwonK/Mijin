@@ -16,7 +16,7 @@ export function AdminStatusTag({ status }: { status: string }) {
   const s = STATUS[status] ?? { label: status, dot: 'bg-neutral-400' };
   const textColor = s.strike ? 'text-muted' : 'text-fg';
   return (
-    <span className={`inline-flex items-center gap-2 text-[12.5px] font-medium md:text-[14px] ${textColor} ${s.strike ? 'line-through' : ''}`}>
+    <span className={`inline-flex items-center gap-2 text-sm font-medium ${textColor} ${s.strike ? 'line-through' : ''}`}>
       <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${s.dot}`} />
       {s.label}
     </span>
@@ -33,7 +33,7 @@ export function AdminUrgencyTag({ urgency }: { urgency: string }) {
   const u = URGENCY[urgency] ?? { label: urgency, className: 'text-muted' };
   return (
     <span
-      className={`inline-block rounded-admin-sm px-1.5 py-0.5 font-mono text-[10.5px] font-bold md:text-[12px] ${u.className}`}
+      className={`inline-block rounded-admin-sm px-1.5 py-0.5 font-mono text-xs font-bold ${u.className}`}
     >
       {u.label}
     </span>

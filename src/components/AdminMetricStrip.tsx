@@ -27,16 +27,16 @@ export default function AdminMetricStrip({ metrics }: { metrics: Metric[] }) {
       {metrics.map((m, i) => {
         const content = (
           <>
-            <p className="font-mono text-[10px] tracking-wide text-muted uppercase md:text-[11px]">
+            <p className="font-mono text-xs tracking-wide text-muted uppercase">
               {m.label}
             </p>
             <p
-              className={`mt-1 font-mono text-[22px] font-bold ${VALUE_COLOR[m.tone ?? 'default']}`}
+              className={`mt-1 font-mono text-xl font-bold ${VALUE_COLOR[m.tone ?? 'default']}`}
             >
               {m.value}
             </p>
             {m.sub && (
-              <p className="mt-0.5 text-[10.5px] text-muted">
+              <p className="mt-0.5 text-xs text-muted">
                 {m.sub}
               </p>
             )}
@@ -49,7 +49,7 @@ export default function AdminMetricStrip({ metrics }: { metrics: Metric[] }) {
             <Link
               key={m.label}
               href={m.href}
-              className={`${className} transition-colors hover:bg-neutral-50`}
+              className={`${className} transition-colors ease-portal hover:bg-neutral-50`}
             >
               {content}
             </Link>
@@ -62,7 +62,7 @@ export default function AdminMetricStrip({ metrics }: { metrics: Metric[] }) {
             type="button"
             onClick={m.onClick}
             aria-label={m.ariaLabel}
-            className={`${className} text-left transition-colors hover:bg-neutral-50`}
+            className={`${className} text-left transition-colors ease-portal hover:bg-neutral-50`}
           >
             {content}
           </button>

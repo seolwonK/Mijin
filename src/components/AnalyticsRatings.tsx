@@ -89,10 +89,10 @@ export default function AnalyticsRatings() {
   ];
   const reviews = loadedReviews ?? detail?.reviews ?? null;
 
-  return <main className="min-h-screen bg-neutral-50 text-[14px] text-fg">
+  return <main className="min-h-screen bg-neutral-50 text-sm text-fg">
     <div className="p-4 lg:hidden"><p className="rounded-admin-md border border-border bg-white p-5 text-center text-sm text-muted">평점 현황은 데스크톱에서 이용할 수 있습니다.</p></div>
     <div className="hidden lg:block"><div className="mx-auto max-w-7xl p-6">
-      <div className="mb-6 flex items-end justify-between gap-4"><div><h1 className="text-xl font-bold">평점 현황</h1><p className="mt-1 text-sm text-muted">업체와 전기기사의 만족도와 완료 실적을 확인합니다.</p></div><span className="font-mono text-[11px] text-muted">{refreshTime(lastUpdatedAt)}</span></div>
+      <div className="mb-6 flex items-end justify-between gap-4"><div><h1 className="text-xl font-bold">평점 현황</h1><p className="mt-1 text-sm text-muted">업체와 전기기사의 만족도와 완료 실적을 확인합니다.</p></div><span className="font-mono text-xs text-muted">{refreshTime(lastUpdatedAt)}</span></div>
       {error && <p className="mb-4 text-sm text-red-600">{error}</p>}
       <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_420px]">
         <section className="rounded-admin-md border border-border bg-white p-5"><div className="mb-4 flex items-center justify-between gap-4"><div className="flex items-center gap-2"><h2 className="text-base font-bold">평점 순위</h2><InfoTip text="완료 건수는 수락 배정이 있고 완료된 접수 수입니다. 설문과 무관합니다." /></div><input aria-label="이름 검색" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="이름 검색" className="w-44 rounded-admin-sm border border-border px-3 py-2 text-sm outline-none focus:border-brand-600" /></div>

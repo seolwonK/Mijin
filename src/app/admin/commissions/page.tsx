@@ -225,7 +225,7 @@ export default function AdminCommissionsPage() {
           {r.name}
           <span className="font-normal text-muted">({r.type})</span>
           {!r.isActive && (
-            <span className="rounded-full bg-neutral-200 px-2 py-0.5 text-[10px] font-bold text-neutral-600">
+            <span className="rounded-full bg-neutral-200 px-2 py-0.5 text-xs font-bold text-neutral-600">
               비활성
             </span>
           )}
@@ -374,7 +374,7 @@ export default function AdminCommissionsPage() {
                         {e.refereeName}
                         <span className="ml-1 font-normal text-muted">({e.refereeType ?? '-'})</span>
                         {e.isHighAmount && (
-                          <span className="ml-2 rounded-full bg-amber-500 px-2 py-0.5 text-[10px] font-bold text-white">
+                          <span className="ml-2 rounded-full bg-amber-500 px-2 py-0.5 text-xs font-bold text-white">
                             고액
                           </span>
                         )}

@@ -61,7 +61,7 @@ export default function AdminWorkQueue({ requests, refresh, extraMetrics = [], s
     { key: 'status', label: '상태', width: '112px', render: (request) => <AdminStatusTag status={request.status} /> },
     { key: 'code', label: '접수번호', width: '104px', render: (request) => <span className="font-mono font-semibold text-admin-cyan-ink">{request.lookupCode}</span> },
     { key: 'urgency', label: '긴급도', width: '76px', render: (request) => <AdminUrgencyTag urgency={request.urgency} /> },
-    { key: 'desc', label: '내용', render: (request) => <span className="line-clamp-1">{request.description}{request.needsAttention && <span className="ml-2 inline-flex items-center gap-1 font-mono text-[10.5px] text-red-600 md:text-sm"><AlertIcon className="h-3 w-3 shrink-0" />확인요망</span>}</span> },
+    { key: 'desc', label: '내용', render: (request) => <span className="line-clamp-1">{request.description}{request.needsAttention && <span className="ml-2 inline-flex items-center gap-1 font-mono text-xs text-red-600 md:text-sm"><AlertIcon className="h-3 w-3 shrink-0" />확인요망</span>}</span> },
     { key: 'who', label: '고객', width: '190px', render: (request) => <span className="text-neutral-600">{request.customerName} · {request.customerPhone}</span> },
     { key: 'time', label: '시각', width: '96px', align: 'right', sortable: true, sortValue: (request) => new Date(request.createdAt).getTime(), render: (request) => <span className="font-mono text-neutral-600">{new Date(request.createdAt).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })}</span> },
     { key: 'assignee', label: '배정', width: '140px', align: 'right', render: (request) => <span className={request.assigneeName ? 'font-semibold text-admin-cyan-ink' : 'text-muted'}>{request.assigneeName ?? '—'}</span> },
