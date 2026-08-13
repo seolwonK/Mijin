@@ -221,7 +221,7 @@ export default function TechContractPage() {
               id="ct-loc"
               value={workLocation}
               onChange={(e) => setWorkLocation(e.target.value)}
-              placeholder="예: 고객 현장 (출동), 미진전기 사업장 등"
+              placeholder="예: 고객 현장 (출동), 전기아저씨 사업장 등"
               disabled={confirmed}
               className={inputClass}
             />
