@@ -54,6 +54,7 @@ function CenterScreen({
           width={image.width}
           height={image.height}
           className="h-28 w-auto md:h-36"
+          preload={true}
         />
         <h1 className="text-xl font-bold text-fg">{title}</h1>
         {desc && <p className="text-muted">{desc}</p>}
