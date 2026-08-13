@@ -5,7 +5,8 @@ import { useEffect, useRef, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { usePolling } from '@/components/usePolling';
 import LogoutButton from '@/components/LogoutButton';
-import { BoltIcon, ChevronDownIcon } from '@/components/icons';
+import BrandLogo from '@/components/BrandLogo';
+import { ChevronDownIcon } from '@/components/icons';
 
 // 관리자 셸 — 상단 탭으로 주요 관리 화면을 이동한다.
 // 데스크톱(md+) 전용 — 모바일은 각 admin 페이지가 보유한 인라인 내비를 그대로 쓴다(변경 없음).
@@ -63,9 +64,10 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
       <div data-print-hide className="hidden border-b border-border bg-white md:block">
         <header className="flex h-11 items-center gap-1 px-4 text-fg">
           <span className="mr-3 flex items-center gap-2 text-sm font-bold">
-            <span className="flex h-6 w-6 items-center justify-center rounded-admin-sm bg-brand-50 text-brand-600">
-              <BoltIcon className="h-3.5 w-3.5" />
-            </span>
+            {/* 브랜드 노출은 락업 전체가 아니라 버스트(아이콘)만 — 관제 밀도·액센트 절제 원칙상
+                채도 높은 워드마크를 반복 노출하지 않는다(G0 §5 "포털·어드민 — 로고 락업만"). */}
+            <BrandLogo variant="bust" size="sm" />
+            <span className="h-4 w-px bg-border" aria-hidden="true" />
             관제탑
           </span>
           <nav className="flex h-11 items-center gap-0.5" aria-label="관리자 이동">
