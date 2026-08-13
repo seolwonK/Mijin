@@ -206,7 +206,7 @@ export default function TechSignupPage() {
                 key={opt.value}
                 type="button"
                 onClick={() => setEmploymentType(opt.value)}
-                className={`rounded-xl border p-3 text-left transition-colors ${
+                className={`rounded-xl border p-3 text-left transition-colors ease-portal ${
                   employmentType === opt.value
                     ? 'border-brand-500 bg-brand-50'
                     : 'border-neutral-300 bg-white'
@@ -256,7 +256,7 @@ export default function TechSignupPage() {
                 type="button"
                 onClick={verifyPhone}
                 disabled={verifying || !name.trim() || !phone.trim()}
-                className="shrink-0 rounded-xl bg-neutral-900 px-4 text-sm font-bold text-white transition-colors enabled:hover:bg-neutral-950 disabled:opacity-50"
+                className="shrink-0 rounded-xl bg-neutral-900 px-4 text-sm font-bold text-white transition-colors ease-portal enabled:hover:bg-neutral-950 disabled:opacity-50"
               >
                 {verifying ? '인증 중…' : '본인인증'}
               </button>

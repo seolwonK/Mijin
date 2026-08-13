@@ -87,7 +87,7 @@ export default function PortalJobCard({
       <Surface
         as="section"
         tint={highlight}
-        className={`rounded-2xl border-l-4 ${visual.border} transition-transform hover:-translate-y-0.5 active:translate-y-0`}
+        className={`rounded-2xl border-l-4 ${visual.border} transition-transform ease-portal hover:-translate-y-0.5 active:translate-y-0`}
       >
         <div className="flex items-stretch">
           <Link href={href} className="min-w-0 flex-1 p-4">

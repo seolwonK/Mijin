@@ -122,7 +122,7 @@ export default function TechHomePage() {
           />
           <div className="absolute inset-0 bg-gradient-to-l from-brand-950/90 via-brand-950/35 to-transparent" />
           <div className="absolute inset-0 flex items-center justify-end px-5 text-right md:px-8">
-            <p className="text-[15px] font-bold text-white md:text-lg">
+            <p className="text-sm font-bold text-white md:text-lg">
               오늘도 안전한 출동 되세요
             </p>
           </div>
@@ -133,7 +133,7 @@ export default function TechHomePage() {
             <button
               type="button"
               onClick={enableNotifications}
-              className="mr-auto inline-flex items-center gap-1 rounded-full bg-brand-50 px-3 py-1.5 font-semibold text-brand-700 transition-colors hover:bg-brand-100"
+              className="mr-auto inline-flex items-center gap-1 rounded-full bg-brand-50 px-3 py-1.5 font-semibold text-brand-700 transition-colors ease-portal hover:bg-brand-100"
             >
               <BellIcon className="h-3.5 w-3.5" />
               새 배정 브라우저 알림 켜기
@@ -145,7 +145,7 @@ export default function TechHomePage() {
             onClick={handleManualRefresh}
             disabled={manualRefreshing}
             aria-label="새로고침"
-            className="flex h-11 w-11 items-center justify-center rounded-full text-muted transition-colors hover:bg-neutral-100 active:bg-neutral-200 disabled:opacity-50"
+            className="flex h-11 w-11 items-center justify-center rounded-full text-muted transition-colors ease-portal hover:bg-neutral-100 active:bg-neutral-200 disabled:opacity-50"
           >
             <RefreshIcon className={`h-[18px] w-[18px] ${manualRefreshing ? 'animate-spin' : ''}`} />
           </button>
@@ -162,7 +162,7 @@ export default function TechHomePage() {
         ) : (
           <Link
             href="/tech/contract"
-            className={`flex items-center justify-between rounded-2xl border p-4 transition-colors ${
+            className={`flex items-center justify-between rounded-2xl border p-4 transition-colors ease-portal ${
               contractSigned
                 ? 'border-green-200 bg-green-50 hover:bg-green-100'
                 : 'border-amber-300 bg-amber-50 hover:bg-amber-100'

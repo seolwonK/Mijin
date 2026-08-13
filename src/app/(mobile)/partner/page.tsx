@@ -94,7 +94,7 @@ export default function PartnerHomePage() {
           />
           <div className="absolute inset-0 bg-gradient-to-l from-brand-950/90 via-brand-950/35 to-transparent" />
           <div className="absolute inset-0 flex items-center justify-end px-5 text-right md:px-8">
-            <p className="text-[15px] font-bold text-white md:text-lg">
+            <p className="text-sm font-bold text-white md:text-lg">
               이번 주도 순조로운 배정 되세요
             </p>
           </div>
@@ -109,7 +109,7 @@ export default function PartnerHomePage() {
             <button
               type="button"
               onClick={enableNotifications}
-              className="inline-flex items-center gap-1 rounded-full bg-brand-50 px-3 py-1.5 text-xs font-semibold text-brand-700 transition-colors hover:bg-brand-100"
+              className="inline-flex items-center gap-1 rounded-full bg-brand-50 px-3 py-1.5 text-xs font-semibold text-brand-700 transition-colors ease-portal hover:bg-brand-100"
             >
               <BellIcon className="h-3.5 w-3.5" />
               새 배정 브라우저 알림 켜기

@@ -196,12 +196,12 @@ export default function PartnerProfilePage() {
               role="switch"
               aria-checked={isActive}
               onClick={() => setIsActive((v) => !v)}
-              className={`relative h-7 w-12 shrink-0 rounded-full transition-colors ${
+              className={`relative h-7 w-12 shrink-0 rounded-full transition-colors ease-portal ${
                 isActive ? 'bg-brand-600' : 'bg-neutral-300'
               }`}
             >
               <span
-                className={`absolute top-0.5 h-6 w-6 rounded-full bg-white shadow transition-transform ${
+                className={`absolute top-0.5 h-6 w-6 rounded-full bg-white shadow transition-transform ease-portal ${
                   isActive ? 'left-0.5 translate-x-5' : 'left-0.5'
                 }`}
               />

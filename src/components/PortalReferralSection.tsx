@@ -87,11 +87,11 @@ export default function PortalReferralSection({ url }: { url: string }) {
               <li key={r.id} className="rounded-xl bg-neutral-50 p-3">
                 <div className="flex flex-wrap items-center gap-1.5">
                   <span className="font-semibold text-fg">{r.name}</span>
-                  <span className="rounded-full bg-neutral-200 px-2 py-0.5 text-[10px] font-bold text-neutral-600">
+                  <span className="rounded-full bg-neutral-200 px-2 py-0.5 text-xs font-bold text-neutral-600">
                     {KIND_LABEL[r.kind]}
                   </span>
                   <span
-                    className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${badge.className}`}
+                    className={`rounded-full px-2 py-0.5 text-xs font-bold ${badge.className}`}
                   >
                     {badge.label}
                   </span>
@@ -116,7 +116,7 @@ export default function PortalReferralSection({ url }: { url: string }) {
                     >
                       설문 대기 {r.pendingSurveyCount}건
                     </span>
-                    <p className="mt-1 text-[11px] text-muted">
+                    <p className="mt-1 text-xs text-muted">
                       완료된 작업의 만족도 조사가 제출되면 수수료가 적립됩니다
                     </p>
                   </div>

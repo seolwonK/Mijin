@@ -13,7 +13,7 @@ function won(value: number) {
   return `₩${value.toLocaleString('ko-KR')}`;
 }
 
-const METRIC_LABEL = 'font-mono text-[11px] tracking-wide text-muted uppercase';
+const METRIC_LABEL = 'font-mono text-xs tracking-wide text-muted uppercase';
 const METRIC_VALUE = 'text-xl font-extrabold tabular-nums leading-none text-fg sm:text-2xl';
 
 export default function PortalHeadline({ stats, commission }: PortalHeadlineProps) {
