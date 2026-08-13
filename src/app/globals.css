@@ -42,12 +42,65 @@
   --color-muted: var(--color-neutral-500);
   --color-border: var(--color-neutral-200);
 
+  /* ── 타이포 스케일 — G0 기반 램프 승인안(.omc/research/ajeossi/g0-foundation-ramp.md §1).
+     본문 3단(xs·sm·base)은 크기 불변, 행간만 개방(한글 장문 가독성). 표시 6단(lg~5xl)은
+     크기·행간·자간이 함께 움직여 위계를 벌린다(자간은 음수로 조여 큰 글자의 헐렁함 방지). */
+  --text-xs: 0.75rem;
+  --text-xs--line-height: 1.125rem;
+
+  --text-sm: 0.875rem;
+  --text-sm--line-height: 1.375rem;
+
+  --text-base: 1rem;
+  --text-base--line-height: 1.625rem;
+
+  --text-lg: 1.1875rem;
+  --text-lg--line-height: 1.75rem;
+  --text-lg--letter-spacing: -0.006em;
+
+  --text-xl: 1.375rem;
+  --text-xl--line-height: 1.875rem;
+  --text-xl--letter-spacing: -0.01em;
+
+  --text-2xl: 1.6875rem;
+  --text-2xl--line-height: 2.125rem;
+  --text-2xl--letter-spacing: -0.016em;
+
+  --text-3xl: 2.125rem;
+  --text-3xl--line-height: 2.375rem;
+  --text-3xl--letter-spacing: -0.02em;
+
+  --text-4xl: 2.625rem;
+  --text-4xl--line-height: 2.75rem;
+  --text-4xl--letter-spacing: -0.026em;
+
+  --text-5xl: 3.5rem;
+  --text-5xl--line-height: 3.625rem;
+  --text-5xl--letter-spacing: -0.032em;
+
+  /* ── 모션 — G0 기반 램프 승인안(§2). ease-brand(진입·호버 기본) / ease-soft(긍정 확인
+     인터랙션 전용, 오버슈트 억제) / ease-portal(포털·어드민, v4 기본 timing-function과
+     동일값을 의도적 재선언 — 업무 화면은 절제된 상태 유지가 목표). */
+  --ease-brand: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-soft: cubic-bezier(0.34, 1.2, 0.64, 1);
+  --ease-portal: cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* 751곳에 닿는 전역 기본 duration — 150ms(v4 기본) → 180ms(+20%, 체감 회귀 최소화). */
+  --default-transition-duration: 180ms;
+
+  /* duration 보조 토큰 — v4는 --duration-* 네임스페이스로 유틸리티를 생성하지 않으므로
+     값만 여기 선언하고, 클래스는 파일 최상위 @utility(duration-brand-*)로 별도 정의한다. */
+  --motion-duration-fast: 120ms;
+  --motion-duration-base: 200ms;
+  --motion-duration-slow: 320ms;
+
   /* ── 라디우스 — "결"의 소프트-프리미엄 톤(직전 Electric Violet 단계의 절제된 라디우스보다
-     한 단계 더 부드럽게, 다만 그 이전 리스킨의 말랑한 소비자앱 최대치까지는 안 감). */
-  --radius-lg: 0.5rem;
-  --radius-xl: 0.875rem;
-  --radius-2xl: 1.25rem;
-  --radius-3xl: 1.75rem;
+     한 단계 더 부드럽게, 다만 그 이전 리스킨의 말랑한 소비자앱 최대치까지는 안 감).
+     G0 기반 램프 승인안(§3)으로 고객은 +1~2px 상향(친근·절제), 어드민은 -2px 하향(관제 밀도). */
+  --radius-lg: 0.625rem;
+  --radius-xl: 1rem;
+  --radius-2xl: 1.375rem;
+  --radius-3xl: 1.875rem;
 
   /* ── 섀도우 — 기존 Card(border+shadow) 콜사이트 호환용. 미마이그레이션 화면은 이 값을
      그대로 상속(회귀 없음). 신규 "카드리스" 표면은 아래 --shadow-surface-* 를 쓴다. */
@@ -71,8 +124,24 @@
   /* admin-violet-ink — AdminStatusTag.tsx의 ACCEPTED 전용 상태 앵커(hue 300 — 브랜드 258-264·
      완료 emerald 155·경고 amber 75 어느 쪽과도 안 겹치는 밴드). vs 흰 배경 7.60:1(WCAG AA 이상). */
   --color-admin-violet-ink: oklch(0.46 0.14 300);
-  --radius-admin-sm: 0.375rem;
-  --radius-admin-md: 0.5rem;
+  --radius-admin-sm: 0.25rem;
+  --radius-admin-md: 0.375rem;
+  /* 어드민 라디우스 상위 티어 신설(G0 §3) — 모달·대형 패널용, 기존 2단 체계엔 빠져 있었음. */
+  --radius-admin-lg: 0.5rem;
+}
+
+/* duration 유틸리티 — --motion-duration-*(위 @theme) 소비. v4는 --duration-* 네임스페이스로
+   유틸리티를 만들지 않으므로(기본 테마에 없는 네임스페이스) 최상위 @utility로 명시 정의한다
+   (@theme 내부에 두면 유틸리티가 생성되지 않는다). 사용 예:
+   className="transition-transform ease-brand duration-brand-base". */
+@utility duration-brand-fast {
+  transition-duration: var(--motion-duration-fast);
+}
+@utility duration-brand-base {
+  transition-duration: var(--motion-duration-base);
+}
+@utility duration-brand-slow {
+  transition-duration: var(--motion-duration-slow);
 }
 
 html {
@@ -93,13 +162,6 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
-}
-
-/* 제목 자간을 살짝 좁혀 정제된 인상 */
-h1,
-h2,
-h3 {
-  letter-spacing: -0.02em;
 }
 
 /* 키보드 포커스에 일관된 링 (마우스 클릭 땐 표시 안 됨) — 접근성 + 정돈된 느낌 */
