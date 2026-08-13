@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import PageHeader from '@/components/PageHeader';
 import Surface from '@/components/Surface';
 import TrackStepper from '@/components/TrackStepper';
@@ -191,7 +192,7 @@ export default function LookupPage() {
             <button
               type="submit"
               disabled={busy || !phone.trim()}
-              className="w-full rounded-xl bg-brand-600 p-4 font-bold text-white transition-colors enabled:hover:bg-brand-700 disabled:opacity-50 md:w-40 md:p-3"
+              className="w-full rounded-xl bg-brand-600 p-4 font-bold text-white transition-colors ease-brand duration-brand-base enabled:hover:bg-brand-700 disabled:opacity-50 md:w-40 md:p-3"
             >
               {busy ? '조회 중…' : '조회하기'}
             </button>
@@ -204,7 +205,16 @@ export default function LookupPage() {
         </form>
 
         {results && results.length === 0 && (
-          <div className="space-y-3 rounded-xl bg-neutral-50 p-6 text-center md:bg-white md:py-10 md:shadow-surface-sm">
+          // 빈 상태 — 난감 포즈(ajeossi-puzzled.webp, G0 브리프 §5). "결과가 없다"는 사실을
+          // 무표정한 텍스트 한 줄로 끝내는 대신, 캐릭터가 함께 안내하는 톤으로 전달한다.
+          <div className="space-y-3 rounded-3xl bg-gradient-to-b from-brand-50 to-white p-6 text-center md:py-10">
+            <Image
+              src="/brand/ajeossi-puzzled.webp"
+              alt=""
+              width={418}
+              height={723}
+              className="mx-auto h-24 w-auto"
+            />
             <p className="text-sm text-muted">이 번호로 접수된 내역이 없습니다</p>
             <Link href="/request/new" className={buttonClasses('secondary', 'sm')}>
               새로 접수하기
@@ -219,7 +229,7 @@ export default function LookupPage() {
             <div className="pt-1 text-center">
               <Link
                 href="/request/new"
-                className="text-sm font-semibold text-brand-700 hover:underline"
+                className="text-sm font-semibold text-brand-700 transition-colors ease-brand duration-brand-base hover:underline"
               >
                 새로 접수하기 →
               </Link>
