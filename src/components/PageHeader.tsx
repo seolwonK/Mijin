@@ -8,6 +8,9 @@ import BackButton from '@/components/BackButton';
 // - crumbs: 선택적 다단 경로("목록 / 이름 / 하위페이지"). 마지막 항목은 현재 페이지라
 //   링크 없이 표시된다. back(직전 1단계 복귀)과 공존하며, 전달하지 않으면 아래 no-crumbs
 //   분기가 기존 마크업과 완전히 동일해 렌더 결과가 100% 하위호환된다.
+//
+// 정리(Task #12, 리드 승인): 다크 사진 배경용 'overlay' variant는 로그인 허브 재구축으로
+// 마지막 소비처가 사라져 제거했다 — default 렌더 마크업·클래스는 전량 동일(하드코딩만 됨).
 type Crumb = { label: string; href: string };
 
 export default function PageHeader({
@@ -16,28 +19,18 @@ export default function PageHeader({
   right,
   width = 'max-w-2xl',
   crumbs,
-  variant = 'default',
 }: {
   title: string;
   back?: string;
   right?: React.ReactNode;
   width?: string;
   crumbs?: Crumb[];
-  variant?: 'default' | 'overlay';
 }) {
   if (!crumbs || crumbs.length === 0) {
     return (
-      <header
-        className={
-          variant === 'overlay'
-            ? 'sticky top-0 z-20 border-b border-white/15 bg-brand-950/60 text-white backdrop-blur'
-            : 'sticky top-0 z-20 border-b border-border bg-surface/85 backdrop-blur'
-        }
-      >
-        <div
-          className={`mx-auto flex w-full ${width} items-center gap-2 px-4 py-2.5 md:py-3`}
-        >
-          {back && <BackButton fallback={back} tone={variant === 'overlay' ? 'inverse' : undefined} />}
+      <header className="sticky top-0 z-20 border-b border-border bg-surface/85 backdrop-blur">
+        <div className={`mx-auto flex w-full ${width} items-center gap-2 px-4 py-2.5 md:py-3`}>
+          {back && <BackButton fallback={back} />}
           <h1 className="text-xl font-bold">{title}</h1>
           {right && <div className="ml-auto flex items-center gap-2">{right}</div>}
         </div>
@@ -46,46 +39,26 @@ export default function PageHeader({
   }
 
   return (
-    <header
-      className={
-        variant === 'overlay'
-          ? 'sticky top-0 z-20 border-b border-white/15 bg-brand-950/60 text-white backdrop-blur'
-          : 'sticky top-0 z-20 border-b border-border bg-surface/85 backdrop-blur'
-      }
-    >
+    <header className="sticky top-0 z-20 border-b border-border bg-surface/85 backdrop-blur">
       <div className={`mx-auto w-full ${width} px-4 py-2.5 md:py-3`}>
-        <nav
-          aria-label="이동 경로"
-          className={
-            variant === 'overlay'
-              ? 'mb-1 flex items-center gap-1 text-xs text-white/70'
-              : 'mb-1 flex items-center gap-1 text-xs text-muted'
-          }
-        >
+        <nav aria-label="이동 경로" className="mb-1 flex items-center gap-1 text-xs text-muted">
           {crumbs.map((crumb, i) => {
             const isLast = i === crumbs.length - 1;
             return (
               <span key={crumb.href} className="flex min-w-0 items-center gap-1">
                 {i > 0 && (
-                  <span
-                    aria-hidden="true"
-                    className={variant === 'overlay' ? 'shrink-0 text-white/30' : 'shrink-0 text-neutral-300'}
-                  >
+                  <span aria-hidden="true" className="shrink-0 text-neutral-300">
                     /
                   </span>
                 )}
                 {isLast ? (
-                  <span className={variant === 'overlay' ? 'truncate text-white' : 'truncate text-fg'} aria-current="page">
+                  <span className="truncate text-fg" aria-current="page">
                     {crumb.label}
                   </span>
                 ) : (
                   <Link
                     href={crumb.href}
-                    className={
-                      variant === 'overlay'
-                        ? 'max-w-[6rem] shrink-0 truncate text-white/70 transition-colors hover:text-white hover:underline sm:max-w-[10rem]'
-                        : 'max-w-[6rem] shrink-0 truncate transition-colors hover:text-brand-600 hover:underline sm:max-w-[10rem]'
-                    }
+                    className="max-w-[6rem] shrink-0 truncate transition-colors hover:text-brand-600 hover:underline sm:max-w-[10rem]"
                   >
                     {crumb.label}
                   </Link>
@@ -95,7 +68,7 @@ export default function PageHeader({
           })}
         </nav>
         <div className="flex w-full items-center gap-2">
-          {back && <BackButton fallback={back} tone={variant === 'overlay' ? 'inverse' : undefined} />}
+          {back && <BackButton fallback={back} />}
           <h1 className="text-xl font-bold">{title}</h1>
           {right && <div className="ml-auto flex items-center gap-2">{right}</div>}
         </div>

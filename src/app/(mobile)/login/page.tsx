@@ -20,8 +20,9 @@ const ROLES: {
 // 밝은 브랜드 틴트 패널 문법으로 통일했다 — 고객 표면 전체가 "한 회사 제품"으로 읽히도록
 // 리듬을 공유한다(원칙 4). 캐릭터는 인사 포즈(ajeossi-hero.webp)를 재사용 — "환영합니다"
 // 문구와 자연스럽게 짝이 맞고, 랜딩 히어로와는 화면 맥락이 달라 반복감이 없다.
-// PageHeader는 기존 'default'/'overlay' 두 variant 중 이미 존재하는 'default'로 전환만 했다
-// (신규 variant 추가 아님 — 1a-6 소유권 규칙과 무관, PageHeader.tsx 자체는 무편집).
+// PageHeader는 당시 이미 존재하던 'default' variant로 전환만 했다(신규 variant 추가 아님).
+// 'overlay' variant는 이 화면이 마지막 소비처였고, 이후 정리 커밋(#12)에서 PageHeader.tsx에서
+// 완전히 제거됐다 — 지금 PageHeader는 variant prop 자체가 없다.
 export default function LoginHubPage() {
   return (
     <main className="min-h-screen">
