@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import PageHeader from '@/components/PageHeader';
 import { usePolling } from '@/components/usePolling';
 import { buttonClasses } from '@/components/Button';
@@ -80,24 +79,13 @@ export default function PartnerHomePage() {
       />
 
       <div className="mx-auto w-full max-w-5xl space-y-6 p-4 md:space-y-8 md:py-8">
-        {/* 배너 밴드 — banner-partner.webp(banner-partner.png 변환, 블루아워 밴 플릿).
-            21:9 광각이라 h-28~h-36에서도 옆으로 넓게 보이며, 우측 텍스트+좌측 그라데이션은
-            tech 배너와 동일한 절제 원칙을 공유한다. */}
-        <div className="relative -mx-4 h-28 w-[calc(100%+2rem)] overflow-hidden rounded-b-2xl md:mx-0 md:h-36 md:w-full md:rounded-3xl">
-          <Image
-            src="/images/banner-partner.webp"
-            alt=""
-            fill
-            sizes="(min-width: 768px) 64rem, 100vw"
-            style={{ objectFit: 'cover' }}
-            preload={true}
-          />
-          <div className="absolute inset-0 bg-gradient-to-l from-brand-950/90 via-brand-950/35 to-transparent" />
-          <div className="absolute inset-0 flex items-center justify-end px-5 text-right md:px-8">
-            <p className="text-sm font-bold text-white md:text-lg">
-              이번 주도 순조로운 배정 되세요
-            </p>
-          </div>
+        {/* 배너 밴드 — 사진 배너(banner-partner.webp)를 절제된 플랫 틴트 밴드로 교체
+            (모노크롬 프로 "장식 제거" 원칙, P3G 후속). 인사 카피는 그대로 유지, tech 배너와
+            동일한 문법을 공유한다. */}
+        <div className="-mx-4 flex h-28 w-[calc(100%+2rem)] items-center justify-end rounded-b-2xl bg-brand-50 px-5 text-right md:mx-0 md:h-36 md:w-full md:rounded-3xl md:px-8">
+          <p className="text-sm font-bold text-brand-900 md:text-lg">
+            이번 주도 순조로운 배정 되세요
+          </p>
         </div>
 
         <PortalHeadline stats={statsData ?? null} commission={commissionData ?? null} />
