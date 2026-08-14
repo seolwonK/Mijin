@@ -117,22 +117,22 @@ test.describe('매트릭스 완전성 (전수의 유일한 증명)', () => {
     expect(dupes).toEqual([]);
   });
 
-  test('④ 71 핸들러 = 공개 13 + 가드 58', () => {
+  test('④ 75 핸들러 = 공개 13 + 가드 62', () => {
     const actual = actualHandlers();
-    expect(actual.length, '61개 route.ts 파일이 71개 핸들러를 export 해야 한다').toBe(71);
-    expect(ROUTES.length).toBe(71);
+    expect(actual.length, '64개 route.ts 파일이 75개 핸들러를 export 해야 한다').toBe(75);
+    expect(ROUTES.length).toBe(75);
     expect(PUBLIC_ROUTES.length, '설계상 공개 핸들러').toBe(13);
-    expect(GUARDED_ROUTES.length, '401 을 단언해야 하는 가드 핸들러').toBe(58);
+    expect(GUARDED_ROUTES.length, '401 을 단언해야 하는 가드 핸들러').toBe(62);
   });
 
-  test('⑤ 2메서드 라우트 10개가 두 메서드 모두 표에 있다', () => {
+  test('⑤ 2메서드 라우트 11개가 두 메서드 모두 표에 있다', () => {
     const byPath = new Map<string, Set<string>>();
     for (const h of actualHandlers()) {
       if (!byPath.has(h.path)) byPath.set(h.path, new Set());
       byPath.get(h.path)!.add(h.method);
     }
     const multi = [...byPath.entries()].filter(([, methods]) => methods.size > 1);
-    expect(multi.length, '2개 이상 메서드를 export 하는 라우트 수').toBe(10);
+    expect(multi.length, '2개 이상 메서드를 export 하는 라우트 수').toBe(11);
 
     const tabled = new Set(ROUTES.map((r) => routeKey(r.path, r.method)));
     const missingSecond = multi.flatMap(([path, methods]) =>

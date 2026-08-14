@@ -409,6 +409,41 @@ export const GATES: Record<string, HandlerGates> = {
     ],
   },
 
+  'POST /api/admin/eggs': {
+    file: 'src/app/api/admin/eggs/route.ts',
+    note:
+      '알 크레딧 충전(charge)·정정(adjust). charge 는 chargeKey @unique 멱등 — 중복 제출은 ' +
+      '4xx 가 아니라 200 { result: "ALREADY_CHARGED" } 로 흡수된다(더블서브밋 방어).',
+    gates: [
+      { order: 1, status: 400, line: 44, kind: 'body-parse', message: '잘못된 요청입니다', reach: 'JSON 이 아닌 본문' },
+      {
+        order: 2,
+        status: 400,
+        line: 48,
+        kind: 'schema',
+        message: null,
+        reach: 'zod 위반(kind·id·action·memo, charge 시 count≥3+chargeKey, adjust 시 delta≠0). message 는 첫 issue 문구',
+      },
+      { order: 3, status: 404, line: 54, kind: 'state', message: '대상을 찾을 수 없습니다', reach: 'kind+id 로 업체/전기기사 조회 실패' },
+      {
+        order: 4,
+        status: 409,
+        line: 75,
+        kind: 'conflict',
+        message: '정정 결과 잔액이 음수가 될 수 없습니다',
+        reach: 'adjust 감액분이 현재 잔액 초과 (eggs.ts 가 DB 조건으로 차단 후 throw)',
+      },
+    ],
+  },
+
+  'GET /api/admin/eggs': {
+    file: 'src/app/api/admin/eggs/route.ts',
+    gates: [
+      { order: 1, status: 400, line: 99, kind: 'schema', message: null, reach: 'kind/id 쿼리 zod 위반. message 는 첫 issue 문구' },
+      { order: 2, status: 404, line: 105, kind: 'state', message: '대상을 찾을 수 없습니다', reach: 'kind+id 조회 실패' },
+    ],
+  },
+
   'POST /api/admin/commissions/pay': {
     file: 'src/app/api/admin/commissions/pay/route.ts',
     gates: [
@@ -722,6 +757,13 @@ export const GATES: Record<string, HandlerGates> = {
     ],
   },
 
+  'GET /api/tech/eggs': {
+    file: 'src/app/api/tech/eggs/route.ts',
+    gates: [
+      { order: 1, status: 404, line: 14, kind: 'state', message: '프로필을 찾을 수 없습니다', reach: '세션 technicianId 의 프로필 행이 없는 경우(실무상 희귀)' },
+    ],
+  },
+
   'GET /api/tech/jobs/[id]': {
     file: 'src/app/api/tech/jobs/[id]/route.ts',
     gates: [
@@ -983,6 +1025,13 @@ export const GATES: Record<string, HandlerGates> = {
   'GET /api/partner/jobs/[id]': {
     file: 'src/app/api/partner/jobs/[id]/route.ts',
     gates: [{ order: 1, status: 404, line: 20, kind: 'state', message: '배정 건을 찾을 수 없습니다', reach: '배정 없음 또는 남의 배정' }],
+  },
+
+  'GET /api/partner/eggs': {
+    file: 'src/app/api/partner/eggs/route.ts',
+    gates: [
+      { order: 1, status: 404, line: 14, kind: 'state', message: '프로필을 찾을 수 없습니다', reach: '세션 providerId 의 프로필 행이 없는 경우(실무상 희귀)' },
+    ],
   },
 
   'GET /api/partner/profile': {

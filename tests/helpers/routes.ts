@@ -1,8 +1,8 @@
 // ───────────────────────────────────────────────────────────────────────────
 // API 라우트 매트릭스 — 단일 진실 원천.
 //
-// 61개 route.ts 파일이 71개 핸들러를 export 한다 (10개 라우트가 2개 메서드).
-// 그중 13개가 설계상 공개이고, 나머지 **58개가 가드 대상**이다.
+// 64개 route.ts 파일이 75개 핸들러를 export 한다 (11개 라우트가 2개 메서드).
+// 그중 13개가 설계상 공개이고, 나머지 **62개가 가드 대상**이다.
 //
 // 이 표를 손으로 유지하지 않는다: tests/cross/matrix-completeness.spec.ts 가
 // src/app/api/** 를 걸어 실제 export 와 대조하므로, 라우트가 추가·삭제되면
@@ -54,7 +54,7 @@ const open = (path: string, method: HttpMethod, note: string): RouteEntry => ({
 });
 
 export const ROUTES: RouteEntry[] = [
-  // ── 관리자 (36 핸들러, 전부 ADMIN 세션 필요) ──────────────────────────
+  // ── 관리자 (38 핸들러, 전부 ADMIN 세션 필요) ──────────────────────────
   admin('/api/admin/analytics/dashboard', 'GET'),
   admin('/api/admin/analytics/map/dispatch', 'GET'),
   admin('/api/admin/analytics/map/regions', 'GET'),
@@ -64,6 +64,8 @@ export const ROUTES: RouteEntry[] = [
   admin('/api/admin/analytics/surveys', 'GET'),
   admin('/api/admin/commissions', 'GET'),
   admin('/api/admin/commissions/pay', 'POST'),
+  admin('/api/admin/eggs', 'GET'),
+  admin('/api/admin/eggs', 'POST'),
   admin('/api/admin/geocode', 'GET'),
   admin('/api/admin/providers', 'GET'),
   admin('/api/admin/providers', 'POST'),
@@ -92,10 +94,11 @@ export const ROUTES: RouteEntry[] = [
   admin('/api/admin/technicians/[id]/contract', 'PUT'),
   admin('/api/admin/technicians/[id]/reject', 'POST'),
 
-  // ── 전기기사 (11 핸들러, TECHNICIAN 세션 필요) ─────────────────────────
+  // ── 전기기사 (12 핸들러, TECHNICIAN 세션 필요) ─────────────────────────
   tech('/api/tech/commissions', 'GET'),
   tech('/api/tech/contract', 'GET'),
   tech('/api/tech/contract', 'PUT'),
+  tech('/api/tech/eggs', 'GET'),
   tech('/api/tech/jobs', 'GET'),
   tech('/api/tech/jobs/[id]', 'GET'),
   tech('/api/tech/jobs/[id]/accept', 'POST'),
@@ -105,8 +108,9 @@ export const ROUTES: RouteEntry[] = [
   tech('/api/tech/reviews', 'GET'),
   tech('/api/tech/stats', 'GET'),
 
-  // ── 업체 (11 핸들러, PROVIDER 세션 필요) ─────────────────────────────
+  // ── 업체 (12 핸들러, PROVIDER 세션 필요) ─────────────────────────────
   partner('/api/partner/commissions', 'GET'),
+  partner('/api/partner/eggs', 'GET'),
   partner('/api/partner/jobs', 'GET'),
   partner('/api/partner/jobs/[id]', 'GET'),
   partner('/api/partner/jobs/[id]/accept', 'POST'),
@@ -134,7 +138,7 @@ export const ROUTES: RouteEntry[] = [
   open('/api/tech/signup', 'POST', '전기기사 셀프 가입 — 즉시 APPROVED(signup:176)'),
 ];
 
-/** 무세션 401 을 단언해야 하는 핸들러 (71 − 공개 13 = 58). */
+/** 무세션 401 을 단언해야 하는 핸들러 (75 − 공개 13 = 62). */
 export const GUARDED_ROUTES = ROUTES.filter((r) => !r.isPublic);
 
 /** 설계상 공개인 핸들러 — 401 오탐 방지용으로 명시 보관한다. */
