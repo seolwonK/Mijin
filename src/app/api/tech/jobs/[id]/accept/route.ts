@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { requireSession } from '@/lib/auth';
+import { spendEggOnAccept } from '@/lib/eggs';
 
 export async function POST(
   _req: NextRequest,
@@ -32,5 +33,10 @@ export async function POST(
     where: { id: a.requestId, status: 'ASSIGNED' },
     data: { status: 'ACCEPTED' },
   });
+  // 알 차감(잔액≥1이면 -1, 멱등) — 실패는 응답에 전파하지 않는다: 이미 수락된 건이
+  // 트랜지언트 오류로 500→재시도 409를 받는 모순 방지. 복구는 로그+무결성 스크립트 (iii).
+  await spendEggOnAccept({ kind: 'TECHNICIAN', id: session.technicianId }, id).catch((e) =>
+    console.error('[eggs] spend failed after accept', id, e),
+  );
   return NextResponse.json({ ok: true });
 }
