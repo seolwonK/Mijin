@@ -23,11 +23,31 @@ export type Candidate = {
   reviewCount: number;
 };
 
-// 승인(APPROVED)된 활성 업체·전기기사를 정렬해 반환.
 // 정렬 순서: ①거절이력 없음 ②지역 커버 ③(non-CRITICAL) 30일 배정 횟수(수락+거절) asc
-// ④(non-CRITICAL) 평균 별점 desc ⑤거리 asc ⑥안정 키(`kind:id`) asc.
-// urgency는 필수 필드 — 관리자 후보 route처럼 select 누락 시 CRITICAL 오정렬이
-// 런타임이 아닌 컴파일 에러로 잡히도록 한다.
+// ④(non-CRITICAL) 평균 별점 desc ⑤거리 asc(null 후순위) ⑥안정 키(`kind:id`) asc.
+// urgency로 커링해 CRITICAL 여부에 따라 ③④를 건너뛴다.
+export function compareCandidates(
+  urgency: Urgency,
+): (a: Candidate, b: Candidate) => number {
+  return (a, b) => {
+    if (a.rejectedThisRequest !== b.rejectedThisRequest) return a.rejectedThisRequest ? 1 : -1; // ① 현행
+    if (a.coversRegion !== b.coversRegion) return a.coversRegion ? -1 : 1;                      // ② 현행
+    if (urgency !== 'CRITICAL') {
+      if (a.assigned30d !== b.assigned30d) return a.assigned30d - b.assigned30d;                 // ③ 순환
+      if (a.avgRating !== b.avgRating) return b.avgRating - a.avgRating;                         // ④ 리뷰
+    }
+    if (a.distanceKm != null || b.distanceKm != null) {                                          // ⑤ 거리 — 현행 null 규칙
+      if (a.distanceKm == null) return 1;
+      if (b.distanceKm == null) return -1;
+      if (a.distanceKm !== b.distanceKm) return a.distanceKm - b.distanceKm;
+    }
+    return a.key < b.key ? -1 : a.key > b.key ? 1 : 0;                                            // ⑥ 안정 키 (localeCompare 금지 — 로케일 의존 결정성 훼손)
+  };
+}
+
+// 승인(APPROVED)된 활성 업체·전기기사를 정렬해 반환.
+// 정렬 순서는 compareCandidates 참조(urgency는 필수 필드 — 관리자 후보 route처럼
+// select 누락 시 CRITICAL 오정렬이 런타임이 아닌 컴파일 에러로 잡히도록 한다).
 // opts.withStats: CRITICAL 접수에서도 표시용 통계가 필요한 호출부(관리자 후보 목록)용.
 // CRITICAL이면서 withStats가 없으면 getRankingStats 자체를 생략(집계 비용 0).
 export async function getCandidates(
@@ -115,19 +135,6 @@ export async function getCandidates(
     })),
   ];
 
-  candidates.sort((a, b) => {
-    if (a.rejectedThisRequest !== b.rejectedThisRequest) return a.rejectedThisRequest ? 1 : -1; // ① 현행
-    if (a.coversRegion !== b.coversRegion) return a.coversRegion ? -1 : 1;                      // ② 현행
-    if (request.urgency !== 'CRITICAL') {
-      if (a.assigned30d !== b.assigned30d) return a.assigned30d - b.assigned30d;                 // ③ 순환
-      if (a.avgRating !== b.avgRating) return b.avgRating - a.avgRating;                         // ④ 리뷰
-    }
-    if (a.distanceKm != null || b.distanceKm != null) {                                          // ⑤ 거리 — 현행 null 규칙
-      if (a.distanceKm == null) return 1;
-      if (b.distanceKm == null) return -1;
-      if (a.distanceKm !== b.distanceKm) return a.distanceKm - b.distanceKm;
-    }
-    return a.key < b.key ? -1 : a.key > b.key ? 1 : 0;                                            // ⑥ 안정 키 (localeCompare 금지 — 로케일 의존 결정성 훼손)
-  });
+  candidates.sort(compareCandidates(request.urgency));
   return candidates;
 }
