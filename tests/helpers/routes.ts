@@ -1,8 +1,8 @@
 // ───────────────────────────────────────────────────────────────────────────
 // API 라우트 매트릭스 — 단일 진실 원천.
 //
-// 64개 route.ts 파일이 75개 핸들러를 export 한다 (11개 라우트가 2개 메서드).
-// 그중 13개가 설계상 공개이고, 나머지 **62개가 가드 대상**이다.
+// 66개 route.ts 파일이 77개 핸들러를 export 한다 (11개 라우트가 2개 메서드).
+// 그중 14개가 설계상 공개이고, 나머지 **63개가 가드 대상**이다.
 //
 // 이 표를 손으로 유지하지 않는다: tests/cross/matrix-completeness.spec.ts 가
 // src/app/api/** 를 걸어 실제 export 와 대조하므로, 라우트가 추가·삭제되면
@@ -73,6 +73,7 @@ export const ROUTES: RouteEntry[] = [
   admin('/api/admin/providers/[id]', 'PATCH'),
   admin('/api/admin/providers/[id]/approve', 'POST'),
   admin('/api/admin/providers/[id]/cert', 'GET'),
+  admin('/api/admin/providers/[id]/elec-cert', 'GET'),
   admin('/api/admin/providers/[id]/reject', 'POST'),
   admin('/api/admin/requests', 'GET'),
   admin('/api/admin/requests/[id]', 'GET'),
@@ -122,7 +123,8 @@ export const ROUTES: RouteEntry[] = [
   partner('/api/partner/reviews', 'GET'),
   partner('/api/partner/stats', 'GET'),
 
-  // ── 공개 13 핸들러 — 401 단언에서 제외한다 ───────────────────────────
+  // ── 공개 14 핸들러 — 401 단언에서 제외한다 ───────────────────────────
+  open('/api/auth/check-login-id', 'GET', '아이디 중복 확인 — 가입 폼에서 호출'),
   open('/api/auth/login', 'POST', '로그인 자체 — 세션을 만드는 입구'),
   open('/api/auth/logout', 'POST', '로그아웃 — 세션 없이 호출해도 무해'),
   open('/api/geo/reverse', 'GET', '역지오코딩 — 접수 화면(무세션)에서 호출'),
@@ -138,7 +140,7 @@ export const ROUTES: RouteEntry[] = [
   open('/api/tech/signup', 'POST', '전기기사 셀프 가입 — 즉시 APPROVED(signup:176)'),
 ];
 
-/** 무세션 401 을 단언해야 하는 핸들러 (75 − 공개 13 = 62). */
+/** 무세션 401 을 단언해야 하는 핸들러 (77 − 공개 14 = 63). */
 export const GUARDED_ROUTES = ROUTES.filter((r) => !r.isPublic);
 
 /** 설계상 공개인 핸들러 — 401 오탐 방지용으로 명시 보관한다. */

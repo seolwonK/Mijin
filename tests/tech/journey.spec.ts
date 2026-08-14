@@ -39,7 +39,11 @@ test('가입 → 로그인 → 계약 서명 → 수락 → 출동 → 완료', 
   // ── ① 가입 (휴대폰 본인인증 → 즉시 APPROVED + 자동 로그인) ───────────────
   await page.goto('/tech/signup');
   await page.locator('#tech-loginId').fill(loginId);
+  // 아이디 중복 확인이 통과돼야 제출이 허용된다
+  await page.getByRole('button', { name: '중복 확인' }).click();
+  await expect(page.getByText('사용할 수 있는 아이디입니다')).toBeVisible();
   await page.locator('#tech-password').fill(password);
+  await page.locator('#tech-password-confirm').fill(password);
   // exact:true 가 필수다 — ReferrerField 의 '추천인 전화번호'(:104)가 부분일치로 함께 잡힌다.
   await page.getByLabel('성명', { exact: true }).fill(name);
   await page.getByLabel('전화번호', { exact: true }).fill(phone);

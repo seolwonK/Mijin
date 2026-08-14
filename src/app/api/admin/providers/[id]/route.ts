@@ -76,6 +76,7 @@ export async function GET(
     approvalStatus: p.approvalStatus,
     bizRegNo: p.bizRegNo,
     hasCert: !!(p.bizCertFileId || p.bizCertPath),
+    hasElecCert: !!p.elecCertFileId,
     appliedAt: p.appliedAt,
     rejectReason: p.rejectReason,
     referredBy: p.referredBy

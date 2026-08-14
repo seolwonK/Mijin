@@ -43,7 +43,11 @@ test('가입 → 승인대기 → 관리자 승인 → 로그인 → 수락 → 
   // ── 1. 가입 신청 ─────────────────────────────────────────────────────────
   await page.goto('/partner/signup');
   await page.getByLabel('로그인 아이디').fill(fields.loginId);
+  // 아이디 중복 확인이 통과돼야 제출이 허용된다
+  await page.getByRole('button', { name: '중복 확인' }).click();
+  await expect(page.getByText('사용할 수 있는 아이디입니다')).toBeVisible();
   await page.getByLabel('비밀번호', { exact: true }).fill(fields.password);
+  await page.getByLabel('비밀번호 확인', { exact: true }).fill(fields.password);
   await page.getByLabel('업체명').fill(fields.name);
   // exact 없이는 ReferrerField 의 '추천인 전화번호' 까지 걸린다.
   await page.getByLabel('전화번호', { exact: true }).fill(fields.phone);
@@ -58,14 +62,19 @@ test('가입 → 승인대기 → 관리자 승인 → 로그인 → 수락 → 
   await page.getByLabel('상세 주소').fill('테헤란로 152');
 
   await page.getByLabel('사업자등록번호').fill(fields.bizRegNo);
-  await page.locator('input[type=file]').setInputFiles({ ...CERT_UPLOAD });
+  await page.getByLabel('사업자등록증 첨부').setInputFiles({ ...CERT_UPLOAD });
+  await page
+    .getByLabel('전기공사업 등록증 첨부')
+    .setInputFiles({ ...CERT_UPLOAD, name: 'elec-cert.png' });
   await page.getByRole('checkbox').check();
 
   await page.getByRole('button', { name: '가입 신청하기' }).click();
 
   // ── 2. 승인대기 화면 ─────────────────────────────────────────────────────
   await expect(page.getByRole('heading', { name: '가입 신청이 접수되었습니다' })).toBeVisible();
-  await expect(page.getByText('관리자가 사업자등록증을 확인한 뒤 승인합니다.')).toBeVisible();
+  await expect(
+    page.getByText('관리자가 사업자등록증·전기공사업 등록증을 확인한 뒤 승인합니다.'),
+  ).toBeVisible();
   await expect(page.getByRole('link', { name: '로그인 화면으로' })).toBeVisible();
 
   const { providerId } = await trackSignedUpPartner(prisma, f, fields.loginId);

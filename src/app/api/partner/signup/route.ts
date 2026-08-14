@@ -7,7 +7,8 @@ import { isValidBizRegNo, normalizeBizRegNo } from '@/lib/bizRegNo';
 import { sanitizeRegionKeys } from '@/lib/regions';
 
 // 업체 셀프 가입 신청. PENDING 상태로 생성되며 관리자 승인 후 이용 가능.
-// multipart/form-data: 텍스트 필드 + bizCert(사업자등록증 이미지/PDF)
+// multipart/form-data: 텍스트 필드 + bizCert(사업자등록증) + elecCert(전기공사업 등록증)
+// — 전기공사업법 제3조상 등록업체만 전기공사를 도급받을 수 있어 두 증빙 모두 필수.
 
 const MAX_FILE_BYTES = 8 * 1024 * 1024; // 8MB
 const ALLOWED_TYPES: Record<string, string> = {
@@ -109,6 +110,26 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  const elecFile = form.get('elecCert');
+  if (!(elecFile instanceof File) || elecFile.size === 0) {
+    return NextResponse.json(
+      { error: '전기공사업 등록증 사진을 첨부해 주세요' },
+      { status: 400 },
+    );
+  }
+  if (elecFile.size > MAX_FILE_BYTES) {
+    return NextResponse.json(
+      { error: '전기공사업 등록증 파일이 너무 큽니다 (8MB 이하)' },
+      { status: 400 },
+    );
+  }
+  if (!ALLOWED_TYPES[elecFile.type]) {
+    return NextResponse.json(
+      { error: '전기공사업 등록증은 이미지(JPG/PNG/WEBP/HEIC) 또는 PDF만 첨부할 수 있습니다' },
+      { status: 400 },
+    );
+  }
+
   const [dupLogin, dupBiz] = await Promise.all([
     prisma.user.findUnique({ where: { loginId: data.loginId }, select: { id: true } }),
     prisma.provider.findUnique({ where: { bizRegNo }, select: { id: true } }),
@@ -190,21 +211,31 @@ export async function POST(req: NextRequest) {
   });
   const providerId = user.provider!.id;
 
+  const storedFileIds: string[] = [];
   try {
     // 컨테이너 파일시스템은 재배포 시 초기화되므로 DB(StoredFile)에 저장
     const stored = await prisma.storedFile.create({
       data: { mime: file.type, data: new Uint8Array(await file.arrayBuffer()) },
       select: { id: true },
     });
+    storedFileIds.push(stored.id);
+    const elecStored = await prisma.storedFile.create({
+      data: { mime: elecFile.type, data: new Uint8Array(await elecFile.arrayBuffer()) },
+      select: { id: true },
+    });
+    storedFileIds.push(elecStored.id);
     await prisma.provider.update({
       where: { id: providerId },
-      data: { bizCertFileId: stored.id },
+      data: { bizCertFileId: stored.id, elecCertFileId: elecStored.id },
     });
   } catch (e) {
     // 파일 저장 실패 시 신청 자체를 롤백 (증빙 없는 신청 방지)
     await prisma.provider.delete({ where: { id: providerId } });
     await prisma.user.delete({ where: { id: user.id } });
-    console.error('[signup] 사업자등록증 저장 실패', e);
+    await prisma.storedFile
+      .deleteMany({ where: { id: { in: storedFileIds } } })
+      .catch(() => {});
+    console.error('[signup] 증빙 파일 저장 실패', e);
     return NextResponse.json(
       { error: '파일 저장에 실패했습니다. 다시 시도해 주세요.' },
       { status: 500 },

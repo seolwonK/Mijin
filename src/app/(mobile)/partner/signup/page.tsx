@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import PageHeader from '@/components/PageHeader';
+import LoginIdCheckField from '@/components/LoginIdCheckField';
 import PasswordInput from '@/components/PasswordInput';
 import Surface from '@/components/Surface';
 import { buttonClasses } from '@/components/Button';
@@ -17,7 +18,9 @@ const inputClass =
 
 export default function PartnerSignupPage() {
   const [loginId, setLoginId] = useState('');
+  const [idAvailable, setIdAvailable] = useState(false);
   const [password, setPassword] = useState('');
+  const [passwordConfirm, setPasswordConfirm] = useState('');
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [region, setRegion] = useState<RegionValue>({ sido: '', sigungu: '' });
@@ -25,6 +28,7 @@ export default function PartnerSignupPage() {
   const [regions, setRegions] = useState<string[]>([]);
   const [bizRegNo, setBizRegNo] = useState('');
   const [file, setFile] = useState<File | null>(null);
+  const [elecFile, setElecFile] = useState<File | null>(null);
   const [referrer, setReferrer] = useState<ReferrerSelection | null>(null);
   const [agreed, setAgreed] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -42,9 +46,12 @@ export default function PartnerSignupPage() {
     e.preventDefault();
     setError(null);
     if (loginId.trim().length < 3) return setError('로그인 아이디를 3자 이상 입력해 주세요');
+    if (!idAvailable) return setError('아이디 중복 확인을 해 주세요');
     if (password.length < 8) return setError('비밀번호를 8자 이상 입력해 주세요');
+    if (password !== passwordConfirm) return setError('비밀번호가 일치하지 않습니다');
     if (!regionComplete) return setError('사업장 지역을 선택해 주세요');
     if (!file) return setError('사업자등록증 사진을 첨부해 주세요');
+    if (!elecFile) return setError('전기공사업 등록증 사진을 첨부해 주세요');
     if (!agreed) return setError('개인정보 수집·이용에 동의해 주세요');
 
     setBusy(true);
@@ -58,6 +65,7 @@ export default function PartnerSignupPage() {
       form.set('regions', JSON.stringify(regions));
       form.set('bizRegNo', bizRegNo);
       form.set('bizCert', file);
+      form.set('elecCert', elecFile);
       if (referrer) form.set('referrerUserId', referrer.userId);
       const res = await fetch('/api/partner/signup', { method: 'POST', body: form });
       const data = await res.json();
@@ -85,7 +93,7 @@ export default function PartnerSignupPage() {
           </div>
           <h1 className="text-2xl font-bold">가입 신청이 접수되었습니다</h1>
           <p className="text-muted">
-            관리자가 사업자등록증을 확인한 뒤 승인합니다.
+            관리자가 사업자등록증·전기공사업 등록증을 확인한 뒤 승인합니다.
             <br />
             승인 후 로그인할 수 있으며, 승인 여부는
             <br />
@@ -112,13 +120,10 @@ export default function PartnerSignupPage() {
       >
         <Surface as="section" className="space-y-2 rounded-2xl p-4 md:p-6">
           <h2 className="text-sm font-semibold">계정 정보</h2>
-          <input
-            type="text"
+          <LoginIdCheckField
             value={loginId}
-            onChange={(e) => setLoginId(e.target.value)}
-            aria-label="로그인 아이디"
-            placeholder="로그인 아이디 (3자 이상)"
-            autoComplete="username"
+            onChange={setLoginId}
+            onAvailabilityChange={setIdAvailable}
             className={inputClass}
           />
           <PasswordInput
@@ -127,6 +132,16 @@ export default function PartnerSignupPage() {
             placeholder="비밀번호 (8자 이상)"
             className={inputClass}
           />
+          <PasswordInput
+            value={passwordConfirm}
+            onChange={setPasswordConfirm}
+            placeholder="비밀번호 확인 (다시 입력)"
+            ariaLabel="비밀번호 확인"
+            className={inputClass}
+          />
+          {passwordConfirm && password !== passwordConfirm && (
+            <p className="text-sm font-medium text-red-600">비밀번호가 일치하지 않습니다</p>
+          )}
         </Surface>
 
         <Surface as="section" className="space-y-2 rounded-2xl p-4 md:p-6">
@@ -197,12 +212,35 @@ export default function PartnerSignupPage() {
             <input
               type="file"
               accept="image/*,application/pdf"
+              aria-label="사업자등록증 첨부"
               className="hidden"
               onChange={(e) => setFile(e.target.files?.[0] ?? null)}
             />
           </label>
+          <label
+            className={`flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl border p-3 text-base font-medium ${
+              elecFile
+                ? 'border-green-300 bg-green-50 text-green-700'
+                : 'border-brand-300 bg-brand-50 text-brand-700'
+            }`}
+          >
+            {elecFile ? (
+              <CheckIcon className="h-4 w-4 shrink-0" />
+            ) : (
+              <ClipboardIcon className="h-4 w-4 shrink-0" />
+            )}
+            {elecFile ? elecFile.name : '전기공사업 등록증 사진 첨부'}
+            <input
+              type="file"
+              accept="image/*,application/pdf"
+              aria-label="전기공사업 등록증 첨부"
+              className="hidden"
+              onChange={(e) => setElecFile(e.target.files?.[0] ?? null)}
+            />
+          </label>
           <p className="text-xs text-muted">
-            JPG/PNG/PDF, 8MB 이하. 관리자 확인 용도로만 사용됩니다.
+            JPG/PNG/PDF, 각 8MB 이하. 전기공사업법상 등록업체만 전기공사를 도급받을
+            수 있어 두 증빙 모두 필요하며, 관리자 확인 용도로만 사용됩니다.
           </p>
         </Surface>
 
@@ -222,8 +260,8 @@ export default function PartnerSignupPage() {
             className="mt-0.5 h-4 w-4 accent-brand-600"
           />
           <span>
-            가입 심사를 위한 개인정보(사업자등록증, 연락처) 수집·이용에 동의합니다.
-            수집된 증빙은 심사 목적 외에 사용되지 않습니다.
+            가입 심사를 위한 개인정보(사업자등록증, 전기공사업 등록증, 연락처)
+            수집·이용에 동의합니다. 수집된 증빙은 심사 목적 외에 사용되지 않습니다.
           </span>
         </label>
 

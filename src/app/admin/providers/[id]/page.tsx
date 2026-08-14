@@ -21,6 +21,7 @@ type ProviderDetail = {
   approvalStatus: 'PENDING' | 'APPROVED' | 'REJECTED';
   bizRegNo: string | null;
   hasCert: boolean;
+  hasElecCert: boolean;
   appliedAt: string;
   rejectReason: string | null;
   referredBy: { userId: string; name: string; type: '업체' | '전기기사' } | null;
@@ -226,6 +227,28 @@ export default function EditProviderPage({
         ) : (
           <p className="rounded-admin-md bg-neutral-50 p-3 text-sm text-neutral-400">
             첨부된 사업자등록증이 없습니다 (관리자 직접 등록 업체)
+          </p>
+        )}
+        {detail.hasElecCert ? (
+          <div className="overflow-hidden rounded-admin-md border border-border">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={`/api/admin/providers/${id}/elec-cert`}
+              alt="전기공사업 등록증"
+              className="max-h-96 w-full object-contain"
+            />
+            <a
+              href={`/api/admin/providers/${id}/elec-cert`}
+              target="_blank"
+              rel="noreferrer"
+              className="block border-t border-neutral-100 p-2 text-center text-sm text-admin-cyan-ink underline"
+            >
+              전기공사업 등록증 크게 보기
+            </a>
+          </div>
+        ) : (
+          <p className="rounded-admin-md bg-neutral-50 p-3 text-sm text-neutral-400">
+            첨부된 전기공사업 등록증이 없습니다 (필수 첨부 도입 전 가입 업체)
           </p>
         )}
 

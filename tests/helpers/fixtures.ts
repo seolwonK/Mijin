@@ -77,7 +77,7 @@ export async function sweepEphemeral(prisma: PrismaClient): Promise<SweepResult>
     where: loginFilter,
     select: {
       id: true,
-      provider: { select: { id: true, bizCertFileId: true } },
+      provider: { select: { id: true, bizCertFileId: true, elecCertFileId: true } },
       technician: { select: { id: true } },
     },
   });
@@ -91,6 +91,7 @@ export async function sweepEphemeral(prisma: PrismaClient): Promise<SweepResult>
   const fileIds = [
     ...requests.flatMap((r) => (r.voiceFileId ? [r.voiceFileId] : [])),
     ...users.flatMap((u) => (u.provider?.bizCertFileId ? [u.provider.bizCertFileId] : [])),
+    ...users.flatMap((u) => (u.provider?.elecCertFileId ? [u.provider.elecCertFileId] : [])),
   ];
 
   return deleteInFkOrder(prisma, {
@@ -486,7 +487,7 @@ export class FixtureFactory {
       const owned = await this.prisma.user.findMany({
         where: { id: { in: this.userIds } },
         select: {
-          provider: { select: { id: true, bizCertFileId: true } },
+          provider: { select: { id: true, bizCertFileId: true, elecCertFileId: true } },
           technician: { select: { id: true } },
         },
       });
@@ -495,6 +496,9 @@ export class FixtureFactory {
           if (!this.providerIds.includes(row.provider.id)) this.providerIds.push(row.provider.id);
           if (row.provider.bizCertFileId && !this.fileIds.includes(row.provider.bizCertFileId)) {
             this.fileIds.push(row.provider.bizCertFileId);
+          }
+          if (row.provider.elecCertFileId && !this.fileIds.includes(row.provider.elecCertFileId)) {
+            this.fileIds.push(row.provider.elecCertFileId);
           }
         }
         if (row.technician && !this.technicianIds.includes(row.technician.id)) {

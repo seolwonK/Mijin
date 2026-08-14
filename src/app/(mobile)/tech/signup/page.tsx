@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import PageHeader from '@/components/PageHeader';
+import LoginIdCheckField from '@/components/LoginIdCheckField';
 import PasswordInput from '@/components/PasswordInput';
 import { buttonClasses } from '@/components/Button';
 import RegionSelect, { type RegionValue } from '@/components/RegionSelect';
@@ -24,7 +25,9 @@ const EMPLOYMENT_OPTIONS: { value: EmploymentType; label: string; desc: string }
 
 export default function TechSignupPage() {
   const [loginId, setLoginId] = useState('');
+  const [idAvailable, setIdAvailable] = useState(false);
   const [password, setPassword] = useState('');
+  const [passwordConfirm, setPasswordConfirm] = useState('');
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [employmentType, setEmploymentType] = useState<EmploymentType | null>(null);
@@ -106,8 +109,11 @@ export default function TechSignupPage() {
     if (!verificationId) return fail('휴대폰 본인인증을 완료해 주세요');
     if (loginId.trim().length < 3)
       return fail('로그인 아이디를 3자 이상 입력해 주세요', 'tech-loginId');
+    if (!idAvailable) return fail('아이디 중복 확인을 해 주세요', 'tech-loginId');
     if (password.length < 8)
       return fail('비밀번호를 8자 이상 입력해 주세요', 'tech-password');
+    if (password !== passwordConfirm)
+      return fail('비밀번호가 일치하지 않습니다', 'tech-password-confirm');
     if (!employmentType) return fail('근로 형태를 선택해 주세요');
     if (!regionComplete) return fail('거주 지역을 선택해 주세요');
     if (!addrDetail.trim()) return fail('상세 주소를 입력해 주세요', 'tech-addr');
@@ -179,14 +185,11 @@ export default function TechSignupPage() {
       >
         <section className="space-y-2 md:rounded-2xl md:bg-white md:p-6 md:shadow-surface-sm">
           <h2 className="text-sm font-semibold">계정 정보</h2>
-          <input
-            type="text"
+          <LoginIdCheckField
             value={loginId}
-            onChange={(e) => setLoginId(e.target.value)}
+            onChange={setLoginId}
+            onAvailabilityChange={setIdAvailable}
             id="tech-loginId"
-            aria-label="로그인 아이디"
-            placeholder="로그인 아이디 (3자 이상)"
-            autoComplete="username"
             className={inputClass}
           />
           <PasswordInput
@@ -196,6 +199,17 @@ export default function TechSignupPage() {
             placeholder="비밀번호 (8자 이상)"
             className={inputClass}
           />
+          <PasswordInput
+            value={passwordConfirm}
+            onChange={setPasswordConfirm}
+            id="tech-password-confirm"
+            placeholder="비밀번호 확인 (다시 입력)"
+            ariaLabel="비밀번호 확인"
+            className={inputClass}
+          />
+          {passwordConfirm && password !== passwordConfirm && (
+            <p className="text-sm font-medium text-red-600">비밀번호가 일치하지 않습니다</p>
+          )}
         </section>
 
         <section className="space-y-3 md:rounded-2xl md:bg-white md:p-6 md:shadow-surface-sm">

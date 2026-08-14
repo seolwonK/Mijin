@@ -332,12 +332,12 @@ export const GATES: Record<string, HandlerGates> = {
     file: 'src/app/api/admin/providers/[id]/route.ts',
     note: 'technicians PATCH 와 동형. 자기추천은 `referrer.id === provider.userId` (userId 비교).',
     gates: [
-      { order: 1, status: 400, line: 106, kind: 'body-parse', message: '잘못된 요청입니다', reach: 'JSON 이 아닌 본문' },
-      { order: 2, status: 400, line: 112, kind: 'schema', message: null, reach: 'zod 위반' },
+      { order: 1, status: 400, line: 107, kind: 'body-parse', message: '잘못된 요청입니다', reach: 'JSON 이 아닌 본문' },
+      { order: 2, status: 400, line: 113, kind: 'schema', message: null, reach: 'zod 위반' },
       {
         order: 3,
         status: 404,
-        line: 119,
+        line: 120,
         kind: 'not-found',
         message: '업체를 찾을 수 없습니다',
         reach: '없는 업체 id + 유효한 본문',
@@ -346,7 +346,7 @@ export const GATES: Record<string, HandlerGates> = {
       {
         order: 4,
         status: 400,
-        line: 152,
+        line: 153,
         kind: 'state',
         message: '추천인을 찾을 수 없습니다',
         reach: 'referredByUserId 지정 + 미존재/미승인/비활성',
@@ -354,7 +354,7 @@ export const GATES: Record<string, HandlerGates> = {
       {
         order: 5,
         status: 400,
-        line: 157,
+        line: 158,
         kind: 'state',
         message: '본인을 추천인으로 지정할 수 없습니다',
         reach: '`referrer.id === provider.userId`',
@@ -612,6 +612,29 @@ export const GATES: Record<string, HandlerGates> = {
       },
       { order: 3, status: 400, line: 52, kind: 'state', message: '잘못된 경로입니다', reach: '레거시 bizCertPath 가 경로 검증 실패' },
       { order: 4, status: 404, line: 64, kind: 'state', message: '파일을 읽을 수 없습니다', reach: '레거시 경로의 fs 읽기 실패' },
+    ],
+  },
+
+  'GET /api/admin/providers/[id]/elec-cert': {
+    file: 'src/app/api/admin/providers/[id]/elec-cert/route.ts',
+    note: 'cert 와 동형이지만 **레거시 파일시스템 폴백이 없다** — DB(StoredFile)만 본다.',
+    gates: [
+      {
+        order: 1,
+        status: 404,
+        line: 20,
+        kind: 'not-found',
+        message: '첨부된 증빙이 없습니다',
+        reach: '업체가 없거나 elecCertFileId 없음 — **두 경우가 구별되지 않는다**',
+      },
+      {
+        order: 2,
+        status: 404,
+        line: 27,
+        kind: 'not-found',
+        message: '파일을 찾을 수 없습니다',
+        reach: 'elecCertFileId 는 있는데 StoredFile 행이 없음 (댕글링)',
+      },
     ],
   },
 
@@ -913,16 +936,17 @@ export const GATES: Record<string, HandlerGates> = {
   'POST /api/partner/signup': {
     file: 'src/app/api/partner/signup/route.ts',
     note:
-      '**multipart 전용이다.** JSON 을 보내면 req.formData() 가 throw 해서 :64 의 400 이 나온다. ' +
-      '⚠️ **사업자등록번호 검증(:88)이 파일 게이트 3개보다 앞선다** — bizCert 미첨부/용량/MIME 를 ' +
+      '**multipart 전용이다.** JSON 을 보내면 req.formData() 가 throw 해서 :65 의 400 이 나온다. ' +
+      '⚠️ **사업자등록번호 검증(:89)이 파일 게이트 6개보다 앞선다** — bizCert/elecCert 미첨부/용량/MIME 를 ' +
       '테스트하려면 bizRegNo 를 **검증번호까지 유효하게** 넣어야 한다. 아니면 체크섬 400 을 맞고 ' +
       '파일 게이트를 한 번도 실행하지 않은 채 초록이 된다. 중복 409 2개도 마찬가지로 ' +
-      '유효한 파일이 첨부돼야 도달한다.',
+      '유효한 파일 2개(bizCert·elecCert)가 첨부돼야 도달한다. elecCert 게이트 3개는 ' +
+      'bizCert 3개를 전부 통과해야 도달한다.',
     gates: [
       {
         order: 1,
         status: 429,
-        line: 56,
+        line: 57,
         kind: 'rate-limit',
         message: '신청이 너무 많습니다. 잠시 후 다시 시도해 주세요.',
         reach: '같은 IP 로 10분 내 6회째',
@@ -930,50 +954,67 @@ export const GATES: Record<string, HandlerGates> = {
       {
         order: 2,
         status: 400,
-        line: 64,
+        line: 65,
         kind: 'body-parse',
         message: '잘못된 요청입니다',
         reach: 'multipart 가 아닌 본문 — **JSON 을 보내면 여기다**',
       },
-      { order: 3, status: 400, line: 79, kind: 'schema', message: null, reach: 'fieldsSchema 위반' },
+      { order: 3, status: 400, line: 80, kind: 'schema', message: null, reach: 'fieldsSchema 위반' },
       {
         order: 4,
         status: 400,
-        line: 88,
+        line: 89,
         kind: 'state',
         message: '사업자등록번호가 올바르지 않습니다 (10자리 숫자, 검증번호 불일치)',
         reach: '체크섬 불일치. admin POST 와 달리 **조건 없이 항상** 검사한다',
-        trap: '아래 파일 게이트 3개와 중복 409 2개를 전부 가린다',
+        trap: '아래 파일 게이트 6개와 중복 409 2개를 전부 가린다',
       },
       {
         order: 5,
         status: 400,
-        line: 96,
+        line: 97,
         kind: 'state',
         message: '사업자등록증 사진을 첨부해 주세요',
         reach: 'bizCert 필드 없음 또는 size 0. **유효한 bizRegNo 필수**',
       },
-      { order: 6, status: 400, line: 102, kind: 'state', message: '파일이 너무 큽니다 (8MB 이하)', reach: '8MB 초과 파일' },
+      { order: 6, status: 400, line: 103, kind: 'state', message: '파일이 너무 큽니다 (8MB 이하)', reach: 'bizCert 8MB 초과' },
       {
         order: 7,
         status: 400,
-        line: 108,
+        line: 109,
         kind: 'state',
         message: '이미지(JPG/PNG/WEBP/HEIC) 또는 PDF만 첨부할 수 있습니다',
-        reach: '허용 목록 밖 MIME. **8MB 이하여야 여기까지 온다**',
+        reach: 'bizCert 허용 목록 밖 MIME. **8MB 이하여야 여기까지 온다**',
       },
-      { order: 8, status: 409, line: 117, kind: 'conflict', message: '이미 사용 중인 아이디입니다', reach: 'loginId 중복 + 유효 파일 첨부' },
       {
-        order: 9,
+        order: 8,
+        status: 400,
+        line: 117,
+        kind: 'state',
+        message: '전기공사업 등록증 사진을 첨부해 주세요',
+        reach: 'elecCert 필드 없음 또는 size 0. **유효한 bizCert 필수**',
+      },
+      { order: 9, status: 400, line: 123, kind: 'state', message: '전기공사업 등록증 파일이 너무 큽니다 (8MB 이하)', reach: 'elecCert 8MB 초과' },
+      {
+        order: 10,
+        status: 400,
+        line: 129,
+        kind: 'state',
+        message: '전기공사업 등록증은 이미지(JPG/PNG/WEBP/HEIC) 또는 PDF만 첨부할 수 있습니다',
+        reach: 'elecCert 허용 목록 밖 MIME',
+      },
+      { order: 11, status: 409, line: 138, kind: 'conflict', message: '이미 사용 중인 아이디입니다', reach: 'loginId 중복 + 유효 파일 2개 첨부' },
+      {
+        order: 12,
         status: 409,
-        line: 122,
+        line: 143,
         kind: 'conflict',
         message: '이미 가입 신청된 사업자등록번호입니다',
-        reach: 'bizRegNo 중복 + loginId 는 신규 + 유효 파일 첨부',
-        trap: 'loginId 까지 중복이면 :117 이 먼저다',
+        reach: 'bizRegNo 중복 + loginId 는 신규 + 유효 파일 2개 첨부',
+        trap: 'loginId 까지 중복이면 :138 이 먼저다',
       },
-      { order: 10, status: 400, line: 147, kind: 'state', message: '추천인을 찾을 수 없습니다', reach: 'referrerUserId 미존재/미승인/비활성' },
-      { order: 11, status: 400, line: 152, kind: 'state', message: '본인을 추천인으로 지정할 수 없습니다', reach: '자기 자신 지정' },
+      { order: 13, status: 400, line: 168, kind: 'state', message: '추천인을 찾을 수 없습니다', reach: 'referrerUserId 미존재/미승인/비활성' },
+      { order: 14, status: 400, line: 173, kind: 'state', message: '본인을 추천인으로 지정할 수 없습니다', reach: '자기 자신 지정' },
     ],
   },
 
@@ -1059,6 +1100,31 @@ export const GATES: Record<string, HandlerGates> = {
   },
 
   // ═══ 공개 ══════════════════════════════════════════════════════════════
+
+  'GET /api/auth/check-login-id': {
+    file: 'src/app/api/auth/check-login-id/route.ts',
+    note:
+      '가입 폼의 아이디 중복 확인 — 공개 엔드포인트라 계정 열거 남용 방지용 ' +
+      '레이트리밋(10분 30회)이 첫 게이트다. 최종 차단은 가입 API 409 가 담당한다.',
+    gates: [
+      {
+        order: 1,
+        status: 429,
+        line: 28,
+        kind: 'rate-limit',
+        message: '요청이 너무 많습니다. 잠시 후 다시 시도해 주세요.',
+        reach: '같은 IP 로 10분 내 31회째',
+      },
+      {
+        order: 2,
+        status: 400,
+        line: 36,
+        kind: 'schema',
+        message: '아이디는 3자 이상 30자 이하여야 합니다',
+        reach: 'loginId 파라미터 없음/3자 미만/30자 초과',
+      },
+    ],
+  },
 
   'POST /api/auth/login': {
     file: 'src/app/api/auth/login/route.ts',

@@ -90,10 +90,16 @@ export function signupFields(overrides: Partial<SignupFields> = {}): SignupField
   };
 }
 
-/** multipart 본문 — 필드 + bizCert 파일. `request.post(url, { multipart })` 에 그대로. */
+/**
+ * multipart 본문 — 필드 + bizCert·elecCert 파일. `request.post(url, { multipart })` 에 그대로.
+ * 두 증빙 모두 기본 첨부된다(둘 다 필수 게이트). null 을 주면 해당 파일만 뺀다.
+ */
 export function signupMultipart(
   fields: SignupFields,
-  opts: { cert?: { name: string; mimeType: string; buffer: Buffer } | null } = {},
+  opts: {
+    cert?: { name: string; mimeType: string; buffer: Buffer } | null;
+    elecCert?: { name: string; mimeType: string; buffer: Buffer } | null;
+  } = {},
 ): Record<string, string | { name: string; mimeType: string; buffer: Buffer }> {
   const body: Record<string, string | { name: string; mimeType: string; buffer: Buffer }> = {};
   for (const [k, v] of Object.entries(fields)) {
@@ -101,6 +107,8 @@ export function signupMultipart(
   }
   const cert = opts.cert === undefined ? CERT_UPLOAD : opts.cert;
   if (cert) body.bizCert = { ...cert };
+  const elecCert = opts.elecCert === undefined ? { ...CERT_UPLOAD, name: 'elec-cert.png' } : opts.elecCert;
+  if (elecCert) body.elecCert = { ...elecCert };
   return body;
 }
 
