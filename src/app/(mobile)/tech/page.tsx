@@ -11,6 +11,7 @@ import PortalReferralSection from '@/components/PortalReferralSection';
 import PortalStatsCard, { type PortalStats } from '@/components/PortalStatsCard';
 import PortalReviewSection from '@/components/PortalReviewSection';
 import PortalHeadline from '@/components/PortalHeadline';
+import PortalEggCard from '@/components/PortalEggCard';
 import PortalJobCard, { type PortalJob } from '@/components/PortalJobCard';
 import { useNewJobAlert } from '@/components/useNewJobAlert';
 import { BellIcon, WrenchIcon, ClipboardIcon, RefreshIcon } from '@/components/icons';
@@ -138,6 +139,7 @@ export default function TechHomePage() {
           </button>
         </div>
         <PortalHeadline stats={statsData ?? null} commission={commissionData ?? null} />
+        <PortalEggCard role="tech" />
 
         {error && <p className="text-sm text-red-600">{error}</p>}
 

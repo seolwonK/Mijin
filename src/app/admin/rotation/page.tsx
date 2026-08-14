@@ -10,6 +10,7 @@ import { AlertIcon } from '@/components/icons';
 type Candidate = {
   name: string;
   kind: 'PROVIDER' | 'TECHNICIAN';
+  eggBalance: number; // 알 크레딧 — 순환보다 상위 티어
   assigned30d: number;
   avgRating: number;
   reviewCount: number;
@@ -21,12 +22,13 @@ type RotationResponse = {
   candidates: Candidate[];
   meta: {
     chainLabel: string;
+    eggApplied: boolean;
     criticalNotApplied: boolean;
     distanceTieUnresolved: boolean;
   };
 };
 
-type ColKey = 'rank' | 'name' | 'kind' | 'assigned30d' | 'avgRating' | 'reviewCount';
+type ColKey = 'rank' | 'name' | 'kind' | 'eggBalance' | 'assigned30d' | 'avgRating' | 'reviewCount';
 
 const selectClass =
   'rounded-admin-md border border-border bg-white px-3 py-1.5 text-xs md:text-sm text-fg focus:border-admin-cyan-ink focus:outline-none disabled:text-muted';
@@ -91,6 +93,17 @@ export default function AdminRotationPage() {
     },
     { key: 'name', label: '이름', render: (r) => <span className="font-semibold">{r.name}</span> },
     { key: 'kind', label: '종류', width: '88px', render: (r) => <KindBadge kind={r.kind} /> },
+    {
+      key: 'eggBalance',
+      label: '알 보유',
+      width: '90px',
+      align: 'right',
+      render: (r) => (
+        <span className={`font-mono ${r.eggBalance > 0 ? 'font-bold text-admin-cyan-ink' : 'text-muted'}`}>
+          {r.eggBalance}알
+        </span>
+      ),
+    },
     {
       key: 'assigned30d',
       label: '30일 배정(전체)',

@@ -9,6 +9,7 @@ import LogoutButton from '@/components/LogoutButton';
 import { CardSkeletonGrid } from '@/components/Skeleton';
 import CommissionSummary, { type CommissionSummaryData } from '@/components/CommissionSummary';
 import PortalHeadline from '@/components/PortalHeadline';
+import PortalEggCard from '@/components/PortalEggCard';
 import PortalJobCard, { type PortalJob } from '@/components/PortalJobCard';
 import PortalReferralSection from '@/components/PortalReferralSection';
 import PortalStatsCard, { type PortalStats } from '@/components/PortalStatsCard';
@@ -89,6 +90,7 @@ export default function PartnerHomePage() {
         </div>
 
         <PortalHeadline stats={statsData ?? null} commission={commissionData ?? null} />
+        <PortalEggCard role="partner" />
 
         {error && <p className="text-sm text-red-600">{error}</p>}
 

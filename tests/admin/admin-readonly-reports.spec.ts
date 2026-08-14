@@ -40,9 +40,9 @@ const arr = (of: ShapeNode): ShapeNode => ({ kind: 'array', of });
 /** GET /api/admin/rotation — route.ts:38-51 */
 const ROTATION_SHAPE = obj({
   candidates: arr(
-    obj({ name: str, kind: str, assigned30d: num, avgRating: num, reviewCount: num }),
+    obj({ name: str, kind: str, eggBalance: num, assigned30d: num, avgRating: num, reviewCount: num }),
   ),
-  meta: obj({ chainLabel: str, criticalNotApplied: bool, distanceTieUnresolved: bool }),
+  meta: obj({ chainLabel: str, eggApplied: bool, criticalNotApplied: bool, distanceTieUnresolved: bool }),
 });
 
 /** GET /api/admin/settlements — src/lib/settlementReport.ts:10-25 */
@@ -180,9 +180,10 @@ test('rotation GET 200 — 담당 지역이 맞는 후보만 보드에 남는다
   expect(names, '다른 지역 담당이 남았다').not.toContain(elsewhere.name);
   expect(names, '계약 미확정 전기기사가 남았다').not.toContain(noContract.name);
 
-  // 보드가 표현하는 사슬의 한계를 응답이 스스로 밝힌다 (route.ts:46-50).
+  // 보드가 표현하는 사슬의 한계를 응답이 스스로 밝힌다 (route.ts meta).
   expect(body.meta).toEqual({
-    chainLabel: 'URGENT·NORMAL 공통 사슬',
+    chainLabel: '지역→알 보유량→30일 순환 (URGENT·NORMAL 공통 사슬)', // egg-credit 반영
+    eggApplied: true,
     criticalNotApplied: true,
     distanceTieUnresolved: true,
   });

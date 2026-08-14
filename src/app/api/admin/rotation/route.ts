@@ -39,12 +39,14 @@ export async function GET(req: NextRequest) {
     candidates: candidates.map((c) => ({
       name: c.name,
       kind: c.kind,
+      eggBalance: c.eggBalance, // 알 크레딧 — 순환보다 상위 티어(관리자 전용 노출)
       assigned30d: c.assigned30d,
       avgRating: c.avgRating,
       reviewCount: c.reviewCount,
     })),
     meta: {
-      chainLabel: 'URGENT·NORMAL 공통 사슬',
+      chainLabel: '지역→알 보유량→30일 순환 (URGENT·NORMAL 공통 사슬)',
+      eggApplied: true, // 알 크레딧이 이 보드 순번에 반영됨 (CRITICAL은 같은구 동급 내에서만 별도 적용)
       criticalNotApplied: true,
       distanceTieUnresolved: true,
     },

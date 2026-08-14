@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import PageHeader from '@/components/PageHeader';
 import ProviderForm, { type ProviderFormValue } from '@/components/ProviderForm';
 import AdminReviewList, { type AdminReview } from '@/components/AdminReviewList';
+import AdminEggManager from '@/components/AdminEggManager';
 import ReferrerField from '@/components/ReferrerField';
 
 type ProviderDetail = {
@@ -345,6 +346,8 @@ export default function EditProviderPage({
           소급 지정 시 과거 조사는 적립되지 않습니다.
         </p>
       </section>
+
+      <AdminEggManager kind="PROVIDER" targetId={detail.id} />
 
       <AdminReviewList
         avgRating={detail.avgRating}
