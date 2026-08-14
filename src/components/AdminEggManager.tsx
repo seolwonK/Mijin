@@ -5,9 +5,11 @@
 // 조회는 하우스 패턴 usePolling(30초) — effect 내 즉시 setState 부채를 만들지 않는다.
 // 모노크롬 프로 문법: admin 토큰, 장식 없음, ease-portal.
 import { useState } from 'react';
+import { EggIcon } from '@/components/EggIcon';
 import { usePolling } from '@/components/usePolling';
 
-const EGG_PRICE = 10_000; // 1알 = ₩10,000
+// 원화 표기는 "결제(충전) 폼" 한정 — 잔액·이력 등 보유 표기는 알 개수로만 한다(정책).
+const EGG_PRICE = 10_000; // 1알 = ₩10,000 (충전 결제 단가)
 const MIN_CHARGE = 3;
 
 type LedgerRow = {
@@ -74,11 +76,9 @@ export default function AdminEggManager({
     <section className="rounded-admin-md border border-border bg-white p-4">
       <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
         <h2 className="font-semibold text-admin-cyan-ink">알 크레딧</h2>
-        <p className="font-mono text-sm">
-          잔액 <span className="text-lg font-bold">{balance ?? '–'}알</span>
-          {balance != null && balance > 0 && (
-            <span className="ml-1.5 text-xs text-muted">(₩{(balance * EGG_PRICE).toLocaleString()} 상당)</span>
-          )}
+        <p className="inline-flex items-center gap-1.5 font-mono text-sm">
+          잔액 <EggIcon size={18} />
+          <span className="text-lg font-bold">{balance ?? '–'}알</span>
         </p>
       </div>
       {error && <p className="mb-2 text-sm text-red-600">{error}</p>}
@@ -94,7 +94,9 @@ export default function AdminEggManager({
             });
           }}
         >
-          <p className="mb-2 text-xs font-bold text-muted">충전 (최소 {MIN_CHARGE}알 · 1알 = ₩{EGG_PRICE.toLocaleString()})</p>
+          <p className="mb-2 text-xs font-bold text-muted">
+            충전 (최소 {MIN_CHARGE}알 · 1알 = ₩{EGG_PRICE.toLocaleString()})
+          </p>
           <div className="flex flex-wrap items-center gap-2">
             <input
               type="number"
@@ -105,7 +107,9 @@ export default function AdminEggManager({
               className="w-20 rounded-admin-sm border border-border px-2 py-1.5 font-mono text-sm focus:border-admin-cyan-ink focus:outline-none"
               aria-label="충전 알 수"
             />
-            <span className="font-mono text-xs text-muted">= ₩{(chargeCount * EGG_PRICE || 0).toLocaleString()}</span>
+            <span className="font-mono text-xs text-muted">
+              결제 금액 <span className="font-bold text-fg">₩{(chargeCount * EGG_PRICE || 0).toLocaleString()}</span>
+            </span>
           </div>
           <input
             type="text"

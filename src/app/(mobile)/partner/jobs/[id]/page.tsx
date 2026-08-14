@@ -8,6 +8,7 @@ import Surface from '@/components/Surface';
 import { buttonClasses } from '@/components/Button';
 import { Skeleton, CardSkeleton } from '@/components/Skeleton';
 import ResponseDeadlineNote from '@/components/ResponseDeadlineNote';
+import { EggIcon } from '@/components/EggIcon';
 import { CheckIcon, MapPinIcon, PhoneIcon, TruckIcon } from '@/components/icons';
 
 type JobDetail = {
@@ -188,25 +189,31 @@ export default function PartnerJobDetailPage({
       {(canRespond || canDispatch || canComplete) && (
         <div className="fixed bottom-0 left-1/2 w-full max-w-md -translate-x-1/2 space-y-2 bg-white px-4 pt-4 pb-[calc(1rem+env(safe-area-inset-bottom))] shadow-surface-lg md:static md:left-auto md:mx-auto md:max-w-3xl md:translate-x-0 md:bg-transparent md:px-4 md:pt-2 md:pb-0 md:shadow-none">
           {canRespond && !rejecting && (
-            <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={() => act('accept')}
-                disabled={busy}
-                className={buttonClasses('primary', 'lg', 'flex-[2] gap-2')}
-              >
-                <CheckIcon className="h-5 w-5" />
-                수락하기
-              </button>
-              <button
-                type="button"
-                onClick={() => setRejecting(true)}
-                disabled={busy}
-                className={buttonClasses('secondary', 'lg', 'flex-1')}
-              >
-                거절
-              </button>
-            </div>
+            <>
+              <p className="flex items-center justify-center gap-1.5 text-xs text-muted">
+                <EggIcon size={14} />
+                수락하면 알 1개가 차감됩니다 (잔액이 없으면 차감 없이 수락)
+              </p>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => act('accept')}
+                  disabled={busy}
+                  className={buttonClasses('primary', 'lg', 'flex-[2] gap-2')}
+                >
+                  <CheckIcon className="h-5 w-5" />
+                  수락하기
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setRejecting(true)}
+                  disabled={busy}
+                  className={buttonClasses('secondary', 'lg', 'flex-1')}
+                >
+                  거절
+                </button>
+              </div>
+            </>
           )}
           {canRespond && rejecting && (
             <div className="space-y-2">

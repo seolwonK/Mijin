@@ -5,6 +5,7 @@ import { REGIONS, hasSigungu } from '@/lib/regions';
 import { usePolling } from '@/components/usePolling';
 import AdminMetricStrip from '@/components/AdminMetricStrip';
 import AdminDataTable, { type Column } from '@/components/AdminDataTable';
+import { EggIcon } from '@/components/EggIcon';
 import { AlertIcon } from '@/components/icons';
 
 type Candidate = {
@@ -99,7 +100,10 @@ export default function AdminRotationPage() {
       width: '90px',
       align: 'right',
       render: (r) => (
-        <span className={`font-mono ${r.eggBalance > 0 ? 'font-bold text-admin-cyan-ink' : 'text-muted'}`}>
+        <span
+          className={`inline-flex items-center gap-1 font-mono ${r.eggBalance > 0 ? 'font-bold text-admin-cyan-ink' : 'text-muted'}`}
+        >
+          <EggIcon size={14} />
           {r.eggBalance}알
         </span>
       ),

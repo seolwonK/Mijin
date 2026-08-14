@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { EggIcon } from '@/components/EggIcon';
 import { ClockIcon } from '@/components/icons';
 import { deriveRankingBadge, findAutoAssignCandidateIndex } from '@/lib/candidateRankingDisplay';
 
@@ -124,7 +125,7 @@ export default function AdminCandidatePanel({
                 <div>
                   <p className="font-bold">{candidate.name} <span className={`ml-1 rounded-admin-sm px-1.5 py-0.5 text-xs font-medium md:text-sm ${candidate.kind === 'TECHNICIAN' ? 'bg-emerald-100 text-emerald-700' : 'bg-neutral-100 text-neutral-600'}`}>{candidate.kind === 'TECHNICIAN' ? '전기기사' : '업체'}</span>{' '}{candidate.rejectedThisRequest && <span className="text-xs font-medium text-red-500 md:text-sm">(이 건 거절함)</span>}</p>
                   <p className="font-mono text-xs text-muted md:text-sm">{candidate.distanceKm != null ? `${candidate.distanceKm.toFixed(1)}km` : '거리 미확인'} · {candidate.address}</p>
-                  <p className="mt-0.5 font-mono text-xs text-muted md:text-sm"><span className={candidate.eggBalance > 0 ? 'font-bold text-admin-cyan-ink' : ''}>알 {candidate.eggBalance}개</span> · 30일 배정(수락+거절) {candidate.assigned30d}회 · 평균 별점 {candidate.avgRating.toFixed(1)}{candidate.reviewCount > 0 ? ` (${candidate.reviewCount}건)` : ' (리뷰 없음)'}</p>
+                  <p className="mt-0.5 font-mono text-xs text-muted md:text-sm"><span className={`inline-flex items-center gap-1 ${candidate.eggBalance > 0 ? 'font-bold text-admin-cyan-ink' : ''}`}><EggIcon size={13} />{candidate.eggBalance}알</span> · 30일 배정(수락+거절) {candidate.assigned30d}회 · 평균 별점 {candidate.avgRating.toFixed(1)}{candidate.reviewCount > 0 ? ` (${candidate.reviewCount}건)` : ' (리뷰 없음)'}</p>
                   <p className="mt-1 flex flex-wrap items-center gap-1.5">{isAutoAssignPick && <span className="rounded-admin-sm bg-admin-cyan-ink px-1.5 py-0.5 text-xs font-bold text-white md:text-sm">자동배정 예정</span>}{index === 0 ? <span className="rounded-admin-sm bg-neutral-100 px-1.5 py-0.5 text-xs font-medium text-neutral-500 md:text-sm">1순위</span> : badge && <span className="rounded-admin-sm bg-neutral-100 px-1.5 py-0.5 text-xs font-medium text-neutral-500 md:text-sm">{badge}</span>}</p>
                 </div>
                 <button type="button" onClick={() => assign(candidate)} disabled={busy} className="rounded-admin-sm bg-admin-cyan-ink px-4 py-2 text-sm font-bold text-white disabled:opacity-60">배정</button>
