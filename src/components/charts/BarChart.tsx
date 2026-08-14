@@ -26,7 +26,7 @@ export default function BarChart({ data, label }: { data: Bar[]; label: string }
           <div className="h-3 overflow-hidden rounded-full bg-neutral-100">
             <div className="h-full rounded-full bg-brand-600 transition-[width]" style={{ width: `${(bar.value / max) * 100}%` }} />
           </div>
-          {selected === index && <span className="absolute right-0 -top-5 rounded-admin-sm bg-fg px-1.5 py-0.5 text-[11px] text-white">{bar.value}건</span>}
+          {selected === index && <span className="absolute right-0 -top-5 rounded-admin-sm bg-fg px-1.5 py-0.5 text-xs text-white">{bar.value}건</span>}
         </div>
       ))}
     </div>

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { usePolling } from '@/components/usePolling';
+import DesktopOnlyNotice from '@/components/DesktopOnlyNotice';
 import BarChart from '@/components/charts/BarChart';
 import LineChart from '@/components/charts/LineChart';
 import type { DashboardStats } from '@/lib/analyticsStats';
@@ -104,7 +105,7 @@ function AnalyticsDashboardData({ period, setPeriod, isLg }: { period: Period; s
   return (
     <main className="min-h-screen bg-neutral-50 text-sm text-fg">
       <div className="p-4 lg:hidden">
-        <p className="rounded-admin-md border border-border bg-white p-5 text-center text-sm text-muted">분석 대시보드는 데스크톱에서 이용할 수 있습니다.</p>
+        <DesktopOnlyNotice message="분석 대시보드는 데스크톱에서 이용할 수 있습니다." />
       </div>
       <div className="hidden lg:block">
         <div className="mx-auto max-w-7xl p-6">

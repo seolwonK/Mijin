@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import AdminDataTable, { type Column } from '@/components/AdminDataTable';
 import InfoTip from '@/components/InfoTip';
+import MonthSelect from '@/components/MonthSelect';
 import PageHeader from '@/components/PageHeader';
 import { usePolling } from '@/components/usePolling';
 import { KST_OFFSET_MS } from '@/lib/kst';
@@ -120,11 +121,10 @@ export default function AdminSettlementsPage() {
         <div className="flex flex-wrap items-center justify-between gap-3">
           <label className="flex items-center gap-2 text-sm font-semibold text-fg">
             정산 월
-            <input
-              type="month"
+            <MonthSelect
               value={month}
-              onChange={(event) => setMonth(event.target.value)}
-              aria-label="정산 월"
+              onChange={setMonth}
+              ariaLabel="정산 월"
               className="rounded-admin-md border border-border px-2 py-1.5 text-sm font-normal text-fg focus:border-admin-cyan-ink focus:outline-none"
             />
           </label>

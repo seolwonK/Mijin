@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { REGIONS, hasSigungu } from '@/lib/regions';
 import { usePolling } from '@/components/usePolling';
+import DesktopOnlyNotice from '@/components/DesktopOnlyNotice';
 import AdminMetricStrip from '@/components/AdminMetricStrip';
 import AdminDataTable, { type Column } from '@/components/AdminDataTable';
 import { EggIcon } from '@/components/EggIcon';
@@ -137,9 +138,9 @@ export default function AdminRotationPage() {
           이 화면도 동일 전제를 따른다. 데이터 밀도가 높은 순번 테이블이라 축소 없이 안내만. */}
       <div className="p-6 md:hidden">
         <h1 className="text-lg font-bold">지역 순환 현황</h1>
-        <p className="mt-2 rounded-xl bg-neutral-50 p-4 text-sm text-muted">
-          이 화면은 데스크톱(가로 화면)에서 이용해 주세요.
-        </p>
+        <div className="mt-2">
+          <DesktopOnlyNotice message="이 화면은 데스크톱(가로 화면)에서 이용해 주세요." />
+        </div>
       </div>
 
       <div className="hidden md:block">

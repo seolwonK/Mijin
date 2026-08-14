@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import AdminDataTable, { type Column } from '@/components/AdminDataTable';
+import DesktopOnlyNotice from '@/components/DesktopOnlyNotice';
 import InfoTip from '@/components/InfoTip';
 import LineChart from '@/components/charts/LineChart';
 import { usePolling } from '@/components/usePolling';
@@ -90,7 +91,7 @@ export default function AnalyticsRatings() {
   const reviews = loadedReviews ?? detail?.reviews ?? null;
 
   return <main className="min-h-screen bg-neutral-50 text-sm text-fg">
-    <div className="p-4 lg:hidden"><p className="rounded-admin-md border border-border bg-white p-5 text-center text-sm text-muted">평점 현황은 데스크톱에서 이용할 수 있습니다.</p></div>
+    <div className="p-4 lg:hidden"><DesktopOnlyNotice message="평점 현황은 데스크톱에서 이용할 수 있습니다." /></div>
     <div className="hidden lg:block"><div className="mx-auto max-w-7xl p-6">
       <div className="mb-6 flex items-end justify-between gap-4"><div><h1 className="text-xl font-bold">평점 현황</h1><p className="mt-1 text-sm text-muted">업체와 전기기사의 만족도와 완료 실적을 확인합니다.</p></div><span className="font-mono text-xs text-muted">{refreshTime(lastUpdatedAt)}</span></div>
       {error && <p className="mb-4 text-sm text-red-600">{error}</p>}

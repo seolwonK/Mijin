@@ -2,6 +2,7 @@
 
 import { useCallback, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import DesktopOnlyNotice from '@/components/DesktopOnlyNotice';
 import InfoTip from '@/components/InfoTip';
 import { useIsLg } from '@/components/useIsLg';
 import { usePolling } from '@/components/usePolling';
@@ -98,9 +99,7 @@ export default function AnalyticsMap() {
   return (
     <main className="min-h-screen bg-neutral-50 text-sm text-fg">
       <div className="p-4 lg:hidden">
-        <p className="rounded-admin-md border border-border bg-white p-5 text-center text-sm text-muted">
-          지도 현황은 데스크톱에서 이용할 수 있습니다.
-        </p>
+        <DesktopOnlyNotice message="지도 현황은 데스크톱에서 이용할 수 있습니다." />
       </div>
       <div className="hidden lg:block">
         <div className="mx-auto max-w-7xl p-6">

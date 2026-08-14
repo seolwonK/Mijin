@@ -35,7 +35,7 @@ export default function FloatingDock() {
             key={href}
             href={href}
             aria-current={active ? 'page' : undefined}
-            className={`flex flex-col items-center gap-0.5 rounded-full px-5 py-2 text-[10.5px] font-semibold whitespace-nowrap transition active:scale-95 ${
+            className={`flex flex-col items-center gap-0.5 rounded-full px-5 py-2 text-xs font-semibold whitespace-nowrap transition active:scale-95 ${
               active ? 'bg-brand-600 text-white' : 'text-muted hover:text-fg'
             }`}
           >

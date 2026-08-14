@@ -21,6 +21,7 @@ export default function LineChart({ data, label, formatValue = (value: number) =
   const path = line<Point>().x((_, index) => x(index)).y((point) => y(point.value))(data);
   const fill = area<Point>().x((_, index) => x(index)).y0(margin.top + innerHeight).y1((point) => y(point.value))(data);
   const active = selected == null ? null : data[selected];
+  const labelEvery = Math.max(1, Math.ceil(data.length / 8));
 
   if (data.length === 0) {
     return <p className="flex h-56 items-center justify-center text-sm text-muted">표시할 추이 데이터가 없습니다.</p>;
@@ -32,14 +33,17 @@ export default function LineChart({ data, label, formatValue = (value: number) =
         {[0, 0.5, 1].map((step) => {
           const value = min + (max - min) * step;
           const lineY = y(value);
-          return <g key={step}><line x1={margin.left} x2={width - margin.right} y1={lineY} y2={lineY} className="stroke-border" strokeDasharray="3 3" /><text x={margin.left - 7} y={lineY + 4} textAnchor="end" className="fill-muted text-[10px]">{formatValue(value)}</text></g>;
+          return <g key={step}><line x1={margin.left} x2={width - margin.right} y1={lineY} y2={lineY} className="stroke-border" strokeDasharray="3 3" /><text x={margin.left - 7} y={lineY + 4} textAnchor="end" className="fill-muted text-xs">{formatValue(value)}</text></g>;
         })}
         <path d={fill ?? undefined} className="fill-brand-50" />
         <path d={path ?? undefined} fill="none" className="stroke-brand-600" strokeWidth="2" />
         {data.map((point, index) => (
           <g key={point.label} onMouseEnter={() => setSelected(index)} className="cursor-default">
             <circle cx={x(index)} cy={y(point.value)} r={selected === index ? 4.5 : 3} className="fill-brand-600 stroke-white" strokeWidth="2" />
-            <text x={x(index)} y={height - 12} textAnchor="middle" className="fill-muted text-[10px]">{point.label.slice(5)}</text>
+            {/* 12px로 키우면서 조밀한 구간은 라벨을 솎아 겹침을 방지한다 */}
+            {index % labelEvery === 0 && (
+              <text x={x(index)} y={height - 12} textAnchor="middle" className="fill-muted text-xs">{point.label.slice(5)}</text>
+            )}
           </g>
         ))}
       </svg>

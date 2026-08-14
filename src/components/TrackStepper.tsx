@@ -34,7 +34,7 @@ export default function TrackStepper({ currentIndex }: { currentIndex: number })
         {STEPS.map((label, i) => (
           <span
             key={label}
-            className={`w-1/5 text-center text-[10.5px] ${
+            className={`w-1/5 text-center text-xs ${
               i <= clamped ? 'font-bold text-fg' : 'text-muted'
             }`}
           >

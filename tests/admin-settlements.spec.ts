@@ -67,8 +67,11 @@ test.describe('관리자 정산 집계 리포트', () => {
   test('EMPTY MONTH RED-TEAM: a month without data empties both distinct sections', async ({ page }) => {
     await loginAsAdmin(page);
     await page.goto('/admin/settlements');
-    const month = page.locator('input[type=month]');
-    await month.fill('2020-01');
+    // 월 선택은 한국어 표기 셀렉트(MonthSelect) — 최근 18개월만 노출되므로
+    // 가장 오래된 달(시드 데이터 이전)을 골라 빈 상태를 검증한다.
+    const month = page.locator('select[aria-label="정산 월"]');
+    const oldest = await month.locator('option').last().getAttribute('value');
+    await month.selectOption(oldest!);
 
     await expect(settlementSection(page, '업체')).toContainText('해당 기간 집계 데이터 없음');
     await expect(settlementSection(page, '전기기사')).toContainText('해당 기간 집계 데이터 없음');

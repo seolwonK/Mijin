@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import MonthSelect from '@/components/MonthSelect';
 import PageHeader from '@/components/PageHeader';
 import { buttonClasses } from '@/components/Button';
 import { usePolling } from '@/components/usePolling';
@@ -308,22 +309,13 @@ export default function AdminCommissionsPage() {
                 <span className="font-normal text-muted">· 미지급 {won(selected.pendingTotal)}</span>
               </h2>
               <div className="flex flex-wrap items-center gap-2">
-                <input
-                  type="month"
+                <MonthSelect
                   value={month}
-                  onChange={(e) => changeMonth(e.target.value)}
-                  aria-label="적립 월 필터"
+                  onChange={changeMonth}
+                  allowAll
+                  ariaLabel="적립 월 필터"
                   className="rounded-admin-md border border-border px-2 py-1.5 text-xs md:text-sm text-fg focus:border-admin-cyan-ink focus:outline-none"
                 />
-                {month && (
-                  <button
-                    type="button"
-                    onClick={() => changeMonth('')}
-                    className="text-xs md:text-sm font-semibold text-muted hover:underline"
-                  >
-                    전체
-                  </button>
-                )}
                 <button
                   type="button"
                   disabled={exporting}
