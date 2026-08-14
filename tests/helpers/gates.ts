@@ -693,7 +693,7 @@ export const GATES: Record<string, HandlerGates> = {
       {
         order: 1,
         status: 404,
-        line: 20,
+        line: 21, // egg-credit: spendEggOnAccept import 1줄로 +1
         kind: 'state',
         message: '배정 건을 찾을 수 없습니다',
         reach: '배정 없음 또는 남의 배정. **본문 검증이 없어 바로 도달한다**',
@@ -701,7 +701,7 @@ export const GATES: Record<string, HandlerGates> = {
       {
         order: 2,
         status: 409,
-        line: 29,
+        line: 30, // egg-credit: +1
         kind: 'conflict',
         message: '이미 처리된 배정입니다',
         reach: '내 배정이지만 status !== REQUESTED (재수락·거절 후 수락)',
@@ -966,8 +966,8 @@ export const GATES: Record<string, HandlerGates> = {
   'POST /api/partner/jobs/[id]/accept': {
     file: 'src/app/api/partner/jobs/[id]/accept/route.ts',
     gates: [
-      { order: 1, status: 404, line: 20, kind: 'state', message: '배정 건을 찾을 수 없습니다', reach: '배정 없음 또는 남의 배정' },
-      { order: 2, status: 409, line: 29, kind: 'conflict', message: '이미 처리된 배정입니다', reach: 'status !== REQUESTED' },
+      { order: 1, status: 404, line: 21, kind: 'state', message: '배정 건을 찾을 수 없습니다', reach: '배정 없음 또는 남의 배정' }, // egg-credit: +1
+      { order: 2, status: 409, line: 30, kind: 'conflict', message: '이미 처리된 배정입니다', reach: 'status !== REQUESTED' }, // egg-credit: +1
     ],
   },
 

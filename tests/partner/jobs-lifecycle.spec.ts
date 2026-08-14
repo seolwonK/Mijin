@@ -141,7 +141,7 @@ test('accept 409 — 재수락과 거절된 배정 수락 (CAS :24-30)', async (
 
   const ctx = await partnerCtx(playwright, partner, 'jobs-accept-409');
   expect((await ctx.post(`/api/partner/jobs/${a.id}/accept`)).status()).toBe(200);
-  const acceptConflict = expectGate(ACCEPT, 29);
+  const acceptConflict = expectGate(ACCEPT, 30); // egg-credit: import 1줄로 +1
   const again = await ctx.post(`/api/partner/jobs/${a.id}/accept`);
   expect(again.status()).toBe(acceptConflict.status);
   expect((await again.json()).error).toBe(acceptConflict.message);
