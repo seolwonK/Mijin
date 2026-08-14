@@ -1,6 +1,6 @@
 import { prisma } from '@/lib/db';
 import { haversineKm } from '@/lib/geo/distance';
-import { coversRegion, regionFromAddress } from '@/lib/regions';
+import { coversRegion, regionFromAddress, type Region } from '@/lib/regions';
 import type { AssigneeKind } from '@/lib/assignee';
 import { assigneeKey } from '@/lib/assignee';
 import { getRankingStats } from '@/lib/rankingStats';
@@ -21,27 +21,48 @@ export type Candidate = {
   assigned30d: number; // 최근 30일 배정 횟수(수락+거절 합산 — 순환 배정 타이브레이크)
   avgRating: number; // 리뷰 평균 별점 (0건 = 3.0)
   reviewCount: number;
+  eggBalance: number; // 알 크레딧 — 유료 상위노출 (진실원장 EggLedger, 캐시 필드)
+  sameDistrict: boolean; // 후보 소재지가 접수지와 같은 시/군/구 — CRITICAL 전용 티어
 };
 
-// 정렬 순서: ①거절이력 없음 ②지역 커버 ③(non-CRITICAL) 30일 배정 횟수(수락+거절) asc
-// ④(non-CRITICAL) 평균 별점 desc ⑤거리 asc(null 후순위) ⑥안정 키(`kind:id`) asc.
-// urgency로 커링해 CRITICAL 여부에 따라 ③④를 건너뛴다.
+// 초긴급 "같은 지역" 동급 판정 — 후보 소재지 주소 기반(좌표 불필요).
+// 접수지의 시/군/구가 판별돼야만(true 가능) 하고, 후보 주소도 시/군/구까지 정확히
+// 일치해야 한다. 판별 불가·모호(sigungu='')는 무조건 false — "모호한 주소가
+// 정확한 주소를 이기는" 역전을 차단한다(플랜 v2 Finding H).
+export function isSameDistrict(reqRegion: Region | null, candAddress: string): boolean {
+  if (reqRegion === null || reqRegion.sigungu === '') return false;
+  const cand = regionFromAddress(candAddress);
+  return cand !== null && cand.sido === reqRegion.sido && cand.sigungu === reqRegion.sigungu;
+}
+
+// 정렬 순서 (알 크레딧 통합 — ralplan-egg-credit.md B-2):
+// non-CRITICAL(일반·긴급): ①거절이력 없음 ②지역 커버 ③알 보유량 desc(유료 상위노출)
+//   ④30일 배정 횟수 asc(순환 — 알 동률 그룹 내에서만 작동) ⑤평균 별점 desc
+//   ⑥거리 asc(null 후순위) ⑦안정 키(`kind:id`) asc
+// CRITICAL(초긴급): ①거절이력 없음 ②지역 커버 ③같은 시/군/구 우선(소재지 주소 기반)
+//   ④알 보유량 desc(동일 sameDistrict 값끼리) ⑤거리 asc(null 후순위) ⑥안정 키
+//   — 순환·별점은 건너뛰어 속도 우선 원칙 유지, 알은 지역 동급 내 타이브레이크로만.
+// ⚠️ 이 사슬을 바꾸면 candidateRankingDisplay.ts(deriveRankingBadge)도 함께 갱신할 것.
 export function compareCandidates(
   urgency: Urgency,
 ): (a: Candidate, b: Candidate) => number {
   return (a, b) => {
-    if (a.rejectedThisRequest !== b.rejectedThisRequest) return a.rejectedThisRequest ? 1 : -1; // ① 현행
-    if (a.coversRegion !== b.coversRegion) return a.coversRegion ? -1 : 1;                      // ② 현행
-    if (urgency !== 'CRITICAL') {
-      if (a.assigned30d !== b.assigned30d) return a.assigned30d - b.assigned30d;                 // ③ 순환
-      if (a.avgRating !== b.avgRating) return b.avgRating - a.avgRating;                         // ④ 리뷰
+    if (a.rejectedThisRequest !== b.rejectedThisRequest) return a.rejectedThisRequest ? 1 : -1; // ①
+    if (a.coversRegion !== b.coversRegion) return a.coversRegion ? -1 : 1;                      // ②
+    if (urgency === 'CRITICAL') {
+      if (a.sameDistrict !== b.sameDistrict) return a.sameDistrict ? -1 : 1;                    // ③ 같은구 우선
+      if (a.eggBalance !== b.eggBalance) return b.eggBalance - a.eggBalance;                    // ④ 알 (동급 내)
+    } else {
+      if (a.eggBalance !== b.eggBalance) return b.eggBalance - a.eggBalance;                    // ③ 알 (유료 상위노출)
+      if (a.assigned30d !== b.assigned30d) return a.assigned30d - b.assigned30d;                 // ④ 순환
+      if (a.avgRating !== b.avgRating) return b.avgRating - a.avgRating;                         // ⑤ 리뷰
     }
-    if (a.distanceKm != null || b.distanceKm != null) {                                          // ⑤ 거리 — 현행 null 규칙
+    if (a.distanceKm != null || b.distanceKm != null) {                                          // 거리 — 현행 null 규칙
       if (a.distanceKm == null) return 1;
       if (b.distanceKm == null) return -1;
       if (a.distanceKm !== b.distanceKm) return a.distanceKm - b.distanceKm;
     }
-    return a.key < b.key ? -1 : a.key > b.key ? 1 : 0;                                            // ⑥ 안정 키 (localeCompare 금지 — 로케일 의존 결정성 훼손)
+    return a.key < b.key ? -1 : a.key > b.key ? 1 : 0;                                            // 안정 키 (localeCompare 금지 — 로케일 의존 결정성 훼손)
   };
 }
 
@@ -117,6 +138,8 @@ export async function getCandidates(
       distanceKm: distanceTo(p.lat, p.lng),
       coversRegion: coversRegion(p.regions, reqRegion),
       rejectedThisRequest: rejected.has(`PROVIDER:${p.id}`),
+      eggBalance: p.eggBalance,
+      sameDistrict: isSameDistrict(reqRegion, p.address),
       ...statsFor('PROVIDER', p.id),
     })),
     ...technicians.map((t) => ({
@@ -131,6 +154,8 @@ export async function getCandidates(
       distanceKm: distanceTo(t.lat, t.lng),
       coversRegion: coversRegion(t.regions, reqRegion),
       rejectedThisRequest: rejected.has(`TECHNICIAN:${t.id}`),
+      eggBalance: t.eggBalance,
+      sameDistrict: isSameDistrict(reqRegion, t.address),
       ...statsFor('TECHNICIAN', t.id),
     })),
   ];

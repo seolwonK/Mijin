@@ -182,9 +182,11 @@ export function normalizeAddress(address: string): string {
 // 먼저 normalizeAddress 로 표준화한 뒤 매칭한다 — 호출부가 정규화를 기억할
 // 필요 없이 기본적으로 옳도록.
 // 판별 불가 시 null (호출부는 지역 필터를 적용하지 않고 거리만으로 처리).
+export type Region = { sido: string; sigungu: string }; // sigungu='' = 시/도만 판별됨
+
 export function regionFromAddress(
   address: string | null | undefined,
-): { sido: string; sigungu: string } | null {
+): Region | null {
   if (!address) return null;
   const normalized = normalizeAddress(address);
   for (const [sido, sigungus] of Object.entries(REGIONS)) {

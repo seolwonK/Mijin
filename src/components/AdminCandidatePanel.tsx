@@ -16,6 +16,8 @@ export type AdminCandidate = {
   assigned30d: number;
   avgRating: number;
   reviewCount: number;
+  eggBalance: number; // 알 크레딧 — 유료 상위노출 (candidates API가 그대로 반환)
+  sameDistrict: boolean; // CRITICAL 같은구 동급 판정 (배지 파생용)
 };
 
 type Confirm = (options: {

@@ -21,6 +21,8 @@ function makeCandidate(overrides: Partial<Candidate> & { key: string }): Candida
     assigned30d: 0,
     avgRating: 3.0,
     reviewCount: 0,
+    eggBalance: 0, // 전원 0 = 알 단계 통과 — freeze가 검증하는 기존 사슬이 그대로 노출된다
+    sameDistrict: false, // 전원 false = CRITICAL 같은구 단계 통과 — 기존 거리 사슬 노출
     ...overrides,
   };
 }
