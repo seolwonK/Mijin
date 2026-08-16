@@ -1,30 +1,42 @@
 // 메인 증상 선택 CTA(홈)와 접수 폼 프리필이 공유하는 증상 사전.
 // 긴급도는 자동 지정하지 않는다 — 버튼은 접수 화면으로 연결만 하고, 긴급도는 고객이 폼에서 직접 고른다.
 // label은 타깃층(중장년)의 생활 언어를 따른다: "차단기"가 아니라 "두꺼비집".
+// icon은 캐릭터(ajeossi-logo-bust)를 스타일 레퍼런스로 Gemini(Nano Banana)로 생성한
+// 커스텀 아이콘(굵은 네이비 라인+플랫 컬러) — public/images/symptoms/{key}.webp.
 export const SYMPTOM_ITEMS = [
-  { key: 'outage', emoji: '⚡', label: '집이 정전됐어요', prefill: '집이 정전됐어요.' },
+  {
+    key: 'outage',
+    icon: '/images/symptoms/outage.webp',
+    label: '집이 정전됐어요',
+    prefill: '집이 정전됐어요.',
+  },
   {
     key: 'burning',
-    emoji: '🔥',
+    icon: '/images/symptoms/burning.webp',
     label: '타는 냄새·스파크가 나요',
     prefill: '콘센트나 전선에서 타는 냄새(스파크)가 나요.',
   },
   {
     key: 'breaker',
-    emoji: '⚠️',
+    icon: '/images/symptoms/breaker.webp',
     label: '두꺼비집이 자꾸 내려가요',
     prefill: '두꺼비집(차단기)이 자꾸 내려가요.',
   },
   {
     key: 'appliance',
-    emoji: '❄️',
+    icon: '/images/symptoms/appliance.webp',
     label: '냉장고·에어컨이 안 돼요',
     prefill: '냉장고·에어컨에 전기가 안 들어와요.',
   },
-  { key: 'outlet', emoji: '🔌', label: '콘센트가 안 돼요', prefill: '콘센트에 전기가 안 들어와요.' },
+  {
+    key: 'outlet',
+    icon: '/images/symptoms/outlet.webp',
+    label: '콘센트가 안 돼요',
+    prefill: '콘센트에 전기가 안 들어와요.',
+  },
   {
     key: 'light',
-    emoji: '💡',
+    icon: '/images/symptoms/light.webp',
     label: '조명이 안 켜져요',
     prefill: '형광등(조명)이 안 켜지거나 깜빡여요.',
   },

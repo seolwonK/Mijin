@@ -160,9 +160,7 @@ export default function Home() {
               href={`/request/new?symptom=${s.key}`}
               className="flex min-h-[84px] flex-col justify-center gap-1.5 rounded-2xl border border-border bg-white p-3.5 shadow-surface-sm transition-colors ease-brand duration-brand-base hover:border-brand-300 active:bg-brand-50"
             >
-              <span aria-hidden="true" className="text-2xl leading-none">
-                {s.emoji}
-              </span>
+              <Image src={s.icon} alt="" width={256} height={256} className="h-10 w-10" />
               <span className="text-sm leading-snug font-bold text-fg">{s.label}</span>
             </Link>
           ))}
