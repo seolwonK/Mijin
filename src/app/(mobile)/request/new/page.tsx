@@ -8,6 +8,7 @@ import { surfaceClasses } from '@/components/Surface';
 import SpeechInput, { type VoiceNote } from '@/components/SpeechInput';
 import LocationPicker, { type LocationValue } from '@/components/LocationPicker';
 import UrgencySelect, { type UrgencyValue } from '@/components/UrgencySelect';
+import { SYMPTOM_PREFILLS } from '@/lib/symptoms';
 
 export default function NewRequestPage() {
   const router = useRouter();
@@ -53,11 +54,20 @@ export default function NewRequestPage() {
   }, []);
 
   // 새로고침/뒤로가기로 작성분이 사라지지 않도록 텍스트 입력을 임시저장한다.
+  // 메인의 증상 버튼(?symptom=키)으로 들어온 경우엔 설명란 프리필이 초안보다 우선한다 —
+  // 방금 버튼을 눌렀다는 것이 더 최신 의도이기 때문. 나머지 필드(이름·전화·긴급도·위치)는
+  // 초안에서 그대로 복원한다. 긴급도는 프리필하지 않는다(고객이 직접 선택).
   useEffect(() => {
+    let symptomPrefill: string | null = null;
+    try {
+      const key = new URLSearchParams(window.location.search).get('symptom');
+      if (key) symptomPrefill = SYMPTOM_PREFILLS[key] ?? null;
+    } catch {
+      /* 무시 */
+    }
     try {
       const raw = sessionStorage.getItem('req_draft');
-      if (!raw) return;
-      const d = JSON.parse(raw) as {
+      const d = (raw ? JSON.parse(raw) : {}) as {
         description?: string;
         name?: string;
         phone?: string;
@@ -65,7 +75,8 @@ export default function NewRequestPage() {
         location?: LocationValue;
       };
       queueMicrotask(() => {
-        if (d.description) setDescription(d.description);
+        if (symptomPrefill) setDescription(symptomPrefill);
+        else if (d.description) setDescription(d.description);
         if (d.name) setName(d.name);
         if (d.phone) setPhone(d.phone);
         if (d.urgency) setUrgency(d.urgency);
@@ -73,7 +84,9 @@ export default function NewRequestPage() {
           setLocation(d.location);
       });
     } catch {
-      /* 무시 */
+      queueMicrotask(() => {
+        if (symptomPrefill) setDescription(symptomPrefill);
+      });
     }
   }, []);
   useEffect(() => {

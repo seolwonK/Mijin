@@ -7,7 +7,8 @@ import ReviewSection from '@/components/ReviewSection';
 import BrandLogo from '@/components/BrandLogo';
 import { buttonClasses } from '@/components/Button';
 import { UrgencyPill } from '@/components/StatusPill';
-import { BoltIcon, ClipboardIcon, ShieldIcon, MapPinIcon, CheckIcon } from '@/components/icons';
+import { BoltIcon, ClipboardIcon, ShieldIcon, MapPinIcon, CheckIcon, AlertIcon } from '@/components/icons';
+import { SYMPTOM_ITEMS, LEAK_SYMPTOM } from '@/lib/symptoms';
 
 // 롱폼 증축 섹션(§2~§7) 데이터 — 카피 방향은 .omc/research/longform/gate/section-plan.md 승인안 승계.
 // §2·§3의 시각 자료는 Phase 2에서 캐릭터 브랜드로 전환하며 이미지 필드를 걷어냈다(아래 주석 참조).
@@ -19,6 +20,14 @@ const PROCESS_STEPS = [
 ] as const;
 
 // 6칸은 예시 카테고리 — ServiceRequest.description은 자유 텍스트라 이 목록으로 한정되지 않는다(카피에서도 단정 금지).
+// §3.5 누전 안내 — 위험 신호 체크리스트. 생활 언어("두꺼비집"·"찌릿")로 쓴다.
+const LEAK_SIGNS = [
+  '두꺼비집(차단기)이 자꾸 내려가요',
+  '콘센트·스위치에서 타는 냄새가 나요',
+  '벽이나 수도꼭지를 만지면 찌릿해요',
+  '전기요금이 갑자기 크게 늘었어요',
+] as const;
+
 const SCOPE_ITEMS = [
   { title: '콘센트' },
   { title: '배선' },
@@ -41,6 +50,10 @@ const FAQ_ITEMS = [
   {
     q: '긴급도는 어떻게 구분되나요?',
     a: '초긴급(정전·누전 등 즉시 위험)·긴급·일반 3단계로 접수 시 직접 선택합니다.',
+  },
+  {
+    q: '누전인지 어떻게 알 수 있나요?',
+    a: '두꺼비집(차단기)이 자꾸 내려가거나, 콘센트·스위치에서 타는 냄새가 나거나, 벽·수도꼭지를 만졌을 때 찌릿한 느낌이 들면 누전일 수 있습니다. 누전은 감전·화재로 이어질 수 있으니 그대로 두지 마시고 바로 접수해 주세요.',
   },
   {
     q: '서비스 가능 지역은 어디인가요?',
@@ -90,6 +103,20 @@ export default function Home() {
         <BrandLogo size="sm" />
       </div>
 
+      {/* 긴급 배너 — FAQ에 이미 있는 "초긴급 1시간 내 응대 목표"를 첫 화면으로 끌어올린 것(새 약속 아님).
+          긴급 상황 사용자가 첫 화면에서 바로 접수로 진입하는 지름길. */}
+      <Link
+        href="/request/new"
+        className="mt-2 flex w-full items-center gap-2 rounded-2xl border border-red-100 bg-red-50 px-4 py-3 transition-colors ease-brand duration-brand-base hover:bg-red-100/70 md:mt-3 md:max-w-2xl"
+      >
+        <span aria-hidden="true">🚨</span>
+        <span className="min-w-0 text-sm font-semibold text-red-700">
+          정전·타는 냄새는 <strong className="font-extrabold">초긴급 접수 시 1시간 내 응대</strong>가
+          목표예요
+        </span>
+        <span className="ml-auto shrink-0 text-sm font-bold text-red-600">접수 →</span>
+      </Link>
+
       <section className="relative -mx-5 mt-1 w-[calc(100%+2.5rem)] overflow-hidden bg-gradient-to-br from-brand-50 via-white to-brand-100/50 md:mx-0 md:mt-3 md:w-full md:max-w-2xl md:rounded-3xl md:shadow-surface-lg">
         <div className="flex flex-col md:flex-row md:items-center">
           <div className="px-5 pt-6 pb-3 md:w-3/5 md:px-8 md:py-12">
@@ -100,7 +127,7 @@ export default function Home() {
               아저씨가 갑니다
             </h1>
             <p className="mt-3 max-w-xs text-sm leading-relaxed text-muted md:max-w-sm md:text-base">
-              전기 고장이 나셨나요? 접수하시면 가까운 출동 업체를 빠르게 연결해 드립니다.
+              정전·누전·긴급 수리까지 — 접수하시면 가까운 출동 업체를 빠르게 연결해 드립니다.
             </p>
             <Link href="/request/new" className={buttonClasses('primary', 'lg', 'mt-5 w-fit')}>
               <BoltIcon className="h-4 w-4" />
@@ -120,9 +147,38 @@ export default function Home() {
         </div>
       </section>
 
+      {/* 증상 선택 CTA — "고장 접수하기"라는 추상 버튼을 못 찾는 사용자를 위해 자기 상황을 그대로
+          고르게 한다. 누르면 접수 화면으로 이동하고 설명란만 프리필된다(긴급도 자동 지정 없음 —
+          긴급도는 폼에서 고객이 직접 고른다). */}
+      <Surface as="section" tint className="mt-3 w-full rounded-3xl p-5 md:mt-4 md:max-w-2xl md:p-7">
+        <h2 className="text-lg font-bold text-fg md:text-xl">어떤 문제가 생겼나요?</h2>
+        <p className="mt-1 text-sm text-muted">눌러 주시면 바로 접수 화면으로 이동해요.</p>
+        <div className="mt-4 grid grid-cols-2 gap-2.5 md:grid-cols-3">
+          {SYMPTOM_ITEMS.map((s) => (
+            <Link
+              key={s.key}
+              href={`/request/new?symptom=${s.key}`}
+              className="flex min-h-[84px] flex-col justify-center gap-1.5 rounded-2xl border border-border bg-white p-3.5 shadow-surface-sm transition-colors ease-brand duration-brand-base hover:border-brand-300 active:bg-brand-50"
+            >
+              <span aria-hidden="true" className="text-2xl leading-none">
+                {s.emoji}
+              </span>
+              <span className="text-sm leading-snug font-bold text-fg">{s.label}</span>
+            </Link>
+          ))}
+          <Link
+            href="/request/new"
+            className="col-span-2 flex min-h-[52px] items-center justify-center gap-2 rounded-2xl border border-dashed border-neutral-300 bg-white p-3.5 text-sm font-bold text-muted transition-colors ease-brand duration-brand-base hover:border-brand-300 hover:text-fg md:col-span-3"
+          >
+            <span aria-hidden="true">🤔</span>잘 모르겠어요 — 그냥 접수할게요
+          </Link>
+        </div>
+      </Surface>
+
       {/* CTA */}
       <div className="mt-3 flex w-full flex-col gap-3 md:mt-4 md:max-w-2xl md:flex-row md:gap-4">
-        <Surface as="section" tint className="rounded-3xl md:flex-1">
+        {/* 틴트는 위 증상 그리드(1차 액션 표면)로 이동 — 여기는 일반 표면으로 낮춘다. */}
+        <Surface as="section" className="rounded-3xl md:flex-1">
           <Link
             href="/request/new"
             className="group flex items-center gap-4 p-5 text-left md:flex-col md:items-start md:gap-3 md:p-7"
@@ -225,6 +281,34 @@ export default function Home() {
               {item.title}
             </span>
           ))}
+        </div>
+      </section>
+
+      {/* §3.5 누전 안내 — 정보를 주면서 자연스럽게 접수로 연결. 위험 신호라 red 액센트를 이 섹션에서만 쓴다. */}
+      <section className="mt-8 w-full md:mt-10 md:max-w-2xl">
+        <h2 className="text-2xl font-extrabold text-fg md:text-3xl">혹시 누전일 수 있어요</h2>
+        <p className="mt-1.5 text-sm leading-relaxed text-muted">
+          이런 신호가 보이면 미루지 마세요. 누전은 감전·화재로 이어질 수 있어요.
+        </p>
+        <ul className="mt-5 space-y-3 rounded-3xl border border-red-100 bg-red-50/60 p-5">
+          {LEAK_SIGNS.map((sign) => (
+            <li key={sign} className="flex gap-3">
+              <AlertIcon className="h-5 w-5 shrink-0 text-red-500" />
+              <span className="text-sm font-semibold text-fg">{sign}</span>
+            </li>
+          ))}
+        </ul>
+        <p className="mt-3 text-xs leading-relaxed text-muted">
+          위 증상이 있다면 두꺼비집을 내려 두시고, 젖은 손으로 콘센트·스위치를 만지지 마세요.
+        </p>
+        <div className="mt-4">
+          <Link
+            href={`/request/new?symptom=${LEAK_SYMPTOM.key}`}
+            className={buttonClasses('primary', 'md', 'w-full md:w-auto')}
+          >
+            <BoltIcon className="h-4 w-4" />
+            누전 의심 접수하기
+          </Link>
         </div>
       </section>
 
