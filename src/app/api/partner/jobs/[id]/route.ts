@@ -14,7 +14,16 @@ export async function GET(
   const { id } = await params;
   const a = await prisma.assignment.findUnique({
     where: { id },
-    include: { request: true },
+    include: {
+      request: {
+        include: {
+          photos: {
+            orderBy: [{ sort: 'asc' }, { createdAt: 'asc' }],
+            select: { id: true, mime: true },
+          },
+        },
+      },
+    },
   });
   if (!a || a.providerId !== session.providerId) {
     return NextResponse.json({ error: '배정 건을 찾을 수 없습니다' }, { status: 404 });
@@ -33,6 +42,7 @@ export async function GET(
       status: a.request.status,
       urgency: a.request.urgency,
       description: a.request.description,
+      photos: a.request.photos.map((p) => ({ id: p.id, mime: p.mime })),
       address: a.request.address,
       lat: a.request.lat,
       lng: a.request.lng,

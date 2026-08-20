@@ -172,6 +172,26 @@ export function MicIcon({ className }: IconProps) {
   );
 }
 
+// 접수 사진 첨부 — "지금 찍기"(카메라) / "찍어둔 것"(앨범) 두 경로를 구분한다.
+export function CameraIcon({ className }: IconProps) {
+  return (
+    <svg {...base} className={className} aria-hidden="true">
+      <path d="M4 8.5A1.5 1.5 0 0 1 5.5 7h2.2l1.3-2h6l1.3 2h2.2A1.5 1.5 0 0 1 20 8.5v9a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 17.5v-9Z" />
+      <circle cx="12" cy="13" r="3.5" />
+    </svg>
+  );
+}
+
+export function ImageIcon({ className }: IconProps) {
+  return (
+    <svg {...base} className={className} aria-hidden="true">
+      <rect x="3" y="5" width="18" height="14" rx="2" />
+      <circle cx="8.5" cy="10" r="1.5" />
+      <path d="m4 17 4.5-4.5L12 16l3-3 5 5" />
+    </svg>
+  );
+}
+
 // 리뷰 P3-5용 삼각 경고 아이콘.
 export function AlertIcon({ className }: IconProps) {
   return (

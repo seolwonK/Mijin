@@ -6,6 +6,7 @@ import PageHeader from '@/components/PageHeader';
 import { buttonClasses } from '@/components/Button';
 import { surfaceClasses } from '@/components/Surface';
 import SpeechInput, { type VoiceNote } from '@/components/SpeechInput';
+import PhotoInput, { type PhotoDraft } from '@/components/PhotoInput';
 import LocationPicker, { type LocationValue } from '@/components/LocationPicker';
 import UrgencySelect, { type UrgencyValue } from '@/components/UrgencySelect';
 import { SYMPTOM_PREFILLS } from '@/lib/symptoms';
@@ -14,6 +15,7 @@ export default function NewRequestPage() {
   const router = useRouter();
   const [description, setDescription] = useState('');
   const [voice, setVoice] = useState<VoiceNote | null>(null);
+  const [photos, setPhotos] = useState<PhotoDraft[]>([]);
   const [urgency, setUrgency] = useState<UrgencyValue | null>(null);
   const [location, setLocation] = useState<LocationValue>({
     lat: null,
@@ -125,8 +127,8 @@ export default function NewRequestPage() {
     setBusy(true);
     try {
       let res: Response;
-      if (voice) {
-        // 녹음본이 있으면 multipart 로 파일까지 함께 전송
+      if (voice || photos.length > 0) {
+        // 녹음본이나 사진이 있으면 multipart 로 파일까지 함께 전송
         const fd = new FormData();
         fd.append('customerName', name);
         fd.append('customerPhone', phone);
@@ -135,7 +137,8 @@ export default function NewRequestPage() {
         if (location.lat != null) fd.append('lat', String(location.lat));
         if (location.lng != null) fd.append('lng', String(location.lng));
         if (location.address.trim()) fd.append('address', location.address.trim());
-        fd.append('voice', voice.blob, 'voice');
+        if (voice) fd.append('voice', voice.blob, 'voice');
+        for (const p of photos) fd.append('photos', p.file, p.file.name);
         res = await fetch('/api/requests', { method: 'POST', body: fd });
       } else {
         res = await fetch('/api/requests', {
@@ -213,6 +216,12 @@ export default function NewRequestPage() {
               voice={voice}
               onVoiceChange={setVoice}
             />
+          </div>
+
+          {/* 사진 첨부 — 고장 설명의 연장선이라 1단계 안에 둔다(별도 단계로 올리면 선택
+              항목인데도 필수처럼 보인다). */}
+          <div id="req-photos" className="mt-6 border-t border-border/70 pt-6">
+            <PhotoInput photos={photos} onChange={setPhotos} disabled={busy} />
           </div>
 
           <div id="req-urgency" className="mt-6 border-t border-border/70 pt-6">

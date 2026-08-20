@@ -5,6 +5,7 @@ import { prisma } from '@/lib/db';
 import { sendSms } from '@/lib/sms';
 import { smsRequestReceived } from '@/lib/sms/templates';
 import { transcribeVoiceNote, VOICE_PLACEHOLDER } from '@/lib/stt';
+import { collectPhotoUploads, saveRequestPhotos, type PhotoUpload } from '@/lib/photos';
 
 // 인메모리 레이트리밋: IP당 10분에 10회 (identity/verify·tech/signup 등과 동형).
 // 이 라우트는 접수 1건마다 sendSms 를 await 로 실발송하므로(아래 POST 말미),
@@ -82,6 +83,7 @@ export async function POST(req: NextRequest) {
   const contentType = req.headers.get('content-type') ?? '';
   let body: unknown;
   let voice: File | null = null;
+  let photos: PhotoUpload[] = [];
 
   if (contentType.includes('multipart/form-data')) {
     let form: FormData;
@@ -92,6 +94,29 @@ export async function POST(req: NextRequest) {
     }
     const v = form.get('voice');
     voice = v instanceof File && v.size > 0 ? v : null;
+    // 사진은 여기서 장수·용량·형식만 본다. 실제 저장(R2)은 접수 행이 생긴 뒤에 한다.
+    // 사유별로 반환문을 따로 두는 것은 아래 음성 게이트와 같은 방식이다 —
+    // 어느 사유를 때렸는지 응답 문구만으로 특정할 수 있어야 한다.
+    const collected = await collectPhotoUploads(form);
+    if ('error' in collected) {
+      if (collected.error === 'TOO_MANY') {
+        return NextResponse.json(
+          { error: '사진은 최대 5장까지 첨부할 수 있습니다' },
+          { status: 400 },
+        );
+      }
+      if (collected.error === 'TOO_LARGE') {
+        return NextResponse.json(
+          { error: '사진 용량이 너무 큽니다 (장당 최대 10MB)' },
+          { status: 400 },
+        );
+      }
+      return NextResponse.json(
+        { error: '지원하지 않는 사진 형식입니다 (JPG·PNG·WEBP만 가능)' },
+        { status: 400 },
+      );
+    }
+    photos = collected.photos;
     body = {
       customerName: form.get('customerName') ?? '',
       customerPhone: form.get('customerPhone') ?? '',
@@ -180,6 +205,9 @@ export async function POST(req: NextRequest) {
       voiceMime,
     },
   });
+
+  // 현장 사진 저장 — 실패한 사진은 내부적으로 생략되고 접수는 그대로 진행된다(photos.ts).
+  await saveRequestPhotos(request.id, photos);
 
   // 서버 STT (STT_PROVIDER 설정 시) — 고객 응답을 지연시키지 않도록 대기하지 않음
   if (voiceBytes && voiceMime) {

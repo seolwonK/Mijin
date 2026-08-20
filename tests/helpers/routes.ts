@@ -1,8 +1,8 @@
 // ───────────────────────────────────────────────────────────────────────────
 // API 라우트 매트릭스 — 단일 진실 원천.
 //
-// 66개 route.ts 파일이 77개 핸들러를 export 한다 (11개 라우트가 2개 메서드).
-// 그중 14개가 설계상 공개이고, 나머지 **63개가 가드 대상**이다.
+// 67개 route.ts 파일이 78개 핸들러를 export 한다 (11개 라우트가 2개 메서드).
+// 그중 14개가 설계상 공개이고, 나머지 **64개가 가드 대상**이다.
 //
 // 이 표를 손으로 유지하지 않는다: tests/cross/matrix-completeness.spec.ts 가
 // src/app/api/** 를 걸어 실제 export 와 대조하므로, 라우트가 추가·삭제되면
@@ -123,6 +123,19 @@ export const ROUTES: RouteEntry[] = [
   partner('/api/partner/reviews', 'GET'),
   partner('/api/partner/stats', 'GET'),
 
+  // ── 역할 공유 (1 핸들러) ────────────────────────────────────────────────
+  // 접수 사진 열람. 관리자는 전부, 업체·기술자는 그 접수에 배정 이력이 있을 때만 통과한다.
+  // 표에는 ADMIN 으로 적는다 — 배정 없는 타역할 세션은 관리자 전용 라우트와 똑같이 401 로
+  // 떨어지고(photos.ts:canViewRequestPhotos), 교차역할 단언이 쓰는 것이 바로 그 성질이다.
+  {
+    path: '/api/requests/[id]/photos/[photoId]',
+    method: 'GET',
+    isPublic: false,
+    expectedUnauthedStatus: 401,
+    role: 'ADMIN',
+    note: '관리자 + 해당 접수에 배정된 업체/기술자',
+  },
+
   // ── 공개 14 핸들러 — 401 단언에서 제외한다 ───────────────────────────
   open('/api/auth/check-login-id', 'GET', '아이디 중복 확인 — 가입 폼에서 호출'),
   open('/api/auth/login', 'POST', '로그인 자체 — 세션을 만드는 입구'),
@@ -140,7 +153,7 @@ export const ROUTES: RouteEntry[] = [
   open('/api/tech/signup', 'POST', '전기기사 셀프 가입 — 즉시 APPROVED(signup:176)'),
 ];
 
-/** 무세션 401 을 단언해야 하는 핸들러 (77 − 공개 14 = 63). */
+/** 무세션 401 을 단언해야 하는 핸들러 (78 − 공개 14 = 64). */
 export const GUARDED_ROUTES = ROUTES.filter((r) => !r.isPublic);
 
 /** 설계상 공개인 핸들러 — 401 오탐 방지용으로 명시 보관한다. */

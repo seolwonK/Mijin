@@ -118,7 +118,13 @@ export async function apiContextOptions(
 ): Promise<{ baseURL: string; extraHTTPHeaders: Record<string, string> }> {
   const headers: Record<string, string> = { ...extra };
   if (role) headers.cookie = await sessionCookieHeader(role, ids);
-  return { baseURL: 'http://localhost:3000', extraHTTPHeaders: headers };
+  // 기본값은 playwright.config.ts 의 baseURL 과 같다. 3000 번이 다른 프로세스에 점유된
+  // 환경에서 임시 포트로 돌릴 수 있도록 환경변수로만 덮어쓸 수 있게 열어 둔다 —
+  // 값을 주지 않으면 동작은 종전과 완전히 동일하다.
+  return {
+    baseURL: process.env.E2E_BASE_URL ?? 'http://localhost:3000',
+    extraHTTPHeaders: headers,
+  };
 }
 
 /** 세션 없이 위조·손상 토큰을 넣고 싶을 때. */

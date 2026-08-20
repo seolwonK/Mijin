@@ -98,7 +98,7 @@ test('GET /api/partner/jobs/[id] 는 없는 id 에 404, 본인 건은 고객 정
   const a = await assign({ requestId: req.id, providerId: partner.providerId });
 
   const ctx = await partnerCtx(playwright, partner, 'jobs-detail');
-  const detailGate = expectGate(DETAIL, 20);
+  const detailGate = expectGate(DETAIL, 29); // 접수 사진(photos) include 로 +9
   const unknown = await ctx.get('/api/partner/jobs/no-such-assignment');
   expect(unknown.status()).toBe(detailGate.status);
   expect((await unknown.json()).error).toBe(detailGate.message);

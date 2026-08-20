@@ -7,6 +7,7 @@ import { AdminStatusTag, AdminUrgencyTag } from '@/components/AdminStatusTag';
 import { useConfirm } from '@/components/useConfirm';
 import { AlertIcon, StarIcon } from '@/components/icons';
 import AdminCandidatePanel, { type AdminCandidate } from '@/components/AdminCandidatePanel';
+import PhotoGallery, { type RequestPhotoRef } from '@/components/PhotoGallery';
 
 type Assignee = { kind: 'PROVIDER' | 'TECHNICIAN'; name: string; phone: string };
 
@@ -37,6 +38,7 @@ type RequestDetail = {
   description: string;
   hasVoice: boolean;
   voiceTranscript: string | null;
+  photos: RequestPhotoRef[];
   urgency: string;
   status: string;
   lat: number | null;
@@ -167,6 +169,7 @@ export default function AdminRequestDetailPage({
         <section className="rounded-admin-md border border-border p-4">
           <h2 className="mb-1 text-sm text-muted">고장 내용</h2>
           <p className="whitespace-pre-wrap">{req.description}</p>
+          <PhotoGallery requestId={id} photos={req.photos ?? []} className="mt-3" />
           {req.hasVoice && (
             <div className="mt-3 rounded-admin-md bg-neutral-50 p-3">
               <p className="mb-1 text-sm font-medium text-neutral-600">고객 음성 녹음</p>

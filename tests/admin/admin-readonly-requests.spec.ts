@@ -205,6 +205,7 @@ test('requests/[id] GET 200 — 상세 shape · waitMinutes 가 긴급도별 설
       'lng',
       'lookupCode',
       'needsAttention',
+      'photos',
       'status',
       'survey',
       'urgency',

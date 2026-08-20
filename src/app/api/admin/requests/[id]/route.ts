@@ -20,6 +20,10 @@ export async function GET(
           include: ASSIGNEE_INCLUDE,
         },
         survey: true,
+        photos: {
+          orderBy: [{ sort: 'asc' }, { createdAt: 'asc' }],
+          select: { id: true, mime: true },
+        },
       },
     }),
     prisma.appSettings.findUnique({ where: { id: 1 } }),
@@ -46,6 +50,7 @@ export async function GET(
     description: request.description,
     hasVoice: !!(request.voiceFileId || request.voicePath),
     voiceTranscript: request.voiceTranscript,
+    photos: request.photos.map((p) => ({ id: p.id, mime: p.mime })),
     urgency: request.urgency,
     status: request.status,
     lat: request.lat,

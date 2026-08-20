@@ -668,7 +668,7 @@ export const GATES: Record<string, HandlerGates> = {
 
   'GET /api/admin/requests/[id]': {
     file: 'src/app/api/admin/requests/[id]/route.ts',
-    gates: [{ order: 1, status: 404, line: 28, kind: 'not-found', message: '접수를 찾을 수 없습니다', reach: '없는 id' }],
+    gates: [{ order: 1, status: 404, line: 32, kind: 'not-found', message: '접수를 찾을 수 없습니다', reach: '없는 id' }],
   },
 
   'GET /api/admin/requests/[id]/candidates': {
@@ -790,7 +790,7 @@ export const GATES: Record<string, HandlerGates> = {
   'GET /api/tech/jobs/[id]': {
     file: 'src/app/api/tech/jobs/[id]/route.ts',
     gates: [
-      { order: 1, status: 404, line: 20, kind: 'state', message: '배정 건을 찾을 수 없습니다', reach: '배정 없음 또는 남의 배정' },
+      { order: 1, status: 404, line: 29, kind: 'state', message: '배정 건을 찾을 수 없습니다', reach: '배정 없음 또는 남의 배정' },
     ],
   },
 
@@ -1065,7 +1065,7 @@ export const GATES: Record<string, HandlerGates> = {
 
   'GET /api/partner/jobs/[id]': {
     file: 'src/app/api/partner/jobs/[id]/route.ts',
-    gates: [{ order: 1, status: 404, line: 20, kind: 'state', message: '배정 건을 찾을 수 없습니다', reach: '배정 없음 또는 남의 배정' }],
+    gates: [{ order: 1, status: 404, line: 29, kind: 'state', message: '배정 건을 찾을 수 없습니다', reach: '배정 없음 또는 남의 배정' }],
   },
 
   'GET /api/partner/eggs': {
@@ -1170,43 +1170,102 @@ export const GATES: Record<string, HandlerGates> = {
       '레이트리밋(:78)이 **모든 분기보다 먼저**다 — IP당 10분 10회. 같은 IP 로 11번째 ' +
       'POST 하면 어떤 400 을 노렸든 429 가 나온다. 400 분기를 연속으로 태우는 스펙은 ' +
       'freshIp() 를 써야 한다. 본문 파싱 분기는 content-type 에 따라 갈린다' +
-      '(:91 multipart / :108 JSON). 음성 게이트 2개는 multipart 에서만 도달한다.',
+      '(:93 multipart / :133 JSON). 사진 게이트 3개와 음성 게이트 2개는 multipart 에서만 ' +
+      '도달하며, **사진이 음성보다 먼저**다 — 사진과 음성을 함께 잘못 보내면 사진 쪽 400 이 나온다.',
     gates: [
       {
         order: 1,
         status: 429,
-        line: 78,
+        line: 79,
         kind: 'rate-limit',
         message: '접수 요청이 너무 많습니다. 잠시 후 다시 시도해 주세요.',
         reach: '같은 x-forwarded-for 로 10분 내 11회째 POST',
       },
-      { order: 2, status: 400, line: 91, kind: 'body-parse', message: '잘못된 요청입니다', reach: 'content-type 이 multipart 인데 formData 파싱 실패' },
-      { order: 3, status: 400, line: 108, kind: 'body-parse', message: '잘못된 요청입니다', reach: 'JSON 경로에서 파싱 실패' },
-      { order: 4, status: 400, line: 116, kind: 'schema', message: null, reach: 'createSchema 위반' },
+      { order: 2, status: 400, line: 93, kind: 'body-parse', message: '잘못된 요청입니다', reach: 'content-type 이 multipart 인데 formData 파싱 실패' },
+      {
+        order: 3,
+        status: 400,
+        line: 105,
+        kind: 'state',
+        message: '사진은 최대 5장까지 첨부할 수 있습니다',
+        reach: 'multipart + photos 파트가 6개 이상 (0바이트 파일은 세지 않는다)',
+      },
+      {
+        order: 4,
+        status: 400,
+        line: 111,
+        kind: 'state',
+        message: '사진 용량이 너무 큽니다 (장당 최대 10MB)',
+        reach: '사진 5장 이하 + 그중 하나가 10MB 초과',
+        trap: '6장 이상이면 :105 가 먼저 — 용량 게이트는 실행되지 않는다',
+      },
       {
         order: 5,
         status: 400,
-        line: 124,
+        line: 116,
+        kind: 'state',
+        message: '지원하지 않는 사진 형식입니다 (JPG·PNG·WEBP만 가능)',
+        reach:
+          '장수·용량 통과 + **매직바이트**가 JPEG/PNG/WEBP 가 아님. ' +
+          '선언 MIME 은 보지 않으므로 Content-Type 만 바꿔서는 도달하지 못한다',
+      },
+      { order: 6, status: 400, line: 133, kind: 'body-parse', message: '잘못된 요청입니다', reach: 'JSON 경로에서 파싱 실패' },
+      { order: 7, status: 400, line: 141, kind: 'schema', message: null, reach: 'createSchema 위반' },
+      {
+        order: 8,
+        status: 400,
+        line: 149,
         kind: 'state',
         message: '고장 내용을 입력하거나 음성으로 남겨 주세요',
         reach: 'zod 통과 + description 비어 있음 + 음성 첨부도 없음',
       },
       {
-        order: 6,
+        order: 9,
         status: 400,
-        line: 137,
+        line: 162,
         kind: 'state',
         message: '지원하지 않는 음성 형식입니다',
         reach: 'multipart + 음성 첨부 + 허용 목록 밖 MIME',
       },
       {
-        order: 7,
+        order: 10,
         status: 400,
-        line: 143,
+        line: 168,
         kind: 'state',
         message: '음성 파일이 너무 큽니다 (최대 15MB)',
         reach: '15MB 초과 + **지원되는 MIME**',
-        trap: 'MIME 이 틀리면 :109 가 먼저 — 용량 게이트는 실행되지 않는다',
+        trap: 'MIME 이 틀리면 :162 가 먼저 — 용량 게이트는 실행되지 않는다',
+      },
+    ],
+  },
+
+  'GET /api/requests/[id]/photos/[photoId]': {
+    file: 'src/app/api/requests/[id]/photos/[photoId]/route.ts',
+    note:
+      '권한 검사(:27)는 401 이라 이 표의 대상이 아니지만, **404 두 개를 가린다** — 관리자가 ' +
+      '아니고 그 접수에 배정 이력도 없으면 사진 id 가 무엇이든 401 이다. 404 를 노리려면 ' +
+      '관리자 세션이나 배정된 업체/기술자 세션이 먼저 필요하다. 502(:44)는 4xx 가 아니라 ' +
+      '여기 없다 — R2 조회가 던져야 도달한다.',
+    gates: [
+      {
+        order: 1,
+        status: 404,
+        line: 36,
+        kind: 'not-found',
+        message: '사진을 찾을 수 없습니다',
+        reach:
+          '권한 통과 + photoId 가 없거나 **다른 접수**의 사진. ' +
+          '두 경우를 같은 404 로 합친 것은 의도다 — 남의 접수에 어떤 사진이 있는지 알려주지 않는다',
+      },
+      {
+        order: 2,
+        status: 404,
+        line: 49,
+        kind: 'not-found',
+        message: '파일을 찾을 수 없습니다',
+        reach:
+          'RequestPhoto 행은 있는데 본문이 없음 — R2 에서 오브젝트가 지워졌거나 ' +
+          'StoredFile 행이 사라진 경우. 정상 경로로는 재현되지 않는다',
       },
     ],
   },

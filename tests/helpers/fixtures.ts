@@ -136,6 +136,18 @@ async function deleteInFkOrder(prisma: PrismaClient, scope: DeleteScope): Promis
     if (n > 0) result[key] = (result[key] ?? 0) + n;
   };
 
+  // ServiceRequest 를 지우면 RequestPhoto 는 cascade 로 함께 사라지지만(schema.prisma),
+  // R2 미설정 경로에서 만들어진 사진 **본문**(StoredFile)은 아무도 가리키지 않는 채 남는다.
+  // 지우기 전에 id 를 걷어 아래 StoredFile 스윕에 함께 태운다.
+  const photoFileIds: string[] = [];
+  if (requestIds.length) {
+    const photos = await prisma.requestPhoto.findMany({
+      where: { requestId: { in: requestIds }, fileId: { not: null } },
+      select: { fileId: true },
+    });
+    for (const p of photos) if (p.fileId) photoFileIds.push(p.fileId);
+  }
+
   if (requestIds.length) {
     const surveys = await prisma.satisfactionSurvey.findMany({
       where: { requestId: { in: requestIds } },
@@ -226,10 +238,11 @@ async function deleteInFkOrder(prisma: PrismaClient, scope: DeleteScope): Promis
     );
   }
 
-  if (fileIds.length) {
+  const allFileIds = [...fileIds, ...photoFileIds];
+  if (allFileIds.length) {
     note(
       'StoredFile',
-      (await prisma.storedFile.deleteMany({ where: { id: { in: fileIds } } })).count,
+      (await prisma.storedFile.deleteMany({ where: { id: { in: allFileIds } } })).count,
     );
   }
 

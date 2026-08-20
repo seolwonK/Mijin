@@ -10,6 +10,7 @@ import { Skeleton, CardSkeleton } from '@/components/Skeleton';
 import ResponseDeadlineNote from '@/components/ResponseDeadlineNote';
 import { EggIcon } from '@/components/EggIcon';
 import { MapPinIcon, PhoneIcon, CheckIcon, TruckIcon } from '@/components/icons';
+import PhotoGallery, { type RequestPhotoRef } from '@/components/PhotoGallery';
 
 type JobDetail = {
   id: string;
@@ -22,6 +23,7 @@ type JobDetail = {
     status: string;
     urgency: string;
     description: string;
+    photos: RequestPhotoRef[];
     address: string | null;
     lat: number | null;
     lng: number | null;
@@ -122,6 +124,7 @@ export default function TechJobDetailPage({
         <section className={surfaceClasses('rounded-2xl p-4 md:col-span-2 md:p-5')}>
           <h2 className="mb-1 text-sm text-muted">고장 내용</h2>
           <p className="whitespace-pre-wrap text-fg">{r.description}</p>
+          <PhotoGallery requestId={r.id} photos={r.photos ?? []} className="mt-3" />
           <p className="mt-2 text-xs text-neutral-400">
             접수 {new Date(r.createdAt).toLocaleString('ko-KR')}
           </p>

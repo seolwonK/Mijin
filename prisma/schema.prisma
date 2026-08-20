@@ -223,6 +223,7 @@ model ServiceRequest {
   completedAt     DateTime?
   assignments     Assignment[]
   survey          SatisfactionSurvey?
+  photos          RequestPhoto[]
   createdAt       DateTime            @default(now())
   updatedAt       DateTime            @updatedAt
 
@@ -314,16 +315,16 @@ enum EggLedgerReason {
 // XOR(providerId/technicianId 중 정확히 하나)은 CommissionEntry 전례대로 bare scalar + DB CHECK.
 // 모든 변동은 src/lib/eggs.ts 단일 진입점으로만 발생한다.
 model EggLedger {
-  id           String          @id @default(cuid())
-  providerId   String? // XOR — DB CHECK로 강제 (CommissionEntry 전례)
-  technicianId String?
-  delta        Int // 양수=충전/증액, 음수=차감
-  reason       EggLedgerReason
-  memo         String? // CHARGE/ADMIN_ADJUST 시 앱 레벨 필수
+  id               String          @id @default(cuid())
+  providerId       String? // XOR — DB CHECK로 강제 (CommissionEntry 전례)
+  technicianId     String?
+  delta            Int // 양수=충전/증액, 음수=차감
+  reason           EggLedgerReason
+  memo             String? // CHARGE/ADMIN_ADJUST 시 앱 레벨 필수
   actorAdminUserId String? // 어드민 행위자 (CHARGE/ADMIN_ADJUST)
-  assignmentId String?         @unique // ACCEPT_SPEND 멱등 키 — 배정 1건 = 차감 최대 1회 (bare scalar, FK 부재는 무결성 스크립트 (ii)가 보완)
-  chargeKey    String?         @unique // CHARGE 멱등 키 — 어드민 폼 제출당 클라이언트 생성 UUID (더블서브밋 방어)
-  createdAt    DateTime        @default(now())
+  assignmentId     String?         @unique // ACCEPT_SPEND 멱등 키 — 배정 1건 = 차감 최대 1회 (bare scalar, FK 부재는 무결성 스크립트 (ii)가 보완)
+  chargeKey        String?         @unique // CHARGE 멱등 키 — 어드민 폼 제출당 클라이언트 생성 UUID (더블서브밋 방어)
+  createdAt        DateTime        @default(now())
 
   @@index([providerId, createdAt])
   @@index([technicianId, createdAt])
@@ -363,8 +364,28 @@ model SmsLog {
   createdAt DateTime @default(now())
 }
 
-// 업로드 파일 본문 (음성 녹음·사업자등록증) — 볼륨 마운트 없이도 유지되도록
-// 파일시스템 대신 DB(bytea)에 저장한다. 접근은 관리자 전용 라우트로만.
+// 고객이 접수 시 첨부한 고장 현장 사진. 관리자·해당 건에 배정된 업체/전기기사만 열람한다.
+//
+// 본문은 Cloudflare R2 에 두고 여기엔 오브젝트 키만 남긴다(storageKey). R2 가 설정되지 않은
+// 환경(로컬 개발·E2E)에서는 음성 녹음과 같은 방식으로 DB(StoredFile)에 저장하고 fileId 를
+// 채운다 — 둘 중 정확히 하나만 값이 있다. 컨테이너 파일시스템은 재배포 시 초기화되므로
+// 로컬 디스크 저장은 쓰지 않는다.
+model RequestPhoto {
+  id         String         @id @default(cuid())
+  requestId  String
+  request    ServiceRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  storageKey String? // R2 오브젝트 키
+  fileId     String? // StoredFile id (R2 미설정 시 폴백)
+  mime       String // image/jpeg | image/png | image/webp
+  size       Int // 바이트
+  sort       Int            @default(0) // 고객이 첨부한 순서
+  createdAt  DateTime       @default(now())
+
+  @@index([requestId, sort])
+}
+
+// 업로드 파일 본문 (음성 녹음·사업자등록증·R2 미설정 시 접수 사진) — 볼륨 마운트 없이도
+// 유지되도록 파일시스템 대신 DB(bytea)에 저장한다. 접근은 권한 검사 라우트로만.
 model StoredFile {
   id        String   @id @default(cuid())
   mime      String

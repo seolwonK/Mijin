@@ -32,7 +32,12 @@ export default defineConfig({
     reuseExistingServer: false,
     // Next 의 .env 로더는 이미 정의된 process.env 를 덮어쓰지 않으므로
     // 여기서 준 값이 .env 의 SMS_PROVIDER="solapi" 를 이긴다 (실측 확인).
-    env: { SMS_PROVIDER: 'console' },
+    //
+    // R2_BUCKET 을 비우는 이유도 같은 계열이다. .env 에 실 자격증명이 들어 있으면 E2E 가
+    // 만드는 접수 사진이 **운영 버킷에** 실제로 쌓이고, 테스트 정리는 DB 만 지우므로
+    // 오브젝트가 영구 잔재로 남는다. 빈 값이면 사진은 DB(StoredFile) 폴백으로 저장되고
+    // 픽스처 정리가 그 행까지 회수한다(helpers/fixtures.ts).
+    env: { SMS_PROVIDER: 'console', R2_BUCKET: '' },
     timeout: 180_000,
   },
   projects: [
