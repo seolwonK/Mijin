@@ -53,6 +53,13 @@ COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/package.json ./package.json
 COPY --from=builder /app/next.config.ts ./next.config.ts
 
+# CloudType 은 컨테이너를 비루트(임의 UID)로 실행한다. COPY 산출물은 root 소유라 Next 가 런타임에
+# 쓰는 .next/cache(이미지 최적화·fetch 캐시)와 .next/server(ISR 프리렌더 갱신)에서
+# "EACCES: permission denied, mkdir '/app/.next/cache/images'" unhandledRejection 이 요청마다
+# 쏟아졌다(2026-08-23 운영 로그). 서비스는 돌아가지만 캐시가 전혀 안 먹고 로그가 오염되므로
+# uploads 와 같은 방식으로 전체 쓰기를 허용한다.
+RUN mkdir -p /app/.next/cache/images /app/.next/cache/fetch-cache && chmod -R a+rwX /app/.next
+
 # 업로드 영속 디렉터리 — CloudType 스토리지를 /app/uploads 에 마운트할 것
 # (비루트 실행 환경 대비 전체 쓰기 허용; 볼륨 마운트 시엔 entrypoint 가 재생성/재설정)
 RUN mkdir -p /app/uploads/biz-certs /app/uploads/voice-notes && chmod -R 777 /app/uploads
