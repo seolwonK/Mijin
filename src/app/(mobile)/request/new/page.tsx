@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import PageHeader from '@/components/PageHeader';
@@ -290,7 +291,10 @@ export default function NewRequestPage() {
             />
             <span>
               접수 처리 및 업체 연결을 위한 개인정보(이름, 연락처, 위치)의 수집·이용에
-              동의합니다.
+              동의합니다.{' '}
+              <Link href="/privacy" target="_blank" className="font-semibold text-brand-700 underline">
+                개인정보처리방침
+              </Link>
             </span>
           </label>
         </section>

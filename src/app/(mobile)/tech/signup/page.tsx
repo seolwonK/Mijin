@@ -324,8 +324,15 @@ export default function TechSignupPage() {
             className="mt-0.5 h-4 w-4 accent-brand-600"
           />
           <span>
-            가입 심사 및 근로확인을 위한 개인정보(성명, 연락처, 주소) 수집·이용에
-            동의합니다.
+            <Link href="/terms" target="_blank" className="font-semibold text-brand-700 underline">
+              이용약관
+            </Link>
+            과{' '}
+            <Link href="/privacy" target="_blank" className="font-semibold text-brand-700 underline">
+              개인정보처리방침
+            </Link>
+            을 확인했으며, 가입 심사 및 근로확인을 위한 개인정보(성명, 연락처, 주소, 본인인증
+            결과) 수집·이용에 동의합니다.
           </span>
         </label>
 

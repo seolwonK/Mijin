@@ -260,7 +260,14 @@ export default function PartnerSignupPage() {
             className="mt-0.5 h-4 w-4 accent-brand-600"
           />
           <span>
-            가입 심사를 위한 개인정보(사업자등록증, 전기공사업 등록증, 연락처)
+            <Link href="/terms" target="_blank" className="font-semibold text-brand-700 underline">
+              이용약관
+            </Link>
+            과{' '}
+            <Link href="/privacy" target="_blank" className="font-semibold text-brand-700 underline">
+              개인정보처리방침
+            </Link>
+            을 확인했으며, 가입 심사를 위한 개인정보(사업자등록증, 전기공사업 등록증, 연락처)
             수집·이용에 동의합니다. 수집된 증빙은 심사 목적 외에 사용되지 않습니다.
           </span>
         </label>

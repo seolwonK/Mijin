@@ -11,7 +11,8 @@ import { HomeIcon, BoltIcon, SearchIcon } from '@/components/icons';
 // 각자의 역할 컨텍스트가 있어 고객 역할 전환 독이 필요 없다.
 // 몰입 화면 숨김: 접수 폼(/request/new)은 자체 하단 고정 제출 버튼을 쓰므로 독과 겹치면 안 되고,
 // 접수 완료 화면도 다음 행동(전화/조회)에 집중해야 해 독을 숨긴다.
-const VISIBLE_PATHS = ['/', '/lookup'];
+// 소개·약관·개인정보처리방침은 푸터에서 진입하는 고객 정보 화면이라 독을 유지한다.
+const VISIBLE_PATHS = ['/', '/lookup', '/about', '/terms', '/privacy'];
 
 const ITEMS = [
   { href: '/', label: '홈', Icon: HomeIcon },
