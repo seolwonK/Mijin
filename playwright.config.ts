@@ -37,7 +37,9 @@ export default defineConfig({
     // 만드는 접수 사진이 **운영 버킷에** 실제로 쌓이고, 테스트 정리는 DB 만 지우므로
     // 오브젝트가 영구 잔재로 남는다. 빈 값이면 사진은 DB(StoredFile) 폴백으로 저장되고
     // 픽스처 정리가 그 행까지 회수한다(helpers/fixtures.ts).
-    env: { SMS_PROVIDER: 'console', R2_BUCKET: '' },
+    // IDENTITY_PROVIDER 도 같은 이유로 mock 고정 — 로컬 .env 가 portone(실 PASS 인증)으로 바뀌어도
+    // E2E 가 실제 통신사 인증창을 부르지 않게 한다(tests/tech/* 는 mock 계약을 검증한다).
+    env: { SMS_PROVIDER: 'console', R2_BUCKET: '', IDENTITY_PROVIDER: 'mock' },
     timeout: 180_000,
   },
   projects: [

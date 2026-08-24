@@ -101,6 +101,15 @@ function loadPortOne(): Promise<PortOneSDK> {
   });
 }
 
+// 화면 진입 시 미리 호출해 두면 클릭 시점에 설정 fetch·SDK 로드 대기가 없어진다 — 팝업은
+// 사용자 클릭의 일시적 활성화(transient activation) 안에서 열려야 브라우저가 차단하지 않으므로,
+// 클릭 뒤 네트워크 대기가 길어질수록 팝업 차단 위험이 커진다. 실패는 조용히 무시한다(클릭 시 재시도).
+export function preloadIdentityVerification(): void {
+  void fetchIdentityConfig()
+    .then((config) => (config.provider === 'portone' ? loadPortOne() : undefined))
+    .catch(() => undefined);
+}
+
 // PC 에서는 팝업으로 끝나 프로미스가 결과를 돌려준다. 모바일 대부분은 리다이렉트 방식이라
 // 이 함수는 돌아오지 않고 페이지가 통째로 인증창으로 갔다가 redirectUrl 로 복귀한다 —
 // 복귀 처리는 호출한 화면(tech/signup)이 URL 쿼리(REDIRECT_PARAM_*)로 한다.

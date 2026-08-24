@@ -11,6 +11,7 @@ import RegionMultiSelect from '@/components/RegionMultiSelect';
 import { hasSigungu, regionKey } from '@/lib/regions';
 import {
   startIdentityVerification,
+  preloadIdentityVerification,
   REDIRECT_PARAM_ID,
   REDIRECT_PARAM_CODE,
   REDIRECT_PARAM_MESSAGE,
@@ -177,6 +178,11 @@ export default function TechSignupPage() {
   // 외부 시스템(URL 쿼리·sessionStorage)을 읽는 것은 effect 본문에서, 상태 복원은 하이드레이션이
   // 끝난 뒤 콜백에서 한다(React Compiler 규칙: effect 본문의 동기 setState 금지). 서버 렌더에는
   // window 가 없으므로 lazy initial state 로는 처리할 수 없다(하이드레이션 불일치).
+  // 설정·SDK 프리로드 — 클릭 시 팝업이 사용자 활성화 안에서 바로 열리게(client.ts 주석 참조).
+  useEffect(() => {
+    preloadIdentityVerification();
+  }, []);
+
   useEffect(() => {
     let cancelled = false;
     const back = consumeRedirectParams();
