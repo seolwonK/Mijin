@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import PageHeader from '@/components/PageHeader';
 import LoginIdCheckField from '@/components/LoginIdCheckField';
@@ -9,7 +9,12 @@ import { buttonClasses } from '@/components/Button';
 import RegionSelect, { type RegionValue } from '@/components/RegionSelect';
 import RegionMultiSelect from '@/components/RegionMultiSelect';
 import { hasSigungu, regionKey } from '@/lib/regions';
-import { startIdentityVerification } from '@/lib/identity/client';
+import {
+  startIdentityVerification,
+  REDIRECT_PARAM_ID,
+  REDIRECT_PARAM_CODE,
+  REDIRECT_PARAM_MESSAGE,
+} from '@/lib/identity/client';
 import { CheckIcon } from '@/components/icons';
 import ReferrerField, { type ReferrerSelection } from '@/components/ReferrerField';
 
@@ -22,6 +27,54 @@ const EMPLOYMENT_OPTIONS: { value: EmploymentType; label: string; desc: string }
   { value: 'DAILY', label: '일일 근로자', desc: '하루 8시간 단위 근로' },
   { value: 'PERMANENT', label: '상시 근로자', desc: '평일 09:00~18:00 (추후 협의 변동 가능)' },
 ];
+
+// 모바일 본인인증은 페이지가 통째로 인증창(PASS)으로 갔다가 redirectUrl(이 페이지)로 돌아온다.
+// 그 사이 React 상태가 전부 사라지므로, 인증 직전에 입력값을 sessionStorage 에 저장하고
+// 복귀 시 되살린다. 비밀번호는 저장하지 않는다(탭 저장소라도 평문 비밀번호를 남기지 않는다) —
+// 복귀 후 다시 입력받고 안내 문구로 알린다. sessionStorage 는 탭 단위·탭 종료 시 소멸.
+const DRAFT_KEY = 'tech-signup-draft';
+
+type Draft = {
+  loginId: string;
+  idAvailable: boolean;
+  name: string;
+  phone: string;
+  employmentType: EmploymentType | null;
+  region: RegionValue;
+  addrDetail: string;
+  regions: string[];
+  referrer: ReferrerSelection | null;
+  agreed: boolean;
+};
+
+function saveDraft(d: Draft) {
+  try {
+    sessionStorage.setItem(DRAFT_KEY, JSON.stringify(d));
+  } catch {
+    // 저장 실패(프라이빗 모드 등)는 치명적이지 않다 — 복귀 후 다시 입력하면 된다.
+  }
+}
+
+function takeDraft(): Draft | null {
+  try {
+    const raw = sessionStorage.getItem(DRAFT_KEY);
+    sessionStorage.removeItem(DRAFT_KEY);
+    return raw ? (JSON.parse(raw) as Draft) : null;
+  } catch {
+    return null;
+  }
+}
+
+// 리다이렉트 복귀 쿼리를 읽고 URL 에서 지운다(새로고침 시 재검증 요청이 반복되지 않도록).
+function consumeRedirectParams(): { id?: string; code?: string; message?: string } | null {
+  const params = new URLSearchParams(window.location.search);
+  const id = params.get(REDIRECT_PARAM_ID) ?? undefined;
+  const code = params.get(REDIRECT_PARAM_CODE) ?? undefined;
+  const message = params.get(REDIRECT_PARAM_MESSAGE) ?? undefined;
+  if (!id && !code) return null;
+  window.history.replaceState(null, '', window.location.pathname);
+  return { id, code, message };
+}
 
 export default function TechSignupPage() {
   const [loginId, setLoginId] = useState('');
@@ -42,6 +95,8 @@ export default function TechSignupPage() {
   // 휴대폰 본인인증 완료 시 발급받은 토큰. 이 값이 있어야 가입 가능하다.
   const [verificationId, setVerificationId] = useState<string | null>(null);
   const [verifying, setVerifying] = useState(false);
+  // 모바일 리다이렉트 복귀 직후 한 번만 보여주는 안내(비밀번호 재입력)
+  const [redirectNotice, setRedirectNotice] = useState<string | null>(null);
 
   // 지역 선택 + 상세 주소를 합쳐 하나의 주소로 (지오코딩·거리계산에 사용)
   const regionComplete =
@@ -59,8 +114,31 @@ export default function TechSignupPage() {
     setRegion(next);
   }
 
+  // 대행사(또는 mock)가 돌려준 값을 서버가 재검증하고 가입용 verificationId 를 발급받는다.
+  // 성공하면 대행사가 검증한 실명·번호로 확정하고 입력칸을 잠근다.
+  async function confirmWithServer(raw: {
+    identityVerificationId?: string;
+    name?: string;
+    phone?: string;
+  }) {
+    const res = await fetch('/api/identity/verify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(raw),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      setError(data.error ?? '본인인증에 실패했습니다');
+      return;
+    }
+    setName(data.name);
+    setPhone(data.phone);
+    setVerificationId(data.verificationId);
+  }
+
   // 휴대폰 본인인증 시작 → 서버 검증 → verificationId 확보.
-  // mock 환경에서는 입력한 이름/번호가 그대로 인증되고, portone 환경에서는 PASS 팝업이 뜬다.
+  // mock 환경에서는 입력한 이름/번호가 그대로 인증되고, portone 환경에서는 PC 는 PASS 팝업,
+  // 모바일은 인증창으로 리다이렉트됐다가 이 페이지로 돌아온다(복귀 처리는 아래 useEffect).
   async function verifyPhone() {
     setError(null);
     if (!name.trim()) return setError('성명을 입력해 주세요');
@@ -68,27 +146,77 @@ export default function TechSignupPage() {
 
     setVerifying(true);
     try {
-      const raw = await startIdentityVerification({ name, phone });
-      const res = await fetch('/api/identity/verify', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(raw),
+      const raw = await startIdentityVerification({
+        name,
+        phone,
+        redirectUrl: `${window.location.origin}/tech/signup`,
+        onBeforeRedirect: () =>
+          saveDraft({
+            loginId,
+            idAvailable,
+            name,
+            phone,
+            employmentType,
+            region,
+            addrDetail,
+            regions,
+            referrer,
+            agreed,
+          }),
       });
-      const data = await res.json();
-      if (!res.ok) {
-        setError(data.error ?? '본인인증에 실패했습니다');
-        return;
-      }
-      // 대행사가 검증한 실명·번호로 확정하고 입력칸을 잠근다.
-      setName(data.name);
-      setPhone(data.phone);
-      setVerificationId(data.verificationId);
+      await confirmWithServer(raw);
     } catch (e) {
       setError(e instanceof Error ? e.message : '본인인증에 실패했습니다');
     } finally {
       setVerifying(false);
     }
   }
+
+  // 모바일 리다이렉트 복귀: URL 쿼리에 인증 결과가 실려 오면 초안을 되살리고 서버 검증을 이어 간다.
+  // 팝업(PC) 흐름이나 일반 진입에서는 쿼리가 없어 아무것도 하지 않는다.
+  // 외부 시스템(URL 쿼리·sessionStorage)을 읽는 것은 effect 본문에서, 상태 복원은 하이드레이션이
+  // 끝난 뒤 콜백에서 한다(React Compiler 규칙: effect 본문의 동기 setState 금지). 서버 렌더에는
+  // window 가 없으므로 lazy initial state 로는 처리할 수 없다(하이드레이션 불일치).
+  useEffect(() => {
+    let cancelled = false;
+    const back = consumeRedirectParams();
+    if (!back) return;
+    const draft = takeDraft();
+    void Promise.resolve().then(async () => {
+      if (cancelled) return;
+      if (draft) {
+        setLoginId(draft.loginId);
+        setIdAvailable(draft.idAvailable);
+        setName(draft.name);
+        setPhone(draft.phone);
+        setEmploymentType(draft.employmentType);
+        setRegion(draft.region);
+        setAddrDetail(draft.addrDetail);
+        setRegions(draft.regions);
+        setReferrer(draft.referrer);
+        setAgreed(draft.agreed);
+      }
+      if (back.code || !back.id) {
+        setError(back.message ?? '본인인증이 취소되었거나 실패했습니다');
+        return;
+      }
+      setRedirectNotice(
+        '본인인증을 마치고 돌아왔습니다. 보안을 위해 비밀번호는 다시 입력해 주세요.',
+      );
+      setVerifying(true);
+      try {
+        await confirmWithServer({ identityVerificationId: back.id });
+      } catch (e) {
+        setError(e instanceof Error ? e.message : '본인인증에 실패했습니다');
+      } finally {
+        setVerifying(false);
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
+    // 마운트 시 1회만 — back/draft 는 이 시점 값만 의미가 있고 setter 들은 안정적이다.
+  }, []);
 
   // 본인인증을 다시 하려면 잠금을 풀고 토큰을 버린다.
   function resetVerification() {
@@ -183,6 +311,15 @@ export default function TechSignupPage() {
         onSubmit={submit}
         className="mx-auto w-full max-w-2xl space-y-5 p-4 pb-10 md:py-8 md:pb-16"
       >
+        {redirectNotice && (
+          <p
+            role="status"
+            className="rounded-xl border border-brand-100 bg-brand-50 p-3 text-sm font-medium text-brand-700"
+          >
+            {redirectNotice}
+          </p>
+        )}
+
         <section className="space-y-2 md:rounded-2xl md:bg-white md:p-6 md:shadow-surface-sm">
           <h2 className="text-sm font-semibold">계정 정보</h2>
           <LoginIdCheckField

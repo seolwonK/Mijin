@@ -1,11 +1,13 @@
 import { prisma } from '@/lib/db';
 import { mockProvider } from './mock';
 import { portoneProvider } from './portone';
+import { identityProviderName } from './config';
 
 // 휴대폰 본인인증(PASS 등 통신사 본인확인) provider 추상화.
 // SMS(src/lib/sms) 와 동일하게 IDENTITY_PROVIDER 환경변수로 실서비스/개발용을 전환한다.
 //   IDENTITY_PROVIDER=portone → 실제 PortOne(구 아임포트) 본인인증
 //   그 외(미설정 포함)        → mock (개발용, 입력값을 그대로 신뢰)
+// 브라우저 쪽 provider 도 같은 값을 /api/identity/config 로 받아 쓴다(config.ts).
 
 // 대행사가 검증해 돌려준 신원 정보 (정규화 후)
 export interface IdentityResult {
@@ -33,7 +35,7 @@ export interface IdentityProvider {
 }
 
 function getProvider(): IdentityProvider {
-  return process.env.IDENTITY_PROVIDER === 'portone' ? portoneProvider : mockProvider;
+  return identityProviderName() === 'portone' ? portoneProvider : mockProvider;
 }
 
 // 인증 결과를 검증·저장하고, 가입 요청에 동봉할 단기(10분) verificationId 를 발급한다.
