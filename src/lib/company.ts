@@ -13,7 +13,7 @@ export const COMPANY = {
   // 2026-08-23 사용자 지정 070 인터넷전화(유선 취급). 값이 비면 푸터의 전화 행이 렌더되지 않는다.
   tel: '070-4995-3910' as string,
   // 개인정보처리방침 시행일 — 방침 내용을 바꾸면 함께 갱신한다.
-  privacyEffectiveDate: '2026-08-23',
+  privacyEffectiveDate: '2026-08-24',
   termsEffectiveDate: '2026-08-23',
   // 공개 도메인(한글 도메인의 퓨니코드). 소개 페이지·약관에서 서비스 URL로 표기한다.
   siteUrl: 'https://xn--ok0bp94bnc26kra.com',

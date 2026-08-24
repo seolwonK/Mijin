@@ -52,6 +52,8 @@ test('개인정보처리방침: 법정 고지 항목·본인인증 위탁·보�
     await expect(main).toContainText(clause);
   }
   await expect(main).toContainText('NHN KCP');
+  // 포트원 접수 안내 메일(2026-08-24)의 계약 요건 — 포트원을 개인정보 처리 수탁자로 고지
+  await expect(main).toContainText('코리아포트원');
   await expect(main).toContainText(`${COMPANY.ceo} (대표)`);
 });
 
