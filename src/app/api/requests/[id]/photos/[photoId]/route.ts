@@ -53,9 +53,11 @@ export async function GET(
     headers: {
       'Content-Type': body.mime,
       'Content-Length': String(body.body.byteLength),
-      // 개인정보라 공유 캐시 금지. 브라우저 세션 내 재조회만 짧게 허용해 갤러리에서
-      // 썸네일→원본을 오갈 때마다 R2 를 다시 때리지 않게 한다.
-      'Cache-Control': 'private, max-age=300',
+      // 저장 금지. max-age 를 주면 **권한이 바뀐 뒤에도 캐시에서 계속 열린다** —
+      // 공용 PC 에서 관리자가 로그아웃한 뒤, 또는 배정이 회수된 기사에게도 만료 전까지
+      // 같은 URL 이 그대로 열리는 것을 실측했다(무세션 요청이 캐시 히트로 200).
+      // 재조회 비용보다 권한 누수가 크다. 음성 녹음 라우트와 같은 정책으로 맞춘다.
+      'Cache-Control': 'private, no-store',
       'Content-Disposition': 'inline',
       'X-Content-Type-Options': 'nosniff',
     },

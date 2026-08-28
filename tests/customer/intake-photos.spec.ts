@@ -183,6 +183,9 @@ test('사진 열람: 관리자만 통과하고, 배정된 기술자도 통과한
   expect(adminRes.headers()['content-type']).toBe('image/jpeg');
   // 선언 MIME 을 그대로 싣는 응답이므로 브라우저 스니핑을 막아둔다.
   expect(adminRes.headers()['x-content-type-options']).toBe('nosniff');
+  // 캐시를 허용하면 **권한이 바뀐 뒤에도** 같은 URL 이 캐시에서 열린다 — 배포 환경에서
+  // 무세션 요청이 캐시 히트로 200 을 받는 것을 실측했다(2026-08-20). 음성 라우트와 동일 정책.
+  expect(adminRes.headers()['cache-control']).toBe('private, no-store');
   expect(Buffer.from(await adminRes.body())).toEqual(jpegBytes(0xcc));
   await admin.dispose();
 
