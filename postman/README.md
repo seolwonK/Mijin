@@ -104,12 +104,27 @@ npx tsx -e "import {GUARDED_ROUTES} from './tests/helpers/routes';\
  console.log(JSON.stringify(GUARDED_ROUTES.map(r=>({path:r.path,method:r.method,role:r.role}))))"
 ```
 
-## 최근 실측 (2026-08-28)
+## 알려진 제약 — HSTS 는 앱 값이 브라우저에 닿지 않는다
+
+앱은 `max-age=31536000`(1년)을 내리지만, **CloudType 엣지가 자기 값 `15724800`(182일)으로 덮어쓴다.**
+헤더가 둘로 오는 게 아니라 하나로 대체되는 것을 2026-08-28 배포 후 실측으로 확인했다.
+나머지 4종(nosniff · SAMEORIGIN · Referrer-Policy · Permissions-Policy)은 앱 값이 그대로 나간다.
+
+그래서 HSTS 하한만 환경별로 둔다.
+
+| | 하한 | 근거 |
+|---|---|---|
+| 로컬 | `31536000` | 앱이 내리는 값이 그대로 나간다 |
+| 운영 | `15552000` (180일) | 브라우저가 실제로 받는 값 기준 |
+
+`tls-check.sh` 는 `MIN_HSTS` 환경변수로 같은 하한을 받고, 1년 미만이면 통과시키되 참고 문구를 남긴다.
+**1년으로 올리는 것은 코드가 아니라 CloudType 설정 과제다** — 자체점검 7번 요건(TLS 1.2 이상)
+자체는 이미 충족이고, 1년은 HSTS preload 등록을 염두에 둔 상향이다.
+
+## 최근 실측 (2026-08-28, 배포 후)
 
 | 대상 | 결과 |
 |---|---|
 | 로컬 (mock, `allowAccountCreation=true`) | 요청 105건 · **단언 124/124 통과** (4.7초) |
-| 운영 (portone) | 요청 95건 · 항목별 단언 전부 통과, **전역 보안 헤더 단언만 실패**(응답 12건 × 5종) |
-
-운영의 헤더 실패는 `next.config.ts` 의 `headers()` 가 **아직 배포되지 않았기 때문**이다.
-재배포 후 다시 돌리면 사라진다 — 컬렉션이 배포 상태를 정확히 짚은 것이다.
+| 운영 (portone) | 요청 95건 · **단언 115/115 통과** (14초) |
+| `npm run test:tls` | **전 항목 통과** — TLS 1.0/1.1 거부, 1.2 수락, HTTP→HTTPS 301, 헤더 5종 |

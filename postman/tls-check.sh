@@ -95,12 +95,18 @@ esac
 section "④ 보안 응답 헤더 (https://$HOST/tech/signup)"
 H=$(curl -sSI --max-time 20 "https://$HOST/tech/signup" 2>/dev/null | tr -d '\r' | tr 'A-Z' 'a-z')
 
+# HSTS 하한은 환경변수로 조절한다(기본 180일).
+# 앱은 1년(31536000)을 내리지만 CloudType 엣지가 자기 값 15724800(182일)으로 **덮어쓴다**
+# — 헤더가 중복으로 오는 게 아니라 하나로 대체된다(2026-08-28 실측). 그래서 1년을 하한으로
+# 못박으면 코드로는 고칠 수 없는 실패가 영구히 남는다. 1년으로 올리는 것은 CloudType 설정 과제다.
+MIN_HSTS="${MIN_HSTS:-15552000}"
 hsts=$(sed -n 's/^strict-transport-security: *//p' <<<"$H" | head -1)
 age=$(sed -n 's/.*max-age=\([0-9]*\).*/\1/p' <<<"$hsts" | head -1)
-if [ -n "${age:-}" ] && [ "$age" -ge 31536000 ]; then
+if [ -n "${age:-}" ] && [ "$age" -ge "$MIN_HSTS" ]; then
   pass "strict-transport-security: $hsts"
+  [ "$age" -lt 31536000 ] && printf '    \033[33m참고\033[0m 앱은 1년을 내리지만 엣지가 %s 초로 덮어쓴다 — 1년은 CloudType 설정에서\n' "$age"
 else
-  fail "HSTS max-age 가 1년 미만이거나 없다 (${hsts:-없음})"
+  fail "HSTS max-age 가 하한($MIN_HSTS) 미만이거나 없다 (${hsts:-없음})"
 fi
 
 check_header() { # $1=헤더명 $2=기대 부분문자열
