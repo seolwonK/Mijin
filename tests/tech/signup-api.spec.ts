@@ -198,6 +198,37 @@ test.describe('POST /api/tech/signup — 입력 게이트', () => {
     await ctx.dispose();
   });
 
+  test('인증한 이름과 가입 이름이 다르면 400 (route.ts:112-121)', async ({ playwright }) => {
+    // 번호는 맞고 이름만 다른 경우. 저장은 어차피 iv.name 을 쓰지만, 불일치를 조용히
+    // 덮어쓰면 "내가 입력한 이름으로 가입됐다"고 믿는 사용자와 실제 명의가 어긋난 채 통과한다.
+    const ctx = await anonCtx(playwright, 'signup-name-mismatch');
+    const phone = ephemeralPhone();
+    const iv = await f.createIdentityVerification({ phone, name: '김기술' });
+    const body = signupBody({ phone, name: '남의이름', verificationId: iv.id });
+    const res = await ctx.post('/api/tech/signup', { data: body });
+    expect(res.status()).toBe(400);
+    expect((await res.json()).error).toContain('가입 이름이 다릅니다');
+    // 거부됐으면 계정도, 인증 소비도 없어야 한다.
+    expect(await prisma.user.count({ where: { loginId: body.loginId! } })).toBe(0);
+    const row = await prisma.identityVerification.findUnique({ where: { id: iv.id } });
+    expect(row?.consumedAt).toBeNull();
+    await ctx.dispose();
+  });
+
+  test('공백 표기만 다른 이름은 통과한다 ("홍 길동" = "홍길동")', async ({ playwright }) => {
+    const ctx = await anonCtx(playwright, 'signup-name-space');
+    const body = signupBody({ name: '홍 길동' });
+    const iv = await f.createIdentityVerification({ phone: body.phone, name: '홍길동' });
+    const res = await ctx.post('/api/tech/signup', {
+      data: { ...body, verificationId: iv.id },
+    });
+    expect(res.status()).toBe(200);
+    const user = await trackSignedUp(body.loginId!);
+    // 저장되는 값은 폼 표기가 아니라 대행사가 검증한 실명이다.
+    expect(user!.name).toBe('홍길동');
+    await ctx.dispose();
+  });
+
   test('중복 loginId → 409 (route.ts:79-81)', async ({ playwright }) => {
     const ctx = await anonCtx(playwright, 'signup-dup-login');
     const existing = await f.createTechFixture();
@@ -280,7 +311,11 @@ test.describe('POST /api/tech/signup — 성공 계약', () => {
     playwright,
   }) => {
     const ctx = await anonCtx(playwright, 'signup-happy');
-    const body = signupBody({ employmentType: 'PERMANENT', regions: ['서울특별시 강남구'] });
+    const body = signupBody({
+      employmentType: 'PERMANENT',
+      regions: ['서울특별시 강남구'],
+      name: '김기술',
+    });
     const iv = await f.createIdentityVerification({ phone: body.phone, name: '김기술' });
 
     const res = await ctx.post('/api/tech/signup', {
@@ -319,7 +354,8 @@ test.describe('POST /api/tech/signup — 성공 계약', () => {
     expect(tech?.regions).toEqual(['서울특별시 강남구']);
     expect(tech?.address).toBe(body.address);
 
-    // ④ 이름·번호는 폼 입력이 아니라 **대행사가 검증한 인증 값**이 저장된다(route.ts:166-167).
+    // ④ 이름·번호는 폼 입력이 아니라 **대행사가 검증한 인증 값**이 저장된다(route.ts:176-177).
+    //    폼 값과의 불일치는 덮어쓰기가 아니라 400 으로 거부된다 — 위 'name-mismatch' 테스트가 그쪽을 단언한다.
     expect(user!.name).toBe('김기술');
     expect(user!.phone).toBe(body.phone);
 

@@ -180,8 +180,8 @@ test('상태코드가 중복되는 핸들러는 message 로 구별 가능해야 
   //
   //  · POST /api/requests :63(multipart)·:80(JSON) — content-type 으로 갈리는
   //    배타 경로다. 한 요청이 둘 다 맞을 수 없으므로 실질적 모호성은 없다.
-  //  · POST /api/tech/signup :97(순차 사전검사)·:190(트랜잭션 내부 경합) —
-  //    문구가 완전히 같다. :190 을 때렸다는 것은 **응답으로 증명 불가**하며
+  //  · POST /api/tech/signup :97(순차 사전검사)·:200(트랜잭션 내부 경합) —
+  //    문구가 완전히 같다. :200 을 때렸다는 것은 **응답으로 증명 불가**하며
   //    DB 상태(생성된 User 수)로만 간접 확인할 수 있다.
   expect(indistinguishable.sort()).toEqual([
     'POST /api/requests — 400 분기들의 message 가 서로 같다',

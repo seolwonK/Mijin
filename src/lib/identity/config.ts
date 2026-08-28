@@ -15,6 +15,12 @@ export type IdentityPublicConfig =
   | { provider: 'mock' }
   | { provider: 'portone'; storeId: string; channelKey: string };
 
+// 인증 완료 후 가입까지 허용하는 시간. 두 곳에서 같은 창을 쓴다.
+//   1) 우리가 발급한 verificationId 의 수명(index.ts)
+//   2) 대행사 인증 완료 시각(verifiedAt)의 신선도 한계(portone.ts)
+// 2)가 없으면 몇 달 전 인증건의 identityVerificationId 를 지금 제출해도 통과한다.
+export const IDENTITY_TTL_MS = 10 * 60_000;
+
 function env(name: string, ...fallbacks: string[]): string {
   for (const key of [name, ...fallbacks]) {
     const v = process.env[key]?.trim();
@@ -24,7 +30,20 @@ function env(name: string, ...fallbacks: string[]): string {
 }
 
 export function identityProviderName(): IdentityProviderName {
-  return process.env.IDENTITY_PROVIDER?.trim() === 'portone' ? 'portone' : 'mock';
+  if (process.env.IDENTITY_PROVIDER?.trim() === 'portone') return 'portone';
+  // 프로덕션에서 IDENTITY_PROVIDER 를 빠뜨리면 조용히 mock 으로 떨어져 **무인증 가입**이 열린다
+  // (mock 은 사용자가 입력한 이름·번호를 그대로 인증 처리한다). 설정 누락을 통과시키는 대신
+  // 여기서 던져서 가입 화면과 /api/identity/verify 가 모두 닫히게 한다(fail-closed).
+  // 실서비스 배포본으로 로컬 점검을 할 때만 ALLOW_MOCK_IDENTITY=1 로 의도적으로 연다.
+  if (
+    process.env.NODE_ENV === 'production' &&
+    process.env.ALLOW_MOCK_IDENTITY?.trim() !== '1'
+  ) {
+    throw new Error(
+      '본인인증 설정 오류: 프로덕션에서는 IDENTITY_PROVIDER=portone 이어야 합니다 (mock 은 무인증 가입을 허용합니다)',
+    );
+  }
+  return 'mock';
 }
 
 // 기존 배포가 NEXT_PUBLIC_ 이름으로 값을 넣어 뒀을 수 있어 폴백으로 함께 읽는다.

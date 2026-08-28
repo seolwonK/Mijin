@@ -80,8 +80,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: '이미 사용 중인 아이디입니다' }, { status: 409 });
   }
 
-  // 휴대폰 본인인증 게이트: 발급된 인증이 유효(미소비·미만료)하고, 인증한 번호와
-  // 가입 번호가 일치해야 한다. 실제 저장은 대행사가 검증한 인증 값(이름·번호)을 신뢰한다.
+  // 휴대폰 본인인증 게이트: 발급된 인증이 유효(미소비·미만료)하고, 인증한 이름·번호가
+  // 가입 입력과 일치해야 한다. 실제 저장은 대행사가 검증한 인증 값(이름·번호)을 신뢰한다.
   const iv = await prisma.identityVerification.findUnique({
     where: { id: data.verificationId },
   });
@@ -106,6 +106,16 @@ export async function POST(req: NextRequest) {
   if (iv.phone !== data.phone) {
     return NextResponse.json(
       { error: '본인인증한 번호와 가입 번호가 다릅니다. 다시 인증해 주세요.' },
+      { status: 400 },
+    );
+  }
+  // 대행사가 검증해 돌려준 실명과 가입 폼의 성명이 같아야 한다. 저장은 어차피 iv.name 을 쓰지만,
+  // 불일치를 조용히 덮어쓰면 "내가 입력한 이름으로 가입됐다"고 믿는 사용자와 실제 계정 명의가
+  // 어긋난 채 통과한다. 공백만 다른 표기("홍 길동")는 같은 값으로 본다.
+  const squash = (s: string) => s.replace(/\s+/g, '');
+  if (squash(iv.name) !== squash(data.name)) {
+    return NextResponse.json(
+      { error: '본인인증한 이름과 가입 이름이 다릅니다. 다시 인증해 주세요.' },
       { status: 400 },
     );
   }

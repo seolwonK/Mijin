@@ -843,7 +843,7 @@ export const GATES: Record<string, HandlerGates> = {
   'POST /api/tech/signup': {
     file: 'src/app/api/tech/signup/route.ts',
     note:
-      '**게이트 10개. 429 가 맨 앞이고 IP당 10분/5회다** — 400 분기 4개를 연속으로 태우면 ' +
+      '**게이트 12개. 429 가 맨 앞이고 IP당 10분/5회다** — 400 분기 4개를 연속으로 태우면 ' +
       '5번째 호출부터 429 가 나온다. 호출마다 freshIp() 를 쓸 것(uniqueIp(seed) 는 고정이라 부족). ' +
       '또한 **loginId 중복 409(:80)가 본인인증 검증 전체보다 앞선다** — 인증 분기를 테스트하려면 ' +
       'loginId 는 매번 새로 만들어야 한다.',
@@ -872,7 +872,7 @@ export const GATES: Record<string, HandlerGates> = {
         kind: 'conflict',
         message: '이미 사용 중인 아이디입니다',
         reach: 'loginId 중복',
-        trap: '아래 본인인증 분기 5개를 전부 가린다',
+        trap: '아래 본인인증 분기 6개를 전부 가린다',
       },
       {
         order: 5,
@@ -907,19 +907,28 @@ export const GATES: Record<string, HandlerGates> = {
         message: '본인인증한 번호와 가입 번호가 다릅니다. 다시 인증해 주세요.',
         reach: '인증 레코드의 phone 과 가입 본문의 phone 이 다름',
       },
-      { order: 9, status: 400, line: 135, kind: 'state', message: '추천인을 찾을 수 없습니다', reach: 'referrerUserId 미존재/미승인/비활성' },
       {
-        order: 10,
+        order: 9,
         status: 400,
-        line: 140,
+        line: 119,
+        kind: 'state',
+        message: '본인인증한 이름과 가입 이름이 다릅니다. 다시 인증해 주세요.',
+        reach: '인증 레코드의 name 과 가입 본문의 name 이 다름',
+        trap: '공백은 무시하고 비교한다 — "홍 길동" 으로는 이 분기에 도달하지 못한다',
+      },
+      { order: 10, status: 400, line: 145, kind: 'state', message: '추천인을 찾을 수 없습니다', reach: 'referrerUserId 미존재/미승인/비활성' },
+      {
+        order: 11,
+        status: 400,
+        line: 150,
         kind: 'state',
         message: '본인을 추천인으로 지정할 수 없습니다',
         reach: '`referrer.phone === iv.phone` — 제출값이 아니라 **인증된 번호** 기준',
       },
       {
-        order: 11,
+        order: 12,
         status: 400,
-        line: 190,
+        line: 200,
         kind: 'race',
         message: '이미 사용된 본인인증입니다. 다시 인증해 주세요.',
         reach: '트랜잭션 내부 IDENTITY_ALREADY_USED — 같은 인증으로 **동시** 가입해야 도달. 순차로는 :97 이 잡는다',

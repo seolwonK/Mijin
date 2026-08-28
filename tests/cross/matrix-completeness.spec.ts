@@ -117,11 +117,11 @@ test.describe('매트릭스 완전성 (전수의 유일한 증명)', () => {
     expect(dupes).toEqual([]);
   });
 
-  test('④ 78 핸들러 = 공개 14 + 가드 64', () => {
+  test('④ 79 핸들러 = 공개 15 + 가드 64', () => {
     const actual = actualHandlers();
-    expect(actual.length, '67개 route.ts 파일이 78개 핸들러를 export 해야 한다').toBe(78);
-    expect(ROUTES.length).toBe(78);
-    expect(PUBLIC_ROUTES.length, '설계상 공개 핸들러').toBe(14);
+    expect(actual.length, '68개 route.ts 파일이 79개 핸들러를 export 해야 한다').toBe(79);
+    expect(ROUTES.length).toBe(79);
+    expect(PUBLIC_ROUTES.length, '설계상 공개 핸들러').toBe(15);
     expect(GUARDED_ROUTES.length, '401 을 단언해야 하는 가드 핸들러').toBe(64);
   });
 

@@ -400,17 +400,25 @@ model IdentityVerification {
   id          String    @id @default(cuid())
   provider    String // "mock" | "portone"
   providerRef String? // PortOne identityVerificationId 등 대행사측 식별자
+  // 대행사 인증 1건 = 우리 토큰 1건을 DB 차원에서 못박는 재사용 방지 키("provider:providerRef").
+  // 이게 없으면 같은 identityVerificationId 로 /api/identity/verify 를 반복 호출해
+  // 한 번의 실제 통신사 인증으로 가입 토큰을 무제한 발급받을 수 있다(consumedAt CAS 무력화).
+  // 이 열 도입 이전 행은 NULL 이라 제약을 받지 않는다 — 기존 인증 이력을 지우지 않고
+  // 새 행부터 강제하기 위한 의도적 설계다(Postgres 는 유니크 인덱스에서 NULL 중복을 허용).
+  replayKey   String?   @unique
   name        String // 인증된 실명
   phone       String // 숫자만 정규화 저장
   birthDate   String? // "YYYY-MM-DD"
   gender      String? // "MALE" | "FEMALE"
-  ci          String? // 연계정보(개인 고유) — 중복가입 방지 등에 활용
-  di          String? // 중복가입확인정보(사이트별)
+  // CI/DI 는 평문으로 보관하지 않는다 — 하는 일이 "같은 사람인가" 비교뿐이라 되돌릴 수 있는
+  // 형태로 둘 이유가 없다. 저장은 서버 키로 건 HMAC-SHA256 만(src/lib/identity/hash.ts).
+  ciHash      String? // 연계정보(개인 고유) 해시 — 중복가입 방지 비교용
+  diHash      String? // 중복가입확인정보(사이트별) 해시
   verifiedAt  DateTime  @default(now())
   expiresAt   DateTime // 이 시각까지 가입을 완료해야 유효
   consumedAt  DateTime? // 가입에 사용된 시각 (재사용 방지)
   createdAt   DateTime  @default(now())
 
   @@index([phone])
-  @@index([ci])
+  @@index([ciHash])
 }

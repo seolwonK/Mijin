@@ -1,7 +1,9 @@
+import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/db';
 import { mockProvider } from './mock';
 import { portoneProvider } from './portone';
-import { identityProviderName } from './config';
+import { identityProviderName, IDENTITY_TTL_MS } from './config';
+import { hashIdentityKey } from './hash';
 
 // 휴대폰 본인인증(PASS 등 통신사 본인확인) provider 추상화.
 // SMS(src/lib/sms) 와 동일하게 IDENTITY_PROVIDER 환경변수로 실서비스/개발용을 전환한다.
@@ -40,8 +42,6 @@ function getProvider(): IdentityProvider {
 
 // 인증 결과를 검증·저장하고, 가입 요청에 동봉할 단기(10분) verificationId 를 발급한다.
 // 실패 시 예외를 던진다 (SMS 와 달리 본인인증은 실패하면 가입을 막아야 하므로 삼키지 않는다).
-const VERIFICATION_TTL_MS = 10 * 60_000;
-
 export async function confirmIdentity(
   input: IdentityVerifyInput,
 ): Promise<{ verificationId: string; name: string; phone: string }> {
@@ -56,19 +56,53 @@ export async function confirmIdentity(
     throw new Error('인증된 이름을 확인할 수 없습니다');
   }
 
-  const rec = await prisma.identityVerification.create({
-    data: {
-      provider: provider.name,
-      providerRef: result.providerRef ?? null,
-      name: result.name.trim(),
-      phone,
-      birthDate: result.birthDate ?? null,
-      gender: result.gender ?? null,
-      ci: result.ci ?? null,
-      di: result.di ?? null,
-      expiresAt: new Date(Date.now() + VERIFICATION_TTL_MS),
-    },
-  });
+  // 대행사 인증 1건당 토큰 1건. 유니크 제약(replayKey)이 진실이고, 동시 요청도 여기서 걸린다 —
+  // 이게 없으면 같은 identityVerificationId 를 반복 제출해 토큰을 무제한 찍어낼 수 있고,
+  // 가입 시점의 consumedAt CAS 는 "토큰 1건의 재사용"만 막으므로 그 구멍을 못 덮는다.
+  const replayKey = result.providerRef ? `${provider.name}:${result.providerRef}` : null;
+
+  let rec;
+  try {
+    rec = await prisma.identityVerification.create({
+      data: {
+        provider: provider.name,
+        providerRef: result.providerRef ?? null,
+        replayKey,
+        name: result.name.trim(),
+        phone,
+        birthDate: result.birthDate ?? null,
+        gender: result.gender ?? null,
+        // 평문이 아니라 키 해시로만 남긴다 (hash.ts 주석 참조).
+        ciHash: hashIdentityKey(result.ci),
+        diHash: hashIdentityKey(result.di),
+        expiresAt: new Date(Date.now() + IDENTITY_TTL_MS),
+      },
+    });
+  } catch (e) {
+    if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === 'P2002') {
+      throw new Error('이미 사용된 본인인증입니다. 다시 인증해 주세요.');
+    }
+    throw e;
+  }
+
+  // 가입까지 가지 못한 인증건은 본인확인 이력으로서의 가치가 없는데 실명·휴대폰을 담고 있다.
+  // 새 인증을 만들 때 함께 오래된 것을 걷어내, 보관 기간이 무한정 늘어나지 않게 한다.
+  // (소비된 행 = 실제 가입 성사분은 본인확인 이력이므로 남긴다.)
+  // 실패해도 가입 흐름을 막지 않는다 — 정리는 다음 인증 때 다시 시도된다.
+  void purgeAbandonedVerifications().catch(() => undefined);
 
   return { verificationId: rec.id, name: rec.name, phone: rec.phone };
+}
+
+// 미소비 상태로 만료된 지 이 기간이 지난 인증건을 파기한다.
+const ABANDONED_RETENTION_MS = 30 * 24 * 60 * 60_000; // 30일
+
+export async function purgeAbandonedVerifications(): Promise<number> {
+  const { count } = await prisma.identityVerification.deleteMany({
+    where: {
+      consumedAt: null,
+      expiresAt: { lt: new Date(Date.now() - ABANDONED_RETENTION_MS) },
+    },
+  });
+  return count;
 }

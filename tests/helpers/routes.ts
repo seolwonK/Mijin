@@ -1,8 +1,8 @@
 // ───────────────────────────────────────────────────────────────────────────
 // API 라우트 매트릭스 — 단일 진실 원천.
 //
-// 67개 route.ts 파일이 78개 핸들러를 export 한다 (11개 라우트가 2개 메서드).
-// 그중 14개가 설계상 공개이고, 나머지 **64개가 가드 대상**이다.
+// 68개 route.ts 파일이 79개 핸들러를 export 한다 (11개 라우트가 2개 메서드).
+// 그중 15개가 설계상 공개이고, 나머지 **64개가 가드 대상**이다.
 //
 // 이 표를 손으로 유지하지 않는다: tests/cross/matrix-completeness.spec.ts 가
 // src/app/api/** 를 걸어 실제 export 와 대조하므로, 라우트가 추가·삭제되면
@@ -136,11 +136,17 @@ export const ROUTES: RouteEntry[] = [
     note: '관리자 + 해당 접수에 배정된 업체/기술자',
   },
 
-  // ── 공개 14 핸들러 — 401 단언에서 제외한다 ───────────────────────────
+  // ── 공개 15 핸들러 — 401 단언에서 제외한다 ───────────────────────────
   open('/api/auth/check-login-id', 'GET', '아이디 중복 확인 — 가입 폼에서 호출'),
   open('/api/auth/login', 'POST', '로그인 자체 — 세션을 만드는 입구'),
   open('/api/auth/logout', 'POST', '로그아웃 — 세션 없이 호출해도 무해'),
   open('/api/geo/reverse', 'GET', '역지오코딩 — 접수 화면(무세션)에서 호출'),
+  open(
+    '/api/identity/config',
+    'GET',
+    '본인인증 공개 설정(provider/storeId/channelKey) — 가입 화면이 인증 시작 전에 받아간다. ' +
+      'API Secret 은 내려가지 않는다(src/lib/identity/config.ts)',
+  ),
   open('/api/identity/verify', 'POST', '휴대폰 본인인증 — 가입 전 단계'),
   open('/api/internal/auto-assign', 'GET', 'cron 백업. Authorization: Bearer 로 인증(route.ts:9-11)'),
   open('/api/internal/auto-assign', 'POST', 'cron 백업. x-cron-secret 으로 인증(route.ts:9-11)'),
@@ -153,7 +159,7 @@ export const ROUTES: RouteEntry[] = [
   open('/api/tech/signup', 'POST', '전기기사 셀프 가입 — 즉시 APPROVED(signup:176)'),
 ];
 
-/** 무세션 401 을 단언해야 하는 핸들러 (78 − 공개 14 = 64). */
+/** 무세션 401 을 단언해야 하는 핸들러 (79 − 공개 15 = 64). */
 export const GUARDED_ROUTES = ROUTES.filter((r) => !r.isPublic);
 
 /** 설계상 공개인 핸들러 — 401 오탐 방지용으로 명시 보관한다. */
