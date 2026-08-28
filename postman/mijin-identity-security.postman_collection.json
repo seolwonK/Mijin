@@ -1,0 +1,1076 @@
+{
+  "info": {
+    "_postman_id": "897e50e7-a0c1-4b69-80d2-68d5bdd7286f",
+    "name": "전기아저씨 · 본인확인 보안 점검",
+    "description": "본인확인서비스 이용기관 웹사이트 취약점 자체점검 7개 항목을 실행 중인 서버에 대고 검증한다.\n\n## 설계\n- 폴더 번호 = 자체점검 항목 번호. 단언 이름의 `[n번]` 도 같은 번호다.\n- 반복 검사(가드 라우트 64개, JS 번들 스캔)는 요청을 쪼개지 않고 한 요청 안에서 루프로 돈다. 실제 요청은 15개뿐이고, 실패하면 어떤 항목이 뚫렸는지 단언 메시지에 그대로 나온다.\n- 보안 응답 헤더·시크릿 유출·CI/DI 누출은 **컬렉션 레벨 테스트**라 모든 응답에 자동으로 걸린다. 요청을 추가하면 커버리지가 따라온다.\n\n## 안전성\n- 기본 실행은 **거부 경로만** 태운다 — 계정·접수 데이터를 만들지 않는다.\n- 유일한 예외는 `04 · 데이터 재사용`의 단회성 증명이며, `allowAccountCreation=true` 이고 `provider=mock` 일 때만 실행된다. 운영은 portone 이라 자동으로 건너뛴다.\n- 자동배정을 트리거하는 `/api/internal/auto-assign` 은 어떤 스윕에서도 호출하지 않는다.\n\n## TLS\n프로토콜 버전(TLS 1.0/1.1 거부, 1.2/1.3 수락)은 Postman 이 단언할 수 없다. `postman/tls-check.sh` 가 담당한다.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// 실행 단위 nonce — 일회성 값 생성과 레이트리밋 버킷 분리에 쓴다.",
+          "if (!pm.collectionVariables.get('runNonce')) {",
+          "  pm.collectionVariables.set('runNonce', Math.random().toString(36).slice(2, 8));",
+          "}",
+          "",
+          "// 인메모리 레이트리밋(IP당 10분/5~10회)은 장수하는 서버의 모듈 상태다.",
+          "// 로컬에서 컬렉션을 반복 실행하면 2회차가 429 로 막히므로, 요청마다 다른",
+          "// 클라이언트 IP 를 실어 버킷을 분리한다. 운영에서는 끈다(정직한 측정을 위해).",
+          "if (pm.environment.get('spoofClientIp') === 'true') {",
+          "  const octet = 1 + Math.floor(Math.random() * 250);",
+          "  pm.request.headers.upsert({ key: 'X-Forwarded-For', value: `203.0.113.${octet}` });",
+          "}",
+          "",
+          "// 이 컬렉션은 처음부터 끝까지 **무세션 접근**만 검증한다. 그런데 04 폴더의",
+          "// 단회성 증명이 가입에 성공하면 서버가 자동 로그인 쿠키를 심고, 그 쿠키가 러너의",
+          "// 쿠키 자에 남아 06 폴더의 가드 검사(무세션 401)를 통째로 무력화한다 — 실측으로",
+          "// tech 라우트 12개가 200 으로 통과해버렸다. 매 요청 전에 자를 비워 그 오염을 끊는다.",
+          "const jarBase = pm.environment.get('baseUrl');",
+          "if (jarBase) {",
+          "  try {",
+          "    pm.cookies.jar().clear(jarBase, function () {});",
+          "  } catch (e) {",
+          "    // 쿠키 자 API 가 없는 러너에서도 컬렉션이 죽지 않게 한다.",
+          "  }",
+          "}"
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// ───────────────────────────────────────────────────────────────────────────",
+          "// 모든 응답에 공통으로 거는 검사. 엔드포인트마다 같은 단언을 복제하는 대신",
+          "// 여기 한 곳에 두어, 컬렉션에 요청이 늘어도 커버리지가 자동으로 따라오게 한다.",
+          "// ───────────────────────────────────────────────────────────────────────────",
+          "const code = pm.response.code;",
+          "const where = pm.request.method + ' ' + pm.request.url.getPath();",
+          "const ctype = (pm.response.headers.get('content-type') || '').toLowerCase();",
+          "const body = pm.response.text() || '';",
+          "",
+          "// ── 전역 ① 보안 응답 헤더 (자체점검 6·7번) ────────────────────────────────",
+          "// 3xx 는 미들웨어가 만든 리다이렉트라 next.config 의 headers() 를 거치지 않는다.",
+          "if (pm.environment.get('checkSecurityHeaders') !== 'false' && (code < 300 || code >= 400)) {",
+          "  const h = (k) => (pm.response.headers.get(k) || '').trim();",
+          "",
+          "  pm.test('[전역] HSTS max-age 가 1년 이상 — ' + where, function () {",
+          "    const m = /max-age=(\\d+)/.exec(h('strict-transport-security'));",
+          "    pm.expect(m, 'Strict-Transport-Security 헤더가 없다').to.not.equal(null);",
+          "    pm.expect(Number(m[1]), 'max-age 가 1년 미만이다').to.be.at.least(31536000);",
+          "  });",
+          "  pm.test('[전역] X-Content-Type-Options: nosniff — ' + where, function () {",
+          "    pm.expect(h('x-content-type-options')).to.eql('nosniff');",
+          "  });",
+          "  pm.test('[전역] X-Frame-Options 로 클릭재킹 차단 — ' + where, function () {",
+          "    pm.expect(h('x-frame-options')).to.eql('SAMEORIGIN');",
+          "  });",
+          "  pm.test('[전역] Referrer-Policy 로 경로·쿼리 유출 차단 — ' + where, function () {",
+          "    pm.expect(h('referrer-policy')).to.eql('strict-origin-when-cross-origin');",
+          "  });",
+          "  pm.test('[전역] Permissions-Policy — ' + where, function () {",
+          "    pm.expect(h('permissions-policy')).to.include('payment=()');",
+          "  });",
+          "}",
+          "",
+          "// ── 전역 ② 서버 시크릿 유출 스캔 (자체점검 5번) ───────────────────────────",
+          "// secretsToScan 에 실제 PORTONE_API_SECRET 등을 넣어두면, 어떤 응답에도",
+          "// 그 값이 실리지 않음을 전 요청에 대해 한 번에 증명한다.",
+          "const secrets = (pm.environment.get('secretsToScan') || '')",
+          "  .split(',').map(function (s) { return s.trim(); }).filter(Boolean);",
+          "if (secrets.length) {",
+          "  pm.test('[전역] 응답에 서버 시크릿이 실리지 않는다 — ' + where, function () {",
+          "    const hit = secrets.filter(function (s) { return body.indexOf(s) !== -1; });",
+          "    pm.expect(hit.length, '시크릿 ' + hit.length + '건이 응답에 노출됐다').to.equal(0);",
+          "  });",
+          "}",
+          "",
+          "// ── 전역 ③ 본인확인 결과정보 누출 (자체점검 1번) ──────────────────────────",
+          "// JSON 응답에만 건다. HTML·JS 번들은 최소화 과정에서 우연히 매치될 수 있어",
+          "// 05 폴더의 번들 스캔이 따로 담당한다.",
+          "if (pm.environment.get('checkCiLeak') !== 'false' && ctype.indexOf('application/json') !== -1) {",
+          "  pm.test('[전역] JSON 응답에 CI/DI 필드가 없다 — ' + where, function () {",
+          "    pm.expect(body, 'ci/di 키가 응답에 있다').to.not.match(/\"(ci|di|connInfo|dupInfo|ciHash|diHash)\"\\s*:/i);",
+          "  });",
+          "  pm.test('[전역] JSON 응답에 CI 규격(88자 base64) 값이 없다 — ' + where, function () {",
+          "    pm.expect(body).to.not.match(/[A-Za-z0-9+/]{80,}={0,2}/);",
+          "  });",
+          "}"
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "provider",
+      "value": "",
+      "type": "string",
+      "description": "실행 중 /api/identity/config 로 채워진다. 직접 건드리지 말 것."
+    },
+    {
+      "key": "runNonce",
+      "value": "",
+      "type": "string",
+      "description": "실행 단위 난수."
+    },
+    {
+      "key": "verificationId",
+      "value": "",
+      "type": "string",
+      "description": "mock 환경에서 발급받은 인증 토큰."
+    },
+    {
+      "key": "guardedRoutes",
+      "value": "[{\"path\":\"/api/admin/analytics/dashboard\",\"method\":\"GET\",\"role\":\"ADMIN\"},{\"path\":\"/api/admin/analytics/map/dispatch\",\"method\":\"GET\",\"role\":\"ADMIN\"},{\"path\":\"/api/admin/analytics/map/regions\",\"method\":\"GET\",\"role\":\"ADMIN\"},{\"path\":\"/api/admin/analytics/ratings\",\"method\":\"GET\",\"role\":\"ADMIN\"},{\"path\":\"/api/admin/analytics/ratings/[subject]\",\"method\":\"GET\",\"role\":\"ADMIN\"},{\"path\":\"/api/admin/analytics/summary\",\"method\":\"GET\",\"role\":\"ADMIN\"},{\"path\":\"/api/admin/analytics/surveys\",\"method\":\"GET\",\"role\":\"ADMIN\"},{\"path\":\"/api/admin/commissions\",\"method\":\"GET\",\"role\":\"ADMIN\"},{\"path\":\"/api/admin/commissions/pay\",\"method\":\"POST\",\"role\":\"ADMIN\"},{\"path\":\"/api/admin/eggs\",\"method\":\"GET\",\"role\":\"ADMIN\"},{\"path\":\"/api/admin/eggs\",\"method\":\"POST\",\"role\":\"ADMIN\"},{\"path\":\"/api/admin/geocode\",\"method\":\"GET\",\"role\":\"ADMIN\"},{\"path\":\"/api/admin/providers\",\"method\":\"GET\",\"role\":\"ADMIN\"},{\"path\":\"/api/admin/providers\",\"method\":\"POST\",\"role\":\"ADMIN\"},{\"path\":\"/api/admin/providers/[id]\",\"method\":\"GET\",\"role\":\"ADMIN\"},{\"path\":\"/api/admin/providers/[id]\",\"method\":\"PATCH\",\"role\":\"ADMIN\"},{\"path\":\"/api/admin/providers/[id]/approve\",\"method\":\"POST\",\"role\":\"ADMIN\"},{\"path\":\"/api/admin/providers/[id]/cert\",\"method\":\"GET\",\"role\":\"ADMIN\"},{\"path\":\"/api/admin/providers/[id]/elec-cert\",\"method\":\"GET\",\"role\":\"ADMIN\"},{\"path\":\"/api/admin/providers/[id]/reject\",\"method\":\"POST\",\"role\":\"ADMIN\"},{\"path\":\"/api/admin/requests\",\"method\":\"GET\",\"role\":\"ADMIN\"},{\"path\":\"/api/admin/requests/[id]\",\"method\":\"GET\",\"role\":\"ADMIN\"},{\"path\":\"/api/admin/requests/[id]/assign\",\"method\":\"POST\",\"role\":\"ADMIN\"},{\"path\":\"/api/admin/requests/[id]/cancel\",\"method\":\"POST\",\"role\":\"ADMIN\"},{\"path\":\"/api/admin/requests/[id]/candidates\",\"method\":\"GET\",\"role\":\"ADMIN\"},{\"path\":\"/api/admin/requests/[id]/unassign\",\"method\":\"POST\",\"role\":\"ADMIN\"},{\"path\":\"/api/admin/requests/[id]/voice\",\"method\":\"GET\",\"role\":\"ADMIN\"},{\"path\":\"/api/admin/rotation\",\"method\":\"GET\",\"role\":\"ADMIN\"},{\"path\":\"/api/admin/settings\",\"method\":\"GET\",\"role\":\"ADMIN\"},{\"path\":\"/api/admin/settings\",\"method\":\"PUT\",\"role\":\"ADMIN\"},{\"path\":\"/api/admin/settlements\",\"method\":\"GET\",\"role\":\"ADMIN\"},{\"path\":\"/api/admin/technicians\",\"method\":\"GET\",\"role\":\"ADMIN\"},{\"path\":\"/api/admin/technicians\",\"method\":\"POST\",\"role\":\"ADMIN\"},{\"path\":\"/api/admin/technicians/[id]\",\"method\":\"GET\",\"role\":\"ADMIN\"},{\"path\":\"/api/admin/technicians/[id]\",\"method\":\"PATCH\",\"role\":\"ADMIN\"},{\"path\":\"/api/admin/technicians/[id]/approve\",\"method\":\"POST\",\"role\":\"ADMIN\"},{\"path\":\"/api/admin/technicians/[id]/contract\",\"method\":\"GET\",\"role\":\"ADMIN\"},{\"path\":\"/api/admin/technicians/[id]/contract\",\"method\":\"PUT\",\"role\":\"ADMIN\"},{\"path\":\"/api/admin/technicians/[id]/reject\",\"method\":\"POST\",\"role\":\"ADMIN\"},{\"path\":\"/api/tech/commissions\",\"method\":\"GET\",\"role\":\"TECHNICIAN\"},{\"path\":\"/api/tech/contract\",\"method\":\"GET\",\"role\":\"TECHNICIAN\"},{\"path\":\"/api/tech/contract\",\"method\":\"PUT\",\"role\":\"TECHNICIAN\"},{\"path\":\"/api/tech/eggs\",\"method\":\"GET\",\"role\":\"TECHNICIAN\"},{\"path\":\"/api/tech/jobs\",\"method\":\"GET\",\"role\":\"TECHNICIAN\"},{\"path\":\"/api/tech/jobs/[id]\",\"method\":\"GET\",\"role\":\"TECHNICIAN\"},{\"path\":\"/api/tech/jobs/[id]/accept\",\"method\":\"POST\",\"role\":\"TECHNICIAN\"},{\"path\":\"/api/tech/jobs/[id]/reject\",\"method\":\"POST\",\"role\":\"TECHNICIAN\"},{\"path\":\"/api/tech/jobs/[id]/status\",\"method\":\"POST\",\"role\":\"TECHNICIAN\"},{\"path\":\"/api/tech/referrals\",\"method\":\"GET\",\"role\":\"TECHNICIAN\"},{\"path\":\"/api/tech/reviews\",\"method\":\"GET\",\"role\":\"TECHNICIAN\"},{\"path\":\"/api/tech/stats\",\"method\":\"GET\",\"role\":\"TECHNICIAN\"},{\"path\":\"/api/partner/commissions\",\"method\":\"GET\",\"role\":\"PROVIDER\"},{\"path\":\"/api/partner/eggs\",\"method\":\"GET\",\"role\":\"PROVIDER\"},{\"path\":\"/api/partner/jobs\",\"method\":\"GET\",\"role\":\"PROVIDER\"},{\"path\":\"/api/partner/jobs/[id]\",\"method\":\"GET\",\"role\":\"PROVIDER\"},{\"path\":\"/api/partner/jobs/[id]/accept\",\"method\":\"POST\",\"role\":\"PROVIDER\"},{\"path\":\"/api/partner/jobs/[id]/reject\",\"method\":\"POST\",\"role\":\"PROVIDER\"},{\"path\":\"/api/partner/jobs/[id]/status\",\"method\":\"POST\",\"role\":\"PROVIDER\"},{\"path\":\"/api/partner/profile\",\"method\":\"GET\",\"role\":\"PROVIDER\"},{\"path\":\"/api/partner/profile\",\"method\":\"PATCH\",\"role\":\"PROVIDER\"},{\"path\":\"/api/partner/referrals\",\"method\":\"GET\",\"role\":\"PROVIDER\"},{\"path\":\"/api/partner/reviews\",\"method\":\"GET\",\"role\":\"PROVIDER\"},{\"path\":\"/api/partner/stats\",\"method\":\"GET\",\"role\":\"PROVIDER\"},{\"path\":\"/api/requests/[id]/photos/[photoId]\",\"method\":\"GET\",\"role\":\"ADMIN\"}]",
+      "type": "string",
+      "description": "tests/helpers/routes.ts 의 가드 대상 목록을 그대로 옮긴 것. 라우트가 늘면 여기도 갱신한다(E2E 의 matrix-completeness 가 원본을 지킨다)."
+    }
+  ],
+  "item": [
+    {
+      "name": "00 · 준비",
+      "item": [
+        {
+          "name": "본인인증 공개 설정 — 허용된 키만 내려온다",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/identity/config",
+              "host": [
+                "{{baseUrl}}/api/identity/config"
+              ]
+            },
+            "description": "브라우저가 인증 시작 전에 받아가는 설정. 여기에 복호화 키가 섞이면 자체점검 5번이 무너진다.\n동시에 이 응답의 provider 값으로 뒤 폴더들의 분기가 정해진다."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 OK', function () { pm.response.to.have.status(200); });",
+                  "",
+                  "const cfg = pm.response.json();",
+                  "",
+                  "// 프록시·CDN 이 설정을 캐시하면 채널 키 교체가 즉시 반영되지 않는다.",
+                  "pm.test('Cache-Control: no-store', function () {",
+                  "  pm.expect((pm.response.headers.get('cache-control') || '')).to.include('no-store');",
+                  "});",
+                  "",
+                  "// 허용 목록 방식 — 새 키가 늘면 그 자체로 실패해야 한다(블랙리스트는 새 키를 놓친다).",
+                  "pm.test('[5번] 허용된 키(provider/storeId/channelKey) 외에는 없다', function () {",
+                  "  const allowed = ['provider', 'storeId', 'channelKey'];",
+                  "  const extra = Object.keys(cfg).filter(function (k) { return allowed.indexOf(k) === -1; });",
+                  "  pm.expect(extra, '예상 밖의 키: ' + extra.join(', ')).to.have.lengthOf(0);",
+                  "});",
+                  "",
+                  "pm.test('[5번] 비밀값처럼 보이는 키가 없다', function () {",
+                  "  const bad = Object.keys(cfg).filter(function (k) { return /secret|password|private|token|cert/i.test(k); });",
+                  "  pm.expect(bad, '비밀값 의심 키: ' + bad.join(', ')).to.have.lengthOf(0);",
+                  "});",
+                  "",
+                  "pm.collectionVariables.set('provider', cfg.provider);",
+                  "",
+                  "// 운영에서 mock 은 곧 무인증 가입이다. 환경파일이 기대 provider 를 못박는다.",
+                  "const expected = pm.environment.get('expectProvider');",
+                  "if (expected) {",
+                  "  pm.test('[6번] provider 가 기대값(' + expected + ')과 같다 — mock 폴백은 무인증 가입을 의미한다', function () {",
+                  "    pm.expect(cfg.provider).to.eql(expected);",
+                  "  });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "01 · 중요정보 평문 노출 (1번)",
+      "item": [
+        {
+          "name": "본인인증 응답에 CI/DI 가 실리지 않는다",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/identity/verify",
+              "host": [
+                "{{baseUrl}}/api/identity/verify"
+              ]
+            },
+            "description": "mock 형식(이름+번호) 입력을 보낸다.\n· provider=mock(로컬): 인증이 성립하고, 응답에 CI/DI 가 없어야 한다. 발급된 토큰은 뒤 폴더가 재사용한다.\n· provider=portone(운영): 이 입력은 반드시 거부돼야 한다 — 통하면 운영에 mock 이 살아 있다는 뜻이다.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"{{qaName}}\",\n  \"phone\": \"{{qaPhone}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// 9001 대역 = 이 레포의 일회성 픽스처 대역. E2E pretest-guard 의 스윕이",
+                  "// 같은 대역을 회수하므로, 여기서 만든 잔재도 다음 E2E 실행에서 정리된다.",
+                  "const rnd = function (n) {",
+                  "  let out = '';",
+                  "  for (let i = 0; i < n; i++) out += Math.floor(Math.random() * 10);",
+                  "  return out;",
+                  "};",
+                  "pm.collectionVariables.set('qaPhone', '0109001' + rnd(3));",
+                  "pm.collectionVariables.set('qaName', '점검용이름');"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const provider = pm.collectionVariables.get('provider');",
+                  "",
+                  "if (provider === 'portone') {",
+                  "  pm.test('[6번] 운영 provider 는 mock 형식 입력을 거부한다', function () {",
+                  "    pm.expect(pm.response.code, '이름·번호만으로 인증이 발급되면 무인증 가입이 열린 것이다').to.not.eql(200);",
+                  "  });",
+                  "  pm.collectionVariables.set('verificationId', '');",
+                  "} else {",
+                  "  pm.test('mock provider 는 인증 토큰을 발급한다', function () { pm.response.to.have.status(200); });",
+                  "  const b = pm.response.json();",
+                  "",
+                  "  pm.test('[1번] 응답 키가 {ok, verificationId, name, phone} 뿐이다', function () {",
+                  "    const allowed = ['ok', 'verificationId', 'name', 'phone'];",
+                  "    const extra = Object.keys(b).filter(function (k) { return allowed.indexOf(k) === -1; });",
+                  "    pm.expect(extra, '예상 밖의 키: ' + extra.join(', ')).to.have.lengthOf(0);",
+                  "  });",
+                  "",
+                  "  pm.test('[1번] 인증 결과의 이름·번호가 그대로 확인된다', function () {",
+                  "    pm.expect(b.name).to.eql(pm.collectionVariables.get('qaName'));",
+                  "    pm.expect(b.phone).to.eql(pm.collectionVariables.get('qaPhone'));",
+                  "  });",
+                  "",
+                  "  pm.collectionVariables.set('verificationId', b.verificationId);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "가입 화면 HTML 에 서버 비밀·인증 결과가 없다",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/tech/signup",
+              "host": [
+                "{{baseUrl}}/tech/signup"
+              ]
+            },
+            "description": "본인확인이 일어나는 유일한 화면. 렌더된 HTML 에 CI/DI 나 복호화 키가 섞였는지 본다."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 OK', function () { pm.response.to.have.status(200); });",
+                  "const html = pm.response.text();",
+                  "",
+                  "pm.test('[1번] HTML 에 CI/DI 값이 주입되지 않았다', function () {",
+                  "  pm.expect(html).to.not.match(/\\\\?\"(ci|di|connInfo|dupInfo)\\\\?\"\\s*:/i);",
+                  "});",
+                  "",
+                  "pm.test('[5번] HTML 에 복호화 키 관련 식별자가 없다', function () {",
+                  "  ['PORTONE_API_SECRET', 'apiSecret', 'api_secret', 'IDENTITY_HASH_SECRET', 'AUTH_SECRET']",
+                  "    .forEach(function (needle) {",
+                  "      pm.expect(html, needle + ' 가 페이지에 있다').to.not.include(needle);",
+                  "    });",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "02 · 파라미터 변조 (2번)",
+      "item": [
+        {
+          "name": "위조한 거래번호로는 인증 결과를 만들 수 없다",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/identity/verify",
+              "host": [
+                "{{baseUrl}}/api/identity/verify"
+              ]
+            },
+            "description": "브라우저가 보낸 값을 서버가 신뢰하는지 본다. 서버는 거래번호로 대행사에 재조회해야 하므로,\n존재하지 않는 거래번호는 어떤 이름·번호를 함께 보내도 인증이 성립하면 안 된다.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"identityVerificationId\": \"{{forgedIvId}}\",\n  \"name\": \"위조된이름\",\n  \"phone\": \"01000000000\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// KCP 규격(영문·숫자 40자)에 맞는 형태의 가짜 거래번호",
+                  "const abc = 'abcdefghijklmnopqrstuvwxyz0123456789';",
+                  "let s = 'iv';",
+                  "for (let i = 0; i < 38; i++) s += abc[Math.floor(Math.random() * abc.length)];",
+                  "pm.collectionVariables.set('forgedIvId', s);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const provider = pm.collectionVariables.get('provider');",
+                  "",
+                  "if (provider === 'portone') {",
+                  "  pm.test('[2번] 대행사에 없는 거래번호는 인증되지 않는다', function () {",
+                  "    pm.expect(pm.response.code, '위조 거래번호로 인증이 발급됐다').to.not.eql(200);",
+                  "  });",
+                  "  pm.test('[2번] 함께 보낸 이름·번호가 결과로 승격되지 않는다', function () {",
+                  "    pm.expect(pm.response.text()).to.not.include('위조된이름');",
+                  "  });",
+                  "} else {",
+                  "  // mock 은 설계상 입력값을 그대로 인증 처리한다(개발 전용). 이 분기는 운영에서만 의미가 있다.",
+                  "  pm.test('[2번] mock 환경에서는 판정 보류 — 운영(portone)에서 실행할 것', function () {",
+                  "    pm.expect(provider).to.eql('mock');",
+                  "  });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "03 · 입력정보 일치 (3번)",
+      "item": [
+        {
+          "name": "인증 실명과 다른 이름으로는 가입할 수 없다",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/tech/signup",
+              "host": [
+                "{{baseUrl}}/api/tech/signup"
+              ]
+            },
+            "description": "본인확인 결과와 회원가입 입력의 일치 검증. 거부되므로 계정도, 인증 소비도 발생하지 않는다.\nmock 토큰이 필요해 로컬에서만 판정한다.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"loginId\": \"{{qaLoginId}}\",\n  \"password\": \"postman-check-1234\",\n  \"name\": \"남의이름\",\n  \"phone\": \"{{qaPhone}}\",\n  \"address\": \"서울특별시 강남구 테헤란로 1\",\n  \"employmentType\": \"DAILY\",\n  \"verificationId\": \"{{verificationId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const rnd = function (n) {",
+                  "  let out = '';",
+                  "  for (let i = 0; i < n; i++) out += Math.floor(Math.random() * 10);",
+                  "  return out;",
+                  "};",
+                  "// loginId 도 9001 대역 — E2E 스윕이 회수하는 접두다.",
+                  "pm.collectionVariables.set('qaLoginId', '9001-postman-' + rnd(8));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const provider = pm.collectionVariables.get('provider');",
+                  "const token = pm.collectionVariables.get('verificationId');",
+                  "",
+                  "if (provider !== 'mock' || !token) {",
+                  "  pm.test('[3번] 인증 토큰을 만들 수 없는 환경 — 판정 보류(로컬 mock 에서 실행)', function () {",
+                  "    pm.expect(true).to.be.true;",
+                  "  });",
+                  "} else {",
+                  "  pm.test('[3번] 이름 불일치는 400 으로 거부된다', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "  });",
+                  "  pm.test('[3번] 이름 불일치 전용 문구로 거부된다', function () {",
+                  "    pm.expect(pm.response.json().error).to.include('가입 이름이 다릅니다');",
+                  "  });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "인증 번호와 다른 번호로는 가입할 수 없다",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/tech/signup",
+              "host": [
+                "{{baseUrl}}/api/tech/signup"
+              ]
+            },
+            "description": "번호 일치 검증. 거부 경로라 데이터를 만들지 않는다.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"loginId\": \"{{qaLoginId}}\",\n  \"password\": \"postman-check-1234\",\n  \"name\": \"{{qaName}}\",\n  \"phone\": \"01099990000\",\n  \"address\": \"서울특별시 강남구 테헤란로 1\",\n  \"employmentType\": \"DAILY\",\n  \"verificationId\": \"{{verificationId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const rnd = function (n) {",
+                  "  let out = '';",
+                  "  for (let i = 0; i < n; i++) out += Math.floor(Math.random() * 10);",
+                  "  return out;",
+                  "};",
+                  "// loginId 도 9001 대역 — E2E 스윕이 회수하는 접두다.",
+                  "pm.collectionVariables.set('qaLoginId', '9001-postman-' + rnd(8));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const provider = pm.collectionVariables.get('provider');",
+                  "const token = pm.collectionVariables.get('verificationId');",
+                  "",
+                  "if (provider !== 'mock' || !token) {",
+                  "  pm.test('[3번] 인증 토큰을 만들 수 없는 환경 — 판정 보류(로컬 mock 에서 실행)', function () {",
+                  "    pm.expect(true).to.be.true;",
+                  "  });",
+                  "} else {",
+                  "  pm.test('[3번] 번호 불일치는 400 으로 거부된다', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "  });",
+                  "  pm.test('[3번] 번호 불일치 전용 문구로 거부된다', function () {",
+                  "    pm.expect(pm.response.json().error).to.include('가입 번호가 다릅니다');",
+                  "  });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "04 · 데이터 재사용 (4번)",
+      "item": [
+        {
+          "name": "추측한 인증 토큰은 통하지 않는다",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/tech/signup",
+              "host": [
+                "{{baseUrl}}/api/tech/signup"
+              ]
+            },
+            "description": "발급받은 적 없는 토큰으로 가입을 시도한다. 운영에서도 안전한 유일한 4번 검사다\n— 거부 경로라 계정이 만들어지지 않는다.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"loginId\": \"{{qaLoginId}}\",\n  \"password\": \"postman-check-1234\",\n  \"name\": \"점검용이름\",\n  \"phone\": \"0109001000\",\n  \"address\": \"서울특별시 강남구 테헤란로 1\",\n  \"employmentType\": \"DAILY\",\n  \"verificationId\": \"{{forgedToken}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const rnd = function (n) {",
+                  "  let out = '';",
+                  "  for (let i = 0; i < n; i++) out += Math.floor(Math.random() * 10);",
+                  "  return out;",
+                  "};",
+                  "pm.collectionVariables.set('qaLoginId', '9001-postman-' + rnd(8));",
+                  "pm.collectionVariables.set('forgedToken', 'pm-forged-' + pm.collectionVariables.get('runNonce') + '-' + Date.now());"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('[4번] 존재하지 않는 인증 토큰은 400 으로 거부된다', function () {",
+                  "  pm.response.to.have.status(400);",
+                  "});",
+                  "pm.test('[4번] 토큰 미발급 전용 문구로 거부된다', function () {",
+                  "  pm.expect(pm.response.json().error).to.eql('본인인증 정보를 찾을 수 없습니다. 다시 인증해 주세요.');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "인증 1건은 가입 1건에만 쓰인다 (계정 생성 · 로컬 전용)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/identity/verify",
+              "host": [
+                "{{baseUrl}}/api/identity/verify"
+              ]
+            },
+            "description": "자체점검 4번의 본체. 인증 → 가입 성공 → 같은 인증으로 재가입 시도 → 거부 를 실제로 태운다.\n\n⚠️ 전기기사 계정 1개를 실제로 만든다. 그래서 두 조건을 모두 만족할 때만 실행된다:\n  · 환경변수 allowAccountCreation=true\n  · provider=mock (운영은 portone 이라 자동으로 건너뛴다)\n생성 계정은 9001 대역이라 다음 E2E 실행의 pretest-guard 스윕이 회수한다.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"{{qaName2}}\",\n  \"phone\": \"{{qaPhone2}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const rnd = function (n) {",
+                  "  let out = '';",
+                  "  for (let i = 0; i < n; i++) out += Math.floor(Math.random() * 10);",
+                  "  return out;",
+                  "};",
+                  "pm.collectionVariables.set('qaPhone2', '0109001' + rnd(3));",
+                  "pm.collectionVariables.set('qaName2', '재사용점검');",
+                  "pm.collectionVariables.set('qaLoginIdA', '9001-postman-' + rnd(8));",
+                  "pm.collectionVariables.set('qaLoginIdB', '9001-postman-' + rnd(8));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const provider = pm.collectionVariables.get('provider');",
+                  "const allowed = pm.environment.get('allowAccountCreation') === 'true';",
+                  "",
+                  "if (provider !== 'mock' || !allowed) {",
+                  "  pm.test('[4번] 계정 생성이 필요한 검사 — 건너뜀 (provider=' + provider + ', allowAccountCreation=' + allowed + ')', function () {",
+                  "    pm.expect(true).to.be.true;",
+                  "  });",
+                  "  return;",
+                  "}",
+                  "",
+                  "pm.test('인증 토큰 발급', function () { pm.response.to.have.status(200); });",
+                  "const token = pm.response.json().verificationId;",
+                  "",
+                  "const base = pm.environment.get('baseUrl');",
+                  "const ip = '203.0.113.' + (1 + Math.floor(Math.random() * 250));",
+                  "const mkBody = function (loginId) {",
+                  "  return {",
+                  "    loginId: loginId,",
+                  "    password: 'postman-check-1234',",
+                  "    name: pm.collectionVariables.get('qaName2'),",
+                  "    phone: pm.collectionVariables.get('qaPhone2'),",
+                  "    address: '서울특별시 강남구 테헤란로 1',",
+                  "    employmentType: 'DAILY',",
+                  "    verificationId: token,",
+                  "  };",
+                  "};",
+                  "const post = function (loginId, cb) {",
+                  "  pm.sendRequest({",
+                  "    url: base + '/api/tech/signup',",
+                  "    method: 'POST',",
+                  "    header: { 'Content-Type': 'application/json', 'X-Forwarded-For': ip },",
+                  "    body: { mode: 'raw', raw: JSON.stringify(mkBody(loginId)) },",
+                  "  }, cb);",
+                  "};",
+                  "",
+                  "post(pm.collectionVariables.get('qaLoginIdA'), function (e1, r1) {",
+                  "  pm.test('첫 가입은 성공한다 (양성대조 — 제약이 정상 가입을 막지 않는다)', function () {",
+                  "    pm.expect(e1).to.equal(null);",
+                  "    pm.expect(r1.code, r1 && r1.text()).to.eql(200);",
+                  "  });",
+                  "",
+                  "  post(pm.collectionVariables.get('qaLoginIdB'), function (e2, r2) {",
+                  "    pm.test('[4번] 같은 인증으로 두 번째 가입은 거부된다', function () {",
+                  "      pm.expect(e2).to.equal(null);",
+                  "      pm.expect(r2.code).to.eql(400);",
+                  "      pm.expect(r2.json().error).to.include('이미 사용된 본인인증');",
+                  "    });",
+                  "  });",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "05 · 암호키·모듈 노출 (5번)",
+      "item": [
+        {
+          "name": "클라이언트 번들에 서버 비밀이 실리지 않는다",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/tech/signup",
+              "host": [
+                "{{baseUrl}}/tech/signup"
+              ]
+            },
+            "description": "가입 화면이 로드하는 JS 번들을 전부 내려받아 비밀값을 훑는다.\n환경변수 secretsToScan 에 실제 PORTONE_API_SECRET 을 넣으면 실값 대조까지 된다."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 OK', function () { pm.response.to.have.status(200); });",
+                  "const html = pm.response.text();",
+                  "const base = pm.environment.get('baseUrl');",
+                  "",
+                  "// 페이지가 로드하는 자체 호스팅 스크립트만 대상으로 한다(외부 CDN 은 우리 비밀을 못 받는다).",
+                  "const srcs = [];",
+                  "const re = /<script[^>]+src=\"([^\"]+)\"/g;",
+                  "let m;",
+                  "while ((m = re.exec(html)) !== null) {",
+                  "  if (m[1].indexOf('/_next/') === 0) srcs.push(m[1]);",
+                  "}",
+                  "const targets = srcs.slice(0, Number(pm.environment.get('bundleScanLimit') || 20));",
+                  "",
+                  "pm.test('[5번] 검사할 스크립트 번들을 찾았다', function () {",
+                  "  pm.expect(targets.length, '가입 화면에서 _next 스크립트를 하나도 못 찾았다').to.be.above(0);",
+                  "});",
+                  "",
+                  "const needles = ['PORTONE_API_SECRET', 'IDENTITY_HASH_SECRET', 'AUTH_SECRET', 'DATABASE_URL', 'R2_SECRET_ACCESS_KEY']",
+                  "  .concat((pm.environment.get('secretsToScan') || '').split(',').map(function (s) { return s.trim(); }).filter(Boolean));",
+                  "",
+                  "const hits = [];",
+                  "let done = 0;",
+                  "const finish = function () {",
+                  "  pm.test('[5번] 번들 ' + targets.length + '개에 서버 비밀이 없다', function () {",
+                  "    pm.expect(hits, hits.join(' | ')).to.have.lengthOf(0);",
+                  "  });",
+                  "};",
+                  "if (!targets.length) { finish(); }",
+                  "targets.forEach(function (src) {",
+                  "  pm.sendRequest({ url: base + src, method: 'GET' }, function (err, res) {",
+                  "    if (!err && res) {",
+                  "      const text = res.text() || '';",
+                  "      needles.forEach(function (n) {",
+                  "        if (text.indexOf(n) !== -1) hits.push(src + ' ← ' + n);",
+                  "      });",
+                  "    }",
+                  "    if (++done === targets.length) finish();",
+                  "  });",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "06 · 접근통제 (6번)",
+      "item": [
+        {
+          "name": "가드 라우트 64개 — 무세션은 전부 401",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/requests",
+              "host": [
+                "{{baseUrl}}/api/admin/requests"
+              ]
+            },
+            "description": "라우트 매트릭스(tests/helpers/routes.ts)에 등재된 가드 대상 64개를 한 요청 안에서 전부 훑는다.\n요청을 64개로 쪼개지 않는 이유는 컬렉션을 작게 유지하기 위함이고, 실패 시에는\n어떤 (메서드 경로)가 뚫렸는지 단언 메시지에 그대로 나온다.\n\n경로 파라미터에는 존재하지 않는 id 를 넣는다 — 세션 가드가 조회보다 먼저라 401 판정에 영향이 없고,\nDB 도 건드리지 않는다."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('[6번] 대표 라우트(GET /api/admin/requests) 무세션 401', function () {",
+                  "  pm.response.to.have.status(401);",
+                  "});",
+                  "",
+                  "const routes = JSON.parse(pm.collectionVariables.get('guardedRoutes'));",
+                  "const base = pm.environment.get('baseUrl');",
+                  "const missing = 'pm-missing-' + pm.collectionVariables.get('runNonce');",
+                  "const fill = function (p) {",
+                  "  return p.replace('[id]', missing)",
+                  "          .replace('[photoId]', missing)",
+                  "          .replace('[token]', missing)",
+                  "          .replace('[subject]', 'technician');",
+                  "};",
+                  "",
+                  "const failures = [];",
+                  "let i = 0;",
+                  "",
+                  "const finish = function () {",
+                  "  pm.test('[6번] 가드 라우트 ' + routes.length + '개가 모두 무세션 401 이다', function () {",
+                  "    pm.expect(failures, failures.join(' | ')).to.have.lengthOf(0);",
+                  "  });",
+                  "};",
+                  "",
+                  "const next = function () {",
+                  "  if (i >= routes.length) return finish();",
+                  "  const r = routes[i++];",
+                  "  const opts = {",
+                  "    url: base + fill(r.path),",
+                  "    method: r.method,",
+                  "    header: { 'Content-Type': 'application/json' },",
+                  "  };",
+                  "  // 변경 메서드에는 빈 JSON 을 준다. 가드를 통과하더라도 zod 400/404 로 떨어져 어떤 행도 쓰지 않는다.",
+                  "  if (r.method !== 'GET') opts.body = { mode: 'raw', raw: '{}' };",
+                  "  pm.sendRequest(opts, function (err, res) {",
+                  "    if (err) failures.push(r.method + ' ' + r.path + ' → 요청 실패(' + err + ')');",
+                  "    else if (res.code !== 401) failures.push(r.method + ' ' + r.path + ' → ' + res.code);",
+                  "    next();",
+                  "  });",
+                  "};",
+                  "next();"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "공개 라우트는 401 이 아니다 (양성대조)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/check-login-id?loginId=pm-probe",
+              "host": [
+                "{{baseUrl}}/api/auth/check-login-id?loginId=pm-probe"
+              ]
+            },
+            "description": "전부 401 이 나와서 위 검사가 통과하는 false-green 을 막는다.\n부작용이 없는 공개 엔드포인트만 고른다 — 자동배정 트리거(/api/internal/auto-assign)와\n로그아웃은 의도적으로 제외한다."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('[6번] 공개 라우트는 무세션에서도 401 이 아니다', function () {",
+                  "  pm.expect(pm.response.code).to.not.eql(401);",
+                  "});",
+                  "",
+                  "const base = pm.environment.get('baseUrl');",
+                  "const ip = '203.0.113.' + (1 + Math.floor(Math.random() * 250));",
+                  "// 빈 본문을 보내면 전부 400(zod)에서 멈춘다 — 계정도 접수도 만들어지지 않는다.",
+                  "const probes = [",
+                  "  { method: 'GET', path: '/api/identity/config' },",
+                  "  { method: 'POST', path: '/api/tech/signup' },",
+                  "  { method: 'POST', path: '/api/partner/signup' },",
+                  "];",
+                  "",
+                  "const failures = [];",
+                  "let done = 0;",
+                  "probes.forEach(function (p) {",
+                  "  const opts = { url: base + p.path, method: p.method, header: { 'Content-Type': 'application/json', 'X-Forwarded-For': ip } };",
+                  "  if (p.method !== 'GET') opts.body = { mode: 'raw', raw: '{}' };",
+                  "  pm.sendRequest(opts, function (err, res) {",
+                  "    if (err) failures.push(p.method + ' ' + p.path + ' → 요청 실패');",
+                  "    else if (res.code === 401) failures.push(p.method + ' ' + p.path + ' → 401 (공개여야 한다)');",
+                  "    if (++done === probes.length) {",
+                  "      pm.test('[6번] 공개 엔드포인트 ' + probes.length + '개가 401 로 잠기지 않았다', function () {",
+                  "        pm.expect(failures, failures.join(' | ')).to.have.lengthOf(0);",
+                  "      });",
+                  "    }",
+                  "  });",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "관리자 화면은 무세션 접근을 막는다",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin",
+              "host": [
+                "{{baseUrl}}/admin"
+              ]
+            },
+            "description": "미들웨어가 세션 없는 접근을 로그인 화면으로 돌려보내는지 본다. 리다이렉트를 따라가지 않도록 설정된 요청이다."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('[6번] 무세션 /admin 접근은 리다이렉트된다', function () {",
+                  "  pm.expect(pm.response.code, '보호 화면이 무세션에 그대로 열렸다').to.be.oneOf([301, 302, 303, 307, 308]);",
+                  "});",
+                  "pm.test('[6번] 리다이렉트 대상이 /admin/login 이다', function () {",
+                  "  pm.expect(pm.response.headers.get('location') || '').to.include('/admin/login');",
+                  "});",
+                  "pm.test('[6번] 보호 화면 본문이 새어 나오지 않는다', function () {",
+                  "  pm.expect((pm.response.text() || '').length, '리다이렉트 응답에 본문이 실렸다').to.be.below(2048);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "followRedirects": false
+          }
+        },
+        {
+          "name": "업체 화면은 무세션 접근을 막는다",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/partner",
+              "host": [
+                "{{baseUrl}}/partner"
+              ]
+            },
+            "description": "미들웨어가 세션 없는 접근을 로그인 화면으로 돌려보내는지 본다. 리다이렉트를 따라가지 않도록 설정된 요청이다."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('[6번] 무세션 /partner 접근은 리다이렉트된다', function () {",
+                  "  pm.expect(pm.response.code, '보호 화면이 무세션에 그대로 열렸다').to.be.oneOf([301, 302, 303, 307, 308]);",
+                  "});",
+                  "pm.test('[6번] 리다이렉트 대상이 /partner/login 이다', function () {",
+                  "  pm.expect(pm.response.headers.get('location') || '').to.include('/partner/login');",
+                  "});",
+                  "pm.test('[6번] 보호 화면 본문이 새어 나오지 않는다', function () {",
+                  "  pm.expect((pm.response.text() || '').length, '리다이렉트 응답에 본문이 실렸다').to.be.below(2048);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "followRedirects": false
+          }
+        },
+        {
+          "name": "전기기사 화면은 무세션 접근을 막는다",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/tech",
+              "host": [
+                "{{baseUrl}}/tech"
+              ]
+            },
+            "description": "미들웨어가 세션 없는 접근을 로그인 화면으로 돌려보내는지 본다. 리다이렉트를 따라가지 않도록 설정된 요청이다."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('[6번] 무세션 /tech 접근은 리다이렉트된다', function () {",
+                  "  pm.expect(pm.response.code, '보호 화면이 무세션에 그대로 열렸다').to.be.oneOf([301, 302, 303, 307, 308]);",
+                  "});",
+                  "pm.test('[6번] 리다이렉트 대상이 /tech/login 이다', function () {",
+                  "  pm.expect(pm.response.headers.get('location') || '').to.include('/tech/login');",
+                  "});",
+                  "pm.test('[6번] 보호 화면 본문이 새어 나오지 않는다', function () {",
+                  "  pm.expect((pm.response.text() || '').length, '리다이렉트 응답에 본문이 실렸다').to.be.below(2048);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "followRedirects": false
+          }
+        }
+      ]
+    },
+    {
+      "name": "07 · 안전한 통신 (7번)",
+      "item": [
+        {
+          "name": "평문 HTTP 는 HTTPS 로 강제된다",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{httpBaseUrl}}/",
+              "host": [
+                "{{httpBaseUrl}}/"
+              ]
+            },
+            "description": "운영 전용. httpBaseUrl 이 비어 있으면 건너뛴다.\n\nTLS 프로토콜 버전 자체는 Postman 이 단언할 수 없다 — postman/tls-check.sh 가 담당한다."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// 로컬 dev 서버는 HTTPS 를 제공하지 않으므로 이 판정은 운영에서만 의미가 있다.",
+                  "const base = pm.environment.get('baseUrl') || '';",
+                  "if (base.indexOf('https://') !== 0) {",
+                  "  pm.test('[7번] 로컬 대상 — 평문 리다이렉트 판정 건너뜀 (운영 환경에서 실행할 것)', function () {",
+                  "    pm.expect(true).to.be.true;",
+                  "  });",
+                  "  return;",
+                  "}",
+                  "",
+                  "pm.test('[7번] 평문 HTTP 는 리다이렉트된다', function () {",
+                  "  pm.expect(pm.response.code).to.be.oneOf([301, 302, 307, 308]);",
+                  "});",
+                  "pm.test('[7번] 리다이렉트 대상이 https 다', function () {",
+                  "  pm.expect((pm.response.headers.get('location') || '')).to.match(/^https:\\/\\//);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "followRedirects": false
+          }
+        },
+        {
+          "name": "본인인증 요청 자체가 HTTPS 로 나간다",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/identity/config",
+              "host": [
+                "{{baseUrl}}/api/identity/config"
+              ]
+            },
+            "description": "컬렉션이 실제로 어떤 프로토콜로 서버에 붙었는지 못박는다. 로컬(http)에서는 안내만 남긴다."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// 컬렉션이 실제로 어떤 프로토콜로 서버에 붙었는지 못박는다.",
+                  "// 전역 검사가 이미 HSTS 를 보므로 여기서는 스킴만 판정한다.",
+                  "const base = pm.environment.get('baseUrl') || '';",
+                  "",
+                  "if (base.indexOf('https://') === 0) {",
+                  "  pm.test('[7번] 본인인증 엔드포인트를 HTTPS 로 호출했다', function () {",
+                  "    pm.expect(pm.response.code).to.eql(200);",
+                  "  });",
+                  "} else {",
+                  "  pm.test('[7번] 로컬 http 대상 — TLS 판정은 운영에서 postman/tls-check.sh 로 수행', function () {",
+                  "    pm.expect(base).to.match(/^http:\\/\\//);",
+                  "  });",
+                  "}"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

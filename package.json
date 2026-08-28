@@ -10,6 +10,9 @@
     "lint": "eslint",
     "test:e2e": "node scripts/e2e-lock.mjs npx playwright test",
     "test:e2e:unlocked": "playwright test",
+    "test:security": "npx --yes newman run postman/mijin-identity-security.postman_collection.json -e postman/mijin-local.postman_environment.json --timeout-request 20000",
+    "test:security:prod": "npx --yes newman run postman/mijin-identity-security.postman_collection.json -e postman/mijin-production.postman_environment.json --timeout-request 30000",
+    "test:tls": "./postman/tls-check.sh",
     "test": "vitest run"
   },
   "prisma": {
