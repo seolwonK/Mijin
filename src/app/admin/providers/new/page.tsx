@@ -51,7 +51,7 @@ export default function NewProviderPage() {
   }
 
   return (
-    <main className="min-h-screen">
+    <main className="min-h-screen md:bg-surface">
       <PageHeader title="업체 등록" back="/admin/providers" />
       <div className="mx-auto w-full max-w-2xl space-y-2 p-4">
         <label className="text-sm font-semibold">추천인 (선택)</label>

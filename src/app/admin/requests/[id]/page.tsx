@@ -148,7 +148,7 @@ export default function AdminRequestDetailPage({
   );
 
   return (
-    <main className="min-h-screen pb-10">
+    <main className="min-h-screen md:bg-surface pb-10">
       <header className="sticky top-0 z-20 flex items-center gap-2 border-b border-border bg-surface/85 px-4 py-2 backdrop-blur">
         <BackButton fallback="/admin" />
         <h1 className="font-mono text-lg font-bold">접수 #{req.lookupCode}</h1>

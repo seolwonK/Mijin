@@ -97,7 +97,7 @@ export default function AnalyticsMap() {
   const gapAlerts = [...(regionsData?.gapAlerts ?? [])].sort((a, b) => b.demand - a.demand);
 
   return (
-    <main className="min-h-screen bg-neutral-50 text-sm text-fg">
+    <main className="min-h-screen bg-surface text-sm text-fg">
       <div className="p-4 lg:hidden">
         <DesktopOnlyNotice message="지도 현황은 데스크톱에서 이용할 수 있습니다." />
       </div>
@@ -111,7 +111,7 @@ export default function AnalyticsMap() {
           {regionsError && <p className="mb-4 text-sm text-red-600">{regionsError}</p>}
           {dispatchError && <p className="mb-4 text-sm text-red-600">{dispatchError}</p>}
           {!regionsData ? (
-            <p className="rounded-admin-md border border-border bg-white p-6 text-sm text-muted">지도 현황을 불러오는 중…</p>
+            <p className="rounded-admin-lg border border-border bg-white p-6 text-sm text-muted shadow-surface-sm">지도 현황을 불러오는 중…</p>
           ) : (
             <div className="grid gap-5">
               <MapChoropleth
@@ -145,7 +145,7 @@ export default function AnalyticsMap() {
                 )}
               </section>
 
-              <section className="rounded-admin-md border border-border bg-white p-5" aria-labelledby="pressure-heading">
+              <section className="rounded-admin-lg border border-border bg-white p-5 shadow-surface-sm" aria-labelledby="pressure-heading">
                 <div className="flex items-baseline justify-between gap-3">
                   <div className="flex items-center gap-2">
                     <h2 id="pressure-heading" className="text-base font-bold">수급 압력 순위표</h2>
@@ -191,7 +191,7 @@ export default function AnalyticsMap() {
 
             </div>
           )}
-          <section className="mt-5 rounded-admin-md border border-border bg-white p-5" aria-labelledby="dispatch-heading">
+          <section className="mt-5 rounded-admin-lg border border-border bg-white p-5 shadow-surface-sm" aria-labelledby="dispatch-heading">
             <div className="flex items-baseline justify-between gap-3">
               <div><h2 id="dispatch-heading" className="text-base font-bold">출동 현황</h2><p className="mt-1 text-sm text-muted">차량 추적 아님 — 고객 목적지 기준</p></div>
               <span className="font-mono text-xs text-muted">{refreshTime(dispatchUpdatedAt)} · 8초 갱신</span>

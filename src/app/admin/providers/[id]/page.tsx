@@ -176,7 +176,7 @@ export default function EditProviderPage({
   const badge = APPROVAL_BADGE[detail.approvalStatus];
 
   return (
-    <main className="min-h-screen">
+    <main className="min-h-screen md:bg-surface">
       <PageHeader
         title={detail.name}
         back="/admin/providers"

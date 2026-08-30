@@ -114,7 +114,7 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
                       <ChevronDownIcon className={`h-3 w-3 transition-transform ease-portal ${open ? 'rotate-180' : ''}`} />
                     </button>
                     {open && (
-                      <div id={`admin-nav-${n.label}`} role="menu" className="absolute top-full left-0 z-30 min-w-28 border border-border bg-white py-1">
+                      <div id={`admin-nav-${n.label}`} role="menu" className="absolute top-full left-0 z-30 min-w-28 overflow-hidden rounded-admin-md border border-border bg-white py-1 shadow-pop">
                         {n.children.map((child) => {
                           const childActive = pathname.startsWith(child.href);
                           return (

@@ -8,6 +8,7 @@ import { usePolling } from '@/components/usePolling';
 import { CardSkeletonGrid } from '@/components/Skeleton';
 import { useConfirm } from '@/components/useConfirm';
 import AdminDataTable, { type Column } from '@/components/AdminDataTable';
+import { EggIcon } from '@/components/EggIcon';
 
 type ProviderRow = {
   id: string;
@@ -122,7 +123,7 @@ export default function AdminProvidersPage() {
   ];
 
   return (
-    <main className="min-h-screen">
+    <main className="min-h-screen md:bg-surface">
       {/* 모바일: 기존 PageHeader(뒤로가기+제목+등록) 그대로. 데스크톱: AdminShell 상단 탭이 이미
           "업체 관리"를 표시하므로 PageHeader 대신 더 얇은 바로 교체 — AC-1 밀도 가드(가시 ≥15행)
           회복을 위해 상단 크롬을 줄인 것. 뒤로가기는 AdminShell의 상시 내비로 대체됨(데스크톱 전용). */}
@@ -189,12 +190,13 @@ export default function AdminProvidersPage() {
           </h2>
           {loading && <CardSkeletonGrid count={3} />}
           {!loading && approved.length === 0 && (
-            <p className="rounded-admin-md border border-border bg-neutral-50 p-6 text-center text-sm text-muted">
-              운영 중인 업체가 없습니다
-            </p>
+            <div className="flex flex-col items-center gap-2 p-10 text-center">
+              <EggIcon size={22} className="opacity-60" />
+              <p className="text-sm text-muted">운영 중인 업체가 없습니다</p>
+            </div>
           )}
           {!loading && approved.length > 0 && (
-            <div className="rounded-admin-md border border-border bg-white">
+            <div className="overflow-hidden rounded-admin-lg border border-border bg-white shadow-surface-sm">
               <AdminDataTable
                 columns={columns}
                 rows={approved}

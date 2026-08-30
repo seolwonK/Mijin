@@ -84,7 +84,7 @@ const columns: Column<Row, ColumnKey>[] = [
 
 function SettlementSection({ title, rows }: { title: '업체' | '전기기사'; rows: Row[] }) {
   return (
-    <section className="rounded-admin-md border border-border bg-white">
+    <section className="overflow-hidden rounded-admin-lg border border-border bg-white shadow-surface-sm">
       <h2 className="border-b border-border px-3.5 py-2.5 text-sm font-bold text-fg">{title}</h2>
       {rows.length === 0 ? (
         <p className="p-6 text-center text-sm text-muted">해당 기간 집계 데이터 없음</p>
@@ -109,7 +109,7 @@ export default function AdminSettlementsPage() {
   const loading = !data && !error;
 
   return (
-    <main className="min-h-screen">
+    <main className="min-h-screen md:bg-surface">
       <div className="md:hidden">
         <PageHeader title="정산 집계 리포트" back="/admin" width="max-w-none" />
       </div>

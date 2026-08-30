@@ -33,7 +33,7 @@ export default function AnalyticsSurveys() {
   );
 
   return (
-    <main className="min-h-screen bg-neutral-50 text-sm text-fg">
+    <main className="min-h-screen bg-surface text-sm text-fg">
       <div className="p-4 lg:hidden">
         <DesktopOnlyNotice message="설문 현황은 데스크톱에서 이용할 수 있습니다." />
       </div>
@@ -48,12 +48,12 @@ export default function AnalyticsSurveys() {
           </div>
           {error && <p className="mb-4 text-sm text-red-600">{error}</p>}
           {!data ? (
-            <p className="rounded-admin-md border border-border bg-white p-6 text-sm text-muted">
+            <p className="rounded-admin-lg border border-border bg-white p-6 text-sm text-muted shadow-surface-sm">
               설문 데이터를 불러오는 중…
             </p>
           ) : (
             <div className="grid gap-5">
-              <section className="rounded-admin-md border border-border bg-white p-5">
+              <section className="rounded-admin-lg border border-border bg-white p-5 shadow-surface-sm">
                 <div className="flex items-center gap-2">
                   <h2 className="text-base font-bold">응답률</h2>
                   <InfoTip text="제출 설문 ÷ 발송 설문" />
@@ -70,7 +70,7 @@ export default function AnalyticsSurveys() {
                 </div>
               </section>
 
-              <section className="rounded-admin-md border border-border bg-white p-5">
+              <section className="rounded-admin-lg border border-border bg-white p-5 shadow-surface-sm">
                 <h2 className="text-base font-bold">미제출 목록</h2>
                 <div className="mt-4 overflow-x-auto">
                   <table className="w-full min-w-[620px] text-left text-sm">
@@ -104,7 +104,7 @@ export default function AnalyticsSurveys() {
                 </div>
               </section>
 
-              <section className="rounded-admin-md border border-border bg-white p-5">
+              <section className="rounded-admin-lg border border-border bg-white p-5 shadow-surface-sm">
                 <div className="flex items-center gap-2">
                   <h2 className="text-base font-bold">결제 통계</h2>
                   <InfoTip text="제출된 설문만 집계" />

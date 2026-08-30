@@ -193,7 +193,7 @@ export default function AdminContractPage({
   const confirmed = c?.status === 'CONFIRMED';
 
   return (
-    <main className="min-h-screen">
+    <main className="min-h-screen md:bg-surface">
       <PageHeader
         title={`근로확인서 — ${d.technician.name}`}
         back={`/admin/technicians/${id}`}

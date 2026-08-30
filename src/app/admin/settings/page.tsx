@@ -143,7 +143,7 @@ export default function AdminSettingsPage() {
   ];
 
   return (
-    <main className="min-h-screen">
+    <main className="min-h-screen md:bg-surface">
       <PageHeader title="설정" back="/admin" />
 
       <div className="mx-auto max-w-2xl space-y-6 p-4">

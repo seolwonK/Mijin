@@ -8,6 +8,7 @@ import { usePolling } from '@/components/usePolling';
 import { CardSkeletonGrid } from '@/components/Skeleton';
 import { useConfirm } from '@/components/useConfirm';
 import AdminDataTable, { type Column } from '@/components/AdminDataTable';
+import { EggIcon } from '@/components/EggIcon';
 
 type TechnicianRow = {
   id: string;
@@ -145,7 +146,7 @@ export default function AdminTechniciansPage() {
   ];
 
   return (
-    <main className="min-h-screen">
+    <main className="min-h-screen md:bg-surface">
       {/* 모바일: 기존 PageHeader 그대로. 데스크톱: AdminShell 상단 탭이 이미 "전기기사 관리"를
           표시하므로 PageHeader 대신 더 얇은 바로 교체 — AC-1 밀도 가드 회복(providers/page.tsx와
           동일 근거). */}
@@ -213,12 +214,13 @@ export default function AdminTechniciansPage() {
           <h2 className="mb-1.5 text-sm font-semibold">운영 중 전기기사 ({approved.length})</h2>
           {loading && <CardSkeletonGrid count={3} />}
           {!loading && approved.length === 0 && (
-            <p className="rounded-admin-md border border-border bg-neutral-50 p-6 text-center text-sm text-muted">
-              운영 중인 전기기사가 없습니다
-            </p>
+            <div className="flex flex-col items-center gap-2 p-10 text-center">
+              <EggIcon size={22} className="opacity-60" />
+              <p className="text-sm text-muted">운영 중인 전기기사가 없습니다</p>
+            </div>
           )}
           {!loading && approved.length > 0 && (
-            <div className="rounded-admin-md border border-border bg-white">
+            <div className="overflow-hidden rounded-admin-lg border border-border bg-white shadow-surface-sm">
               <AdminDataTable
                 columns={columns}
                 rows={approved}

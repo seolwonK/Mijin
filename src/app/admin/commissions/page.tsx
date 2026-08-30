@@ -9,6 +9,7 @@ import { CardSkeletonGrid } from '@/components/Skeleton';
 import { useConfirm } from '@/components/useConfirm';
 import AdminDataTable, { type Column } from '@/components/AdminDataTable';
 import { StarIcon } from '@/components/icons';
+import { EggIcon } from '@/components/EggIcon';
 
 type ReferrerRow = {
   userId: string;
@@ -263,7 +264,7 @@ export default function AdminCommissionsPage() {
   ];
 
   return (
-    <main className="min-h-screen">
+    <main className="min-h-screen md:bg-surface">
       <div className="md:hidden">
         <PageHeader title="정산" back="/admin" width="max-w-none" />
       </div>
@@ -284,12 +285,13 @@ export default function AdminCommissionsPage() {
 
         {loading && <CardSkeletonGrid count={3} />}
         {!loading && referrers.length === 0 && (
-          <p className="rounded-admin-md border border-border bg-neutral-50 p-6 text-center text-sm text-muted">
-            적립된 수수료가 없습니다
-          </p>
+          <div className="flex flex-col items-center gap-2 p-10 text-center">
+            <EggIcon size={22} className="opacity-60" />
+            <p className="text-sm text-muted">적립된 수수료가 없습니다</p>
+          </div>
         )}
         {!loading && referrers.length > 0 && (
-          <div className="rounded-admin-md border border-border bg-white">
+          <div className="overflow-hidden rounded-admin-lg border border-border bg-white shadow-surface-sm">
             <AdminDataTable
               columns={columns}
               rows={referrers}
@@ -302,7 +304,7 @@ export default function AdminCommissionsPage() {
         )}
 
         {selected && (
-          <section className="rounded-admin-md border border-border bg-white">
+          <section className="rounded-admin-lg border border-border bg-white shadow-surface-sm">
             <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border p-3">
               <h2 className="text-sm font-bold text-fg">
                 {selected.name} 내역{' '}

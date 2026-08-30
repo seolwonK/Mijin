@@ -138,6 +138,13 @@
   --radius-admin-md: 0.375rem;
   /* 어드민 라디우스 상위 티어 신설(G0 §3) — 모달·대형 패널용, 기존 2단 체계엔 빠져 있었음. */
   --radius-admin-lg: 0.5rem;
+
+  /* ── admin 상태 틴트 — 파일럿(Stripe 뼈대 + Attio 틴트 칩) 채택분. 기존 잉크 hue에서만
+     파생(신규 hue 0 — G2 팔레트 정책 유지). 틴트는 배경 전용, 텍스트는 대응 잉크만 올린다:
+     violet-ink vs white 7.60:1 → L0.945 틴트 배경 휘도 보정 시 약 6.3:1(AA 초과),
+     cyan-ink vs white 7.21:1 → 틴트 위 약 6.0:1(AA 초과). */
+  --color-admin-violet-tint: oklch(0.945 0.030 300);
+  --color-admin-cyan-tint: oklch(0.945 0.025 262);
 }
 
 /* duration 유틸리티 — --motion-duration-*(위 @theme) 소비. v4는 --duration-* 네임스페이스로

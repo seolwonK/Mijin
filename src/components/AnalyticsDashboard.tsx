@@ -65,7 +65,7 @@ function won(value: number | null) {
 
 function Section({ title, tip, updatedAt, children, id }: { title: string; tip: string; updatedAt?: string; children: React.ReactNode; id?: string }) {
   return (
-    <section id={id} className="rounded-admin-md border border-border bg-white p-5">
+    <section id={id} className="rounded-admin-lg border border-border bg-white p-5 shadow-surface-sm">
       <div className="mb-4 flex items-baseline justify-between gap-3">
         <div className="flex items-center gap-2">
           <h2 className="text-base font-bold text-fg">{title}</h2>
@@ -103,7 +103,7 @@ function AnalyticsDashboardData({ period, setPeriod, isLg }: { period: Period; s
   const updatedAt = data?.updatedAt;
 
   return (
-    <main className="min-h-screen bg-neutral-50 text-sm text-fg">
+    <main className="min-h-screen bg-surface text-sm text-fg">
       <div className="p-4 lg:hidden">
         <DesktopOnlyNotice message="분석 대시보드는 데스크톱에서 이용할 수 있습니다." />
       </div>
@@ -123,7 +123,7 @@ function AnalyticsDashboardData({ period, setPeriod, isLg }: { period: Period; s
             </div>
           </div>
           {error && <p className="mb-4 text-sm text-red-600">{error}</p>}
-          {!data ? <p className="rounded-admin-md border border-border bg-white p-6 text-sm text-muted">분석 데이터를 불러오는 중…</p> : (
+          {!data ? <p className="rounded-admin-lg border border-border bg-white p-6 text-sm text-muted shadow-surface-sm">분석 데이터를 불러오는 중…</p> : (
             <div className="grid gap-5">
               <Section id="operational" title="운영 상태" tip="현재 스냅샷입니다. 상태별 건수와 확인요망 건수, 미완료 건의 긴급도 분포를 표시합니다." updatedAt={updatedAt}>
                 <div className="grid gap-4 xl:grid-cols-2">

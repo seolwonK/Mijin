@@ -52,7 +52,7 @@ export default function NewTechnicianPage() {
   }
 
   return (
-    <main className="min-h-screen">
+    <main className="min-h-screen md:bg-surface">
       <PageHeader title="전기기사 직접 등록" back="/admin/technicians" />
 
       <div className="mx-auto w-full max-w-2xl space-y-2 p-4">

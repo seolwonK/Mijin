@@ -34,16 +34,16 @@ export default function SelectedRequestPanel({ requestId, onAssigned }: { reques
   };
 
   if (!request) {
-    return <aside className="rounded-admin-md border border-border bg-white p-4" aria-busy="true"><div className="h-5 w-28 animate-pulse rounded bg-neutral-100" /><div className="mt-3 h-20 animate-pulse rounded bg-neutral-100" /></aside>;
+    return <aside className="rounded-admin-md bg-neutral-50 p-4" aria-busy="true"><div className="h-5 w-28 animate-pulse rounded bg-neutral-200" /><div className="mt-3 h-20 animate-pulse rounded bg-neutral-200" /></aside>;
   }
 
-  return <aside className="space-y-3 rounded-admin-md border border-border bg-white p-4">
+  return <aside className="space-y-3 rounded-admin-md bg-neutral-50 p-4">
     {confirmUI}
     <div className="flex items-center justify-between gap-2">
       <div><p className="font-mono text-xs text-muted md:text-sm">SELECTED REQUEST</p><h2 className="font-mono text-lg font-bold">#{request.lookupCode}</h2></div>
       <AdminStatusTag status={request.status} />
     </div>
-    {request.status === 'RECEIVED' ? <AdminCandidatePanel requestId={requestId} candidates={candidateData?.candidates ?? null} urgency={request.urgency} autoAssignEnabled={request.autoAssignEnabled} needsAttention={request.needsAttention} assignBaseAt={request.assignBaseAt} waitMinutes={request.waitMinutes} busy={busy} setBusy={setBusy} confirm={confirm} onAssigned={refreshAfterAssignment} layout="stack" /> : <section className="space-y-2 rounded-admin-md bg-neutral-50 p-3 text-sm md:text-base">
+    {request.status === 'RECEIVED' ? <AdminCandidatePanel requestId={requestId} candidates={candidateData?.candidates ?? null} urgency={request.urgency} autoAssignEnabled={request.autoAssignEnabled} needsAttention={request.needsAttention} assignBaseAt={request.assignBaseAt} waitMinutes={request.waitMinutes} busy={busy} setBusy={setBusy} confirm={confirm} onAssigned={refreshAfterAssignment} layout="stack" /> : <section className="space-y-2 rounded-admin-md border border-border bg-white p-3 text-sm md:text-base">
       <p><span className="text-muted">상태</span> <span className="font-semibold">{request.status}</span></p>
       <p><span className="text-muted">배정 이력</span> {request.assignments.length === 0 ? '없음' : `${request.assignments.length}건`}</p>
       {request.assignments.slice(0, 2).map((assignment) => <p key={assignment.id} className="text-xs text-muted md:text-sm">{assignment.assignee?.name ?? '—'} · {ASSIGNMENT_STATUS_LABEL[assignment.status] ?? assignment.status} · {assignment.assignedBy === 'AUTO' ? '자동배정' : '수동배정'}</p>)}

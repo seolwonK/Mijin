@@ -106,7 +106,7 @@ export default function AdminCandidatePanel({
   }
 
   return (
-    <section className="rounded-admin-md border border-admin-cyan-ink/25 bg-white p-4">
+    <section className="rounded-admin-lg border border-admin-cyan-ink/25 bg-white p-4 shadow-surface-sm">
       <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
         <h2 className="font-semibold text-admin-cyan-ink">배정 추천 순위 (업체·전기기사)</h2>
         <AutoAssignCountdown {...{ autoAssignEnabled, needsAttention, assignBaseAt, waitMinutes }} />

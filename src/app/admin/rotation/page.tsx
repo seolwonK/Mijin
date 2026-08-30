@@ -133,7 +133,7 @@ export default function AdminRotationPage() {
   ];
 
   return (
-    <main className="min-h-screen">
+    <main className="min-h-screen md:bg-surface">
       {/* 모바일 — AdminShell 자체가 데스크톱(md+) 전용 커맨드센터 셸이라(AdminShell.tsx:13),
           이 화면도 동일 전제를 따른다. 데이터 밀도가 높은 순번 테이블이라 축소 없이 안내만. */}
       <div className="p-6 md:hidden">
@@ -200,7 +200,7 @@ export default function AdminRotationPage() {
             </p>
           ) : (
             <>
-              <div className="overflow-hidden rounded-admin-md border border-border bg-white">
+              <div className="overflow-hidden rounded-admin-lg border border-border bg-white shadow-surface-sm">
                 <AdminMetricStrip
                   metrics={[
                     { label: '총 후보 수', value: candidates.length },
@@ -210,11 +210,12 @@ export default function AdminRotationPage() {
                 />
               </div>
               {rankedRows.length === 0 ? (
-                <p className="rounded-admin-md border border-border bg-neutral-50 p-6 text-center text-sm text-muted">
-                  해당 지역을 담당하는 배정 대상이 없습니다
-                </p>
+                <div className="flex flex-col items-center gap-2 p-10 text-center">
+                  <EggIcon size={22} className="opacity-60" />
+                  <p className="text-sm text-muted">해당 지역을 담당하는 배정 대상이 없습니다</p>
+                </div>
               ) : (
-                <div className="overflow-hidden rounded-admin-md border border-border bg-white">
+                <div className="overflow-hidden rounded-admin-lg border border-border bg-white shadow-surface-sm">
                   <AdminDataTable
                     columns={columns}
                     rows={rankedRows}

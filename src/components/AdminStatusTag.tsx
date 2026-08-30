@@ -1,23 +1,24 @@
-// "관제탑"(B) 상태/긴급도 표시 — 라이트 관리자 화면용 dot+라벨 조합.
+// "관제탑"(B) 상태/긴급도 표시 — 라이트 관리자 화면용 틴트 칩.
 // StatusPill.tsx("결", 파스텔 라이트 배경칩)와는 별개 — 관리자 화면 전용 정밀 톤.
-// 라이트 단일화: 과거 다크 셸 배경 토큰군은 삭제됨 — dot은 유지 잉크 토큰 + 표준 팔레트로
-// 매핑한다(흰 배경 대비 확보, 색 의미 불변).
-const STATUS: Record<string, { label: string; dot: string; strike?: boolean }> = {
-  RECEIVED: { label: '배정대기', dot: 'bg-neutral-400' },
-  ASSIGNED: { label: '배정됨', dot: 'bg-slate-500' },
-  // ACCEPTED는 상태 전용 admin-violet-ink(hue 300)로 브랜드 블루와 분리한다.
-  ACCEPTED: { label: '수락됨', dot: 'bg-admin-violet-ink' },
-  DISPATCHED: { label: '출동중', dot: 'bg-amber-500' },
-  COMPLETED: { label: '완료', dot: 'bg-emerald-500' },
-  CANCELED: { label: '취소', dot: 'bg-neutral-400', strike: true },
+// 파일럿 리스타일: dot+라벨 → 저채도 틴트 배경 칩(Attio 메셀러리). 색 의미는 dot 시절과
+// 동일 유지(ACCEPTED=violet, DISPATCHED=amber, COMPLETED=emerald), 틴트는 배경 전용이고
+// 텍스트는 흰 배경 대비가 검증된 잉크/–700 계열만 올린다(globals.css 틴트 토큰 주석 참조).
+const STATUS: Record<string, { label: string; chip: string; strike?: boolean }> = {
+  RECEIVED: { label: '배정대기', chip: 'bg-neutral-100 text-neutral-600' },
+  ASSIGNED: { label: '배정됨', chip: 'bg-slate-50 text-slate-600' },
+  // ACCEPTED는 상태 전용 admin-violet(hue 300) 틴트로 브랜드 블루와 분리한다.
+  ACCEPTED: { label: '수락됨', chip: 'bg-admin-violet-tint text-admin-violet-ink' },
+  DISPATCHED: { label: '출동중', chip: 'bg-amber-50 text-amber-700' },
+  COMPLETED: { label: '완료', chip: 'bg-emerald-50 text-emerald-700' },
+  CANCELED: { label: '취소', chip: 'bg-neutral-100 text-neutral-600', strike: true },
 };
 
 export function AdminStatusTag({ status }: { status: string }) {
-  const s = STATUS[status] ?? { label: status, dot: 'bg-neutral-400' };
-  const textColor = s.strike ? 'text-muted' : 'text-fg';
+  const s = STATUS[status] ?? { label: status, chip: 'bg-neutral-100 text-neutral-600' };
   return (
-    <span className={`inline-flex items-center gap-2 text-sm font-medium ${textColor} ${s.strike ? 'line-through' : ''}`}>
-      <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${s.dot}`} />
+    <span
+      className={`inline-block rounded-admin-sm px-2 py-0.5 text-xs font-bold ${s.chip} ${s.strike ? 'line-through' : ''}`}
+    >
       {s.label}
     </span>
   );

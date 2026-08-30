@@ -108,7 +108,8 @@ export default function AdminDashboardPage() {
     : byTab;
 
   return (
-    <main className="min-h-screen">
+    // 데스크톱은 Stripe 뼈대(surface 배경 + 흰 패널)를 따른다 — 모바일 카드 UI는 기존 유지.
+    <main className="min-h-screen md:bg-surface">
       {/* ── 모바일(md 미만) — 기존 카드 그리드 UI 그대로 보존 ── */}
       <div className="md:hidden">
         <div className="sticky top-0 z-20 bg-surface/85 backdrop-blur">

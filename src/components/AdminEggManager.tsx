@@ -73,7 +73,7 @@ export default function AdminEggManager({
   }
 
   return (
-    <section className="rounded-admin-md border border-border bg-white p-4">
+    <section className="rounded-admin-lg border border-border bg-white p-4 shadow-surface-sm">
       <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
         <h2 className="font-semibold text-admin-cyan-ink">알 크레딧</h2>
         <p className="inline-flex items-center gap-1.5 font-mono text-sm">

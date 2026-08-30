@@ -111,11 +111,11 @@ export default function AdminDataTable<T, K extends string>({
                       }
                     : undefined
                 }
-                className={`border-b border-border text-fg ${
+                className={`border-b border-border text-fg transition-colors duration-brand-fast ease-portal ${
                   onRowClick
                     ? 'cursor-pointer focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-admin-cyan-ink'
                     : ''
-                } ${selected ? 'bg-admin-cyan-ink/10' : 'hover:bg-neutral-50'} ${rowClassName?.(row) ?? ''}`}
+                } ${selected ? 'bg-admin-cyan-tint' : 'hover:bg-neutral-50'} ${rowClassName?.(row) ?? ''}`}
               >
                 {columns.map((col) => (
                   <td
