@@ -4,7 +4,7 @@ import { Prisma } from '@prisma/client';
 import { z } from 'zod';
 import { prisma } from '@/lib/db';
 import { requireSession } from '@/lib/auth';
-import { geocode } from '@/lib/geo/kakao';
+import { geocode } from '@/lib/geo';
 import { isValidBizRegNo, normalizeBizRegNo } from '@/lib/bizRegNo';
 
 const createSchema = z.object({

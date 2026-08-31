@@ -1,5 +1,14 @@
 @import "tailwindcss";
 
+/* ── 라이트 전용 선언 ──
+   이 서비스는 라이트 팔레트 단일 설계다. 선언이 없으면 Android Chrome 자동 다크
+   모드·삼성 인터넷 다크 모드가 페이지를 강제 반전시켜, 흰 서명 캔버스가 어두워지고
+   짙은 서명 획(#111827)이 파묻히는 등 대비가 깨질 수 있다. `only light` 는 UA 강제
+   다크 변환의 표준 옵트아웃이다(root layout 의 viewport.colorScheme 과 쌍). */
+:root {
+  color-scheme: only light;
+}
+
 /* ── 디자인 토큰 (Tailwind v4 @theme) ──
    "전기아저씨" 브랜드 파운데이션(redesign/ajeossi): 화이트 베이스는 유지하되 브랜드 앵커를
    캐릭터 작업복 실측 클러스터에서 역산출한 인디고-네이비(hue 272)로 교체했다(구 "신뢰 블루

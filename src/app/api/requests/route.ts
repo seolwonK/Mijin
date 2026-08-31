@@ -6,6 +6,22 @@ import { sendSms } from '@/lib/sms';
 import { smsRequestReceived } from '@/lib/sms/templates';
 import { transcribeVoiceNote, VOICE_PLACEHOLDER } from '@/lib/stt';
 import { collectPhotoUploads, saveRequestPhotos, type PhotoUpload } from '@/lib/photos';
+import { geocode } from '@/lib/geo';
+
+// 좌표 없이 주소만 입력된 접수의 좌표 백필 — 고객 응답을 지연시키지 않도록
+// STT 와 같은 fire-and-forget 패턴. 실패해도 접수는 그대로(거리 미확인 폴백).
+async function backfillRequestCoords(requestId: string, address: string) {
+  try {
+    const geo = await geocode(address);
+    if (!geo) return;
+    await prisma.serviceRequest.update({
+      where: { id: requestId },
+      data: { lat: geo.lat, lng: geo.lng },
+    });
+  } catch {
+    // 백필 실패는 무시 — 관리자 화면에서 좌표 수동 보정 가능
+  }
+}
 
 // 인메모리 레이트리밋: IP당 10분에 10회 (identity/verify·tech/signup 등과 동형).
 // 이 라우트는 접수 1건마다 sendSms 를 await 로 실발송하므로(아래 POST 말미),
@@ -212,6 +228,11 @@ export async function POST(req: NextRequest) {
   // 서버 STT (STT_PROVIDER 설정 시) — 고객 응답을 지연시키지 않도록 대기하지 않음
   if (voiceBytes && voiceMime) {
     void transcribeVoiceNote(request.id, voiceBytes, voiceMime);
+  }
+
+  // 주소만 있고 좌표가 없으면 백그라운드 지오코딩 → 거리 정렬·지도 링크 활성화
+  if (request.address && request.lat == null) {
+    void backfillRequestCoords(request.id, request.address);
   }
 
   await sendSms(

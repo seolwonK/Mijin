@@ -15,6 +15,9 @@ export const viewport: Viewport = {
   // brand-50(인디고 틴트 화이트, G2 팔레트) — 전면 화이트 베이스 위에 얹히는 실제 헤더 톤과
   // 부딪히지 않으면서도, 순수 '#ffffff' 추측값 대신 확정 팔레트에서 값을 가져온다.
   themeColor: '#f2f5ff',
+  // 라이트 전용 선언 — UA 강제 다크 변환(안드로이드 자동 다크 등) 옵트아웃.
+  // globals.css 의 `:root { color-scheme: only light }` 와 쌍.
+  colorScheme: 'only light',
 };
 
 export default function RootLayout({

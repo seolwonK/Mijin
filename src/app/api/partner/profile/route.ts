@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { prisma } from '@/lib/db';
 import { requireSession } from '@/lib/auth';
 import { sanitizeRegionKeys } from '@/lib/regions';
-import { geocode } from '@/lib/geo/kakao';
+import { geocode } from '@/lib/geo';
 
 // 로그인한 업체가 자기 정보(전화·주소·서비스지역·영업상태)를 조회/수정한다.
 // 업체명·아이디·사업자번호 같은 신원 정보는 관리자만 바꿀 수 있어 여기서 제외한다.

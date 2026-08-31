@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 import { z } from 'zod';
 import { prisma } from '@/lib/db';
-import { geocode } from '@/lib/geo/kakao';
+import { geocode } from '@/lib/geo';
 import { isValidBizRegNo, normalizeBizRegNo } from '@/lib/bizRegNo';
 import { sanitizeRegionKeys } from '@/lib/regions';
 

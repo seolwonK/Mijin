@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireSession } from '@/lib/auth';
-import { geocode } from '@/lib/geo/kakao';
+import { geocode } from '@/lib/geo';
 
 // 업체 등록 폼의 [좌표 변환] 버튼용
 export async function GET(req: NextRequest) {
@@ -12,7 +12,7 @@ export async function GET(req: NextRequest) {
   if (!query) {
     return NextResponse.json({ error: '주소를 입력해 주세요' }, { status: 400 });
   }
-  const enabled = !!process.env.KAKAO_REST_API_KEY?.trim();
+  // OSM 무키 폴백이 항상 있으므로 변환 기능 자체는 상시 사용 가능
   const result = await geocode(query);
-  return NextResponse.json({ result, enabled });
+  return NextResponse.json({ result, enabled: true });
 }

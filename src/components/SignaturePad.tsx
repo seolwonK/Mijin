@@ -16,6 +16,18 @@ export default function SignaturePad({
   const hasDrawn = useRef(false);
   const [empty, setEmpty] = useState(true);
 
+  // 흰 배경을 비트맵에 직접 채운다 — 투명 PNG 로 내보내면 다크 배경(강제 다크 모드,
+  // 어두운 뷰어) 위에서 짙은 획이 보이지 않는다. 내보내는 서명 자체를 흰 종이로 만든다.
+  function paintBackground(canvas: HTMLCanvasElement) {
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    ctx.save();
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.restore();
+  }
+
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -23,6 +35,7 @@ export default function SignaturePad({
     const rect = canvas.getBoundingClientRect();
     canvas.width = rect.width * ratio;
     canvas.height = rect.height * ratio;
+    paintBackground(canvas);
     const ctx = canvas.getContext('2d');
     if (ctx) {
       ctx.scale(ratio, ratio);
@@ -68,8 +81,7 @@ export default function SignaturePad({
 
   function clear() {
     const canvas = canvasRef.current!;
-    const ctx = canvas.getContext('2d')!;
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    paintBackground(canvas); // 투명이 아니라 흰 종이로 되돌린다
     hasDrawn.current = false;
     setEmpty(true);
     onChange(null);
@@ -84,6 +96,8 @@ export default function SignaturePad({
         onPointerUp={end}
         onPointerLeave={end}
         className="h-40 w-full touch-none rounded-xl border border-border bg-white"
+        // 강제 다크 모드(안드로이드 자동 다크 등)에서도 서명면은 항상 흰 종이 + 짙은 획 유지
+        style={{ colorScheme: 'only light', backgroundColor: '#ffffff' }}
       />
       <div className="flex items-center justify-between">
         <span className="text-xs text-neutral-400">

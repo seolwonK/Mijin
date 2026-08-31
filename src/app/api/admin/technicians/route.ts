@@ -4,7 +4,7 @@ import { Prisma } from '@prisma/client';
 import { z } from 'zod';
 import { prisma } from '@/lib/db';
 import { requireSession } from '@/lib/auth';
-import { geocode } from '@/lib/geo/kakao';
+import { geocode } from '@/lib/geo';
 
 const createSchema = z.object({
   loginId: z.string().trim().min(3, '아이디는 3자 이상').max(30),

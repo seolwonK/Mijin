@@ -89,8 +89,14 @@ function SignatureMark({ dataUrl, alt }: { dataUrl: string | null; alt: string }
   if (!dataUrl) return <span>(서명)</span>;
   return (
     <span className="inline-flex items-center gap-1">
+      {/* 서명 PNG 는 흰 배경으로 저장되지만, 과거 저장분(투명 배경) 호환을 위해
+          표시면에도 흰 배경을 깐다 — 다크 표면 위에서도 획이 보이도록. */}
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={dataUrl} alt={alt} className="inline-block h-10 object-contain align-middle" />
+      <img
+        src={dataUrl}
+        alt={alt}
+        className="inline-block h-10 rounded-sm bg-white object-contain align-middle"
+      />
       <span className="text-xs text-gray-400">(서명)</span>
     </span>
   );

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 import { z } from 'zod';
 import { prisma } from '@/lib/db';
-import { geocode } from '@/lib/geo/kakao';
+import { geocode } from '@/lib/geo';
 import { sanitizeRegionKeys } from '@/lib/regions';
 import { createSessionToken, SESSION_COOKIE } from '@/lib/auth';
 

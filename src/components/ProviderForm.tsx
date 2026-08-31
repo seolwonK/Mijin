@@ -50,7 +50,7 @@ export default function ProviderForm({
       );
       const data = await res.json();
       if (!data.enabled) {
-        setGeoMsg('카카오 API 키가 없어 변환할 수 없습니다. 좌표를 직접 입력해 주세요.');
+        setGeoMsg('주소 변환 기능을 사용할 수 없습니다. 좌표를 직접 입력해 주세요.');
         return;
       }
       if (!data.result) {
