@@ -9,7 +9,7 @@ import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/db';
 import { assigneeFk, type AssigneeTarget } from '@/lib/assignee';
 
-export const MIN_CHARGE_EGGS = 3; // 최소 충전 단위 (1알 = ₩10,000)
+export const MIN_CHARGE_EGGS = 3; // 최소 충전 단위 (1알 = ₩1,000)
 
 // 센티널 — 문자열 리터럴 비교의 취약성 회피 (트랜잭션 롤백 신호)
 export const EGG_ZERO_BALANCE = 'EGG_ZERO_BALANCE' as const;

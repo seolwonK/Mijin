@@ -9,7 +9,7 @@ import { EggIcon } from '@/components/EggIcon';
 import { usePolling } from '@/components/usePolling';
 
 // 원화 표기는 "결제(충전) 폼" 한정 — 잔액·이력 등 보유 표기는 알 개수로만 한다(정책).
-const EGG_PRICE = 10_000; // 1알 = ₩10,000 (충전 결제 단가)
+const EGG_PRICE = 1_000; // 1알 = ₩1,000 (충전 결제 단가)
 const MIN_CHARGE = 3;
 
 type LedgerRow = {
