@@ -7,6 +7,7 @@ import { smsRequestReceived } from '@/lib/sms/templates';
 import { transcribeVoiceNote, VOICE_PLACEHOLDER } from '@/lib/stt';
 import { collectPhotoUploads, saveRequestPhotos, type PhotoUpload } from '@/lib/photos';
 import { geocode } from '@/lib/geo';
+import { autoAssignNewRequest } from '@/lib/autoAssign';
 
 // 좌표 없이 주소만 입력된 접수의 좌표 백필 — 고객 응답을 지연시키지 않도록
 // STT 와 같은 fire-and-forget 패턴. 실패해도 접수는 그대로(거리 미확인 폴백).
@@ -230,10 +231,15 @@ export async function POST(req: NextRequest) {
     void transcribeVoiceNote(request.id, voiceBytes, voiceMime);
   }
 
-  // 주소만 있고 좌표가 없으면 백그라운드 지오코딩 → 거리 정렬·지도 링크 활성화
-  if (request.address && request.lat == null) {
-    void backfillRequestCoords(request.id, request.address);
-  }
+  // 백그라운드 후처리(고객 응답 비대기): ① 주소만 있으면 좌표 백필 → ② 즉시 자동배정.
+  // 순서 보장: 좌표가 채워진 뒤 배정해야 추천 사슬의 거리 단계까지 정상 작동한다.
+  // 실패해도 접수는 유지되고, 워커(대기시간 경로)가 안전망으로 재시도한다.
+  void (async () => {
+    if (request.address && request.lat == null) {
+      await backfillRequestCoords(request.id, request.address);
+    }
+    await autoAssignNewRequest(request.id);
+  })();
 
   await sendSms(
     request.customerPhone,
