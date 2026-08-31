@@ -4,6 +4,7 @@ import { prisma } from '@/lib/db';
 import { requireSession } from '@/lib/auth';
 import { getCandidates } from '@/lib/matching';
 import { createAssignment } from '@/lib/assignment';
+import { notifyAdminAttention } from '@/lib/adminAlerts';
 
 const rejectSchema = z.object({
   reason: z.string().trim().max(200).nullish(),
@@ -70,5 +71,6 @@ export async function POST(
     where: { id: a.requestId, status: 'ASSIGNED' },
     data: { status: 'RECEIVED', needsAttention: true, assignBaseAt: new Date() },
   });
+  void notifyAdminAttention(a.request, '업체 거절 — 재배정 후보 없음/수동 판단 필요');
   return NextResponse.json({ ok: true, reassigned: false });
 }

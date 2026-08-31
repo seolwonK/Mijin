@@ -21,7 +21,7 @@ type RequestDetail = {
   survey: { submitted: boolean; rating: number | null } | null;
 };
 
-const ASSIGNMENT_STATUS_LABEL: Record<string, string> = { REQUESTED: '응답 대기', ACCEPTED: '수락', REJECTED: '거절', CANCELED: '취소' };
+const ASSIGNMENT_STATUS_LABEL: Record<string, string> = { REQUESTED: '응답 대기', ACCEPTED: '수락', REJECTED: '거절', CANCELED: '취소', EXPIRED: '무응답 회수' };
 
 export default function SelectedRequestPanel({ requestId, onAssigned }: { requestId: string; onAssigned: () => void | Promise<void> }) {
   const { data: request, refresh: refreshRequest } = usePolling<RequestDetail>(`/api/admin/requests/${requestId}`, 8_000);

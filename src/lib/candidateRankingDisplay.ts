@@ -27,7 +27,7 @@ export function deriveRankingBadge(
   curr: RankedCandidateLike,
   urgency: string,
 ): string | null {
-  if (prev.rejectedThisRequest !== curr.rejectedThisRequest) return '거절이력';
+  if (prev.rejectedThisRequest !== curr.rejectedThisRequest) return '거절·무응답 이력';
   if (prev.coversRegion !== curr.coversRegion) return '지역';
   if (urgency === 'CRITICAL') {
     if (prev.sameDistrict !== curr.sameDistrict) return '같은 지역 우선에서 뒤짐';

@@ -79,7 +79,7 @@ test('올바른 비밀키는 GET·POST × 두 헤더 4조합 모두 200', async 
     const res = await anon.get(ENDPOINT, { headers });
     expect(res.status(), label).toBe(200);
     // 워커가 꺼져 있으므로(autoAssign.ts:9-10) 항상 0건이다.
-    expect(await res.json(), label).toEqual({ assigned: 0 });
+    expect(await res.json(), label).toMatchObject({ assigned: 0 }); // recalled 는 무응답 회수 스윕(토글 무관) 결과라 개수 미고정
   }
   for (const [label, headers] of [
     ['POST + x-cron-secret', { 'x-cron-secret': secret }],
@@ -87,7 +87,7 @@ test('올바른 비밀키는 GET·POST × 두 헤더 4조합 모두 200', async 
   ] as Array<[string, Record<string, string>]>) {
     const res = await anon.post(ENDPOINT, { headers });
     expect(res.status(), label).toBe(200);
-    expect(await res.json(), label).toEqual({ assigned: 0 });
+    expect(await res.json(), label).toMatchObject({ assigned: 0 }); // recalled 는 무응답 회수 스윕(토글 무관) 결과라 개수 미고정
   }
 });
 
@@ -135,7 +135,7 @@ test('autoAssignEnabled=false 는 배정 가능한 접수도 배정하지 않는
 
     const res = await anon.post(ENDPOINT, { headers: { 'x-cron-secret': cronSecret() } });
     expect(res.status()).toBe(200);
-    expect(await res.json()).toEqual({ assigned: 0 });
+    expect(await res.json()).toMatchObject({ assigned: 0 }); // recalled 필드는 무응답 회수 스윕 결과
 
     // 응답만 믿지 않는다 — 게이트가 뚫렸다면 Assignment 행이 생겼을 것이다.
     expect(await prisma.assignment.count({ where: { requestId: bait.id } })).toBe(0);

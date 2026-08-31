@@ -96,8 +96,10 @@ export async function getCandidates(
       },
       include: { user: { select: { name: true, phone: true } } },
     }),
+    // 거절 + 무응답 자동 회수(EXPIRED) 모두 최후순위 티어 — 같은 접수에서
+    // 응답하지 않은 대상에게 즉시 재배정되는 루프를 막는다.
     prisma.assignment.findMany({
-      where: { requestId: request.id, status: 'REJECTED' },
+      where: { requestId: request.id, status: { in: ['REJECTED', 'EXPIRED'] } },
       select: { providerId: true, technicianId: true },
     }),
   ]);

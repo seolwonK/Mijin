@@ -30,6 +30,16 @@ export function smsAssignmentRecalled(): string {
   return '[전기출동] 안내드린 배정이 회수되었습니다. 출동하지 않으셔도 됩니다.';
 }
 
+// 관리자 확인요망 알림 — 자동배정이 처리하지 못한 접수를 능동 통지한다 (단문 유지).
+// 사유: 후보 없음 / 지역 판별 불가 / 무응답 회수 / 배정 거절.
+export function smsAdminAttention(p: {
+  lookupCode: string;
+  urgencyLabel: string;
+  reason: string;
+}): string {
+  return `[전기출동/관리] 접수 ${p.lookupCode}(${p.urgencyLabel}) 확인요망 — ${p.reason}. 관제탑에서 조치해 주세요.`;
+}
+
 // 업체 배정 알림 — 고객 연락처·주소 포함 (장문이라 LMS 단가 적용 가능)
 export function smsProviderAssigned(p: {
   customerName: string;

@@ -60,6 +60,7 @@ const ASSIGNMENT_STATUS_LABEL: Record<string, string> = {
   ACCEPTED: '수락',
   REJECTED: '거절',
   CANCELED: '취소',
+  EXPIRED: '무응답 회수',
 };
 
 // "관제탑"(B) B-라이트 — 거리순 추천/배정/회수/취소 로직은 완전히 동일, 표현만 재도색.

@@ -60,6 +60,7 @@ enum AssignmentStatus {
   ACCEPTED
   REJECTED
   CANCELED
+  EXPIRED // 무응답 자동 회수 — 응답 제한시간 초과로 워커가 회수한 배정
 }
 
 enum AssignedBy {
