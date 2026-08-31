@@ -96,10 +96,12 @@ export async function getCandidates(
       },
       include: { user: { select: { name: true, phone: true } } },
     }),
-    // 거절 + 무응답 자동 회수(EXPIRED) 모두 최후순위 티어 — 같은 접수에서
-    // 응답하지 않은 대상에게 즉시 재배정되는 루프를 막는다.
+    // 거절(REJECTED) + 무응답 자동 회수(EXPIRED) + 관리자 수동 회수(CANCELED) 모두
+    // 이 접수의 최후순위 티어 — 응답하지 않았거나 관리자가 걷어간 대상에게 자동배정이
+    // 곧바로 같은 건을 다시 주는 루프를 막는다. 특정 대상에게 다시 주고 싶으면
+    // 관리자 수동 배정으로는 언제든 가능하다.
     prisma.assignment.findMany({
-      where: { requestId: request.id, status: { in: ['REJECTED', 'EXPIRED'] } },
+      where: { requestId: request.id, status: { in: ['REJECTED', 'EXPIRED', 'CANCELED'] } },
       select: { providerId: true, technicianId: true },
     }),
   ]);

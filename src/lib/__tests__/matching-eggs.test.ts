@@ -121,7 +121,7 @@ describe('(g) deriveRankingBadge parity — 배지가 comparator의 첫 차이 �
       curr: Partial<Candidate>;
       label: string;
     }> = [
-      { urgency: 'NORMAL', prev: {}, curr: { rejectedThisRequest: true }, label: '거절·무응답 이력' },
+      { urgency: 'NORMAL', prev: {}, curr: { rejectedThisRequest: true }, label: '거절·무응답·회수 이력' },
       { urgency: 'NORMAL', prev: {}, curr: { coversRegion: false }, label: '지역' },
       { urgency: 'NORMAL', prev: { eggBalance: 3 }, curr: { eggBalance: 1 }, label: '알 보유량에서 뒤짐' },
       { urgency: 'NORMAL', prev: { assigned30d: 1 }, curr: { assigned30d: 5 }, label: '30일 배정에서 뒤짐' },
