@@ -10,6 +10,13 @@ import { getIdentityPublicConfig, identityProviderName } from '@/lib/identity/co
 afterEach(() => vi.unstubAllEnvs());
 
 describe('identityProviderName', () => {
+  it('IDENTITY_PROVIDER=kcp 이면 kcp (운영 기본 — 포트원 없는 KCP 직접 연동)', () => {
+    vi.stubEnv('IDENTITY_PROVIDER', 'kcp');
+    vi.stubEnv('NODE_ENV', 'production');
+    vi.stubEnv('ALLOW_MOCK_IDENTITY', '');
+    expect(identityProviderName()).toBe('kcp');
+  });
+
   it('IDENTITY_PROVIDER=portone 이면 portone', () => {
     vi.stubEnv('IDENTITY_PROVIDER', 'portone');
     expect(identityProviderName()).toBe('portone');
@@ -44,6 +51,16 @@ describe('identityProviderName', () => {
 });
 
 describe('getIdentityPublicConfig', () => {
+  it('kcp 는 provider 이름만 내려준다 — 사이트코드·ENC_KEY 는 서버 비밀이라 절대 실리지 않는다', () => {
+    vi.stubEnv('IDENTITY_PROVIDER', 'kcp');
+    vi.stubEnv('KCP_SITE_CD', 'PO046');
+    vi.stubEnv('KCP_ENC_KEY', 'super-secret-enc-key');
+    const config = getIdentityPublicConfig();
+    expect(config).toEqual({ provider: 'kcp' });
+    expect(JSON.stringify(config)).not.toContain('PO046');
+    expect(JSON.stringify(config)).not.toContain('super-secret-enc-key');
+  });
+
   it('portone 설정을 storeId·channelKey 만 담아 내려준다 (API Secret 은 절대 포함하지 않는다)', () => {
     vi.stubEnv('IDENTITY_PROVIDER', 'portone');
     vi.stubEnv('PORTONE_STORE_ID', 'store-abc');

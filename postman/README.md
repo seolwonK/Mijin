@@ -7,7 +7,7 @@
 |---|---|
 | `mijin-identity-security.postman_collection.json` | 컬렉션 본체 (요청 16개 · 단언 124개) |
 | `mijin-local.postman_environment.json` | 로컬(`npm run dev`, provider=mock) |
-| `mijin-production.postman_environment.json` | 운영(전기아저씨.com, provider=portone) |
+| `mijin-production.postman_environment.json` | 운영(전기아저씨.com, provider=kcp — NHN KCP 직접 연동) |
 | `tls-check.sh` | TLS 프로토콜 버전·인증서 — Postman 이 못 하는 부분 |
 
 ## 실행
@@ -55,7 +55,7 @@ CI 에 넣을 때는 `--reporters cli,junit --reporter-junit-export report.xml` 
 유일한 예외가 `04 · 데이터 재사용` 의 단회성 증명이고, 두 조건을 **모두** 만족할 때만 실행된다.
 
 1. 환경변수 `allowAccountCreation=true`
-2. `provider=mock` — 운영은 portone 이라 켜도 자동으로 건너뛴다
+2. `provider=mock` — 운영은 kcp 라 켜도 자동으로 건너뛴다
 
 ```bash
 npm run test:security -- --env-var allowAccountCreation=true

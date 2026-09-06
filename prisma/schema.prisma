@@ -423,3 +423,28 @@ model IdentityVerification {
   @@index([phone])
   @@index([ciHash])
 }
+
+// NHN KCP 본인확인(V2) 직접 연동의 거래 세션 — 포트원 없이 앱이 KCP 를 직접 호출한다.
+// 흐름: 거래등록(certDataReg) → 인증창 → KCP 가 Ret_URL 로 결과 통지 → 결과조회(getCertData)·복호화.
+// 이 행은 "거래등록 1건"이고, 인증이 끝나 우리 토큰(IdentityVerification)으로 바뀌면 소비된다.
+// KCP 가 콜백으로 돌려주는 reg_cert_key 를 DB 의 값과 대조해야 한다(가이드 3-3) — 그래서 세션이 아니라 DB 다.
+model KcpCertSession {
+  // 우리가 만든 거래 식별자(KCP 의 ordr_idxx, 영숫자 50자 이하). 브라우저에는 이 값만 나간다.
+  ordrIdxx   String    @id
+  // KCP 거래등록 응답의 거래등록키 — 인증창 호출·결과조회에 쓰이며 외부에 유출되면 안 된다.
+  regCertKey String    @unique
+  // POPUP(PC 팝업) | PAGE(모바일 페이지 전환) — Ret_URL 응답 방식을 정한다.
+  mode       String
+  // 인증 후 돌아갈 우리 앱 경로("/tech/signup"). 시작 시 검증해 저장한 값만 쓴다(오픈 리다이렉트 차단).
+  returnPath String
+  // REGISTERED → AUTHED | FAILED → CONSUMED
+  status     String
+  resCd      String?
+  resMsg     String?
+  createdAt  DateTime  @default(now())
+  expiresAt  DateTime  // 이 시각까지 인증창·결과조회를 끝내야 한다
+  authedAt   DateTime?
+  consumedAt DateTime?
+
+  @@index([expiresAt])
+}

@@ -2,12 +2,14 @@ import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/db';
 import { mockProvider } from './mock';
 import { portoneProvider } from './portone';
+import { kcpProvider } from './kcp';
 import { identityProviderName, IDENTITY_TTL_MS } from './config';
 import { hashIdentityKey } from './hash';
 
 // 휴대폰 본인인증(PASS 등 통신사 본인확인) provider 추상화.
 // SMS(src/lib/sms) 와 동일하게 IDENTITY_PROVIDER 환경변수로 실서비스/개발용을 전환한다.
-//   IDENTITY_PROVIDER=portone → 실제 PortOne(구 아임포트) 본인인증
+//   IDENTITY_PROVIDER=kcp     → NHN KCP 본인확인(V2) 직접 연동 (운영 기본, ./kcp.ts)
+//   IDENTITY_PROVIDER=portone → PortOne(구 아임포트) 경유 본인인증 (./portone.ts)
 //   그 외(미설정 포함)        → mock (개발용, 입력값을 그대로 신뢰)
 // 브라우저 쪽 provider 도 같은 값을 /api/identity/config 로 받아 쓴다(config.ts).
 
@@ -23,6 +25,7 @@ export interface IdentityResult {
 }
 
 // 클라이언트(브라우저)가 인증 완료 후 서버로 넘기는 값.
+//  - kcp: identityVerificationId = 거래등록 때 우리가 만든 ordr_idxx (KCP 콜백이 성공으로 끝난 것)
 //  - portone: identityVerificationId (팝업 인증 결과 id)
 //  - mock: name/phone (개발용으로 입력값을 그대로 인증 처리)
 export interface IdentityVerifyInput {
@@ -37,7 +40,14 @@ export interface IdentityProvider {
 }
 
 function getProvider(): IdentityProvider {
-  return identityProviderName() === 'portone' ? portoneProvider : mockProvider;
+  switch (identityProviderName()) {
+    case 'kcp':
+      return kcpProvider;
+    case 'portone':
+      return portoneProvider;
+    default:
+      return mockProvider;
+  }
 }
 
 // 인증 결과를 검증·저장하고, 가입 요청에 동봉할 단기(10분) verificationId 를 발급한다.
