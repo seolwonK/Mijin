@@ -431,8 +431,12 @@ model IdentityVerification {
 model KcpCertSession {
   // 우리가 만든 거래 식별자(KCP 의 ordr_idxx, 영숫자 50자 이하). 브라우저에는 이 값만 나간다.
   ordrIdxx   String    @id
-  // KCP 거래등록 응답의 거래등록키 — 인증창 호출·결과조회에 쓰이며 외부에 유출되면 안 된다.
+  // KCP 거래등록 응답의 거래등록키. 인증창 호출(form POST)에 필요해 브라우저에 내려간다 — 서버 비밀이 아니며,
+  // 이 값만으로는 결과조회를 할 수 없다(결과조회는 site_cd 헤더 + ordr_idxx 짝, 그리고 bindHash 쿠키까지 요구).
   regCertKey String    @unique
+  // 거래를 시작한 브라우저에만 내려준 httpOnly 쿠키 값의 SHA-256. 결과조회 시 같은 쿠키를 요구해,
+  // 남이 만든 거래(ordr_idxx·reg_cert_key 는 공개값)를 피해자에게 인증시키고 가로채는 경로를 닫는다.
+  bindHash   String?
   // POPUP(PC 팝업) | PAGE(모바일 페이지 전환) — Ret_URL 응답 방식을 정한다.
   mode       String
   // 인증 후 돌아갈 우리 앱 경로("/tech/signup"). 시작 시 검증해 저장한 값만 쓴다(오픈 리다이렉트 차단).

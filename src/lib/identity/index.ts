@@ -3,6 +3,7 @@ import { prisma } from '@/lib/db';
 import { mockProvider } from './mock';
 import { portoneProvider } from './portone';
 import { kcpProvider } from './kcp';
+export { KCP_BIND_COOKIE } from './kcp/session';
 import { identityProviderName, IDENTITY_TTL_MS } from './config';
 import { hashIdentityKey } from './hash';
 
@@ -32,6 +33,8 @@ export interface IdentityVerifyInput {
   identityVerificationId?: string;
   name?: string;
   phone?: string;
+  /** kcp: 거래 시작 시 내려준 httpOnly 쿠키 값. 라우트가 쿠키에서 읽어 넣는다(본문으로는 받지 않는다). */
+  bindToken?: string;
 }
 
 export interface IdentityProvider {

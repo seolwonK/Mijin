@@ -29,6 +29,19 @@ export type KcpCertData = {
 
 type KcpRawResponse = Record<string, unknown> & { res_cd?: string; res_msg?: string };
 
+/**
+ * KCP 가 돌려준 코드·문구, 또는 KCP 응답 형식 오류. 비밀을 담지 않으므로 라우트가 진단용으로
+ * 브라우저에 내려보낼 수 있는 유일한 오류 종류다(DB·설정 오류 등 다른 예외의 message 는 내보내지 않는다).
+ */
+export class KcpApiError extends Error {
+  readonly code: string;
+  constructor(code: string, message: string) {
+    super(message);
+    this.name = 'KcpApiError';
+    this.code = code;
+  }
+}
+
 const TIMEOUT_MS = 15_000;
 
 async function postJson(url: string, headers: Record<string, string>, body: string): Promise<KcpRawResponse> {
@@ -41,12 +54,12 @@ async function postJson(url: string, headers: Record<string, string>, body: stri
   });
   const text = await res.text();
   if (!res.ok) {
-    throw new Error(`KCP ${res.status}: ${text.slice(0, 200)}`);
+    throw new KcpApiError(`HTTP${res.status}`, `KCP ${res.status}: ${text.slice(0, 200)}`);
   }
   try {
     return JSON.parse(text) as KcpRawResponse;
   } catch {
-    throw new Error(`KCP 응답이 JSON 이 아닙니다: ${text.slice(0, 200)}`);
+    throw new KcpApiError('BAD_JSON', `KCP 응답이 JSON 이 아닙니다: ${text.slice(0, 200)}`);
   }
 }
 
@@ -71,12 +84,15 @@ export async function registerCert(
     enc_data,
   );
   if (data.res_cd !== '0000') {
-    throw new Error(`KCP 거래등록 실패 [${data.res_cd ?? '?'}] ${data.res_msg ?? ''}`.trim());
+    throw new KcpApiError(
+      String(data.res_cd ?? '?'),
+      `KCP 거래등록 실패 [${data.res_cd ?? '?'}] ${data.res_msg ?? ''}`.trim(),
+    );
   }
   const regCertKey = typeof data.reg_cert_key === 'string' ? data.reg_cert_key : '';
   const callUrl = typeof data.call_url === 'string' ? data.call_url : '';
   if (!regCertKey || !/^https:\/\//.test(callUrl)) {
-    throw new Error('KCP 거래등록 응답에 reg_cert_key 또는 call_url 이 없습니다');
+    throw new KcpApiError('BAD_REG', 'KCP 거래등록 응답에 reg_cert_key 또는 call_url 이 없습니다');
   }
   return { regCertKey, callUrl };
 }
@@ -92,16 +108,22 @@ export async function queryCertResult(
     JSON.stringify({ reg_cert_key: input.regCertKey, ordr_idxx: input.ordrIdxx }),
   );
   if (data.res_cd !== '0000') {
-    throw new Error(`KCP 결과조회 실패 [${data.res_cd ?? '?'}] ${data.res_msg ?? ''}`.trim());
+    throw new KcpApiError(
+      String(data.res_cd ?? '?'),
+      `KCP 결과조회 실패 [${data.res_cd ?? '?'}] ${data.res_msg ?? ''}`.trim(),
+    );
   }
   const encCertData = typeof data.enc_cert_data === 'string' ? data.enc_cert_data : '';
   const rv = typeof data.rv === 'string' ? data.rv : '';
   if (!encCertData || !rv) {
-    throw new Error('KCP 결과조회 응답에 enc_cert_data 또는 rv 가 없습니다');
+    throw new KcpApiError('BAD_QUERY', 'KCP 결과조회 응답에 enc_cert_data 또는 rv 가 없습니다');
   }
   const cert = decryptJson<KcpCertData>(encCertData, rv, config.encKey, config.siteCd);
   if (cert.res_cd !== '0000') {
-    throw new Error(`KCP 본인확인 실패 [${cert.res_cd ?? '?'}] ${cert.res_msg ?? ''}`.trim());
+    throw new KcpApiError(
+      String(cert.res_cd ?? '?'),
+      `KCP 본인확인 실패 [${cert.res_cd ?? '?'}] ${cert.res_msg ?? ''}`.trim(),
+    );
   }
   return cert;
 }

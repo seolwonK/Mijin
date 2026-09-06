@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
-import { confirmIdentity } from '@/lib/identity';
+import { confirmIdentity, KCP_BIND_COOKIE } from '@/lib/identity';
 
 // 휴대폰 본인인증 결과를 서버에서 재검증하고, 가입에 쓸 단기 verificationId 를 발급한다.
 // 클라이언트는 여기서 받은 verificationId 를 가입 요청(/api/tech/signup)에 동봉한다.
@@ -49,7 +49,7 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const { verificationId, name, phone } = await confirmIdentity(parsed.data);
+    const { verificationId, name, phone } = await confirmIdentity({ ...parsed.data, bindToken: req.cookies.get(KCP_BIND_COOKIE)?.value });
     return NextResponse.json({ ok: true, verificationId, name, phone });
   } catch (e) {
     const message = e instanceof Error ? e.message : '본인인증에 실패했습니다';

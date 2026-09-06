@@ -1,7 +1,9 @@
 import type { IdentityProvider, IdentityResult } from './index';
 import { prisma } from '@/lib/db';
+import { IDENTITY_TTL_MS } from './config';
 import { getKcpConfig } from './kcp/config';
 import { queryCertResult, type KcpCertData } from './kcp/api';
+import { hashBindSecret } from './kcp/session';
 
 // NHN KCP 본인확인(V2) 직접 연동 provider — 포트원을 거치지 않는다.
 //
@@ -11,13 +13,17 @@ import { queryCertResult, type KcpCertData } from './kcp/api';
 // 거래 식별자 하나뿐이고 신원은 전부 KCP 응답에서 온다(파라미터 변조 방어는 portone 과 같은 원칙).
 //
 // 재사용 방지: 같은 ordr_idxx 로 /api/identity/verify 를 반복해도 replayKey("kcp:<reg_cert_key>")
-// 유니크 제약(index.ts)이 두 번째부터 거부한다. 세션의 consumedAt 은 그 앞의 빠른 차단이다.
+// 유니크 제약(index.ts)이 두 번째부터 거부한다. 세션의 consumedAt CAS 는 그 앞의 빠른 차단이다.
+//
+// 브라우저 바인딩: 거래를 시작한 브라우저가 받은 httpOnly 쿠키(bindToken)의 해시가 세션의 bindHash 와
+// 같아야 한다. ordr_idxx 는 공개값이라 이 검사가 없으면 남이 시작한 거래를 피해자가 인증한 뒤 공격자가
+// 토큰을 받아 갈 수 있다(session.ts KCP_BIND_COOKIE 주석).
 
 const ORDR_IDXX_RE = /^[A-Za-z0-9]{1,50}$/;
 
 export const kcpProvider: IdentityProvider = {
   name: 'kcp',
-  async verify({ identityVerificationId }) {
+  async verify({ identityVerificationId, bindToken }) {
     const ordrIdxx = (identityVerificationId ?? '').trim();
     if (!ordrIdxx) {
       throw new Error('본인인증 정보(identityVerificationId)가 없습니다');
@@ -40,17 +46,24 @@ export const kcpProvider: IdentityProvider = {
     if (session.status !== 'AUTHED') {
       throw new Error('본인인증이 완료되지 않았습니다. 다시 시도해 주세요.');
     }
+    // portone.ts 의 verifiedAt 신선도와 같은 기준 — 인증창이 끝난 지 10분이 넘은 거래는 받지 않는다.
+    if (!session.authedAt || Date.now() - session.authedAt.getTime() > IDENTITY_TTL_MS) {
+      throw new Error('본인인증 후 시간이 너무 지났습니다. 다시 인증해 주세요.');
+    }
+    if (!session.bindHash || !bindToken || hashBindSecret(bindToken) !== session.bindHash) {
+      throw new Error('본인인증을 시작한 브라우저에서만 완료할 수 있습니다. 다시 인증해 주세요.');
+    }
+
+    // 결과조회는 거래당 한 번 — 동시 요청은 여기서 하나만 통과한다(replayKey 는 그 뒤의 최종 방어선).
+    const consumed = await prisma.kcpCertSession.updateMany({
+      where: { ordrIdxx, consumedAt: null },
+      data: { consumedAt: new Date(), status: 'CONSUMED' },
+    });
+    if (consumed.count === 0) {
+      throw new Error('이미 사용된 본인인증입니다. 다시 인증해 주세요.');
+    }
 
     const cert = await queryCertResult(config, { regCertKey: session.regCertKey, ordrIdxx });
-
-    // 결과를 받았으면 이 거래는 끝이다. 실패해도 replayKey 가 최종 방어선이므로 가입 흐름을 막지 않는다.
-    await prisma.kcpCertSession
-      .updateMany({
-        where: { ordrIdxx, consumedAt: null },
-        data: { consumedAt: new Date(), status: 'CONSUMED' },
-      })
-      .catch(() => undefined);
-
     return toIdentityResult(cert, session.regCertKey);
   },
 };

@@ -1361,13 +1361,13 @@ export const GATES: Record<string, HandlerGates> = {
   'POST /api/identity/kcp/start': {
     file: 'src/app/api/identity/kcp/start/route.ts',
     note:
-      'KCP 본인확인 거래등록. E2E 서버는 IDENTITY_PROVIDER=mock 이라 :59 에서 끝난다 — ' +
-      'kcp 환경에서만 :72 이하로 내려가며, KCP 거래등록 실패는 502(4xx 아님)다.',
+      'KCP 본인확인 거래등록. E2E 서버는 IDENTITY_PROVIDER=mock 이라 :61 에서 끝난다 — ' +
+      'kcp 환경에서만 :74 이하로 내려가며, KCP 거래등록 실패는 502(4xx 아님)다.',
     gates: [
       {
         order: 1,
         status: 429,
-        line: 52,
+        line: 54,
         kind: 'rate-limit',
         message: '요청이 너무 많습니다. 잠시 후 다시 시도해 주세요.',
         reach: '같은 IP 로 10분 내 11회째',
@@ -1375,7 +1375,7 @@ export const GATES: Record<string, HandlerGates> = {
       {
         order: 2,
         status: 400,
-        line: 59,
+        line: 61,
         kind: 'state',
         message: 'KCP 본인인증이 설정되지 않았습니다 (IDENTITY_PROVIDER=kcp 가 아닙니다)',
         reach: 'IDENTITY_PROVIDER 가 kcp 가 아닌 서버(E2E mock 포함) — 본문과 무관',
@@ -1383,13 +1383,13 @@ export const GATES: Record<string, HandlerGates> = {
       {
         order: 3,
         status: 400,
-        line: 72,
+        line: 74,
         kind: 'schema',
         message: '입력값을 확인해 주세요',
         reach:
           'kcp 환경에서 bodySchema 위반 — mode 가 POPUP/PAGE 밖이거나 returnPath 가 200자 초과. ' +
-          'JSON 이 아닌 본문은 400 이 아니라 기본값으로 통과한다(:65-69)',
-        trap: 'mock 환경(E2E)에서는 :59 가 먼저 걸려 도달 불가',
+          'JSON 이 아닌 본문은 400 이 아니라 기본값으로 통과한다(:67-71)',
+        trap: 'mock 환경(E2E)에서는 :61 이 먼저 걸려 도달 불가',
       },
     ],
   },

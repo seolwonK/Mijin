@@ -17,12 +17,16 @@ const REG_KEY = '1234567890123456';
 type Session = {
   ordrIdxx: string;
   regCertKey: string;
+  bindHash: string | null;
   mode: string;
   returnPath: string;
   status: string;
   expiresAt: Date;
+  authedAt: Date | null;
   consumedAt: Date | null;
 };
+
+const BIND = 'browser-bind-secret';
 
 const db = vi.hoisted(() => ({
   sessions: new Map<string, Session>(),
@@ -36,8 +40,11 @@ vi.mock('@/lib/db', () => ({
         if (where.ordrIdxx) return db.sessions.get(where.ordrIdxx) ?? null;
         return [...db.sessions.values()].find((s) => s.regCertKey === where.regCertKey) ?? null;
       }),
-      updateMany: vi.fn(async (args: unknown) => {
+      updateMany: vi.fn(async (args: { where: { ordrIdxx: string; consumedAt: null } }) => {
         db.updates.push(args);
+        const s = db.sessions.get(args.where.ordrIdxx);
+        if (!s || s.consumedAt) return { count: 0 };
+        s.consumedAt = new Date();
         return { count: 1 };
       }),
     },
@@ -45,19 +52,25 @@ vi.mock('@/lib/db', () => ({
 }));
 
 import { kcpProvider, toIdentityResult } from '@/lib/identity/kcp';
+import { hashBindSecret } from '@/lib/identity/kcp/session';
 
 function session(over: Partial<Session> = {}): Session {
   return {
     ordrIdxx: ORDR,
     regCertKey: REG_KEY,
+    bindHash: hashBindSecret(BIND),
     mode: 'POPUP',
     returnPath: '/tech/signup',
     status: 'AUTHED',
     expiresAt: new Date(Date.now() + 5 * 60_000),
+    authedAt: new Date(),
     consumedAt: null,
     ...over,
   };
 }
+
+/** 거래를 시작한 브라우저가 보내는 형태(쿠키 바인딩 포함). */
+const input = (over: Record<string, string> = {}) => ({ identityVerificationId: ORDR, bindToken: BIND, ...over });
 
 function certBody(over: Record<string, string> = {}) {
   return {
@@ -108,7 +121,7 @@ describe('kcpProvider.verify', () => {
   it('AUTHED 세션이면 KCP 결과조회를 복호화해 정규화된 신원을 돌려준다', async () => {
     db.sessions.set(ORDR, session());
     const fetchMock = stubQuery(certBody());
-    const result = await kcpProvider.verify({ identityVerificationId: ORDR });
+    const result = await kcpProvider.verify(input());
     expect(result).toEqual({
       providerRef: REG_KEY,
       name: '홍길동',
@@ -131,11 +144,7 @@ describe('kcpProvider.verify', () => {
   it('클라이언트가 이름·번호를 함께 보내도 KCP 응답만 쓴다 (파라미터 변조 방어)', async () => {
     db.sessions.set(ORDR, session());
     stubQuery(certBody());
-    const result = await kcpProvider.verify({
-      identityVerificationId: ORDR,
-      name: '변조된이름',
-      phone: '01000000000',
-    });
+    const result = await kcpProvider.verify(input({ name: '변조된이름', phone: '01000000000' }));
     expect(result.name).toBe('홍길동');
     expect(result.phone).toBe('01099998800');
   });
@@ -143,28 +152,28 @@ describe('kcpProvider.verify', () => {
   it('identityVerificationId 가 없거나 규격 밖이면 KCP 를 부르지 않고 거부한다', async () => {
     const fetchMock = stubQuery(certBody());
     await expect(kcpProvider.verify({})).rejects.toThrow('본인인증 정보');
-    await expect(kcpProvider.verify({ identityVerificationId: 'a b' })).rejects.toThrow('형식');
-    await expect(kcpProvider.verify({ identityVerificationId: 'x'.repeat(51) })).rejects.toThrow('형식');
+    await expect(kcpProvider.verify(input({ identityVerificationId: 'a b' }))).rejects.toThrow('형식');
+    await expect(kcpProvider.verify(input({ identityVerificationId: 'x'.repeat(51) }))).rejects.toThrow('형식');
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
   it('모르는 거래는 거부한다 (남의 ordr_idxx 추측)', async () => {
     const fetchMock = stubQuery(certBody());
-    await expect(kcpProvider.verify({ identityVerificationId: ORDR })).rejects.toThrow('찾을 수 없습니다');
+    await expect(kcpProvider.verify(input())).rejects.toThrow('찾을 수 없습니다');
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
   it('이미 소비된 거래는 거부한다 (한 거래 = 토큰 한 건)', async () => {
     db.sessions.set(ORDR, session({ consumedAt: new Date() }));
     const fetchMock = stubQuery(certBody());
-    await expect(kcpProvider.verify({ identityVerificationId: ORDR })).rejects.toThrow('이미 사용된');
+    await expect(kcpProvider.verify(input())).rejects.toThrow('이미 사용된');
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
   it('만료된 거래는 거부한다 (과거 인증정보 재사용 차단)', async () => {
     db.sessions.set(ORDR, session({ expiresAt: new Date(Date.now() - 1_000) }));
     const fetchMock = stubQuery(certBody());
-    await expect(kcpProvider.verify({ identityVerificationId: ORDR })).rejects.toThrow('시간이 너무 지났습니다');
+    await expect(kcpProvider.verify(input())).rejects.toThrow('시간이 너무 지났습니다');
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
@@ -172,36 +181,67 @@ describe('kcpProvider.verify', () => {
     for (const status of ['REGISTERED', 'FAILED']) {
       db.sessions.set(ORDR, session({ status }));
       const fetchMock = stubQuery(certBody());
-      await expect(kcpProvider.verify({ identityVerificationId: ORDR })).rejects.toThrow(
+      await expect(kcpProvider.verify(input())).rejects.toThrow(
         '완료되지 않았습니다',
       );
       expect(fetchMock).not.toHaveBeenCalled();
     }
   });
 
+  it('거래를 시작한 브라우저의 쿠키가 없거나 다르면 KCP 를 부르지 않고 거부한다 (남이 만든 거래 가로채기 차단)', async () => {
+    db.sessions.set(ORDR, session());
+    const fetchMock = stubQuery(certBody());
+    await expect(kcpProvider.verify({ identityVerificationId: ORDR })).rejects.toThrow('시작한 브라우저');
+    await expect(kcpProvider.verify(input({ bindToken: 'other' }))).rejects.toThrow('시작한 브라우저');
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(db.updates).toHaveLength(0);
+  });
+
+  it('세션에 bindHash 가 없으면(구버전 행) 거부한다', async () => {
+    db.sessions.set(ORDR, session({ bindHash: null }));
+    const fetchMock = stubQuery(certBody());
+    await expect(kcpProvider.verify(input())).rejects.toThrow('시작한 브라우저');
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it('인증창이 끝난 지 10분이 넘은 거래는 세션이 살아 있어도 거부한다 (portone 의 verifiedAt 기준과 동일)', async () => {
+    db.sessions.set(ORDR, session({ authedAt: new Date(Date.now() - 11 * 60_000) }));
+    const fetchMock = stubQuery(certBody());
+    await expect(kcpProvider.verify(input())).rejects.toThrow('시간이 너무 지났습니다');
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it('동시 요청은 CAS 로 하나만 KCP 에 간다 — 두 번째는 결과조회 전에 거부', async () => {
+    db.sessions.set(ORDR, session());
+    const fetchMock = stubQuery(certBody());
+    await kcpProvider.verify(input());
+    await expect(kcpProvider.verify(input())).rejects.toThrow('이미 사용된');
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
   it('KCP 결과조회가 0000 이 아니면 거부한다 (콜백 위조로는 통과 못 한다)', async () => {
     db.sessions.set(ORDR, session());
     stubQuery(certBody(), { resCd: 'CS24' });
-    await expect(kcpProvider.verify({ identityVerificationId: ORDR })).rejects.toThrow('KCP 결과조회 실패 [CS24]');
+    await expect(kcpProvider.verify(input())).rejects.toThrow('KCP 결과조회 실패 [CS24]');
   });
 
   it('복호화 전문의 res_cd 가 0000 이 아니면 거부한다', async () => {
     db.sessions.set(ORDR, session());
     stubQuery(certBody({ res_cd: '9999', res_msg: '인증 실패' }));
-    await expect(kcpProvider.verify({ identityVerificationId: ORDR })).rejects.toThrow('KCP 본인확인 실패 [9999]');
+    await expect(kcpProvider.verify(input())).rejects.toThrow('KCP 본인확인 실패 [9999]');
   });
 
   it('HTTP 오류 응답은 삼키지 않고 던진다', async () => {
     db.sessions.set(ORDR, session());
     stubQuery(certBody(), { status: 500 });
-    await expect(kcpProvider.verify({ identityVerificationId: ORDR })).rejects.toThrow('KCP 500');
+    await expect(kcpProvider.verify(input())).rejects.toThrow('KCP 500');
   });
 
   it('KCP 설정이 없으면 거부한다 (조용히 통과시키지 않는다)', async () => {
     vi.stubEnv('KCP_ENC_KEY', '');
     db.sessions.set(ORDR, session());
     stubQuery(certBody());
-    await expect(kcpProvider.verify({ identityVerificationId: ORDR })).rejects.toThrow('KCP_ENC_KEY');
+    await expect(kcpProvider.verify(input())).rejects.toThrow('KCP_ENC_KEY');
   });
 });
 

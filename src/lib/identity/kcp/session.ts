@@ -1,4 +1,4 @@
-import { randomBytes } from 'node:crypto';
+import { createHash, randomBytes, randomInt } from 'node:crypto';
 import { prisma } from '@/lib/db';
 import { registerCert } from './api';
 import { getKcpConfig } from './config';
@@ -18,14 +18,26 @@ const PURGE_AFTER_MS = 24 * 60 * 60_000;
 
 export const DEFAULT_RETURN_PATH = '/tech/signup';
 
+// 거래를 시작한 브라우저에만 내려주는 httpOnly 쿠키. 결과조회(/api/identity/verify)는 같은 쿠키를 요구한다.
+// ordr_idxx·reg_cert_key 는 브라우저에 나가는 공개값이라, 이 바인딩이 없으면 공격자가 우리 서버에서 거래를
+// 만들고 피해자에게 KCP 인증창만 열어 준 뒤 ordr_idxx 로 토큰을 받아 가는 경로가 열린다.
+export const KCP_BIND_COOKIE = 'kcp_iv_bind';
+
 /** KCP ordr_idxx — 영숫자 50자 이하 규격. `kc` + 시각(base36 8) + 난수 30 = 40자. 브라우저에도 이 값이 나간다. */
 export function newOrdrIdxx(): string {
   const alphabet = 'abcdefghijklmnopqrstuvwxyz0123456789';
-  const bytes = randomBytes(30);
   let rand = '';
-  for (const b of bytes) rand += alphabet[b % alphabet.length];
+  for (let i = 0; i < 30; i++) rand += alphabet[randomInt(alphabet.length)];
   const ts = Date.now().toString(36).padStart(8, '0').slice(-8);
   return `kc${ts}${rand}`;
+}
+
+export function newBindSecret(): string {
+  return randomBytes(32).toString('base64url');
+}
+
+export function hashBindSecret(secret: string): string {
+  return createHash('sha256').update(secret, 'utf8').digest('hex');
 }
 
 /**
@@ -45,6 +57,8 @@ export type KcpSessionStart = {
   ordrIdxx: string;
   regCertKey: string;
   callUrl: string;
+  /** 쿠키로만 내려간다 — 응답 본문에 싣지 말 것. */
+  bindSecret: string;
 };
 
 /** 거래등록을 하고 세션 행을 남긴다. KCP 가 실패하면 행을 만들지 않는다. */
@@ -55,11 +69,13 @@ export async function startKcpSession(input: {
 }): Promise<KcpSessionStart> {
   const config = getKcpConfig();
   const ordrIdxx = newOrdrIdxx();
+  const bindSecret = newBindSecret();
   const reg = await registerCert(config, { ordrIdxx, retUrl: input.retUrl });
   await prisma.kcpCertSession.create({
     data: {
       ordrIdxx,
       regCertKey: reg.regCertKey,
+      bindHash: hashBindSecret(bindSecret),
       mode: input.mode,
       returnPath: sanitizeReturnPath(input.returnPath),
       status: 'REGISTERED',
@@ -67,7 +83,7 @@ export async function startKcpSession(input: {
     },
   });
   void purgeExpiredKcpSessions().catch(() => undefined);
-  return { ordrIdxx, regCertKey: reg.regCertKey, callUrl: reg.callUrl };
+  return { ordrIdxx, regCertKey: reg.regCertKey, callUrl: reg.callUrl, bindSecret };
 }
 
 export type KcpReturnOutcome = {
@@ -83,6 +99,8 @@ export type KcpReturnOutcome = {
  * KCP 가 Ret_URL 로 보낸 인증창 결과를 세션에 기록한다. 가이드(3-3)대로 reg_cert_key 를 DB 와 대조한다.
  * 여기서는 "인증창이 성공으로 끝났다"는 사실만 남긴다 — 신원은 결과조회(provider.verify)가 KCP 에 직접 물어본다.
  * 그래서 콜백을 위조해 0000 을 보내도 얻는 것이 없다.
+ * 상태 전이는 REGISTERED 에서 한 번만 받는다 — reg_cert_key 는 공개값이라, 진짜 성공 뒤에 9999 를 던져
+ * AUTHED 를 FAILED 로 되돌리는 방해가 가능하기 때문이다. 두 번째 콜백부터는 저장된 결과를 그대로 돌려준다.
  */
 export async function recordKcpReturn(input: {
   regCertKey: string;
@@ -97,6 +115,15 @@ export async function recordKcpReturn(input: {
   }
   if (s.expiresAt.getTime() < Date.now()) {
     return { ...base, ok: false, code: 'EXPIRED', message: '본인인증 시간이 지났습니다. 다시 인증해 주세요.' };
+  }
+  if (s.status !== 'REGISTERED') {
+    if (s.status === 'AUTHED') return { ...base, ok: true };
+    return {
+      ...base,
+      ok: false,
+      code: s.resCd || 'KCP_FAIL',
+      message: s.resMsg || '본인인증이 취소되었거나 실패했습니다',
+    };
   }
   const ok = input.resCd === '0000';
   await prisma.kcpCertSession.update({

@@ -42,6 +42,8 @@ export const REDIRECT_PARAM_CODE = 'code';
 export const REDIRECT_PARAM_MESSAGE = 'message';
 
 let configPromise: Promise<IdentityPublicConfig> | null = null;
+// 프리로드가 끝난 뒤의 값. 클릭 시점에 이 값이 있으면 await 없이 바로 분기해, 팝업을 사용자 활성화 안에서 연다.
+let cachedConfig: IdentityPublicConfig | null = null;
 
 export function fetchIdentityConfig(): Promise<IdentityPublicConfig> {
   if (!configPromise) {
@@ -53,6 +55,7 @@ export function fetchIdentityConfig(): Promise<IdentityPublicConfig> {
             ('error' in data && data.error) || '본인인증 설정을 불러오지 못했습니다',
           );
         }
+        cachedConfig = data;
         return data;
       })
       .catch((e) => {
@@ -69,10 +72,13 @@ export function fetchIdentityConfig(): Promise<IdentityPublicConfig> {
 // 앞 8자리는 시각(base36) — 로그에서 순서를 읽기 좋고, 뒤 30자리는 CSPRNG 로 충돌을 막는다.
 export function newIdentityVerificationId(): string {
   const alphabet = 'abcdefghijklmnopqrstuvwxyz0123456789';
-  const bytes = new Uint8Array(30);
-  crypto.getRandomValues(bytes);
   let rand = '';
-  for (const b of bytes) rand += alphabet[b % alphabet.length];
+  while (rand.length < 30) {
+    const bytes = new Uint8Array(40);
+    crypto.getRandomValues(bytes);
+    // 256 = 7×36 + 4 — 252 이상은 버려 앞 4글자가 미세하게 더 자주 나오는 편향을 없앤다.
+    for (const b of bytes) if (b < 252 && rand.length < 30) rand += alphabet[b % alphabet.length];
+  }
   const ts = Date.now().toString(36).padStart(8, '0').slice(-8);
   return `iv${ts}${rand}`; // 2 + 8 + 30 = 40자
 }
@@ -120,6 +126,8 @@ export function preloadIdentityVerification(): void {
 const KCP_POPUP_NAME = 'kcp_auth_popup';
 const KCP_MESSAGE_TYPE = 'kcp-identity';
 const KCP_RESULT_TIMEOUT_MS = 15 * 60_000;
+// 페이지 전환 방식에서 form.submit() 뒤 이 시간 안에 페이지가 떠나지 않으면(차단·오류) 실패로 돌린다.
+const KCP_PAGE_LEAVE_TIMEOUT_MS = 10_000;
 
 type KcpStartResponse = {
   ok?: boolean;
@@ -182,12 +190,14 @@ function submitKcpForm(callUrl: string, regCertKey: string, target: string): voi
 function waitForKcpPopup(popup: Window, ordrIdxx: string): Promise<IdentityStartResult> {
   return new Promise((resolve, reject) => {
     let settled = false;
+    let closedGrace: ReturnType<typeof setTimeout> | null = null;
     const finish = (fn: () => void) => {
       if (settled) return;
       settled = true;
       window.removeEventListener('message', onMessage);
       clearInterval(closedTimer);
       clearTimeout(timeout);
+      if (closedGrace) clearTimeout(closedGrace);
       fn();
     };
     const onMessage = (event: MessageEvent<KcpPopupMessage>) => {
@@ -201,10 +211,14 @@ function waitForKcpPopup(popup: Window, ordrIdxx: string): Promise<IdentityStart
       }
     };
     window.addEventListener('message', onMessage);
-    // 사용자가 창을 그냥 닫은 경우. 결과 메시지는 닫히기 직전에 오므로 잠깐 여유를 둔다.
+    // 사용자가 창을 그냥 닫은 경우. 결과 메시지는 닫히기 직전에 오므로 잠깐 여유를 둔다(한 번만 예약).
     const closedTimer = setInterval(() => {
-      if (popup.closed) {
-        setTimeout(() => finish(() => reject(new Error('본인인증 창이 닫혔습니다. 다시 시도해 주세요.'))), 800);
+      if (popup.closed && !closedGrace) {
+        clearInterval(closedTimer);
+        closedGrace = setTimeout(
+          () => finish(() => reject(new Error('본인인증 창이 닫혔습니다. 다시 시도해 주세요.'))),
+          800,
+        );
       }
     }, 500);
     const timeout = setTimeout(
@@ -239,9 +253,15 @@ async function startKcpVerification(input: {
 
   if (!popup) {
     // 페이지 전환: 이 페이지가 통째로 KCP 인증창으로 갔다가 redirectUrl 로 돌아온다(복귀 처리는 호출 화면).
+    // 정상이면 이 프로미스는 끝나기 전에 페이지가 떠난다. 떠나지 못하면(이동 차단 등) 실패로 돌려 스피너를 푼다.
     input.onBeforeRedirect?.();
     submitKcpForm(started.callUrl, started.regCertKey, '_self');
-    return new Promise<IdentityStartResult>(() => undefined);
+    return new Promise<IdentityStartResult>((_, reject) => {
+      setTimeout(
+        () => reject(new Error('인증창으로 이동하지 못했습니다. 다시 시도해 주세요.')),
+        KCP_PAGE_LEAVE_TIMEOUT_MS,
+      );
+    });
   }
 
   submitKcpForm(started.callUrl, started.regCertKey, KCP_POPUP_NAME);
@@ -258,6 +278,10 @@ export async function startIdentityVerification(input: {
   redirectUrl: string;
   onBeforeRedirect?: () => void;
 }): Promise<IdentityStartResult> {
+  // kcp 는 팝업을 클릭 활성화 안에서 열어야 하므로, 프리로드된 설정이 있으면 await 없이 바로 분기한다.
+  if (cachedConfig?.provider === 'kcp') {
+    return startKcpVerification(input);
+  }
   const config = await fetchIdentityConfig();
   if (config.provider === 'kcp') {
     return startKcpVerification(input);
