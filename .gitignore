@@ -60,3 +60,28 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# ─── 매뉴얼 산출물 ────────────────────────────────────────────────────────────
+# 이 저장소는 GitHub 공개 저장소다. 매뉴얼 스크린샷은 라이브 관리자 화면을 찍은 것이라
+# 실제 고객 이름·휴대폰 번호·주소가 그대로 보인다(관리자 매뉴얼 표지의 "개인정보 주의" 경고).
+# 이미지와 그것을 삽입해 만든 PDF, 그리고 화면 텍스트를 담은 캡처 메타데이터는 커밋하지 않는다.
+# 한 번 푸시하면 git 히스토리에 남아 되돌리기 어렵다.
+#
+# 매뉴얼의 "내용"은 HTML 원본으로 버전 관리되고, PDF 는 아래 명령으로 언제든 다시 만든다:
+#   node artifacts/manuals/render-pdf.mjs
+# 저장소를 비공개로 바꾸거나 스크린샷의 개인정보를 가린 뒤에는 이 블록을 지워도 된다.
+/artifacts/manuals/img/
+/artifacts/manuals/flow/img/
+/artifacts/manuals/**/*.pdf
+/docs/admin-manual/screenshots/
+/docs/admin-manual/capture-meta.json
+/docs/admin-manual/annotated-meta.json
+/docs/admin-manual/archive-v1.0-2026-07/*.pdf
+
+# 매뉴얼 작업과 무관한 대용량 산출물·도구 상태
+/artifacts/videos/
+/artifacts/g*-qa/
+/artifacts/deploy-e2e-*/
+.playwright-cli/
+.vorec/
+/xn--*-audit/
