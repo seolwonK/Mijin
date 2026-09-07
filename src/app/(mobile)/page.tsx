@@ -103,21 +103,7 @@ export default function Home() {
         <BrandLogo size="sm" />
       </div>
 
-      {/* 긴급 배너 — FAQ에 이미 있는 "초긴급 1시간 내 응대 목표"를 첫 화면으로 끌어올린 것(새 약속 아님).
-          긴급 상황 사용자가 첫 화면에서 바로 접수로 진입하는 지름길. */}
-      <Link
-        href="/request/new"
-        className="mt-2 flex w-full items-center gap-2 rounded-2xl border border-red-100 bg-red-50 px-4 py-3 transition-colors ease-brand duration-brand-base hover:bg-red-100/70 md:mt-3 md:max-w-2xl"
-      >
-        <span aria-hidden="true">🚨</span>
-        <span className="min-w-0 text-sm font-semibold text-red-700">
-          정전·타는 냄새는 <strong className="font-extrabold">초긴급 접수 시 1시간 내 응대</strong>가
-          목표예요
-        </span>
-        <span className="ml-auto shrink-0 text-sm font-bold text-red-600">접수 →</span>
-      </Link>
-
-      <section className="relative -mx-5 mt-1 w-[calc(100%+2.5rem)] overflow-hidden bg-gradient-to-br from-brand-50 via-white to-brand-100/50 md:mx-0 md:mt-3 md:w-full md:max-w-2xl md:rounded-3xl md:shadow-surface-lg">
+      <section className="relative -mx-5 mt-3 w-[calc(100%+2.5rem)] overflow-hidden bg-gradient-to-br from-brand-50 via-white to-brand-100/50 md:mx-0 md:mt-3 md:w-full md:max-w-2xl md:rounded-3xl md:shadow-surface-lg">
         <div className="flex flex-col md:flex-row md:items-center">
           <div className="px-5 pt-6 pb-3 md:w-3/5 md:px-8 md:py-12">
             <p className="text-xs font-bold text-brand-600">가까운 출동 업체를 바로 연결해 드려요</p>
