@@ -6,15 +6,11 @@ import { notifyAdminAttention } from '@/lib/adminAlerts';
 import { sendSms } from '@/lib/sms';
 import { smsAssignmentRecalled } from '@/lib/sms/templates';
 import { assigneeKey } from '@/lib/assignee';
+import { RESPONSE_TIMEOUT_MINUTES } from '@/lib/responseTimeout';
 
-// 무응답 자동 회수 응답 제한시간(분) — 제한시간이 지나면 회수 후 즉시 다음 순위에게
-// 재배정한다("접수 즉시 배정 + 무응답 10분 순차 재배정" 운영 결정, 2026-08-31).
-// 설정 화면 항목이 아닌 코드 상수(변경 시 배포 필요) — 배정로직 상세 문서 12장 참조.
-export const RESPONSE_TIMEOUT_MINUTES = {
-  CRITICAL: 10,
-  URGENT: 10,
-  NORMAL: 10,
-} as const;
+// 응답 제한시간 상수는 lib/responseTimeout.ts 가 단일 진실 원천이다(포털 경과 배너가
+// 클라이언트에서 같은 값을 읽어야 해서 서버 모듈과 분리했다). 기존 import 경로를 위해 재수출한다.
+export { RESPONSE_TIMEOUT_MINUTES };
 
 type RequestLike = {
   id: string;

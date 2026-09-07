@@ -4,9 +4,14 @@
 //  3) 완료 → 고객에게 1건 (만족도 조사)
 // (수락·가입 심사 알림은 화면 내 확인으로 대체 — 비용 절감)
 // 한글 45자(90바이트)를 넘으면 SMS→LMS로 전환되어 단가가 약 3배가 된다.
+//
+// 머리말은 서비스 이름과 같은 [전기아저씨] 로 통일한다 — 예전 표기 [전기출동] 은 수신자가
+// 어디서 온 문자인지 알아보기 어려워 스팸으로 오인될 소지가 있었다(2026-09-07).
+// 표기가 2바이트 길어졌지만 SMS 로 나가는 두 건(접수 완료 78B·배정 회수 70B)은 90바이트
+// 안에 남는다. 나머지 두 건은 이전부터 LMS 였다.
 
 export function smsRequestReceived(customerName: string): string {
-  return `[전기출동] ${customerName}님, 접수가 완료되었습니다. 배정된 업체에서 곧 연락드립니다.`;
+  return `[전기아저씨] ${customerName}님, 접수가 완료되었습니다. 배정된 업체에서 곧 연락드립니다.`;
 }
 
 const URGENCY_LABEL: Record<string, string> = {
@@ -27,7 +32,7 @@ function formatPhone(digits: string): string {
 
 // 배정 회수 안내 — 업체가 배정 문자만 보고 출동하지 않도록 즉시 알린다 (단문 유지)
 export function smsAssignmentRecalled(): string {
-  return '[전기출동] 안내드린 배정이 회수되었습니다. 출동하지 않으셔도 됩니다.';
+  return '[전기아저씨] 안내드린 배정이 회수되었습니다. 출동하지 않으셔도 됩니다.';
 }
 
 // 관리자 확인요망 알림 — 자동배정이 처리하지 못한 접수를 능동 통지한다 (단문 유지).
@@ -37,7 +42,7 @@ export function smsAdminAttention(p: {
   urgencyLabel: string;
   reason: string;
 }): string {
-  return `[전기출동/관리] 접수 ${p.lookupCode}(${p.urgencyLabel}) 확인요망 — ${p.reason}. 관제탑에서 조치해 주세요.`;
+  return `[전기아저씨/관리] 접수 ${p.lookupCode}(${p.urgencyLabel}) 확인요망 — ${p.reason}. 관제탑에서 조치해 주세요.`;
 }
 
 // 업체 배정 알림 — 고객 연락처·주소 포함 (장문이라 LMS 단가 적용 가능)
@@ -49,7 +54,7 @@ export function smsProviderAssigned(p: {
   distanceKm?: number | null;
 }): string {
   const lines = [
-    `[전기출동] 새 출동 배정 (${URGENCY_LABEL[p.urgency] ?? p.urgency})`,
+    `[전기아저씨] 새 출동 배정 (${URGENCY_LABEL[p.urgency] ?? p.urgency})`,
     `고객: ${p.customerName} ${formatPhone(p.customerPhone)}`,
     `주소: ${p.address ?? '미확인 — 업체 포털에서 위치 확인'}`,
   ];
@@ -60,5 +65,5 @@ export function smsProviderAssigned(p: {
 
 // 완료 후 만족도 조사 안내 — 고객에게 참여 링크 전달 (단문 유지)
 export function smsSurveyRequest(url: string): string {
-  return `[전기출동] 수리가 완료되었습니다. 만족도 조사 참여: ${url}`;
+  return `[전기아저씨] 수리가 완료되었습니다. 만족도 조사 참여: ${url}`;
 }

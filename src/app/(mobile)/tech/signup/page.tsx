@@ -446,7 +446,8 @@ export default function TechSignupPage() {
           <h2 className="text-sm font-semibold">서비스 가능 지역</h2>
           <p className="text-xs text-muted">
             일(배정)을 받을 지역을 여러 곳 선택할 수 있습니다. 선택한 지역의 요청만
-            받으며, 그 안에서 가까운 순으로 배정됩니다.
+            받습니다. 그 안에서의 배정 순서는 알 보유량이 먼저이고, 같으면 최근 배정이
+            적은 순, 평균 별점, 거리 순으로 정해집니다.
           </p>
           <RegionMultiSelect value={regions} onChange={setRegions} />
         </section>

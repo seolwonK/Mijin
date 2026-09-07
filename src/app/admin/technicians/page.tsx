@@ -28,11 +28,12 @@ const EMPLOYMENT_LABEL: Record<string, string> = {
   DAILY: '일일',
   PERMANENT: '상시',
 };
-// SUBMITTED = 전기기사가 서명을 제출하고 관리자 확정을 기다리는 상태(schema.prisma ContractStatus)
-// — "서명 전"으로 뭉개면 관리자가 확정할 일이 있다는 사실이 목록에서 보이지 않는다.
+// SUBMITTED 는 schema.prisma ContractStatus 에 남아 있지만 현재 어느 경로로도 도달하지 않는다 —
+// 전기기사가 서명을 제출하면 api/tech/contract PUT 이 곧바로 CONFIRMED 로 확정하기 때문이다
+// (관리자 확정 단계 없음). 만에 하나 옛 데이터가 있으면 상세 화면과 같은 "서명 전"으로 읽는다.
 const CONTRACT_LABEL: Record<string, string> = {
-  DRAFT: '서명 전',
-  SUBMITTED: '확정 대기 (관리자 확인 필요)',
+  DRAFT: '서명 전 (배정 불가)',
+  SUBMITTED: '서명 전 (배정 불가)',
   CONFIRMED: '서명 완료 (배정 가능)',
 };
 

@@ -163,7 +163,7 @@ export const ROUTES: RouteEntry[] = [
   open('/api/partner/signup', 'POST', '업체 셀프 가입 — 승인 전 PENDING(signup:184)'),
   open('/api/referrer/lookup', 'POST', '추천인 조회 — 가입 폼에서 호출'),
   open('/api/requests', 'POST', '고객 접수 — 서비스의 공개 진입점'),
-  open('/api/requests/lookup', 'POST', '고객 조회 — lookupCode + 전화번호'),
+  open('/api/requests/lookup', 'POST', '고객 조회 — 전화번호만 사용(접수번호 불필요)'),
   open('/api/survey/[token]', 'GET', '만족도 조사 — 토큰이 곧 인증'),
   open('/api/survey/[token]', 'POST', '만족도 조사 제출 — 토큰이 곧 인증'),
   open('/api/tech/signup', 'POST', '전기기사 셀프 가입 — 즉시 APPROVED(signup:176)'),

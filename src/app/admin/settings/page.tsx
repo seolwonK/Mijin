@@ -152,8 +152,9 @@ export default function AdminSettingsPage() {
             <div>
               <p className="font-bold">자동배정 사용</p>
               <p className="mt-1 text-sm text-muted">
-                수동 배정이 기본입니다. 켜면 아래 대기시간 안에 수동 배정이 없을 때
-                가장 가까운 활성 업체에 자동 배정됩니다.
+                켜면 접수가 들어오는 즉시 추천 순위 1위에게 자동 배정하고, 10분 안에 응답이
+                없으면 회수해 다음 순위로 넘깁니다. 아래 대기시간은 배정 대기로 돌아온 건을
+                다시 배정하기까지의 안전망 주기입니다. 끄면 모든 배정을 수동으로 합니다.
               </p>
               <p className="mt-1 text-xs text-muted">
                 {toggleBusy ? '적용 중…' : '변경 시 확인 후 즉시 적용됩니다.'}

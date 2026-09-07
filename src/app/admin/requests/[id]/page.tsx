@@ -163,7 +163,7 @@ export default function AdminRequestDetailPage({
         {req.needsAttention && (
           <p className="flex items-center gap-1.5 rounded-admin-md bg-red-50 p-3 text-sm font-medium text-red-600">
             <AlertIcon className="h-4 w-4 shrink-0" />
-            관리자 확인이 필요합니다 (자동배정 실패 또는 업체 거절)
+            관리자 확인이 필요합니다 (배정 후보 없음 · 지역 판별 불가 · 무응답 자동 회수 · 거절 후 재배정 불가)
           </p>
         )}
 

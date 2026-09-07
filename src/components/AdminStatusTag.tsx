@@ -13,6 +13,11 @@ const STATUS: Record<string, { label: string; chip: string; strike?: boolean }> 
   CANCELED: { label: '취소', chip: 'bg-neutral-100 text-neutral-600', strike: true },
 };
 
+/** 칩 없이 상태 이름만 필요한 자리(요약 패널 등)에서 쓰는 한글 라벨. 없는 값은 원문 그대로. */
+export function adminStatusLabel(status: string): string {
+  return STATUS[status]?.label ?? status;
+}
+
 export function AdminStatusTag({ status }: { status: string }) {
   const s = STATUS[status] ?? { label: status, chip: 'bg-neutral-100 text-neutral-600' };
   return (

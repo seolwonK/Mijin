@@ -41,9 +41,20 @@ CloudType 서비스의 **환경변수**에 입력 (`.env.production.example` 참
 | `AUTH_SECRET` | ✅ | JWT 서명 키(32자+). `openssl rand -hex 32` |
 | `RUN_DB_SEED` | 최초만 | `1`이면 첫 기동 때 관리자/샘플 계정 생성(upsert). 이후 `0` 또는 삭제 |
 | `CRON_SECRET` | 선택 | 외부 cron 백업용. 없어도 인프로세스 워커가 자동배정 수행 |
-| `KAKAO_REST_API_KEY` | 선택 | 지오코딩. 없으면 주소/좌표 수동 입력 폴백 |
+| `KAKAO_REST_API_KEY` | 선택 | 지오코딩. 없으면 OSM Nominatim 무키 폴백 → 그래도 실패하면 좌표 수동 입력 |
 | `SMS_PROVIDER` | 선택 | `console`(로그) 또는 `solapi`(실발송) |
 | `SOLAPI_API_KEY` / `SOLAPI_API_SECRET` / `SOLAPI_SENDER` | solapi일 때 | Solapi 계정 |
+| `ADMIN_ALERT_PHONES` | 권장 | 확인요망 알림을 받을 관리자 휴대폰 번호(쉼표 구분). 비우면 관리자 계정 전화번호로 발송되는데, 시드 계정 번호는 `01000000000` 이라 아무에게도 닿지 않음 |
+| `APP_BASE_URL` | ✅ | 만족도 조사 링크 문자에 들어가는 공개 주소(예: `https://전기아저씨.com`). 없으면 고객이 조사 링크를 열 수 없음 |
+| `IDENTITY_PROVIDER` | ✅ | 휴대폰 본인인증 제공자. 프로덕션에서 비우면 전기기사 셀프 가입이 차단됨(fail-closed) |
+| `KCP_SITE_CD` / `KCP_ENC_KEY` / `KCP_WEB_SITEID` | KCP일 때 | NHN KCP 본인확인 V2 자격증명 |
+| `IDENTITY_HASH_SECRET` | ✅ | 본인인증 CI/DI 해시 키. 바꾸면 기존 중복가입 판정 이력과 대조가 끊김 |
+| `R2_ACCOUNT_ID` / `R2_ACCESS_KEY_ID` / `R2_SECRET_ACCESS_KEY` / `R2_BUCKET` | 권장 | 접수 사진 저장소(Cloudflare R2, **비공개 버킷**). 넷 중 하나라도 비면 사진이 DB에 저장됨 |
+| `STT_PROVIDER` | 선택 | `gemini` 또는 `openai`. 없으면 음성 접수가 텍스트로 변환되지 않음 |
+| `GEMINI_API_KEY` | STT가 gemini일 때 | 음성 → 텍스트 변환 키 |
+
+> 표에 없는 항목까지 포함한 전체 목록과 기본값은 `.env.production.example` 에 있습니다.
+> `UPLOADS_DIR` 는 구버전 파일시스템 저장 데이터가 있을 때만 의미가 있습니다.
 
 ## 4. 배포 절차
 

@@ -68,7 +68,7 @@ test('unassign 200 — 배정 회수 시 접수가 배정 대기로 돌아가고
 
   // S1-c 회수 문자 — :49 가 void 로 던진다 (계획 실패 3 ②) → poll 필수
   const sms = await pollSmsLog(prisma, { requestId: req.id, to: partner.phone });
-  expect(sms.body).toBe('[전기출동] 안내드린 배정이 회수되었습니다. 출동하지 않으셔도 됩니다.');
+  expect(sms.body).toBe('[전기아저씨] 안내드린 배정이 회수되었습니다. 출동하지 않으셔도 됩니다.');
   await ctx.dispose();
 });
 
