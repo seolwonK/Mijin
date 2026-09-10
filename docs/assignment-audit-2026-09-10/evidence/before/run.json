@@ -1,0 +1,19 @@
+{
+  "finishedAt": "2026-09-10T04:49:18.294Z",
+  "database": "mijin_assignment_audit_1789015748945_88540",
+  "databaseRemoved": true,
+  "sms": "console",
+  "identity": "mock",
+  "results": [
+    {
+      "label": "migrate",
+      "code": 0,
+      "durationMs": 1084
+    },
+    {
+      "label": "assignment",
+      "code": 1,
+      "durationMs": 7676
+    }
+  ]
+}

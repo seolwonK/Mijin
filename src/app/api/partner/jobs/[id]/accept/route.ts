@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { requireSession } from '@/lib/auth';
 import { spendEggOnAccept } from '@/lib/eggs';
+import { transitionPendingAssignment } from '@/lib/assignment';
 
 export async function POST(
   _req: NextRequest,
@@ -22,17 +23,12 @@ export async function POST(
   }
 
   // CAS: 이미 거절/취소된 배정의 수락 방지
-  const claimed = await prisma.assignment.updateMany({
-    where: { id, status: 'REQUESTED' },
-    data: { status: 'ACCEPTED', respondedAt: new Date() },
+  const claimed = await transitionPendingAssignment({
+    assignmentId: id, requestId: a.requestId, status: 'ACCEPTED',
   });
-  if (claimed.count === 0) {
+  if (!claimed) {
     return NextResponse.json({ error: '이미 처리된 배정입니다' }, { status: 409 });
   }
-  await prisma.serviceRequest.updateMany({
-    where: { id: a.requestId, status: 'ASSIGNED' },
-    data: { status: 'ACCEPTED' },
-  });
   // 알 차감(잔액≥1이면 -1, 멱등) — 실패는 응답에 전파하지 않는다: 이미 수락된 건이
   // 트랜지언트 오류로 500→재시도 409를 받는 모순 방지. 복구는 로그+무결성 스크립트 (iii).
   await spendEggOnAccept({ kind: 'PROVIDER', id: session.providerId }, id).catch((e) =>

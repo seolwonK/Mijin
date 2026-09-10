@@ -1,0 +1,733 @@
+
+ RUN  v4.1.10 /Users/seolwon/IdeaProjects/mijin
+
+stdout | tests/assignment-audit/assignment.db.test.ts > A — 자동배정 진입·지역·순위·대기시간 > A02 NORMAL 접수 직후 대기시간 없이 1순위 배정, 중복 실행 무해
+[autoAssign] 자동 배정: cmtv1sczd004w1id2a72d1om1 → 배정 검증 (1.4km)
+
+stdout | tests/assignment-audit/assignment.db.test.ts > A — 자동배정 진입·지역·순위·대기시간 > A02 URGENT 접수 직후 대기시간 없이 1순위 배정, 중복 실행 무해
+[autoAssign] 자동 배정: cmtv1sd0v00571id2ug1hkgba → 배정 검증 (1.4km)
+
+stdout | tests/assignment-audit/assignment.db.test.ts > A — 자동배정 진입·지역·순위·대기시간 > A02 CRITICAL 접수 직후 대기시간 없이 1순위 배정, 중복 실행 무해
+[autoAssign] 자동 배정: cmtv1sd25005i1id2yo9yrgwf → 배정 검증 (1.4km)
+
+stderr | tests/assignment-audit/assignment.db.test.ts > A — 자동배정 진입·지역·순위·대기시간 > A04 주소 null는 관리자 반환, 반복 알림 없음
+[autoAssign] 지역 판별 불가 → 관리자 반환: cmtv1sd8c00681id2orwebyh2
+
+stderr | tests/assignment-audit/assignment.db.test.ts > A — 자동배정 진입·지역·순위·대기시간 > A04 주소 null는 관리자 반환, 반복 알림 없음
+[autoAssign] 지역 판별 불가 → 관리자 반환: cmtv1sd8c00681id2orwebyh2
+
+stderr | tests/assignment-audit/assignment.db.test.ts > A — 자동배정 진입·지역·순위·대기시간 > A04 주소 는 관리자 반환, 반복 알림 없음
+[autoAssign] 지역 판별 불가 → 관리자 반환: cmtv1sd9d006c1id27v7e2ce1
+
+stderr | tests/assignment-audit/assignment.db.test.ts > A — 자동배정 진입·지역·순위·대기시간 > A04 주소 는 관리자 반환, 반복 알림 없음
+[autoAssign] 지역 판별 불가 → 관리자 반환: cmtv1sd9d006c1id27v7e2ce1
+
+stderr | tests/assignment-audit/assignment.db.test.ts > A — 자동배정 진입·지역·순위·대기시간 > A04 주소 지역을 알 수 없음는 관리자 반환, 반복 알림 없음
+[autoAssign] 지역 판별 불가 → 관리자 반환: cmtv1sdac006g1id2ct8ua790
+
+stderr | tests/assignment-audit/assignment.db.test.ts > A — 자동배정 진입·지역·순위·대기시간 > A04 주소 지역을 알 수 없음는 관리자 반환, 반복 알림 없음
+[autoAssign] 지역 판별 불가 → 관리자 반환: cmtv1sdac006g1id2ct8ua790
+
+stdout | tests/assignment-audit/assignment.db.test.ts > A — 자동배정 진입·지역·순위·대기시간 > A05 서비스 지역 []와 좌표 없음의 실제 필터
+[autoAssign] 자동 배정: cmtv1sdbd006k1id2ic37eban → 배정 검증 (지역 매칭)
+
+stdout | tests/assignment-audit/assignment.db.test.ts > A — 자동배정 진입·지역·순위·대기시간 > A05 서비스 지역 [ '서울특별시' ]와 좌표 없음의 실제 필터
+[autoAssign] 자동 배정: cmtv1sdca006q1id23abvko5l → 배정 검증 (지역 매칭)
+
+stdout | tests/assignment-audit/assignment.db.test.ts > A — 자동배정 진입·지역·순위·대기시간 > A05 서비스 지역 [ '서울특별시 강남구' ]와 좌표 없음의 실제 필터
+[autoAssign] 자동 배정: cmtv1sdd8006w1id2614p0o85 → 배정 검증 (지역 매칭)
+
+stderr | tests/assignment-audit/assignment.db.test.ts > A — 자동배정 진입·지역·순위·대기시간 > A05 서비스 지역 [ '부산광역시' ]와 좌표 없음의 실제 필터
+[autoAssign] 담당 지역 배정 대상 없음 → 관리자 반환: cmtv1sde800721id2x0wq1kqs
+
+stderr | tests/assignment-audit/assignment.db.test.ts > A — 자동배정 진입·지역·순위·대기시간 > A06 후보 0명 → 관리자 반환
+[autoAssign] 담당 지역 배정 대상 없음 → 관리자 반환: cmtv1sdf900731id23c1wjfvu
+
+stderr | tests/assignment-audit/assignment.db.test.ts > A — 자동배정 진입·지역·순위·대기시간 > A07 REJECTED 이력 후보는 자동 제외, 수동 재선택 허용
+[autoAssign] 담당 지역 배정 대상 없음 → 관리자 반환: cmtv1sdg900771id22nym8pgw
+
+stderr | tests/assignment-audit/assignment.db.test.ts > A — 자동배정 진입·지역·순위·대기시간 > A07 EXPIRED 이력 후보는 자동 제외, 수동 재선택 허용
+[autoAssign] 담당 지역 배정 대상 없음 → 관리자 반환: cmtv1sdhd007f1id2i6wkox9m
+
+stderr | tests/assignment-audit/assignment.db.test.ts > A — 자동배정 진입·지역·순위·대기시간 > A07 CANCELED 이력 후보는 자동 제외, 수동 재선택 허용
+[autoAssign] 담당 지역 배정 대상 없음 → 관리자 반환: cmtv1sdir007n1id2ubz7w6mk
+
+stdout | tests/assignment-audit/assignment.db.test.ts > A — 자동배정 진입·지역·순위·대기시간 > A08 NORMAL 워커 마감 -1ms 경계
+[autoAssign] 자동 배정: cmtv1sdl0007v1id2tnm79srr → 배정 검증 (1.4km)
+
+stdout | tests/assignment-audit/assignment.db.test.ts > A — 자동배정 진입·지역·순위·대기시간 > A08 NORMAL 워커 마감 0ms 경계
+[autoAssign] 자동 배정: cmtv1sdnh00811id220q3llb7 → 배정 검증 (1.4km)
+
+stdout | tests/assignment-audit/assignment.db.test.ts > A — 자동배정 진입·지역·순위·대기시간 > A08 URGENT 워커 마감 -1ms 경계
+[autoAssign] 자동 배정: cmtv1sdq2008b1id260l767n1 → 배정 검증 (1.4km)
+
+stdout | tests/assignment-audit/assignment.db.test.ts > A — 자동배정 진입·지역·순위·대기시간 > A08 URGENT 워커 마감 0ms 경계
+[autoAssign] 자동 배정: cmtv1sdr4008h1id27i3ofusl → 배정 검증 (1.4km)
+
+stdout | tests/assignment-audit/assignment.db.test.ts > A — 자동배정 진입·지역·순위·대기시간 > A08 CRITICAL 워커 마감 -1ms 경계
+[autoAssign] 자동 배정: cmtv1sdua008r1id22fal39z1 → 배정 검증 (1.4km)
+
+stdout | tests/assignment-audit/assignment.db.test.ts > A — 자동배정 진입·지역·순위·대기시간 > A08 CRITICAL 워커 마감 0ms 경계
+[autoAssign] 자동 배정: cmtv1sdvm008x1id2qmigbefo → 배정 검증 (1.4km)
+
+stderr | tests/assignment-audit/assignment.db.test.ts > T — 무응답 회수 > T01 PROVIDER NORMAL 10분 0ms 경계
+[autoAssign] 무응답 자동 회수: cmtv1sec400av1id2m4c06ri9 (PROVIDER:cmtv1sec300au1id2wxgi9mb1, 10분 초과)
+
+stderr | tests/assignment-audit/assignment.db.test.ts > T — 무응답 회수 > T01 PROVIDER NORMAL 10분 1ms 경계
+[autoAssign] 무응답 자동 회수: cmtv1sed900b11id2ym9m7kp4 (PROVIDER:cmtv1sed800b01id23ctbp5kc, 10분 초과)
+
+stderr | tests/assignment-audit/assignment.db.test.ts > T — 무응답 회수 > T01 PROVIDER URGENT 10분 0ms 경계
+[autoAssign] 무응답 자동 회수: cmtv1seim00bd1id2h2abl1c7 (PROVIDER:cmtv1seim00bc1id2duhszs5d, 10분 초과)
+
+stderr | tests/assignment-audit/assignment.db.test.ts > T — 무응답 회수 > T01 PROVIDER URGENT 10분 1ms 경계
+[autoAssign] 무응답 자동 회수: cmtv1sekd00bj1id25x3ns3ef (PROVIDER:cmtv1sekc00bi1id2bzq42mcl, 10분 초과)
+
+stderr | tests/assignment-audit/assignment.db.test.ts > T — 무응답 회수 > T01 PROVIDER CRITICAL 10분 0ms 경계
+[autoAssign] 무응답 자동 회수: cmtv1sewd00bv1id22b4g4ieh (PROVIDER:cmtv1sew900bu1id2zlxkfcv4, 10분 초과)
+
+stderr | tests/assignment-audit/assignment.db.test.ts > T — 무응답 회수 > T01 PROVIDER CRITICAL 10분 1ms 경계
+[autoAssign] 무응답 자동 회수: cmtv1sezo00c11id204ueqsnn (PROVIDER:cmtv1sezn00c01id2bcm9jbdw, 10분 초과)
+
+stderr | tests/assignment-audit/assignment.db.test.ts > T — 무응답 회수 > T01 TECHNICIAN NORMAL 10분 0ms 경계
+[autoAssign] 무응답 자동 회수: cmtv1sf6400ch1id2v8l4waj7 (TECHNICIAN:cmtv1sf6200ce1id22khkxjzp, 10분 초과)
+
+stderr | tests/assignment-audit/assignment.db.test.ts > T — 무응답 회수 > T01 TECHNICIAN NORMAL 10분 1ms 경계
+[autoAssign] 무응답 자동 회수: cmtv1sf9o00cp1id2ea93sxjc (TECHNICIAN:cmtv1sf9l00cm1id214quat8z, 10분 초과)
+
+stderr | tests/assignment-audit/assignment.db.test.ts > T — 무응답 회수 > T01 TECHNICIAN URGENT 10분 0ms 경계
+[autoAssign] 무응답 자동 회수: cmtv1sff900d51id20x93zri9 (TECHNICIAN:cmtv1sff600d21id2c5yapqfm, 10분 초과)
+
+stderr | tests/assignment-audit/assignment.db.test.ts > T — 무응답 회수 > T01 TECHNICIAN URGENT 10분 1ms 경계
+[autoAssign] 무응답 자동 회수: cmtv1sfig00dd1id268yhr5uc (TECHNICIAN:cmtv1sfid00da1id2i5lcia76, 10분 초과)
+
+stderr | tests/assignment-audit/assignment.db.test.ts > T — 무응답 회수 > T01 TECHNICIAN CRITICAL 10분 0ms 경계
+[autoAssign] 무응답 자동 회수: cmtv1sfmk00dt1id2o4kke5em (TECHNICIAN:cmtv1sfmj00dq1id2mim0eq7v, 10분 초과)
+
+stderr | tests/assignment-audit/assignment.db.test.ts > T — 무응답 회수 > T01 TECHNICIAN CRITICAL 10분 1ms 경계
+[autoAssign] 무응답 자동 회수: cmtv1sfnt00e11id21m58hrk6 (TECHNICIAN:cmtv1sfnr00dy1id2sb3vukvn, 10분 초과)
+
+stderr | tests/assignment-audit/assignment.db.test.ts > T — 무응답 회수 > T02 PROVIDER 무응답 → 기존 대상 제외 → 상대 종류 후보 배정
+[autoAssign] 무응답 자동 회수: cmtv1sfp900ec1id2unghbxvc (PROVIDER:cmtv1sfp700e61id2pg5b848y, 10분 초과)
+
+stdout | tests/assignment-audit/assignment.db.test.ts > T — 무응답 회수 > T02 PROVIDER 무응답 → 기존 대상 제외 → 상대 종류 후보 배정
+[autoAssign] 자동 배정: cmtv1sfp900ec1id2unghbxvc → 배정 검증 (1.4km)
+
+stderr | tests/assignment-audit/assignment.db.test.ts > T — 무응답 회수 > T02 TECHNICIAN 무응답 → 기존 대상 제외 → 상대 종류 후보 배정
+[autoAssign] 무응답 자동 회수: cmtv1sfqm00ep1id2wcknmk12 (TECHNICIAN:cmtv1sfqh00ej1id2cuejmjx1, 10분 초과)
+
+stdout | tests/assignment-audit/assignment.db.test.ts > T — 무응답 회수 > T02 TECHNICIAN 무응답 → 기존 대상 제외 → 상대 종류 후보 배정
+[autoAssign] 자동 배정: cmtv1sfqm00ep1id2wcknmk12 → 배정 검증 (1.4km)
+
+stderr | tests/assignment-audit/assignment.db.test.ts > T — 무응답 회수 > T03 후보 소진 및 토글 꺼짐은 관리자 반환, 재실행 중복 회수 없음
+[autoAssign] 무응답 자동 회수: cmtv1sfsi00ex1id2hpbyznf5 (PROVIDER:cmtv1sfs100ew1id268ty3juc, 10분 초과)
+
+stderr | tests/assignment-audit/assignment.db.test.ts > T — 무응답 회수 > T05 워커 10개 동시 실행도 회수·재배정 각 한 번
+[autoAssign] 무응답 자동 회수: cmtv1sfyv00fw1id2awt974ny (PROVIDER:cmtv1sfys00fq1id2b8r378eg, 10분 초과)
+
+stdout | tests/assignment-audit/assignment.db.test.ts > T — 무응답 회수 > T05 워커 10개 동시 실행도 회수·재배정 각 한 번
+[autoAssign] 자동 배정: cmtv1sfyv00fw1id2awt974ny → 배정 검증 (1.4km)
+
+stdout | tests/assignment-audit/assignment.db.test.ts > R — 수락·거절·재배정 실제 상태 전이 > R04 PROVIDER 좌표 없는 다음 후보는 거절 즉시 재배정 제외, 워커는 허용
+[autoAssign] 자동 배정: cmtv1sg3r00h01id2vs76pi3u → 배정 검증 (지역 매칭)
+
+stdout | tests/assignment-audit/assignment.db.test.ts > R — 수락·거절·재배정 실제 상태 전이 > R04 TECHNICIAN 좌표 없는 다음 후보는 거절 즉시 재배정 제외, 워커는 허용
+[autoAssign] 자동 배정: cmtv1sgf900jl1id2v1clqc6r → 배정 검증 (지역 매칭)
+
+stderr | tests/assignment-audit/assignment.db.test.ts > F — 저장 장애·의도적 경합 재현 (전체 상태가 원자적으로 유지되어야 함) > F02 즉시배정 저장 실패 뒤 워커가 재시도하여 정상 배정
+[autoAssign] 즉시 배정 실패(워커가 재시도) PrismaClientUnknownRequestError:
+Invalid `prisma.assignment.create()` invocation in
+/Users/seolwon/IdeaProjects/mijin/src/lib/assignment.ts:35:27
+
+  32   assignedBy: AssignedBy;
+  33   distanceKm?: number | null;
+  34 }): Promise<void> {
+→ 35   await prisma.assignment.create(
+Error occurred during query execution:
+ConnectorError(ConnectorError { user_facing_error: None, kind: QueryError(PostgresError { code: "P0001", message: "AUDIT_INJECTED_STORAGE_FAILURE", severity: "ERROR", detail: None, column: None, hint: None }), transient: false })
+    at ei.handleRequestError (/Users/seolwon/IdeaProjects/mijin/node_modules/@prisma/client/runtime/library.js:121:7458)
+    at ei.handleAndLogRequestError (/Users/seolwon/IdeaProjects/mijin/node_modules/@prisma/client/runtime/library.js:121:6593)
+    at ei.request (/Users/seolwon/IdeaProjects/mijin/node_modules/@prisma/client/runtime/library.js:121:6300)
+    at a (/Users/seolwon/IdeaProjects/mijin/node_modules/@prisma/client/runtime/library.js:130:9551)
+    at createAssignment (/Users/seolwon/IdeaProjects/mijin/src/lib/assignment.ts:35:3)
+    at claimAndAssign (/Users/seolwon/IdeaProjects/mijin/src/lib/assignment.ts:21:3)
+    at pickAndAssign (/Users/seolwon/IdeaProjects/mijin/src/lib/autoAssign.ts:60:14)
+    at Module.autoAssignNewRequest (/Users/seolwon/IdeaProjects/mijin/src/lib/autoAssign.ts:84:5)
+    at /Users/seolwon/IdeaProjects/mijin/tests/assignment-audit/assignment.db.test.ts:337:5
+    at file:///Users/seolwon/IdeaProjects/mijin/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:20 {
+  clientVersion: '6.19.3'
+}
+
+stderr | tests/assignment-audit/assignment.db.test.ts > F — 저장 장애·의도적 경합 재현 (전체 상태가 원자적으로 유지되어야 함) > F06 후보 없음 동시 워커 10개 → 관리자 알림 한 번
+[autoAssign] 담당 지역 배정 대상 없음 → 관리자 반환: cmtv1sh3a00q21id2djlt5inq
+
+stderr | tests/assignment-audit/assignment.db.test.ts > F — 저장 장애·의도적 경합 재현 (전체 상태가 원자적으로 유지되어야 함) > F06 후보 없음 동시 워커 10개 → 관리자 알림 한 번
+[autoAssign] 담당 지역 배정 대상 없음 → 관리자 반환: cmtv1sh3a00q21id2djlt5inq
+
+stderr | tests/assignment-audit/assignment.db.test.ts > F — 저장 장애·의도적 경합 재현 (전체 상태가 원자적으로 유지되어야 함) > F06 후보 없음 동시 워커 10개 → 관리자 알림 한 번
+[autoAssign] 담당 지역 배정 대상 없음 → 관리자 반환: cmtv1sh3a00q21id2djlt5inq
+
+stderr | tests/assignment-audit/assignment.db.test.ts > F — 저장 장애·의도적 경합 재현 (전체 상태가 원자적으로 유지되어야 함) > F06 후보 없음 동시 워커 10개 → 관리자 알림 한 번
+[autoAssign] 담당 지역 배정 대상 없음 → 관리자 반환: cmtv1sh3a00q21id2djlt5inq
+
+stderr | tests/assignment-audit/assignment.db.test.ts > F — 저장 장애·의도적 경합 재현 (전체 상태가 원자적으로 유지되어야 함) > F06 후보 없음 동시 워커 10개 → 관리자 알림 한 번
+[autoAssign] 담당 지역 배정 대상 없음 → 관리자 반환: cmtv1sh3a00q21id2djlt5inq
+
+stderr | tests/assignment-audit/assignment.db.test.ts > F — 저장 장애·의도적 경합 재현 (전체 상태가 원자적으로 유지되어야 함) > F06 후보 없음 동시 워커 10개 → 관리자 알림 한 번
+[autoAssign] 담당 지역 배정 대상 없음 → 관리자 반환: cmtv1sh3a00q21id2djlt5inq
+
+stderr | tests/assignment-audit/assignment.db.test.ts > F — 저장 장애·의도적 경합 재현 (전체 상태가 원자적으로 유지되어야 함) > F06 후보 없음 동시 워커 10개 → 관리자 알림 한 번
+[autoAssign] 담당 지역 배정 대상 없음 → 관리자 반환: cmtv1sh3a00q21id2djlt5inq
+
+stderr | tests/assignment-audit/assignment.db.test.ts > F — 저장 장애·의도적 경합 재현 (전체 상태가 원자적으로 유지되어야 함) > F06 후보 없음 동시 워커 10개 → 관리자 알림 한 번
+[autoAssign] 담당 지역 배정 대상 없음 → 관리자 반환: cmtv1sh3a00q21id2djlt5inq
+
+stderr | tests/assignment-audit/assignment.db.test.ts > F — 저장 장애·의도적 경합 재현 (전체 상태가 원자적으로 유지되어야 함) > F06 후보 없음 동시 워커 10개 → 관리자 알림 한 번
+[autoAssign] 담당 지역 배정 대상 없음 → 관리자 반환: cmtv1sh3a00q21id2djlt5inq
+
+stderr | tests/assignment-audit/assignment.db.test.ts > F — 저장 장애·의도적 경합 재현 (전체 상태가 원자적으로 유지되어야 함) > F06 후보 없음 동시 워커 10개 → 관리자 알림 한 번
+[autoAssign] 담당 지역 배정 대상 없음 → 관리자 반환: cmtv1sh3a00q21id2djlt5inq
+
+ ❯ tests/assignment-audit/assignment.db.test.ts (132 tests | 14 failed) 6633ms
+     ✓ E PROVIDER active=false approval=PENDING contract=CONFIRMED 76ms
+     ✓ E PROVIDER active=false approval=REJECTED contract=CONFIRMED 42ms
+     ✓ E PROVIDER active=false approval=APPROVED contract=CONFIRMED 34ms
+     ✓ E PROVIDER active=true approval=PENDING contract=CONFIRMED 32ms
+     ✓ E PROVIDER active=true approval=REJECTED contract=CONFIRMED 37ms
+     ✓ E PROVIDER active=true approval=APPROVED contract=CONFIRMED 41ms
+     ✓ E TECHNICIAN active=false approval=PENDING contract=null 38ms
+     ✓ E TECHNICIAN active=false approval=PENDING contract=DRAFT 38ms
+     ✓ E TECHNICIAN active=false approval=PENDING contract=SUBMITTED 37ms
+     ✓ E TECHNICIAN active=false approval=PENDING contract=CONFIRMED 36ms
+     ✓ E TECHNICIAN active=false approval=REJECTED contract=null 37ms
+     ✓ E TECHNICIAN active=false approval=REJECTED contract=DRAFT 34ms
+     ✓ E TECHNICIAN active=false approval=REJECTED contract=SUBMITTED 36ms
+     ✓ E TECHNICIAN active=false approval=REJECTED contract=CONFIRMED 36ms
+     ✓ E TECHNICIAN active=false approval=APPROVED contract=null 38ms
+     ✓ E TECHNICIAN active=false approval=APPROVED contract=DRAFT 37ms
+     ✓ E TECHNICIAN active=false approval=APPROVED contract=SUBMITTED 46ms
+     ✓ E TECHNICIAN active=false approval=APPROVED contract=CONFIRMED 45ms
+     ✓ E TECHNICIAN active=true approval=PENDING contract=null 35ms
+     ✓ E TECHNICIAN active=true approval=PENDING contract=DRAFT 38ms
+     ✓ E TECHNICIAN active=true approval=PENDING contract=SUBMITTED 47ms
+     ✓ E TECHNICIAN active=true approval=PENDING contract=CONFIRMED 40ms
+     ✓ E TECHNICIAN active=true approval=REJECTED contract=null 34ms
+     ✓ E TECHNICIAN active=true approval=REJECTED contract=DRAFT 36ms
+     ✓ E TECHNICIAN active=true approval=REJECTED contract=SUBMITTED 42ms
+     ✓ E TECHNICIAN active=true approval=REJECTED contract=CONFIRMED 41ms
+     ✓ E TECHNICIAN active=true approval=APPROVED contract=null 35ms
+     ✓ E TECHNICIAN active=true approval=APPROVED contract=DRAFT 33ms
+     ✓ E TECHNICIAN active=true approval=APPROVED contract=SUBMITTED 37ms
+     ✓ E TECHNICIAN active=true approval=APPROVED contract=CONFIRMED 42ms
+     ✓ A01 토글 false 또는 설정 없음은 즉시배정·워커 모두 중지 39ms
+     ✓ A01 토글 null 또는 설정 없음은 즉시배정·워커 모두 중지 38ms
+     ✓ A02 NORMAL 접수 직후 대기시간 없이 1순위 배정, 중복 실행 무해 54ms
+     ✓ A02 URGENT 접수 직후 대기시간 없이 1순위 배정, 중복 실행 무해 47ms
+     ✓ A02 CRITICAL 접수 직후 대기시간 없이 1순위 배정, 중복 실행 무해 43ms
+     ✓ A03 ASSIGNED 접수는 즉시배정에서 제외 36ms
+     ✓ A03 ACCEPTED 접수는 즉시배정에서 제외 35ms
+     ✓ A03 DISPATCHED 접수는 즉시배정에서 제외 36ms
+     ✓ A03 COMPLETED 접수는 즉시배정에서 제외 39ms
+     ✓ A03 CANCELED 접수는 즉시배정에서 제외 36ms
+     ✓ A04 주소 null는 관리자 반환, 반복 알림 없음 38ms
+     ✓ A04 주소 는 관리자 반환, 반복 알림 없음 37ms
+     ✓ A04 주소 지역을 알 수 없음는 관리자 반환, 반복 알림 없음 35ms
+     ✓ A05 서비스 지역 []와 좌표 없음의 실제 필터 38ms
+     ✓ A05 서비스 지역 [ '서울특별시' ]와 좌표 없음의 실제 필터 32ms
+     ✓ A05 서비스 지역 [ '서울특별시 강남구' ]와 좌표 없음의 실제 필터 35ms
+     ✓ A05 서비스 지역 [ '부산광역시' ]와 좌표 없음의 실제 필터 36ms
+     ✓ A06 후보 0명 → 관리자 반환 36ms
+     ✓ A07 REJECTED 이력 후보는 자동 제외, 수동 재선택 허용 40ms
+     ✓ A07 EXPIRED 이력 후보는 자동 제외, 수동 재선택 허용 42ms
+     ✓ A07 CANCELED 이력 후보는 자동 제외, 수동 재선택 허용 51ms
+     ✓ A08 NORMAL 워커 마감 -1ms 경계 109ms
+     ✓ A08 NORMAL 워커 마감 0ms 경계 63ms
+     ✓ A08 NORMAL 워커 마감 1ms 경계 39ms
+     ✓ A08 URGENT 워커 마감 -1ms 경계 49ms
+     ✓ A08 URGENT 워커 마감 0ms 경계 38ms
+     ✓ A08 URGENT 워커 마감 1ms 경계 41ms
+     ✓ A08 CRITICAL 워커 마감 -1ms 경계 74ms
+     ✓ A08 CRITICAL 워커 마감 0ms 경계 51ms
+     ✓ A08 CRITICAL 워커 마감 1ms 경계 86ms
+     ✓ M01 NORMAL 지역 밖·거리 없음·알 0 후보도 명시적 수동 배정 허용 40ms
+     ✓ M01 URGENT 지역 밖·거리 없음·알 0 후보도 명시적 수동 배정 허용 37ms
+     ✓ M01 CRITICAL 지역 밖·거리 없음·알 0 후보도 명시적 수동 배정 허용 41ms
+     ✓ M02 ASSIGNED는 409, 배정 이력 추가 없음 31ms
+     ✓ M02 ACCEPTED는 409, 배정 이력 추가 없음 34ms
+     ✓ M02 DISPATCHED는 409, 배정 이력 추가 없음 32ms
+     ✓ M02 COMPLETED는 409, 배정 이력 추가 없음 59ms
+     ✓ M02 CANCELED는 409, 배정 이력 추가 없음 42ms
+     ✓ M03 미인증·타 역할·미존재 대상·미존재 접수·입력 검증 34ms
+     ✓ M04 자동 10개 + 수동 10개 동시 배정 → 단일 이력·문자 78ms
+     ✓ T01 PROVIDER NORMAL 10분 -1ms 경계 35ms
+     ✓ T01 PROVIDER NORMAL 10분 0ms 경계 36ms
+     ✓ T01 PROVIDER NORMAL 10분 1ms 경계 64ms
+     ✓ T01 PROVIDER URGENT 10분 -1ms 경계 72ms
+     ✓ T01 PROVIDER URGENT 10분 0ms 경계 100ms
+     ✓ T01 PROVIDER URGENT 10분 1ms 경계 62ms
+     ✓ T01 PROVIDER CRITICAL 10분 -1ms 경계 206ms
+     ✓ T01 PROVIDER CRITICAL 10분 0ms 경계 230ms
+     ✓ T01 PROVIDER CRITICAL 10분 1ms 경계 118ms
+     ✓ T01 TECHNICIAN NORMAL 10분 -1ms 경계 119ms
+     ✓ T01 TECHNICIAN NORMAL 10분 0ms 경계 112ms
+     ✓ T01 TECHNICIAN NORMAL 10분 1ms 경계 129ms
+     ✓ T01 TECHNICIAN URGENT 10분 -1ms 경계 72ms
+     ✓ T01 TECHNICIAN URGENT 10분 0ms 경계 128ms
+     ✓ T01 TECHNICIAN URGENT 10분 1ms 경계 115ms
+     ✓ T01 TECHNICIAN CRITICAL 10분 -1ms 경계 102ms
+     ✓ T01 TECHNICIAN CRITICAL 10분 0ms 경계 44ms
+     ✓ T01 TECHNICIAN CRITICAL 10분 1ms 경계 46ms
+     ✓ T02 PROVIDER 무응답 → 기존 대상 제외 → 상대 종류 후보 배정 58ms
+     ✓ T02 TECHNICIAN 무응답 → 기존 대상 제외 → 상대 종류 후보 배정 50ms
+     ✓ T03 후보 소진 및 토글 꺼짐은 관리자 반환, 재실행 중복 회수 없음 67ms
+     ✓ T04 이미 ACCEPTED 배정은 시간 초과 처리 제외 50ms
+     ✓ T04 이미 REJECTED 배정은 시간 초과 처리 제외 40ms
+     ✓ T04 이미 CANCELED 배정은 시간 초과 처리 제외 40ms
+     ✓ T04 이미 EXPIRED 배정은 시간 초과 처리 제외 39ms
+     ✓ T05 워커 10개 동시 실행도 회수·재배정 각 한 번 58ms
+     ✓ R01 PROVIDER 수락 중복 요청 → 한 번만 알 차감 41ms
+     ✓ R02 PROVIDER 거절 → 다른 종류의 다음 순위 후보 47ms
+     ✓ R03 PROVIDER 수동배정 거절은 후보가 있어도 관리자 반환 39ms
+     ✓ R04 PROVIDER 좌표 없는 다음 후보는 거절 즉시 재배정 제외, 워커는 허용 53ms
+     ✓ R05 PROVIDER 기존 AUTO 건은 토글 OFF 후 거절해도 다음 후보 배정 (현행 정책) 49ms
+     ✓ R06 PROVIDER 다른 소유자 수락·거절은 404 38ms
+     ✓ R07 PROVIDER 수락 vs reject 동시 경합 불변식 41ms
+     ✓ R07 PROVIDER 수락 vs recall 동시 경합 불변식 38ms
+     ✓ R07 PROVIDER 수락 vs unassign 동시 경합 불변식 37ms
+     ✓ R07 PROVIDER 수락 vs cancel 동시 경합 불변식 36ms
+     ✓ R01 TECHNICIAN 수락 중복 요청 → 한 번만 알 차감 38ms
+     ✓ R02 TECHNICIAN 거절 → 다른 종류의 다음 순위 후보 45ms
+     ✓ R03 TECHNICIAN 수동배정 거절은 후보가 있어도 관리자 반환 43ms
+     ✓ R04 TECHNICIAN 좌표 없는 다음 후보는 거절 즉시 재배정 제외, 워커는 허용 47ms
+     ✓ R05 TECHNICIAN 기존 AUTO 건은 토글 OFF 후 거절해도 다음 후보 배정 (현행 정책) 40ms
+     ✓ R06 TECHNICIAN 다른 소유자 수락·거절은 404 39ms
+     ✓ R07 TECHNICIAN 수락 vs reject 동시 경합 불변식 53ms
+     ✓ R07 TECHNICIAN 수락 vs recall 동시 경합 불변식 37ms
+     ✓ R07 TECHNICIAN 수락 vs unassign 동시 경합 불변식 35ms
+     ✓ R07 TECHNICIAN 수락 vs cancel 동시 경합 불변식 36ms
+     ✓ S01 PROVIDER 30일 경계 포함, 수락+거절만 합산, 미응답 제외, 평점 기본 3 47ms
+     ✓ S01 TECHNICIAN 30일 경계 포함, 수락+거절만 합산, 미응답 제외, 평점 기본 3 39ms
+     × F01 배정 INSERT 실패 시 접수 ASSIGNED 전이도 롤백 45ms
+     × F02 즉시배정 저장 실패 뒤 워커가 재시도하여 정상 배정 40ms
+     × F03 PROVIDER accept 접수 UPDATE 실패 시 배정 응답도 롤백 35ms
+     × F03 PROVIDER reject 접수 UPDATE 실패 시 배정 응답도 롤백 36ms
+     × F03 PROVIDER recall 접수 UPDATE 실패 시 배정 응답도 롤백 36ms
+     × F03 PROVIDER unassign 접수 UPDATE 실패 시 배정 응답도 롤백 34ms
+     × F03 TECHNICIAN accept 접수 UPDATE 실패 시 배정 응답도 롤백 36ms
+     × F03 TECHNICIAN reject 접수 UPDATE 실패 시 배정 응답도 롤백 35ms
+     × F03 TECHNICIAN recall 접수 UPDATE 실패 시 배정 응답도 롤백 36ms
+     × F03 TECHNICIAN unassign 접수 UPDATE 실패 시 배정 응답도 롤백 40ms
+     × F04 취소 배정 UPDATE 실패 시 접수 취소도 롤백 37ms
+     × F05 PROVIDER 거절 후보 조회 중 관리자 취소 → 취소된 접수에 신규 배정 금지 41ms
+     × F05 TECHNICIAN 거절 후보 조회 중 관리자 취소 → 취소된 접수에 신규 배정 금지 43ms
+     × F06 후보 없음 동시 워커 10개 → 관리자 알림 한 번 45ms
+ ✓ tests/assignment-audit/ranking.test.ts (9 tests) 155ms
+
+⎯⎯⎯⎯⎯⎯ Failed Tests 14 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/assignment-audit/assignment.db.test.ts > F — 저장 장애·의도적 경합 재현 (전체 상태가 원자적으로 유지되어야 함) > F01 배정 INSERT 실패 시 접수 ASSIGNED 전이도 롤백
+AssertionError: expected { …(20) } to match object { status: 'RECEIVED', assignments: [] }
+(18 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+    "assignments": [],
+-   "status": "RECEIVED",
++   "status": "ASSIGNED",
+  }
+
+ ❯ tests/assignment-audit/assignment.db.test.ts:332:33
+    330|     const t = await target(); const req = await request(); await fault…
+    331|     await expect(claimAndAssign({ requestId: req.id, target: t, assign…
+    332|     expect(await state(req.id)).toMatchObject({ status: 'RECEIVED', as…
+       |                                 ^
+    333|     expect(sendSms).not.toHaveBeenCalled();
+    334|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/14]⎯
+
+ FAIL  tests/assignment-audit/assignment.db.test.ts > F — 저장 장애·의도적 경합 재현 (전체 상태가 원자적으로 유지되어야 함) > F02 즉시배정 저장 실패 뒤 워커가 재시도하여 정상 배정
+AssertionError: expected undefined to match object { Object (providerId) }
+
+- Expected:
+{
+  "providerId": "cmtv1sgqp00nk1id2ado1iw1m",
+}
+
++ Received:
+undefined
+
+ ❯ tests/assignment-audit/assignment.db.test.ts:338:50
+    336|     const t = await target(); const req = await request({ assignBaseAt…
+    337|     await autoAssignNewRequest(req.id); await clearFault(); await runA…
+    338|     expect((await state(req.id)).assignments[0]).toMatchObject(fk(t));
+       |                                                  ^
+    339|   });
+    340|   for (const kind of kinds) for (const action of ['accept', 'reject', …
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/14]⎯
+
+ FAIL  tests/assignment-audit/assignment.db.test.ts > F — 저장 장애·의도적 경합 재현 (전체 상태가 원자적으로 유지되어야 함) > F03 PROVIDER accept 접수 UPDATE 실패 시 배정 응답도 롤백
+AssertionError: expected { …(20) } to match object { status: 'ASSIGNED', …(1) }
+(28 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+    "assignments": [
+      {
+-       "respondedAt": null,
+-       "status": "REQUESTED",
++       "assignedBy": "ADMIN",
++       "createdAt": 2026-09-10T02:50:00.000Z,
++       "distanceKm": null,
++       "id": "cmtv1sgrt00nt1id2wdk9bjdj",
++       "providerId": "cmtv1sgrr00nq1id2jhbgfqce",
++       "rejectReason": null,
++       "requestId": "cmtv1sgrs00nr1id2k4elxq63",
++       "respondedAt": 2026-09-10T04:49:17.035Z,
++       "status": "ACCEPTED",
++       "technicianId": null,
+      },
+    ],
+    "status": "ASSIGNED",
+  }
+
+ ❯ tests/assignment-audit/assignment.db.test.ts:346:35
+    344|       const op = action === 'accept' ? accept(t, a.id) : action === 'r…
+    345|       await expect(op).rejects.toThrow('AUDIT_INJECTED_STORAGE_FAILURE…
+    346|       expect(await state(req.id)).toMatchObject({ status: 'ASSIGNED', …
+       |                                   ^
+    347|     });
+    348|   }
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/14]⎯
+
+ FAIL  tests/assignment-audit/assignment.db.test.ts > F — 저장 장애·의도적 경합 재현 (전체 상태가 원자적으로 유지되어야 함) > F03 PROVIDER reject 접수 UPDATE 실패 시 배정 응답도 롤백
+AssertionError: expected { …(20) } to match object { status: 'ASSIGNED', …(1) }
+(28 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+    "assignments": [
+      {
+-       "respondedAt": null,
+-       "status": "REQUESTED",
++       "assignedBy": "ADMIN",
++       "createdAt": 2026-09-10T02:50:00.000Z,
++       "distanceKm": null,
++       "id": "cmtv1sgsu00nz1id2iqfkyic1",
++       "providerId": "cmtv1sgss00nw1id2m18cpb0y",
++       "rejectReason": "검증 거절",
++       "requestId": "cmtv1sgst00nx1id27hvt8ymt",
++       "respondedAt": 2026-09-10T04:49:17.072Z,
++       "status": "REJECTED",
++       "technicianId": null,
+      },
+    ],
+    "status": "ASSIGNED",
+  }
+
+ ❯ tests/assignment-audit/assignment.db.test.ts:346:35
+    344|       const op = action === 'accept' ? accept(t, a.id) : action === 'r…
+    345|       await expect(op).rejects.toThrow('AUDIT_INJECTED_STORAGE_FAILURE…
+    346|       expect(await state(req.id)).toMatchObject({ status: 'ASSIGNED', …
+       |                                   ^
+    347|     });
+    348|   }
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/14]⎯
+
+ FAIL  tests/assignment-audit/assignment.db.test.ts > F — 저장 장애·의도적 경합 재현 (전체 상태가 원자적으로 유지되어야 함) > F03 PROVIDER recall 접수 UPDATE 실패 시 배정 응답도 롤백
+AssertionError: expected { …(20) } to match object { status: 'ASSIGNED', …(1) }
+(28 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+    "assignments": [
+      {
+-       "respondedAt": null,
+-       "status": "REQUESTED",
++       "assignedBy": "ADMIN",
++       "createdAt": 2026-09-10T02:50:00.000Z,
++       "distanceKm": null,
++       "id": "cmtv1sgtu00o51id2mvij02ly",
++       "providerId": "cmtv1sgts00o21id2y5m58016",
++       "rejectReason": null,
++       "requestId": "cmtv1sgtt00o31id2gg8f9a0u",
++       "respondedAt": 2026-09-10T04:49:17.108Z,
++       "status": "EXPIRED",
++       "technicianId": null,
+      },
+    ],
+    "status": "ASSIGNED",
+  }
+
+ ❯ tests/assignment-audit/assignment.db.test.ts:346:35
+    344|       const op = action === 'accept' ? accept(t, a.id) : action === 'r…
+    345|       await expect(op).rejects.toThrow('AUDIT_INJECTED_STORAGE_FAILURE…
+    346|       expect(await state(req.id)).toMatchObject({ status: 'ASSIGNED', …
+       |                                   ^
+    347|     });
+    348|   }
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/14]⎯
+
+ FAIL  tests/assignment-audit/assignment.db.test.ts > F — 저장 장애·의도적 경합 재현 (전체 상태가 원자적으로 유지되어야 함) > F03 PROVIDER unassign 접수 UPDATE 실패 시 배정 응답도 롤백
+AssertionError: expected { …(20) } to match object { status: 'ASSIGNED', …(1) }
+(28 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+    "assignments": [
+      {
+-       "respondedAt": null,
+-       "status": "REQUESTED",
++       "assignedBy": "ADMIN",
++       "createdAt": 2026-09-10T02:50:00.000Z,
++       "distanceKm": null,
++       "id": "cmtv1sgus00ob1id24hpcj22t",
++       "providerId": "cmtv1sgur00o81id2cyqzwiw6",
++       "rejectReason": null,
++       "requestId": "cmtv1sgus00o91id2z8b7h7eq",
++       "respondedAt": 2026-09-10T04:49:17.143Z,
++       "status": "CANCELED",
++       "technicianId": null,
+      },
+    ],
+    "status": "ASSIGNED",
+  }
+
+ ❯ tests/assignment-audit/assignment.db.test.ts:346:35
+    344|       const op = action === 'accept' ? accept(t, a.id) : action === 'r…
+    345|       await expect(op).rejects.toThrow('AUDIT_INJECTED_STORAGE_FAILURE…
+    346|       expect(await state(req.id)).toMatchObject({ status: 'ASSIGNED', …
+       |                                   ^
+    347|     });
+    348|   }
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/14]⎯
+
+ FAIL  tests/assignment-audit/assignment.db.test.ts > F — 저장 장애·의도적 경합 재현 (전체 상태가 원자적으로 유지되어야 함) > F03 TECHNICIAN accept 접수 UPDATE 실패 시 배정 응답도 롤백
+AssertionError: expected { …(20) } to match object { status: 'ASSIGNED', …(1) }
+(28 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+    "assignments": [
+      {
+-       "respondedAt": null,
+-       "status": "REQUESTED",
++       "assignedBy": "ADMIN",
++       "createdAt": 2026-09-10T02:50:00.000Z,
++       "distanceKm": null,
++       "id": "cmtv1sgvt00oj1id2zb362k05",
++       "providerId": null,
++       "rejectReason": null,
++       "requestId": "cmtv1sgvs00oh1id29puxw8ni",
++       "respondedAt": 2026-09-10T04:49:17.179Z,
++       "status": "ACCEPTED",
++       "technicianId": "cmtv1sgvr00oe1id2vljlvhir",
+      },
+    ],
+    "status": "ASSIGNED",
+  }
+
+ ❯ tests/assignment-audit/assignment.db.test.ts:346:35
+    344|       const op = action === 'accept' ? accept(t, a.id) : action === 'r…
+    345|       await expect(op).rejects.toThrow('AUDIT_INJECTED_STORAGE_FAILURE…
+    346|       expect(await state(req.id)).toMatchObject({ status: 'ASSIGNED', …
+       |                                   ^
+    347|     });
+    348|   }
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/14]⎯
+
+ FAIL  tests/assignment-audit/assignment.db.test.ts > F — 저장 장애·의도적 경합 재현 (전체 상태가 원자적으로 유지되어야 함) > F03 TECHNICIAN reject 접수 UPDATE 실패 시 배정 응답도 롤백
+AssertionError: expected { …(20) } to match object { status: 'ASSIGNED', …(1) }
+(28 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+    "assignments": [
+      {
+-       "respondedAt": null,
+-       "status": "REQUESTED",
++       "assignedBy": "ADMIN",
++       "createdAt": 2026-09-10T02:50:00.000Z,
++       "distanceKm": null,
++       "id": "cmtv1sgws00or1id2kno30674",
++       "providerId": null,
++       "rejectReason": "검증 거절",
++       "requestId": "cmtv1sgwr00op1id28wjhvx3w",
++       "respondedAt": 2026-09-10T04:49:17.214Z,
++       "status": "REJECTED",
++       "technicianId": "cmtv1sgwq00om1id2qf8o0ame",
+      },
+    ],
+    "status": "ASSIGNED",
+  }
+
+ ❯ tests/assignment-audit/assignment.db.test.ts:346:35
+    344|       const op = action === 'accept' ? accept(t, a.id) : action === 'r…
+    345|       await expect(op).rejects.toThrow('AUDIT_INJECTED_STORAGE_FAILURE…
+    346|       expect(await state(req.id)).toMatchObject({ status: 'ASSIGNED', …
+       |                                   ^
+    347|     });
+    348|   }
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/14]⎯
+
+ FAIL  tests/assignment-audit/assignment.db.test.ts > F — 저장 장애·의도적 경합 재현 (전체 상태가 원자적으로 유지되어야 함) > F03 TECHNICIAN recall 접수 UPDATE 실패 시 배정 응답도 롤백
+AssertionError: expected { …(20) } to match object { status: 'ASSIGNED', …(1) }
+(28 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+    "assignments": [
+      {
+-       "respondedAt": null,
+-       "status": "REQUESTED",
++       "assignedBy": "ADMIN",
++       "createdAt": 2026-09-10T02:50:00.000Z,
++       "distanceKm": null,
++       "id": "cmtv1sgxr00oz1id2jy6ind5i",
++       "providerId": null,
++       "rejectReason": null,
++       "requestId": "cmtv1sgxq00ox1id2pda2h8xe",
++       "respondedAt": 2026-09-10T04:49:17.249Z,
++       "status": "EXPIRED",
++       "technicianId": "cmtv1sgxp00ou1id2v07aj2lk",
+      },
+    ],
+    "status": "ASSIGNED",
+  }
+
+ ❯ tests/assignment-audit/assignment.db.test.ts:346:35
+    344|       const op = action === 'accept' ? accept(t, a.id) : action === 'r…
+    345|       await expect(op).rejects.toThrow('AUDIT_INJECTED_STORAGE_FAILURE…
+    346|       expect(await state(req.id)).toMatchObject({ status: 'ASSIGNED', …
+       |                                   ^
+    347|     });
+    348|   }
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/14]⎯
+
+ FAIL  tests/assignment-audit/assignment.db.test.ts > F — 저장 장애·의도적 경합 재현 (전체 상태가 원자적으로 유지되어야 함) > F03 TECHNICIAN unassign 접수 UPDATE 실패 시 배정 응답도 롤백
+AssertionError: expected { …(20) } to match object { status: 'ASSIGNED', …(1) }
+(28 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+    "assignments": [
+      {
+-       "respondedAt": null,
+-       "status": "REQUESTED",
++       "assignedBy": "ADMIN",
++       "createdAt": 2026-09-10T02:50:00.000Z,
++       "distanceKm": null,
++       "id": "cmtv1sgyv00p71id2kto1hu9e",
++       "providerId": null,
++       "rejectReason": null,
++       "requestId": "cmtv1sgyu00p51id2c27ckkr7",
++       "respondedAt": 2026-09-10T04:49:17.289Z,
++       "status": "CANCELED",
++       "technicianId": "cmtv1sgys00p21id2mmbyxjzg",
+      },
+    ],
+    "status": "ASSIGNED",
+  }
+
+ ❯ tests/assignment-audit/assignment.db.test.ts:346:35
+    344|       const op = action === 'accept' ? accept(t, a.id) : action === 'r…
+    345|       await expect(op).rejects.toThrow('AUDIT_INJECTED_STORAGE_FAILURE…
+    346|       expect(await state(req.id)).toMatchObject({ status: 'ASSIGNED', …
+       |                                   ^
+    347|     });
+    348|   }
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[10/14]⎯
+
+ FAIL  tests/assignment-audit/assignment.db.test.ts > F — 저장 장애·의도적 경합 재현 (전체 상태가 원자적으로 유지되어야 함) > F04 취소 배정 UPDATE 실패 시 접수 취소도 롤백
+AssertionError: expected { …(20) } to match object { status: 'ASSIGNED', …(1) }
+(18 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+    "assignments": [
+-     {
++     ObjectContaining {
+        "status": "REQUESTED",
+      },
+    ],
+-   "status": "ASSIGNED",
++   "status": "CANCELED",
+  }
+
+ ❯ tests/assignment-audit/assignment.db.test.ts:352:33
+    350|     const t = await target(); const { req } = await pending(t); await …
+    351|     await expect(adminCall(cancel, req.id)).rejects.toThrow('AUDIT_INJ…
+    352|     expect(await state(req.id)).toMatchObject({ status: 'ASSIGNED', as…
+       |                                 ^
+    353|   });
+    354|   it.each(kinds)('F05 %s 거절 후보 조회 중 관리자 취소 → 취소된 접수에 신규 배정 금지', async …
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[11/14]⎯
+
+ FAIL  tests/assignment-audit/assignment.db.test.ts > F — 저장 장애·의도적 경합 재현 (전체 상태가 원자적으로 유지되어야 함) > F05 PROVIDER 거절 후보 조회 중 관리자 취소 → 취소된 접수에 신규 배정 금지
+ FAIL  tests/assignment-audit/assignment.db.test.ts > F — 저장 장애·의도적 경합 재현 (전체 상태가 원자적으로 유지되어야 함) > F05 TECHNICIAN 거절 후보 조회 중 관리자 취소 → 취소된 접수에 신규 배정 금지
+AssertionError: expected [ { …(10) } ] to have a length of +0 but got 1
+
+- Expected
++ Received
+
+- 0
++ 1
+
+ ❯ tests/assignment-audit/assignment.db.test.ts:363:65
+    361|     await inflight;
+    362|     const s = await state(req.id); expect(s.status).toBe('CANCELED');
+    363|     expect(s.assignments.filter(x => x.status === 'REQUESTED')).toHave…
+       |                                                                 ^
+    364|   });
+    365|   it('F06 후보 없음 동시 워커 10개 → 관리자 알림 한 번', async () => {
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[12/14]⎯
+
+ FAIL  tests/assignment-audit/assignment.db.test.ts > F — 저장 장애·의도적 경합 재현 (전체 상태가 원자적으로 유지되어야 함) > F06 후보 없음 동시 워커 10개 → 관리자 알림 한 번
+AssertionError: expected "vi.fn()" to be called 1 times, but got 10 times
+ ❯ tests/assignment-audit/assignment.db.test.ts:367:34
+    365|   it('F06 후보 없음 동시 워커 10개 → 관리자 알림 한 번', async () => {
+    366|     const req = await request(); await Promise.all(Array.from({ length…
+    367|     expect(notifyAdminAttention).toHaveBeenCalledTimes(1);
+       |                                  ^
+    368|   });
+    369| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[13/14]⎯
+
+
+ Test Files  1 failed | 1 passed (2)
+      Tests  14 failed | 127 passed (141)
+   Start at  13:49:10
+   Duration  7.23s (transform 117ms, setup 0ms, import 259ms, tests 6.79s, environment 0ms)
+
+JSON report written to /Users/seolwon/IdeaProjects/mijin/docs/assignment-audit-2026-09-10/evidence/before/assignment.json

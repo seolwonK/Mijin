@@ -1,6 +1,6 @@
 import { prisma } from '@/lib/db';
 import { getCandidates } from '@/lib/matching';
-import { claimAndAssign } from '@/lib/assignment';
+import { claimAndAssign, transitionPendingAssignment, AssignmentTargetUnavailableError } from '@/lib/assignment';
 import { regionFromAddress } from '@/lib/regions';
 import { notifyAdminAttention } from '@/lib/adminAlerts';
 import { sendSms } from '@/lib/sms';
@@ -22,6 +22,20 @@ type RequestLike = {
   needsAttention: boolean;
 };
 
+// false → true 전환을 DB에서 선점한 호출만 알린다. 동시 워커의 오래된
+// req.needsAttention 스냅샷으로 판단하면 동일 관리자 문자가 여러 번 발송된다.
+async function markAttention(req: RequestLike, reason: string): Promise<void> {
+  const marked = await prisma.serviceRequest.updateMany({
+    where: { id: req.id, status: 'RECEIVED', needsAttention: false },
+    data: { needsAttention: true, assignBaseAt: new Date() },
+  });
+  if (marked.count > 0) void notifyAdminAttention(req, reason);
+  else await prisma.serviceRequest.updateMany({
+    where: { id: req.id, status: 'RECEIVED', needsAttention: true },
+    data: { assignBaseAt: new Date() },
+  });
+}
+
 // 배정대기 접수 1건에 대해 후보를 골라 배정한다 — 즉시 배정·워커·무응답 재배정 공용.
 // 실패 사유별로 확인요망 전환 + (전환 시점에만) 관리자 문자.
 async function pickAndAssign(
@@ -32,11 +46,7 @@ async function pickAndAssign(
   // 거리보다 앞서는 사슬 특성상 원거리 알 부자에게 배정될 수 있다 — 확인요망으로
   // 관리자 판단(거리 정렬 참고)에 맡긴다.
   if (regionFromAddress(req.address) == null) {
-    await prisma.serviceRequest.updateMany({
-      where: { id: req.id, status: 'RECEIVED' },
-      data: { needsAttention: true, assignBaseAt: new Date() },
-    });
-    if (!req.needsAttention) void notifyAdminAttention(req, '지역 판별 불가 — 자동배정 제외');
+    await markAttention(req, '지역 판별 불가 — 자동배정 제외');
     console.warn(`[autoAssign] 지역 판별 불가 → 관리자 반환: ${req.id}`);
     return 'no-region';
   }
@@ -48,21 +58,24 @@ async function pickAndAssign(
   );
   const best = candidates[0];
   if (!best) {
-    await prisma.serviceRequest.updateMany({
-      where: { id: req.id, status: 'RECEIVED' },
-      data: { needsAttention: true, assignBaseAt: new Date() },
-    });
-    if (!req.needsAttention) void notifyAdminAttention(req, '담당 지역 배정 후보 없음');
+    await markAttention(req, '담당 지역 배정 후보 없음');
     console.warn(`[autoAssign] 담당 지역 배정 대상 없음 → 관리자 반환: ${req.id}`);
     return 'no-candidate';
   }
 
-  const ok = await claimAndAssign({
-    requestId: req.id,
-    target: { kind: best.kind, id: best.id },
-    assignedBy: 'AUTO',
-    distanceKm: best.distanceKm,
-  });
+  let ok: boolean;
+  try {
+    ok = await claimAndAssign({
+      requestId: req.id,
+      target: { kind: best.kind, id: best.id },
+      assignedBy: 'AUTO',
+      distanceKm: best.distanceKm,
+    });
+  } catch (error) {
+    if (!(error instanceof AssignmentTargetUnavailableError)) throw error;
+    await markAttention(req, error.message);
+    return 'no-candidate';
+  }
   if (!ok) return 'lost-race'; // 그 사이 관리자 수동 배정 등 — CAS 패배는 정상 경로
   console.log(
     `[autoAssign] 자동 배정: ${req.id} → ${best.name} (${
@@ -109,38 +122,33 @@ export async function recallStaleAssignments(
 
   let recalled = 0;
   for (const a of pending) {
-    const limitMs = RESPONSE_TIMEOUT_MINUTES[a.request.urgency] * 60_000;
-    if (a.createdAt.getTime() + limitMs > now) continue;
+    try {
+      const limitMs = RESPONSE_TIMEOUT_MINUTES[a.request.urgency] * 60_000;
+      if (a.createdAt.getTime() + limitMs > now) continue;
 
-    const expired = await prisma.assignment.updateMany({
-      where: { id: a.id, status: 'REQUESTED' },
-      data: { status: 'EXPIRED', respondedAt: new Date() },
-    });
-    if (expired.count === 0) continue;
-
-    await prisma.serviceRequest.updateMany({
-      where: { id: a.requestId, status: 'ASSIGNED' },
-      data: { status: 'RECEIVED', assignBaseAt: new Date() },
-    });
-    recalled++;
-
-    const assigneePhone = a.provider?.user.phone ?? a.technician?.user.phone;
-    if (assigneePhone) void sendSms(assigneePhone, smsAssignmentRecalled(), a.requestId);
-    console.warn(
-      `[autoAssign] 무응답 자동 회수: ${a.requestId} (${assigneeKey(a) ?? '?'}, ${
-        RESPONSE_TIMEOUT_MINUTES[a.request.urgency]
-      }분 초과)`,
-    );
-
-    // 즉시 다음 순위 재배정 — 방금 EXPIRED 처리된 대상은 matching 의 이력 필터가 거른다.
-    if (autoReassign) {
-      await pickAndAssign({ ...a.request, needsAttention: false });
-    } else {
-      await prisma.serviceRequest.updateMany({
-        where: { id: a.requestId, status: 'RECEIVED' },
-        data: { needsAttention: true },
+      const expired = await transitionPendingAssignment({
+        assignmentId: a.id, requestId: a.requestId, status: 'EXPIRED',
       });
-      void notifyAdminAttention(a.request, '배정 무응답으로 자동 회수됨');
+      if (!expired) continue;
+      recalled++;
+
+      const assigneePhone = a.provider?.user.phone ?? a.technician?.user.phone;
+      if (assigneePhone) void sendSms(assigneePhone, smsAssignmentRecalled(), a.requestId);
+      console.warn(
+        `[autoAssign] 무응답 자동 회수: ${a.requestId} (${assigneeKey(a) ?? '?'}, ${
+          RESPONSE_TIMEOUT_MINUTES[a.request.urgency]
+        }분 초과)`,
+      );
+
+      // 즉시 다음 순위 재배정 — 방금 EXPIRED 처리된 대상은 matching 의 이력 필터가 거른다.
+      if (autoReassign) {
+        await pickAndAssign({ ...a.request, needsAttention: false });
+      } else {
+        await markAttention(a.request, '배정 무응답으로 자동 회수됨');
+      }
+    } catch (error) {
+      // 한 건의 장애가 뒤의 회수·신규 접수를 영구히 막지 않도록 다음 건을 처리한다.
+      console.error('[autoAssign] 무응답 회수/재배정 실패(다음 실행에서 재시도)', a.requestId, error);
     }
   }
   return { recalled };
@@ -173,7 +181,11 @@ export async function runAutoAssign(): Promise<{ assigned: number; recalled: num
   for (const req of received) {
     const deadline = req.assignBaseAt.getTime() + waitMinutes[req.urgency] * 60_000;
     if (deadline > now.getTime()) continue;
-    if ((await pickAndAssign(req)) === 'assigned') assigned++;
+    try {
+      if ((await pickAndAssign(req)) === 'assigned') assigned++;
+    } catch (error) {
+      console.error('[autoAssign] 접수 배정 실패(다음 실행에서 재시도)', req.id, error);
+    }
   }
   return { assigned, recalled };
 }

@@ -128,9 +128,10 @@ test.describe('전기기사 소유권', () => {
         assignedBy: 'ADMIN',
       },
     });
+    const rejectRequest = await f.createRequestFixture({ status: 'ASSIGNED' });
     const second = await prisma.assignment.create({
       data: {
-        requestId: req.id,
+        requestId: rejectRequest.id,
         technicianId: techB.technicianId,
         status: 'REQUESTED',
         assignedBy: 'ADMIN',
@@ -142,9 +143,10 @@ test.describe('전기기사 소유권', () => {
     expect(
       (await b.post(`/api/tech/jobs/${first.id}/status`, { data: { status: 'DISPATCHED' } })).status(),
     ).toBe(200);
-    // assignedBy=ADMIN 이라 재배정 경로(reject/route.ts:48-66)를 타지 않고,
-    // 접수는 이미 DISPATCHED 라 RECEIVED 로 되돌아가지도 않는다.
+    // 별도 응답 대기 접수에서 거절 소유권을 확인한다. 출동 중인 접수에
+    // 두 번째 유효 배정을 인위적으로 만들면 실제 상태 전이 계약을 위반한다.
     expect((await b.post(`/api/tech/jobs/${second.id}/reject`, { data: {} })).status()).toBe(200);
+    expect((await prisma.serviceRequest.findUniqueOrThrow({ where: { id: rejectRequest.id } })).status).toBe('RECEIVED');
     expect((await prisma.serviceRequest.findUnique({ where: { id: req.id } }))?.status).toBe(
       'DISPATCHED',
     );
@@ -246,9 +248,10 @@ test.describe('업체 소유권', () => {
         assignedBy: 'ADMIN',
       },
     });
+    const rejectRequest = await f.createRequestFixture({ status: 'ASSIGNED' });
     const second = await prisma.assignment.create({
       data: {
-        requestId: req.id,
+        requestId: rejectRequest.id,
         providerId: partnerB.providerId,
         status: 'REQUESTED',
         assignedBy: 'ADMIN',
@@ -263,6 +266,7 @@ test.describe('업체 소유권', () => {
       ).status(),
     ).toBe(200);
     expect((await b.post(`/api/partner/jobs/${second.id}/reject`, { data: {} })).status()).toBe(200);
+    expect((await prisma.serviceRequest.findUniqueOrThrow({ where: { id: rejectRequest.id } })).status).toBe('RECEIVED');
     expect((await prisma.serviceRequest.findUnique({ where: { id: req.id } }))?.status).toBe(
       'DISPATCHED',
     );

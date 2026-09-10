@@ -1,0 +1,16 @@
+[
+  "F01 배정 INSERT 실패 시 접수 ASSIGNED 전이도 롤백",
+  "F02 즉시배정 저장 실패 뒤 워커가 재시도하여 정상 배정",
+  "F03 PROVIDER accept 접수 UPDATE 실패 시 배정 응답도 롤백",
+  "F03 PROVIDER reject 접수 UPDATE 실패 시 배정 응답도 롤백",
+  "F03 PROVIDER recall 접수 UPDATE 실패 시 배정 응답도 롤백",
+  "F03 PROVIDER unassign 접수 UPDATE 실패 시 배정 응답도 롤백",
+  "F03 TECHNICIAN accept 접수 UPDATE 실패 시 배정 응답도 롤백",
+  "F03 TECHNICIAN reject 접수 UPDATE 실패 시 배정 응답도 롤백",
+  "F03 TECHNICIAN recall 접수 UPDATE 실패 시 배정 응답도 롤백",
+  "F03 TECHNICIAN unassign 접수 UPDATE 실패 시 배정 응답도 롤백",
+  "F04 취소 배정 UPDATE 실패 시 접수 취소도 롤백",
+  "F05 PROVIDER 거절 후보 조회 중 관리자 취소 → 취소된 접수에 신규 배정 금지",
+  "F05 TECHNICIAN 거절 후보 조회 중 관리자 취소 → 취소된 접수에 신규 배정 금지",
+  "F06 후보 없음 동시 워커 10개 → 관리자 알림 한 번"
+]

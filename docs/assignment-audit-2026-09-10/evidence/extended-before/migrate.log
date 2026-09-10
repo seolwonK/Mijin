@@ -1,0 +1,78 @@
+warn The configuration property `package.json#prisma` is deprecated and will be removed in Prisma 7. Please migrate to a Prisma config file (e.g., `prisma.config.ts`).
+For more information, see: https://pris.ly/prisma-config
+
+Environment variables loaded from .env
+Prisma schema loaded from prisma/schema.prisma
+Datasource "db": PostgreSQL database "mijin_assignment_audit_1789015937504_90671", schema "public" at "localhost:5432"
+
+21 migrations found in prisma/migrations
+
+Applying migration `20260705060930_init`
+Applying migration `20260705073000_provider_approval`
+Applying migration `20260707031843_add_voice_note`
+Applying migration `20260707040141_stored_file_db_uploads`
+Applying migration `20260709020853_add_technician_and_contract`
+Applying migration `20260709031409_add_contract_signatures_and_wage_defaults`
+Applying migration `20260709091231_add_identity_verification`
+Applying migration `20260709094409_add_coverage_regions`
+Applying migration `20260716151437_add_satisfaction_survey`
+Applying migration `20260716164811_add_referral_commission`
+Applying migration `20260718024838_add_analytics_indexes`
+Applying migration `20260718033326_add_money_analytics_indexes`
+Applying migration `20260814035829_egg_credit`
+Applying migration `20260814070823_add_provider_elec_cert`
+Applying migration `20260820113604_add_request_photos`
+Applying migration `20260828050000_identity_replay_guard`
+Applying migration `20260828060000_identity_ci_di_hashed`
+Applying migration `20260831120000_assignment_expired_status`
+Applying migration `20260906100000_kcp_cert_session`
+Applying migration `20260906110000_kcp_cert_session_bind`
+Applying migration `20260910020000_egg_charge_account`
+
+The following migration(s) have been applied:
+
+migrations/
+  └─ 20260705060930_init/
+    └─ migration.sql
+  └─ 20260705073000_provider_approval/
+    └─ migration.sql
+  └─ 20260707031843_add_voice_note/
+    └─ migration.sql
+  └─ 20260707040141_stored_file_db_uploads/
+    └─ migration.sql
+  └─ 20260709020853_add_technician_and_contract/
+    └─ migration.sql
+  └─ 20260709031409_add_contract_signatures_and_wage_defaults/
+    └─ migration.sql
+  └─ 20260709091231_add_identity_verification/
+    └─ migration.sql
+  └─ 20260709094409_add_coverage_regions/
+    └─ migration.sql
+  └─ 20260716151437_add_satisfaction_survey/
+    └─ migration.sql
+  └─ 20260716164811_add_referral_commission/
+    └─ migration.sql
+  └─ 20260718024838_add_analytics_indexes/
+    └─ migration.sql
+  └─ 20260718033326_add_money_analytics_indexes/
+    └─ migration.sql
+  └─ 20260814035829_egg_credit/
+    └─ migration.sql
+  └─ 20260814070823_add_provider_elec_cert/
+    └─ migration.sql
+  └─ 20260820113604_add_request_photos/
+    └─ migration.sql
+  └─ 20260828050000_identity_replay_guard/
+    └─ migration.sql
+  └─ 20260828060000_identity_ci_di_hashed/
+    └─ migration.sql
+  └─ 20260831120000_assignment_expired_status/
+    └─ migration.sql
+  └─ 20260906100000_kcp_cert_session/
+    └─ migration.sql
+  └─ 20260906110000_kcp_cert_session_bind/
+    └─ migration.sql
+  └─ 20260910020000_egg_charge_account/
+    └─ migration.sql
+
+All migrations have been successfully applied.

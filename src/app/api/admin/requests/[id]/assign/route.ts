@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/db';
 import { requireSession } from '@/lib/auth';
-import { claimAndAssign } from '@/lib/assignment';
+import { claimAndAssign, AssignmentTargetUnavailableError } from '@/lib/assignment';
 import { haversineKm } from '@/lib/geo/distance';
 
 const assignSchema = z.object({
@@ -69,12 +69,18 @@ export async function POST(
       ? haversineKm(request.lat, request.lng, target.lat, target.lng)
       : null;
 
-  const ok = await claimAndAssign({
-    requestId: id,
-    target: { kind: assigneeKind, id: target.id },
-    assignedBy: 'ADMIN',
-    distanceKm,
-  });
+  let ok: boolean;
+  try {
+    ok = await claimAndAssign({
+      requestId: id,
+      target: { kind: assigneeKind, id: target.id },
+      assignedBy: 'ADMIN',
+      distanceKm,
+    });
+  } catch (error) {
+    if (!(error instanceof AssignmentTargetUnavailableError)) throw error;
+    return NextResponse.json({ error: error.message }, { status: 400 });
+  }
   if (!ok) {
     return NextResponse.json(
       { error: '배정 대기 상태가 아닙니다. 이미 배정되었거나 취소되었을 수 있습니다.' },

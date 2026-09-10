@@ -1,0 +1,451 @@
+
+ RUN  v4.1.10 /Users/seolwon/IdeaProjects/mijin
+
+stdout | tests/assignment-audit/assignment.db.test.ts > A — 자동배정 진입·지역·순위·대기시간 > A02 NORMAL 접수 직후 대기시간 없이 1순위 배정, 중복 실행 무해
+[autoAssign] 자동 배정: cmtv1weck004w1i06gv8oemg3 → 배정 검증 (1.4km)
+
+stdout | tests/assignment-audit/assignment.db.test.ts > A — 자동배정 진입·지역·순위·대기시간 > A02 URGENT 접수 직후 대기시간 없이 1순위 배정, 중복 실행 무해
+[autoAssign] 자동 배정: cmtv1wedv00571i06hhbm7umn → 배정 검증 (1.4km)
+
+stdout | tests/assignment-audit/assignment.db.test.ts > A — 자동배정 진입·지역·순위·대기시간 > A02 CRITICAL 접수 직후 대기시간 없이 1순위 배정, 중복 실행 무해
+[autoAssign] 자동 배정: cmtv1weez005i1i06qxzbkmal → 배정 검증 (1.4km)
+
+stderr | tests/assignment-audit/assignment.db.test.ts > A — 자동배정 진입·지역·순위·대기시간 > A04 주소 null는 관리자 반환, 반복 알림 없음
+[autoAssign] 지역 판별 불가 → 관리자 반환: cmtv1wekn00681i06ghpsa80q
+
+stderr | tests/assignment-audit/assignment.db.test.ts > A — 자동배정 진입·지역·순위·대기시간 > A04 주소 null는 관리자 반환, 반복 알림 없음
+[autoAssign] 지역 판별 불가 → 관리자 반환: cmtv1wekn00681i06ghpsa80q
+
+stderr | tests/assignment-audit/assignment.db.test.ts > A — 자동배정 진입·지역·순위·대기시간 > A04 주소 는 관리자 반환, 반복 알림 없음
+[autoAssign] 지역 판별 불가 → 관리자 반환: cmtv1weln006c1i0690f4uozh
+
+stderr | tests/assignment-audit/assignment.db.test.ts > A — 자동배정 진입·지역·순위·대기시간 > A04 주소 는 관리자 반환, 반복 알림 없음
+[autoAssign] 지역 판별 불가 → 관리자 반환: cmtv1weln006c1i0690f4uozh
+
+stderr | tests/assignment-audit/assignment.db.test.ts > A — 자동배정 진입·지역·순위·대기시간 > A04 주소 지역을 알 수 없음는 관리자 반환, 반복 알림 없음
+[autoAssign] 지역 판별 불가 → 관리자 반환: cmtv1wemm006g1i06ari18pxw
+
+stderr | tests/assignment-audit/assignment.db.test.ts > A — 자동배정 진입·지역·순위·대기시간 > A04 주소 지역을 알 수 없음는 관리자 반환, 반복 알림 없음
+[autoAssign] 지역 판별 불가 → 관리자 반환: cmtv1wemm006g1i06ari18pxw
+
+stdout | tests/assignment-audit/assignment.db.test.ts > A — 자동배정 진입·지역·순위·대기시간 > A05 서비스 지역 []와 좌표 없음의 실제 필터
+[autoAssign] 자동 배정: cmtv1wenm006k1i06ujmtujh2 → 배정 검증 (지역 매칭)
+
+stdout | tests/assignment-audit/assignment.db.test.ts > A — 자동배정 진입·지역·순위·대기시간 > A05 서비스 지역 [ '서울특별시' ]와 좌표 없음의 실제 필터
+[autoAssign] 자동 배정: cmtv1weon006q1i06afozuau3 → 배정 검증 (지역 매칭)
+
+stdout | tests/assignment-audit/assignment.db.test.ts > A — 자동배정 진입·지역·순위·대기시간 > A05 서비스 지역 [ '서울특별시 강남구' ]와 좌표 없음의 실제 필터
+[autoAssign] 자동 배정: cmtv1wepq006w1i06zmd8kmv3 → 배정 검증 (지역 매칭)
+
+stderr | tests/assignment-audit/assignment.db.test.ts > A — 자동배정 진입·지역·순위·대기시간 > A05 서비스 지역 [ '부산광역시' ]와 좌표 없음의 실제 필터
+[autoAssign] 담당 지역 배정 대상 없음 → 관리자 반환: cmtv1weqr00721i0636gttjr9
+
+stderr | tests/assignment-audit/assignment.db.test.ts > A — 자동배정 진입·지역·순위·대기시간 > A06 후보 0명 → 관리자 반환
+[autoAssign] 담당 지역 배정 대상 없음 → 관리자 반환: cmtv1werm00731i06kv7tsa88
+
+stderr | tests/assignment-audit/assignment.db.test.ts > A — 자동배정 진입·지역·순위·대기시간 > A07 REJECTED 이력 후보는 자동 제외, 수동 재선택 허용
+[autoAssign] 담당 지역 배정 대상 없음 → 관리자 반환: cmtv1wesk00771i06pf51ni3a
+
+stderr | tests/assignment-audit/assignment.db.test.ts > A — 자동배정 진입·지역·순위·대기시간 > A07 EXPIRED 이력 후보는 자동 제외, 수동 재선택 허용
+[autoAssign] 담당 지역 배정 대상 없음 → 관리자 반환: cmtv1wetk007f1i06wma37o1d
+
+stderr | tests/assignment-audit/assignment.db.test.ts > A — 자동배정 진입·지역·순위·대기시간 > A07 CANCELED 이력 후보는 자동 제외, 수동 재선택 허용
+[autoAssign] 담당 지역 배정 대상 없음 → 관리자 반환: cmtv1weuj007n1i062lbxku9z
+
+stdout | tests/assignment-audit/assignment.db.test.ts > A — 자동배정 진입·지역·순위·대기시간 > A08 NORMAL 워커 마감 -1ms 경계
+[autoAssign] 자동 배정: cmtv1wevl007v1i0688p7p5yp → 배정 검증 (1.4km)
+
+stdout | tests/assignment-audit/assignment.db.test.ts > A — 자동배정 진입·지역·순위·대기시간 > A08 NORMAL 워커 마감 0ms 경계
+[autoAssign] 자동 배정: cmtv1wewk00811i06p3pqxbv4 → 배정 검증 (1.4km)
+
+stdout | tests/assignment-audit/assignment.db.test.ts > A — 자동배정 진입·지역·순위·대기시간 > A08 URGENT 워커 마감 -1ms 경계
+[autoAssign] 자동 배정: cmtv1weyb008b1i06mvu85u10 → 배정 검증 (1.4km)
+
+stdout | tests/assignment-audit/assignment.db.test.ts > A — 자동배정 진입·지역·순위·대기시간 > A08 URGENT 워커 마감 0ms 경계
+[autoAssign] 자동 배정: cmtv1weza008h1i064kfc01qk → 배정 검증 (1.4km)
+
+stdout | tests/assignment-audit/assignment.db.test.ts > A — 자동배정 진입·지역·순위·대기시간 > A08 CRITICAL 워커 마감 -1ms 경계
+[autoAssign] 자동 배정: cmtv1wf0z008r1i06j1c8mlqc → 배정 검증 (1.4km)
+
+stdout | tests/assignment-audit/assignment.db.test.ts > A — 자동배정 진입·지역·순위·대기시간 > A08 CRITICAL 워커 마감 0ms 경계
+[autoAssign] 자동 배정: cmtv1wf1w008x1i06ih5vsn4i → 배정 검증 (1.4km)
+
+stderr | tests/assignment-audit/assignment.db.test.ts > T — 무응답 회수 > T01 PROVIDER NORMAL 10분 0ms 경계
+[autoAssign] 무응답 자동 회수: cmtv1wfe300av1i06gn8mguil (PROVIDER:cmtv1wfe300au1i06nxuydhdj, 10분 초과)
+
+stderr | tests/assignment-audit/assignment.db.test.ts > T — 무응답 회수 > T01 PROVIDER NORMAL 10분 1ms 경계
+[autoAssign] 무응답 자동 회수: cmtv1wff300b11i065499ozjl (PROVIDER:cmtv1wff300b01i06zx9m46ph, 10분 초과)
+
+stderr | tests/assignment-audit/assignment.db.test.ts > T — 무응답 회수 > T01 PROVIDER URGENT 10분 0ms 경계
+[autoAssign] 무응답 자동 회수: cmtv1wfh000bd1i06pi9oaxfx (PROVIDER:cmtv1wfgz00bc1i06ruk6gmn2, 10분 초과)
+
+stderr | tests/assignment-audit/assignment.db.test.ts > T — 무응답 회수 > T01 PROVIDER URGENT 10분 1ms 경계
+[autoAssign] 무응답 자동 회수: cmtv1wfi400bj1i06axr26yla (PROVIDER:cmtv1wfi300bi1i06f0av0x3l, 10분 초과)
+
+stderr | tests/assignment-audit/assignment.db.test.ts > T — 무응답 회수 > T01 PROVIDER CRITICAL 10분 0ms 경계
+[autoAssign] 무응답 자동 회수: cmtv1wfk200bv1i06fjnems45 (PROVIDER:cmtv1wfk100bu1i06dlll67c2, 10분 초과)
+
+stderr | tests/assignment-audit/assignment.db.test.ts > T — 무응답 회수 > T01 PROVIDER CRITICAL 10분 1ms 경계
+[autoAssign] 무응답 자동 회수: cmtv1wfl100c11i06xpvbytw0 (PROVIDER:cmtv1wfl000c01i06q1afyg9r, 10분 초과)
+
+stderr | tests/assignment-audit/assignment.db.test.ts > T — 무응답 회수 > T01 TECHNICIAN NORMAL 10분 0ms 경계
+[autoAssign] 무응답 자동 회수: cmtv1wfn400ch1i06o8t6uv91 (TECHNICIAN:cmtv1wfn200ce1i06i47gjcig, 10분 초과)
+
+stderr | tests/assignment-audit/assignment.db.test.ts > T — 무응답 회수 > T01 TECHNICIAN NORMAL 10분 1ms 경계
+[autoAssign] 무응답 자동 회수: cmtv1wfo500cp1i067tr4od8k (TECHNICIAN:cmtv1wfo400cm1i06wuzba99q, 10분 초과)
+
+stderr | tests/assignment-audit/assignment.db.test.ts > T — 무응답 회수 > T01 TECHNICIAN URGENT 10분 0ms 경계
+[autoAssign] 무응답 자동 회수: cmtv1wfqi00d51i06okm56vq9 (TECHNICIAN:cmtv1wfqg00d21i06t2z8e55h, 10분 초과)
+
+stderr | tests/assignment-audit/assignment.db.test.ts > T — 무응답 회수 > T01 TECHNICIAN URGENT 10분 1ms 경계
+[autoAssign] 무응답 자동 회수: cmtv1wfrj00dd1i06khvj8vm6 (TECHNICIAN:cmtv1wfri00da1i060cly1f0x, 10분 초과)
+
+stderr | tests/assignment-audit/assignment.db.test.ts > T — 무응답 회수 > T01 TECHNICIAN CRITICAL 10분 0ms 경계
+[autoAssign] 무응답 자동 회수: cmtv1wftj00dt1i066g5zvqzx (TECHNICIAN:cmtv1wfth00dq1i06gdmvv3i5, 10분 초과)
+
+stderr | tests/assignment-audit/assignment.db.test.ts > T — 무응답 회수 > T01 TECHNICIAN CRITICAL 10분 1ms 경계
+[autoAssign] 무응답 자동 회수: cmtv1wfum00e11i06q6h86eon (TECHNICIAN:cmtv1wfuk00dy1i06a8e5xatp, 10분 초과)
+
+stderr | tests/assignment-audit/assignment.db.test.ts > T — 무응답 회수 > T02 PROVIDER 무응답 → 기존 대상 제외 → 상대 종류 후보 배정
+[autoAssign] 무응답 자동 회수: cmtv1wfvo00ec1i06iyt2kvq7 (PROVIDER:cmtv1wfvl00e61i06gik6rwpv, 10분 초과)
+
+stdout | tests/assignment-audit/assignment.db.test.ts > T — 무응답 회수 > T02 PROVIDER 무응답 → 기존 대상 제외 → 상대 종류 후보 배정
+[autoAssign] 자동 배정: cmtv1wfvo00ec1i06iyt2kvq7 → 배정 검증 (1.4km)
+
+stderr | tests/assignment-audit/assignment.db.test.ts > T — 무응답 회수 > T02 TECHNICIAN 무응답 → 기존 대상 제외 → 상대 종류 후보 배정
+[autoAssign] 무응답 자동 회수: cmtv1wfwr00ep1i06p7val3ql (TECHNICIAN:cmtv1wfwo00ej1i06woaei5vy, 10분 초과)
+
+stdout | tests/assignment-audit/assignment.db.test.ts > T — 무응답 회수 > T02 TECHNICIAN 무응답 → 기존 대상 제외 → 상대 종류 후보 배정
+[autoAssign] 자동 배정: cmtv1wfwr00ep1i06p7val3ql → 배정 검증 (1.4km)
+
+stderr | tests/assignment-audit/assignment.db.test.ts > T — 무응답 회수 > T03 후보 소진 및 토글 꺼짐은 관리자 반환, 재실행 중복 회수 없음
+[autoAssign] 무응답 자동 회수: cmtv1wfxw00ex1i06p9csqcq0 (PROVIDER:cmtv1wfxv00ew1i06uyraj1vk, 10분 초과)
+
+stderr | tests/assignment-audit/assignment.db.test.ts > T — 무응답 회수 > T05 워커 10개 동시 실행도 회수·재배정 각 한 번
+[autoAssign] 무응답 자동 회수: cmtv1wg2j00fw1i06pfcqhxn2 (PROVIDER:cmtv1wg2g00fq1i06t23jh5q4, 10분 초과)
+
+stdout | tests/assignment-audit/assignment.db.test.ts > T — 무응답 회수 > T05 워커 10개 동시 실행도 회수·재배정 각 한 번
+[autoAssign] 자동 배정: cmtv1wg2j00fw1i06pfcqhxn2 → 배정 검증 (1.4km)
+
+stdout | tests/assignment-audit/assignment.db.test.ts > R — 수락·거절·재배정 실제 상태 전이 > R04 PROVIDER 좌표 없는 다음 후보는 거절 즉시 재배정 제외, 워커는 허용
+[autoAssign] 자동 배정: cmtv1wg6x00h01i06z0xqyqil → 배정 검증 (지역 매칭)
+
+stdout | tests/assignment-audit/assignment.db.test.ts > R — 수락·거절·재배정 실제 상태 전이 > R04 TECHNICIAN 좌표 없는 다음 후보는 거절 즉시 재배정 제외, 워커는 허용
+[autoAssign] 자동 배정: cmtv1wggx00jl1i06ip8a603u → 배정 검증 (지역 매칭)
+
+stderr | tests/assignment-audit/assignment.db.test.ts > F — 저장 장애·의도적 경합 재현 (전체 상태가 원자적으로 유지되어야 함) > F02 즉시배정 저장 실패 뒤 워커가 재시도하여 정상 배정
+[autoAssign] 즉시 배정 실패(워커가 재시도) PrismaClientUnknownRequestError:
+Invalid `tx.assignment.create()` invocation in
+/Users/seolwon/IdeaProjects/mijin/src/lib/assignment.ts:22:25
+
+  19   data: { status: 'ASSIGNED', needsAttention: false },
+  20 });
+  21 if (claimed.count === 0) return false;
+→ 22 await tx.assignment.create(
+Error occurred during query execution:
+ConnectorError(ConnectorError { user_facing_error: None, kind: QueryError(PostgresError { code: "P0001", message: "AUDIT_INJECTED_STORAGE_FAILURE", severity: "ERROR", detail: None, column: None, hint: None }), transient: false })
+    at ei.handleRequestError (/Users/seolwon/IdeaProjects/mijin/node_modules/@prisma/client/runtime/library.js:121:7458)
+    at ei.handleAndLogRequestError (/Users/seolwon/IdeaProjects/mijin/node_modules/@prisma/client/runtime/library.js:121:6593)
+    at ei.request (/Users/seolwon/IdeaProjects/mijin/node_modules/@prisma/client/runtime/library.js:121:6300)
+    at a (/Users/seolwon/IdeaProjects/mijin/node_modules/@prisma/client/runtime/library.js:130:9551)
+    at /Users/seolwon/IdeaProjects/mijin/src/lib/assignment.ts:22:5
+    at Proxy._transactionWithCallback (/Users/seolwon/IdeaProjects/mijin/node_modules/@prisma/client/runtime/library.js:130:8120)
+    at claimAndAssign (/Users/seolwon/IdeaProjects/mijin/src/lib/assignment.ts:16:20)
+    at pickAndAssign (/Users/seolwon/IdeaProjects/mijin/src/lib/autoAssign.ts:66:14)
+    at Module.autoAssignNewRequest (/Users/seolwon/IdeaProjects/mijin/src/lib/autoAssign.ts:90:5)
+    at /Users/seolwon/IdeaProjects/mijin/tests/assignment-audit/assignment.db.test.ts:343:5 {
+  clientVersion: '6.19.3'
+}
+
+stdout | tests/assignment-audit/assignment.db.test.ts > F — 저장 장애·의도적 경합 재현 (전체 상태가 원자적으로 유지되어야 함) > F02 즉시배정 저장 실패 뒤 워커가 재시도하여 정상 배정
+[autoAssign] 자동 배정: cmtv1wgri00nm1i06vqf7abe1 → 배정 검증 (1.4km)
+
+stderr | tests/assignment-audit/assignment.db.test.ts > F — 저장 장애·의도적 경합 재현 (전체 상태가 원자적으로 유지되어야 함) > F06 후보 없음 동시 워커 10개 → 관리자 알림 한 번
+[autoAssign] 담당 지역 배정 대상 없음 → 관리자 반환: cmtv1wh4t00q11i06zopx0y1k
+
+stderr | tests/assignment-audit/assignment.db.test.ts > F — 저장 장애·의도적 경합 재현 (전체 상태가 원자적으로 유지되어야 함) > F06 후보 없음 동시 워커 10개 → 관리자 알림 한 번
+[autoAssign] 담당 지역 배정 대상 없음 → 관리자 반환: cmtv1wh4t00q11i06zopx0y1k
+
+stderr | tests/assignment-audit/assignment.db.test.ts > F — 저장 장애·의도적 경합 재현 (전체 상태가 원자적으로 유지되어야 함) > F06 후보 없음 동시 워커 10개 → 관리자 알림 한 번
+[autoAssign] 담당 지역 배정 대상 없음 → 관리자 반환: cmtv1wh4t00q11i06zopx0y1k
+
+stderr | tests/assignment-audit/assignment.db.test.ts > F — 저장 장애·의도적 경합 재현 (전체 상태가 원자적으로 유지되어야 함) > F06 후보 없음 동시 워커 10개 → 관리자 알림 한 번
+[autoAssign] 담당 지역 배정 대상 없음 → 관리자 반환: cmtv1wh4t00q11i06zopx0y1k
+
+stderr | tests/assignment-audit/assignment.db.test.ts > F — 저장 장애·의도적 경합 재현 (전체 상태가 원자적으로 유지되어야 함) > F06 후보 없음 동시 워커 10개 → 관리자 알림 한 번
+[autoAssign] 담당 지역 배정 대상 없음 → 관리자 반환: cmtv1wh4t00q11i06zopx0y1k
+
+stderr | tests/assignment-audit/assignment.db.test.ts > F — 저장 장애·의도적 경합 재현 (전체 상태가 원자적으로 유지되어야 함) > F06 후보 없음 동시 워커 10개 → 관리자 알림 한 번
+[autoAssign] 담당 지역 배정 대상 없음 → 관리자 반환: cmtv1wh4t00q11i06zopx0y1k
+
+stderr | tests/assignment-audit/assignment.db.test.ts > F — 저장 장애·의도적 경합 재현 (전체 상태가 원자적으로 유지되어야 함) > F06 후보 없음 동시 워커 10개 → 관리자 알림 한 번
+[autoAssign] 담당 지역 배정 대상 없음 → 관리자 반환: cmtv1wh4t00q11i06zopx0y1k
+
+stderr | tests/assignment-audit/assignment.db.test.ts > F — 저장 장애·의도적 경합 재현 (전체 상태가 원자적으로 유지되어야 함) > F06 후보 없음 동시 워커 10개 → 관리자 알림 한 번
+[autoAssign] 담당 지역 배정 대상 없음 → 관리자 반환: cmtv1wh4t00q11i06zopx0y1k
+
+stderr | tests/assignment-audit/assignment.db.test.ts > F — 저장 장애·의도적 경합 재현 (전체 상태가 원자적으로 유지되어야 함) > F06 후보 없음 동시 워커 10개 → 관리자 알림 한 번
+[autoAssign] 담당 지역 배정 대상 없음 → 관리자 반환: cmtv1wh4t00q11i06zopx0y1k
+
+stderr | tests/assignment-audit/assignment.db.test.ts > F — 저장 장애·의도적 경합 재현 (전체 상태가 원자적으로 유지되어야 함) > F06 후보 없음 동시 워커 10개 → 관리자 알림 한 번
+[autoAssign] 담당 지역 배정 대상 없음 → 관리자 반환: cmtv1wh4t00q11i06zopx0y1k
+
+stdout | tests/assignment-audit/assignment.db.test.ts > F — 저장 장애·의도적 경합 재현 (전체 상태가 원자적으로 유지되어야 함) > F09 PROVIDER 후보 조회 직후 inactive 변경 시 배정하지 않는다
+[autoAssign] 자동 배정: cmtv1wh8b00qk1i06vkebnoql → 배정 검증 (1.4km)
+
+stdout | tests/assignment-audit/assignment.db.test.ts > F — 저장 장애·의도적 경합 재현 (전체 상태가 원자적으로 유지되어야 함) > F09 PROVIDER 후보 조회 직후 approval 변경 시 배정하지 않는다
+[autoAssign] 자동 배정: cmtv1wh9g00qq1i06e4fejn1y → 배정 검증 (1.4km)
+
+stdout | tests/assignment-audit/assignment.db.test.ts > F — 저장 장애·의도적 경합 재현 (전체 상태가 원자적으로 유지되어야 함) > F09 TECHNICIAN 후보 조회 직후 inactive 변경 시 배정하지 않는다
+[autoAssign] 자동 배정: cmtv1whaj00qy1i06xnlxojih → 배정 검증 (1.4km)
+
+stdout | tests/assignment-audit/assignment.db.test.ts > F — 저장 장애·의도적 경합 재현 (전체 상태가 원자적으로 유지되어야 함) > F09 TECHNICIAN 후보 조회 직후 approval 변경 시 배정하지 않는다
+[autoAssign] 자동 배정: cmtv1whbl00r61i06fmetxo56 → 배정 검증 (1.4km)
+
+stdout | tests/assignment-audit/assignment.db.test.ts > F — 저장 장애·의도적 경합 재현 (전체 상태가 원자적으로 유지되어야 함) > F10 기사 계약 확정 철회가 후보 조회 직후에도 적용된다
+[autoAssign] 자동 배정: cmtv1whco00re1i06bnpjghve → 배정 검증 (1.4km)
+
+ ❯ tests/assignment-audit/assignment.db.test.ts (139 tests | 7 failed) 5089ms
+     ✓ E PROVIDER active=false approval=PENDING contract=CONFIRMED 67ms
+     ✓ E PROVIDER active=false approval=REJECTED contract=CONFIRMED 43ms
+     ✓ E PROVIDER active=false approval=APPROVED contract=CONFIRMED 39ms
+     ✓ E PROVIDER active=true approval=PENDING contract=CONFIRMED 37ms
+     ✓ E PROVIDER active=true approval=REJECTED contract=CONFIRMED 34ms
+     ✓ E PROVIDER active=true approval=APPROVED contract=CONFIRMED 35ms
+     ✓ E TECHNICIAN active=false approval=PENDING contract=null 34ms
+     ✓ E TECHNICIAN active=false approval=PENDING contract=DRAFT 34ms
+     ✓ E TECHNICIAN active=false approval=PENDING contract=SUBMITTED 40ms
+     ✓ E TECHNICIAN active=false approval=PENDING contract=CONFIRMED 36ms
+     ✓ E TECHNICIAN active=false approval=REJECTED contract=null 35ms
+     ✓ E TECHNICIAN active=false approval=REJECTED contract=DRAFT 34ms
+     ✓ E TECHNICIAN active=false approval=REJECTED contract=SUBMITTED 34ms
+     ✓ E TECHNICIAN active=false approval=REJECTED contract=CONFIRMED 32ms
+     ✓ E TECHNICIAN active=false approval=APPROVED contract=null 31ms
+     ✓ E TECHNICIAN active=false approval=APPROVED contract=DRAFT 31ms
+     ✓ E TECHNICIAN active=false approval=APPROVED contract=SUBMITTED 34ms
+     ✓ E TECHNICIAN active=false approval=APPROVED contract=CONFIRMED 32ms
+     ✓ E TECHNICIAN active=true approval=PENDING contract=null 33ms
+     ✓ E TECHNICIAN active=true approval=PENDING contract=DRAFT 33ms
+     ✓ E TECHNICIAN active=true approval=PENDING contract=SUBMITTED 32ms
+     ✓ E TECHNICIAN active=true approval=PENDING contract=CONFIRMED 36ms
+     ✓ E TECHNICIAN active=true approval=REJECTED contract=null 35ms
+     ✓ E TECHNICIAN active=true approval=REJECTED contract=DRAFT 33ms
+     ✓ E TECHNICIAN active=true approval=REJECTED contract=SUBMITTED 35ms
+     ✓ E TECHNICIAN active=true approval=REJECTED contract=CONFIRMED 34ms
+     ✓ E TECHNICIAN active=true approval=APPROVED contract=null 32ms
+     ✓ E TECHNICIAN active=true approval=APPROVED contract=DRAFT 34ms
+     ✓ E TECHNICIAN active=true approval=APPROVED contract=SUBMITTED 36ms
+     ✓ E TECHNICIAN active=true approval=APPROVED contract=CONFIRMED 37ms
+     ✓ A01 토글 false 또는 설정 없음은 즉시배정·워커 모두 중지 32ms
+     ✓ A01 토글 null 또는 설정 없음은 즉시배정·워커 모두 중지 32ms
+     ✓ A02 NORMAL 접수 직후 대기시간 없이 1순위 배정, 중복 실행 무해 47ms
+     ✓ A02 URGENT 접수 직후 대기시간 없이 1순위 배정, 중복 실행 무해 41ms
+     ✓ A02 CRITICAL 접수 직후 대기시간 없이 1순위 배정, 중복 실행 무해 40ms
+     ✓ A03 ASSIGNED 접수는 즉시배정에서 제외 32ms
+     ✓ A03 ACCEPTED 접수는 즉시배정에서 제외 33ms
+     ✓ A03 DISPATCHED 접수는 즉시배정에서 제외 34ms
+     ✓ A03 COMPLETED 접수는 즉시배정에서 제외 31ms
+     ✓ A03 CANCELED 접수는 즉시배정에서 제외 33ms
+     ✓ A04 주소 null는 관리자 반환, 반복 알림 없음 37ms
+     ✓ A04 주소 는 관리자 반환, 반복 알림 없음 36ms
+     ✓ A04 주소 지역을 알 수 없음는 관리자 반환, 반복 알림 없음 35ms
+     ✓ A05 서비스 지역 []와 좌표 없음의 실제 필터 37ms
+     ✓ A05 서비스 지역 [ '서울특별시' ]와 좌표 없음의 실제 필터 37ms
+     ✓ A05 서비스 지역 [ '서울특별시 강남구' ]와 좌표 없음의 실제 필터 39ms
+     ✓ A05 서비스 지역 [ '부산광역시' ]와 좌표 없음의 실제 필터 35ms
+     ✓ A06 후보 0명 → 관리자 반환 31ms
+     ✓ A07 REJECTED 이력 후보는 자동 제외, 수동 재선택 허용 38ms
+     ✓ A07 EXPIRED 이력 후보는 자동 제외, 수동 재선택 허용 37ms
+     ✓ A07 CANCELED 이력 후보는 자동 제외, 수동 재선택 허용 34ms
+     ✓ A08 NORMAL 워커 마감 -1ms 경계 36ms
+     ✓ A08 NORMAL 워커 마감 0ms 경계 36ms
+     ✓ A08 NORMAL 워커 마감 1ms 경계 29ms
+     ✓ A08 URGENT 워커 마감 -1ms 경계 34ms
+     ✓ A08 URGENT 워커 마감 0ms 경계 35ms
+     ✓ A08 URGENT 워커 마감 1ms 경계 28ms
+     ✓ A08 CRITICAL 워커 마감 -1ms 경계 32ms
+     ✓ A08 CRITICAL 워커 마감 0ms 경계 31ms
+     ✓ A08 CRITICAL 워커 마감 1ms 경계 28ms
+     ✓ M01 NORMAL 지역 밖·거리 없음·알 0 후보도 명시적 수동 배정 허용 32ms
+     ✓ M01 URGENT 지역 밖·거리 없음·알 0 후보도 명시적 수동 배정 허용 33ms
+     ✓ M01 CRITICAL 지역 밖·거리 없음·알 0 후보도 명시적 수동 배정 허용 31ms
+     ✓ M02 ASSIGNED는 409, 배정 이력 추가 없음 31ms
+     ✓ M02 ACCEPTED는 409, 배정 이력 추가 없음 31ms
+     ✓ M02 DISPATCHED는 409, 배정 이력 추가 없음 31ms
+     ✓ M02 COMPLETED는 409, 배정 이력 추가 없음 33ms
+     ✓ M02 CANCELED는 409, 배정 이력 추가 없음 33ms
+     ✓ M03 미인증·타 역할·미존재 대상·미존재 접수·입력 검증 32ms
+     ✓ M04 자동 10개 + 수동 10개 동시 배정 → 단일 이력·문자 56ms
+     ✓ T01 PROVIDER NORMAL 10분 -1ms 경계 33ms
+     ✓ T01 PROVIDER NORMAL 10분 0ms 경계 36ms
+     ✓ T01 PROVIDER NORMAL 10분 1ms 경계 35ms
+     ✓ T01 PROVIDER URGENT 10분 -1ms 경계 32ms
+     ✓ T01 PROVIDER URGENT 10분 0ms 경계 37ms
+     ✓ T01 PROVIDER URGENT 10분 1ms 경계 40ms
+     ✓ T01 PROVIDER CRITICAL 10분 -1ms 경계 35ms
+     ✓ T01 PROVIDER CRITICAL 10분 0ms 경계 34ms
+     ✓ T01 PROVIDER CRITICAL 10분 1ms 경계 35ms
+     ✓ T01 TECHNICIAN NORMAL 10분 -1ms 경계 37ms
+     ✓ T01 TECHNICIAN NORMAL 10분 0ms 경계 39ms
+     ✓ T01 TECHNICIAN NORMAL 10분 1ms 경계 37ms
+     ✓ T01 TECHNICIAN URGENT 10분 -1ms 경계 47ms
+     ✓ T01 TECHNICIAN URGENT 10분 0ms 경계 38ms
+     ✓ T01 TECHNICIAN URGENT 10분 1ms 경계 37ms
+     ✓ T01 TECHNICIAN CRITICAL 10분 -1ms 경계 35ms
+     ✓ T01 TECHNICIAN CRITICAL 10분 0ms 경계 37ms
+     ✓ T01 TECHNICIAN CRITICAL 10분 1ms 경계 38ms
+     ✓ T02 PROVIDER 무응답 → 기존 대상 제외 → 상대 종류 후보 배정 44ms
+     ✓ T02 TECHNICIAN 무응답 → 기존 대상 제외 → 상대 종류 후보 배정 40ms
+     ✓ T03 후보 소진 및 토글 꺼짐은 관리자 반환, 재실행 중복 회수 없음 37ms
+     ✓ T04 이미 ACCEPTED 배정은 시간 초과 처리 제외 33ms
+     ✓ T04 이미 REJECTED 배정은 시간 초과 처리 제외 31ms
+     ✓ T04 이미 CANCELED 배정은 시간 초과 처리 제외 32ms
+     ✓ T04 이미 EXPIRED 배정은 시간 초과 처리 제외 31ms
+     ✓ T05 워커 10개 동시 실행도 회수·재배정 각 한 번 42ms
+     ✓ R01 PROVIDER 수락 중복 요청 → 한 번만 알 차감 37ms
+     ✓ R02 PROVIDER 거절 → 다른 종류의 다음 순위 후보 43ms
+     ✓ R03 PROVIDER 수동배정 거절은 후보가 있어도 관리자 반환 34ms
+     ✓ R04 PROVIDER 좌표 없는 다음 후보는 거절 즉시 재배정 제외, 워커는 허용 47ms
+     ✓ R05 PROVIDER 기존 AUTO 건은 토글 OFF 후 거절해도 다음 후보 배정 (현행 정책) 37ms
+     ✓ R06 PROVIDER 다른 소유자 수락·거절은 404 32ms
+     ✓ R07 PROVIDER 수락 vs reject 동시 경합 불변식 34ms
+     ✓ R07 PROVIDER 수락 vs recall 동시 경합 불변식 33ms
+     ✓ R07 PROVIDER 수락 vs unassign 동시 경합 불변식 31ms
+     ✓ R07 PROVIDER 수락 vs cancel 동시 경합 불변식 31ms
+     ✓ R01 TECHNICIAN 수락 중복 요청 → 한 번만 알 차감 40ms
+     ✓ R02 TECHNICIAN 거절 → 다른 종류의 다음 순위 후보 41ms
+     ✓ R03 TECHNICIAN 수동배정 거절은 후보가 있어도 관리자 반환 34ms
+     ✓ R04 TECHNICIAN 좌표 없는 다음 후보는 거절 즉시 재배정 제외, 워커는 허용 45ms
+     ✓ R05 TECHNICIAN 기존 AUTO 건은 토글 OFF 후 거절해도 다음 후보 배정 (현행 정책) 38ms
+     ✓ R06 TECHNICIAN 다른 소유자 수락·거절은 404 31ms
+     ✓ R07 TECHNICIAN 수락 vs reject 동시 경합 불변식 37ms
+     ✓ R07 TECHNICIAN 수락 vs recall 동시 경합 불변식 35ms
+     ✓ R07 TECHNICIAN 수락 vs unassign 동시 경합 불변식 32ms
+     ✓ R07 TECHNICIAN 수락 vs cancel 동시 경합 불변식 36ms
+     ✓ S01 PROVIDER 30일 경계 포함, 수락+거절만 합산, 미응답 제외, 평점 기본 3 38ms
+     ✓ S01 TECHNICIAN 30일 경계 포함, 수락+거절만 합산, 미응답 제외, 평점 기본 3 40ms
+     ✓ F01 배정 INSERT 실패 시 접수 ASSIGNED 전이도 롤백 42ms
+     ✓ F02 즉시배정 저장 실패 뒤 워커가 재시도하여 정상 배정 52ms
+     ✓ F03 PROVIDER accept 접수 UPDATE 실패 시 배정 응답도 롤백 38ms
+     ✓ F03 PROVIDER reject 접수 UPDATE 실패 시 배정 응답도 롤백 38ms
+     ✓ F03 PROVIDER recall 접수 UPDATE 실패 시 배정 응답도 롤백 43ms
+     ✓ F03 PROVIDER unassign 접수 UPDATE 실패 시 배정 응답도 롤백 41ms
+     ✓ F03 TECHNICIAN accept 접수 UPDATE 실패 시 배정 응답도 롤백 39ms
+     ✓ F03 TECHNICIAN reject 접수 UPDATE 실패 시 배정 응답도 롤백 39ms
+     ✓ F03 TECHNICIAN recall 접수 UPDATE 실패 시 배정 응답도 롤백 38ms
+     ✓ F03 TECHNICIAN unassign 접수 UPDATE 실패 시 배정 응답도 롤백 39ms
+     ✓ F04 취소 배정 UPDATE 실패 시 접수 취소도 롤백 38ms
+     ✓ F05 PROVIDER 거절 후보 조회 중 관리자 취소 → 취소된 접수에 신규 배정 금지 41ms
+     ✓ F05 TECHNICIAN 거절 후보 조회 중 관리자 취소 → 취소된 접수에 신규 배정 금지 42ms
+     ✓ F06 후보 없음 동시 워커 10개 → 관리자 알림 한 번 40ms
+     × F07 첫 접수의 후보 조회 오류가 뒤의 정상 접수를 막지 않는다 36ms
+     × F08 회수 1건 저장 오류가 다른 회수 및 신규 배정을 막지 않는다 46ms
+     × F09 PROVIDER 후보 조회 직후 inactive 변경 시 배정하지 않는다 42ms
+     × F09 PROVIDER 후보 조회 직후 approval 변경 시 배정하지 않는다 40ms
+     × F09 TECHNICIAN 후보 조회 직후 inactive 변경 시 배정하지 않는다 39ms
+     × F09 TECHNICIAN 후보 조회 직후 approval 변경 시 배정하지 않는다 37ms
+     × F10 기사 계약 확정 철회가 후보 조회 직후에도 적용된다 39ms
+ ✓ tests/assignment-audit/ranking.test.ts (9 tests) 142ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 7 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/assignment-audit/assignment.db.test.ts > F — 저장 장애·의도적 경합 재현 (전체 상태가 원자적으로 유지되어야 함) > F07 첫 접수의 후보 조회 오류가 뒤의 정상 접수를 막지 않는다
+AssertionError: promise rejected "Error: AUDIT_CANDIDATE_QUERY_FAILURE" instead of resolving
+ ❯ tests/assignment-audit/assignment.db.test.ts:382:34
+    380|       return original(...args);
+    381|     });
+    382|     await expect(runAutoAssign()).resolves.toMatchObject({ assigned: 1…
+       |                                  ^
+    383|     expect((await state(broken.id)).status).toBe('RECEIVED');
+    384|     expect((await state(healthy.id)).status).toBe('ASSIGNED');
+
+Caused by: Error: AUDIT_CANDIDATE_QUERY_FAILURE
+ ❯ tests/assignment-audit/assignment.db.test.ts:379:43
+ ❯ pickAndAssign src/lib/autoAssign.ts:56:29
+ ❯ Module.runAutoAssign src/lib/autoAssign.ts:172:16
+ ❯ tests/assignment-audit/assignment.db.test.ts:382:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/7]⎯
+
+ FAIL  tests/assignment-audit/assignment.db.test.ts > F — 저장 장애·의도적 경합 재현 (전체 상태가 원자적으로 유지되어야 함) > F08 회수 1건 저장 오류가 다른 회수 및 신규 배정을 막지 않는다
+AssertionError: promise rejected "PrismaClientUnknownRequestError{ …(5) }" instead of resolving
+ ❯ tests/assignment-audit/assignment.db.test.ts:390:34
+    388|     const healthy = await pending(t, {}, 'ADMIN', 600_000); const fres…
+    389|     await fault('ServiceRequest', 'UPDATE', broken.req.id);
+    390|     await expect(runAutoAssign()).resolves.toMatchObject({ recalled: 1…
+       |                                  ^
+    391|     expect((await state(broken.req.id)).assignments[0].status).toBe('R…
+    392|     expect((await state(healthy.req.id)).assignments[0].status).toBe('…
+
+Caused by: PrismaClientUnknownRequestError:
+Invalid `tx.serviceRequest.update()` invocation in
+/Users/seolwon/IdeaProjects/mijin/src/lib/assignment.ts:66:29
+
+  63   ? { status: 'ACCEPTED' }
+  64   : { status: 'RECEIVED', assignBaseAt: new Date() };
+  65 if (params.needsAttention !== undefined) data.needsAttention = params.needsAttention;
+→ 66 await tx.serviceRequest.update(
+Error occurred during query execution:
+ConnectorError(ConnectorError { user_facing_error: None, kind: QueryError(PostgresError { code: "P0001", message: "AUDIT_INJECTED_STORAGE_FAILURE", severity: "ERROR", detail: None, column: None, hint: None }), transient: false })
+ ❯ ei.handleRequestError node_modules/@prisma/client/runtime/library.js:121:7458
+ ❯ ei.handleAndLogRequestError node_modules/@prisma/client/runtime/library.js:121:6593
+ ❯ ei.request node_modules/@prisma/client/runtime/library.js:121:6300
+ ❯ a node_modules/@prisma/client/runtime/library.js:130:9551
+ ❯ src/lib/assignment.ts:66:5
+ ❯ Proxy._transactionWithCallback node_modules/@prisma/client/runtime/library.js:130:8120
+ ❯ recallStaleAssignments src/lib/autoAssign.ts:121:21
+ ❯ Module.runAutoAssign src/lib/autoAssign.ts:153:24
+ ❯ tests/assignment-audit/assignment.db.test.ts:390:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { clientVersion: '6.19.3', batchRequestIdx: undefined }
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/7]⎯
+
+ FAIL  tests/assignment-audit/assignment.db.test.ts > F — 저장 장애·의도적 경합 재현 (전체 상태가 원자적으로 유지되어야 함) > F09 PROVIDER 후보 조회 직후 inactive 변경 시 배정하지 않는다
+ FAIL  tests/assignment-audit/assignment.db.test.ts > F — 저장 장애·의도적 경합 재현 (전체 상태가 원자적으로 유지되어야 함) > F09 PROVIDER 후보 조회 직후 approval 변경 시 배정하지 않는다
+ FAIL  tests/assignment-audit/assignment.db.test.ts > F — 저장 장애·의도적 경합 재현 (전체 상태가 원자적으로 유지되어야 함) > F09 TECHNICIAN 후보 조회 직후 inactive 변경 시 배정하지 않는다
+ FAIL  tests/assignment-audit/assignment.db.test.ts > F — 저장 장애·의도적 경합 재현 (전체 상태가 원자적으로 유지되어야 함) > F09 TECHNICIAN 후보 조회 직후 approval 변경 시 배정하지 않는다
+AssertionError: expected [ { …(10) } ] to have a length of +0 but got 1
+
+- Expected
++ Received
+
+- 0
++ 1
+
+ ❯ tests/assignment-audit/assignment.db.test.ts:406:49
+    404|       });
+    405|       await autoAssignNewRequest(req.id);
+    406|       expect((await state(req.id)).assignments).toHaveLength(0);
+       |                                                 ^
+    407|       expect((await state(req.id)).status).toBe('RECEIVED');
+    408|     });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/7]⎯
+
+ FAIL  tests/assignment-audit/assignment.db.test.ts > F — 저장 장애·의도적 경합 재현 (전체 상태가 원자적으로 유지되어야 함) > F10 기사 계약 확정 철회가 후보 조회 직후에도 적용된다
+AssertionError: expected [ { …(10) } ] to have a length of +0 but got 1
+
+- Expected
++ Received
+
+- 0
++ 1
+
+ ❯ tests/assignment-audit/assignment.db.test.ts:417:83
+    415|       return candidates;
+    416|     });
+    417|     await autoAssignNewRequest(req.id); expect((await state(req.id)).a…
+       |                                                                                   ^
+    418|   });
+    419| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/7]⎯
+
+
+ Test Files  1 failed | 1 passed (2)
+      Tests  7 failed | 141 passed (148)
+   Start at  13:52:19
+   Duration  5.64s (transform 121ms, setup 0ms, import 248ms, tests 5.23s, environment 0ms)
+
+JSON report written to /Users/seolwon/IdeaProjects/mijin/docs/assignment-audit-2026-09-10/evidence/extended-before/assignment.json

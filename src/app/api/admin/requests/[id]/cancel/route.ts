@@ -10,16 +10,20 @@ export async function POST(
   if (!session) return NextResponse.json({ error: '권한이 없습니다' }, { status: 401 });
 
   const { id } = await params;
-  const updated = await prisma.serviceRequest.updateMany({
-    where: { id, status: { in: ['RECEIVED', 'ASSIGNED', 'ACCEPTED', 'DISPATCHED'] } },
-    data: { status: 'CANCELED', needsAttention: false },
+  const canceled = await prisma.$transaction(async (tx) => {
+    const updated = await tx.serviceRequest.updateMany({
+      where: { id, status: { in: ['RECEIVED', 'ASSIGNED', 'ACCEPTED', 'DISPATCHED'] } },
+      data: { status: 'CANCELED', needsAttention: false },
+    });
+    if (updated.count === 0) return false;
+    await tx.assignment.updateMany({
+      where: { requestId: id, status: { in: ['REQUESTED', 'ACCEPTED'] } },
+      data: { status: 'CANCELED', respondedAt: new Date() },
+    });
+    return true;
   });
-  if (updated.count === 0) {
+  if (!canceled) {
     return NextResponse.json({ error: '취소할 수 없는 상태입니다' }, { status: 409 });
   }
-  await prisma.assignment.updateMany({
-    where: { requestId: id, status: { in: ['REQUESTED', 'ACCEPTED'] } },
-    data: { status: 'CANCELED', respondedAt: new Date() },
-  });
   return NextResponse.json({ ok: true });
 }

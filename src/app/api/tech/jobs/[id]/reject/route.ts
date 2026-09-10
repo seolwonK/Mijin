@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { prisma } from '@/lib/db';
 import { requireSession } from '@/lib/auth';
 import { getCandidates } from '@/lib/matching';
-import { createAssignment } from '@/lib/assignment';
+import { claimAndAssign, transitionPendingAssignment, AssignmentTargetUnavailableError } from '@/lib/assignment';
 import { notifyAdminAttention } from '@/lib/adminAlerts';
 
 const rejectSchema = z.object({
@@ -37,15 +37,16 @@ export async function POST(
   }
 
   // CAS: 동시 수락/거절 경합 방지
-  const claimed = await prisma.assignment.updateMany({
-    where: { id, status: 'REQUESTED' },
-    data: { status: 'REJECTED', rejectReason: reason, respondedAt: new Date() },
+  const claimed = await transitionPendingAssignment({
+    assignmentId: id, requestId: a.requestId, status: 'REJECTED', rejectReason: reason,
+    needsAttention: false,
   });
-  if (claimed.count === 0) {
+  if (!claimed) {
     return NextResponse.json({ error: '이미 처리된 배정입니다' }, { status: 409 });
   }
 
-  // 자동배정 건이면 즉시 다음 순위 대상으로 재배정 시도 (접수는 ASSIGNED 유지)
+  // 기존 AUTO 건의 즉시 재배정 정책은 유지한다. 거절과 함께 RECEIVED로 돌아온
+  // 접수를 다시 선점하므로, 후보 조회 중 관리자 취소·수동배정이 먼저면 재배정하지 않는다.
   if (a.assignedBy === 'AUTO') {
     const candidates = (await getCandidates(a.request)).filter(
       (c) =>
@@ -56,21 +57,26 @@ export async function POST(
     );
     const best = candidates[0];
     if (best) {
-      await createAssignment({
-        requestId: a.requestId,
-        target: { kind: best.kind, id: best.id },
-        assignedBy: 'AUTO',
-        distanceKm: best.distanceKm,
-      });
-      return NextResponse.json({ ok: true, reassigned: true });
+      try {
+        const reassigned = await claimAndAssign({
+          requestId: a.requestId,
+          target: { kind: best.kind, id: best.id },
+          assignedBy: 'AUTO',
+          distanceKm: best.distanceKm,
+        });
+        return NextResponse.json({ ok: true, reassigned });
+      } catch (error) {
+        if (!(error instanceof AssignmentTargetUnavailableError)) throw error;
+        // 후보 조회 후 영업/승인/계약 상태가 바뀌면 관리자 확인으로 반환한다.
+      }
     }
   }
 
   // 수동배정 건 또는 후보 소진 → 관리자에게 반환 (자동모드가 켜져 있으면 타이머 재가동)
-  await prisma.serviceRequest.updateMany({
-    where: { id: a.requestId, status: 'ASSIGNED' },
-    data: { status: 'RECEIVED', needsAttention: true, assignBaseAt: new Date() },
+  const marked = await prisma.serviceRequest.updateMany({
+    where: { id: a.requestId, status: 'RECEIVED', needsAttention: false },
+    data: { needsAttention: true },
   });
-  void notifyAdminAttention(a.request, '기사 거절 — 재배정 후보 없음/수동 판단 필요');
+  if (marked.count > 0) void notifyAdminAttention(a.request, '기사 거절 — 재배정 후보 없음/수동 판단 필요');
   return NextResponse.json({ ok: true, reassigned: false });
 }

@@ -1,0 +1,60 @@
+{
+  "finishedAt": "2026-09-10T04:59:45.524Z",
+  "databaseRemoved": true,
+  "total": 449,
+  "passed": 449,
+  "failedOrSkipped": 0,
+  "phases": {
+    "migrate": {
+      "label": "migrate",
+      "code": 0,
+      "durationMs": 892,
+      "tests": 0,
+      "passed": 0
+    },
+    "assignment": {
+      "label": "assignment",
+      "code": 0,
+      "durationMs": 8174,
+      "tests": 164,
+      "passed": 164
+    },
+    "seed-regression": {
+      "label": "seed-regression",
+      "code": 0,
+      "durationMs": 516,
+      "tests": 0,
+      "passed": 0
+    },
+    "regression": {
+      "label": "regression",
+      "code": 0,
+      "durationMs": 1622,
+      "tests": 209,
+      "passed": 209
+    },
+    "seed-e2e": {
+      "label": "seed-e2e",
+      "code": 0,
+      "durationMs": 575,
+      "tests": 0,
+      "passed": 0
+    },
+    "api-e2e": {
+      "label": "api-e2e",
+      "code": 0,
+      "durationMs": 31490,
+      "tests": 76,
+      "passed": 76
+    },
+    "build": {
+      "label": "build",
+      "code": 0,
+      "durationMs": 12079,
+      "tests": 0,
+      "passed": 0
+    }
+  },
+  "rankingCandidates": 1296,
+  "rankingPairComparisons": 5038848
+}

@@ -1,0 +1,44 @@
+{
+  "finishedAt": "2026-09-10T04:59:45.524Z",
+  "database": "mijin_assignment_audit_1789016329379_98262",
+  "databaseRemoved": true,
+  "sms": "console",
+  "identity": "mock",
+  "results": [
+    {
+      "label": "migrate",
+      "code": 0,
+      "durationMs": 892
+    },
+    {
+      "label": "assignment",
+      "code": 0,
+      "durationMs": 8174
+    },
+    {
+      "label": "seed-regression",
+      "code": 0,
+      "durationMs": 516
+    },
+    {
+      "label": "regression",
+      "code": 0,
+      "durationMs": 1622
+    },
+    {
+      "label": "seed-e2e",
+      "code": 0,
+      "durationMs": 575
+    },
+    {
+      "label": "api-e2e",
+      "code": 0,
+      "durationMs": 31490
+    },
+    {
+      "label": "build",
+      "code": 0,
+      "durationMs": 12079
+    }
+  ]
+}

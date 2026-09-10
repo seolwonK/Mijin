@@ -17,7 +17,11 @@ config({ quiet:true });
 const fixtures = new FixtureFactory(prisma);
 const requestIds: string[] = [];
 beforeAll(() => {
-  if (!process.env.DATABASE_URL?.includes('mijin_portal_audit')) throw new Error('Run only against isolated portal audit DB');
+  const url = new URL(process.env.DATABASE_URL ?? 'postgresql://localhost/invalid');
+  const assignmentAudit = process.env.ASSIGNMENT_AUDIT === '1'
+    && ['localhost', '127.0.0.1', '[::1]'].includes(url.hostname)
+    && url.pathname.startsWith('/mijin_assignment_audit_');
+  if (!url.pathname.startsWith('/mijin_portal_audit') && !assignmentAudit) throw new Error('Run only against isolated portal or assignment audit DB');
   vi.stubEnv('SMS_PROVIDER','console'); vi.stubEnv('APP_BASE_URL','http://localhost:3001');
   vi.mocked(requireSession).mockResolvedValue({userId:'test-admin',role:'ADMIN'} as Awaited<ReturnType<typeof requireSession>>);
 });

@@ -1,0 +1,62 @@
+
+ RUN  v4.1.10 /Users/seolwon/IdeaProjects/mijin
+
+ ✓ src/lib/__tests__/r2.test.ts (10 tests) 15ms
+ ✓ src/lib/__tests__/kcp-crypto.test.ts (6 tests) 41ms
+stderr | src/lib/__tests__/geoProvider.test.ts > loadGeoProvider > retries a failed sigungu partition after the TTL instead of caching null forever
+Failed to load sigungu boundary file. Error: missing fixture: /Users/seolwon/IdeaProjects/mijin/public/geo/kr-sigungu.0.geo.json
+    at /Users/seolwon/IdeaProjects/mijin/src/lib/__tests__/geoProvider.test.ts:9:35
+    at Mock (file:///Users/seolwon/IdeaProjects/mijin/node_modules/@vitest/spy/dist/index.js:332:34)
+    at loadCollection (/Users/seolwon/IdeaProjects/mijin/src/lib/geoProvider.ts:71:15)
+    at loadSigungu (/Users/seolwon/IdeaProjects/mijin/src/lib/geoProvider.ts:104:20)
+    at Object.sigunguAt (/Users/seolwon/IdeaProjects/mijin/src/lib/geoProvider.ts:137:23)
+    at /Users/seolwon/IdeaProjects/mijin/src/lib/__tests__/geoProvider.test.ts:80:24
+    at processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at file:///Users/seolwon/IdeaProjects/mijin/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:20
+
+ ✓ src/lib/__tests__/geoProvider.test.ts (2 tests) 50ms
+ ✓ src/lib/__tests__/identity-portone.test.ts (12 tests) 9ms
+stderr | src/lib/__tests__/adminAlerts.test.ts > notifyAdminAttention 수신처 > 보낼 번호가 하나도 없으면 발송하지 않는다
+[adminAlerts] 확인요망 알림 수신 번호가 없습니다 — ADMIN_ALERT_PHONES 확인
+
+ ✓ src/lib/__tests__/adminAlerts.test.ts (4 tests) 3ms
+ ✓ src/lib/__tests__/kcp-session.test.ts (15 tests) 14ms
+ ✓ src/lib/__tests__/analyticsStats.db.test.ts (1 test) 101ms
+ ✓ src/lib/__tests__/kcp-provider.test.ts (19 tests) 55ms
+ ✓ src/lib/__tests__/surveyAnalytics.test.ts (4 tests) 10ms
+ ✓ src/lib/__tests__/regions.test.ts (15 tests) 6ms
+ ✓ src/lib/__tests__/settlementReport.test.ts (6 tests) 9ms
+ ✓ src/lib/__tests__/mapOverview.test.ts (5 tests) 184ms
+ ✓ src/lib/__tests__/ratingsAnalytics.test.ts (3 tests) 12ms
+ ✓ src/lib/__tests__/rotationRoute.test.ts (4 tests) 12ms
+ ✓ src/lib/__tests__/identity-config.test.ts (9 tests) 6ms
+ ✓ src/lib/__tests__/analyticsStats.test.ts (3 tests) 6ms
+ ✓ src/lib/__tests__/kst.test.ts (5 tests) 7ms
+ ✓ src/lib/__tests__/requestRegionResolver.test.ts (6 tests) 8ms
+ ✓ src/lib/__tests__/identity-hash.test.ts (7 tests) 8ms
+stderr | src/lib/__tests__/survey-delivery.db.test.ts > SOLAPI 잔액 부족을 모의하면 설문·완료 상태는 유지하고 실패 로그를 남긴다. 재시도는 같은 링크를 쓴다.
+[SMS 발송 실패 → 01000000000] SOLAPI 402: Insufficient balance (internal test)
+
+ ✓ src/lib/__tests__/photos.test.ts (9 tests) 343ms
+     ✓ 장당 용량 상한을 넘기면 거부한다  328ms
+ ✓ src/lib/__tests__/matching-eggs.test.ts (13 tests) 6ms
+ ✓ src/lib/__tests__/identity-replay.db.test.ts (8 tests) 286ms
+ ✓ src/lib/__tests__/rotationOverview.test.ts (3 tests) 4ms
+ ✓ src/lib/__tests__/matching-freeze.test.ts (10 tests) 4ms
+ ✓ src/lib/__tests__/supplyDemand.test.ts (10 tests) 4ms
+ ✓ src/lib/__tests__/eggs.db.test.ts (14 tests) 386ms
+ ✓ src/lib/__tests__/survey-delivery.db.test.ts (1 test) 284ms
+stdout | src/lib/__tests__/admin-finance-detail.db.test.ts > 동시 재발송은 1건만 발송·기록하고 기존 토큰을 재사용한다
+[SMS → 0109001354] [전기아저씨] 수리가 완료되었습니다. 만족도 조사 참여: http://localhost:3001/survey/541e04d9-00e0-4a66-973a-900d113faeda
+
+stdout | src/lib/__tests__/admin-finance-detail.db.test.ts > 관리자 API 입력 검증·권한·Retry-After를 적용한다
+[SMS → 0109001181] [전기아저씨] 수리가 완료되었습니다. 만족도 조사 참여: http://localhost:3001/survey/f60efe07-6daa-4bf9-a112-759f6b97e25c
+
+ ✓ src/lib/__tests__/admin-finance-detail.db.test.ts (5 tests) 691ms
+
+ Test Files  28 passed (28)
+      Tests  209 passed (209)
+   Start at  13:58:59
+   Duration  1.19s (transform 1.93s, setup 0ms, import 3.31s, tests 2.57s, environment 2ms)
+
+JSON report written to /Users/seolwon/IdeaProjects/mijin/docs/assignment-audit-2026-09-10/evidence/regression.json
