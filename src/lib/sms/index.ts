@@ -11,6 +11,17 @@ function getProvider(): SmsProvider {
   return process.env.SMS_PROVIDER === 'solapi' ? solapiProvider : consoleProvider;
 }
 
+/** Delivers a previously reserved log and reports the real provider result. */
+export async function sendReservedSms(log: { id: string; to: string; body: string }) {
+  const provider = getProvider();
+  let status: 'SENT' | 'FAILED' = 'SENT';
+  let error: string | null = null;
+  try { await provider.send(log.to, log.body); }
+  catch (e) { status = 'FAILED'; error = e instanceof Error ? e.message : String(e); }
+  await prisma.smsLog.update({ where: { id: log.id }, data: { status, error, provider: provider.name } });
+  return { status, provider: provider.name };
+}
+
 // 발송 실패가 접수/배정 본 플로우를 깨지 않도록 예외를 삼키고 SmsLog에 기록만 한다.
 export async function sendSms(
   to: string,

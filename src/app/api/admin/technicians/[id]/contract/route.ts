@@ -33,7 +33,8 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> },
 ) {
   const session = await requireSession('ADMIN');
-  if (!session) return NextResponse.json({ error: '권한이 없습니다' }, { status: 401 });
+  if (!session)
+    return NextResponse.json({ error: '권한이 없습니다' }, { status: 401 });
 
   const { id } = await params;
   const tech = await prisma.technician.findUnique({
@@ -41,7 +42,10 @@ export async function GET(
     include: { user: { select: { name: true, phone: true } }, contract: true },
   });
   if (!tech) {
-    return NextResponse.json({ error: '전기기사를 찾을 수 없습니다' }, { status: 404 });
+    return NextResponse.json(
+      { error: '전기기사를 찾을 수 없습니다' },
+      { status: 404 },
+    );
   }
 
   return NextResponse.json({
@@ -62,7 +66,8 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> },
 ) {
   const session = await requireSession('ADMIN');
-  if (!session) return NextResponse.json({ error: '권한이 없습니다' }, { status: 401 });
+  if (!session)
+    return NextResponse.json({ error: '권한이 없습니다' }, { status: 401 });
 
   const { id } = await params;
   let body: unknown;
@@ -98,16 +103,22 @@ export async function PUT(
     );
   }
 
-  const updated = await prisma.employmentContract.update({
-    where: { technicianId: id },
+  const changed = await prisma.employmentContract.updateMany({
+    where: {
+      technicianId: id,
+      status: { not: 'CONFIRMED' },
+      updatedAt: contract.updatedAt,
+    },
     data: {
       wageType: data.wageType ?? null,
       wageAmount: data.wageAmount ?? null,
       bonusExists: data.bonusExists,
-      bonusAmount: data.bonusExists ? data.bonusAmount ?? null : null,
+      bonusAmount: data.bonusExists ? (data.bonusAmount ?? null) : null,
       otherPayExists: data.otherPayExists,
-      otherPayDesc: data.otherPayExists ? data.otherPayDesc ?? null : null,
-      otherPayAmount: data.otherPayExists ? data.otherPayAmount ?? null : null,
+      otherPayDesc: data.otherPayExists ? (data.otherPayDesc ?? null) : null,
+      otherPayAmount: data.otherPayExists
+        ? (data.otherPayAmount ?? null)
+        : null,
       payDate: data.payDate ?? null,
       payMethod: data.payMethod ?? null,
       insuranceEmployment: data.insuranceEmployment,
@@ -117,5 +128,13 @@ export async function PUT(
     },
   });
 
+  if (!changed.count)
+    return NextResponse.json(
+      { error: '근로확인서 상태가 변경되었습니다. 다시 조회해 주세요.' },
+      { status: 409 },
+    );
+  const updated = await prisma.employmentContract.findUniqueOrThrow({
+    where: { technicianId: id },
+  });
   return NextResponse.json({ contract: serialize(updated) });
 }

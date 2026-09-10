@@ -1,0 +1,13 @@
+.analytics { min-height:calc(100dvh - var(--admin-chrome-height,40px)); padding:22px 24px 36px; color:#272d29; background:#f6f5f1; }
+.analytics h1 { font-size:23px; font-weight:750; letter-spacing:-.7px; }
+.analytics section { min-width:0; }
+.analytics :is(p,dd) { overflow-wrap:anywhere; }
+.ratingsGrid { display:grid; grid-template-columns:minmax(0,1fr); gap:20px; align-items:start; }
+.moneyGrid { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,200px),1fr)); gap:14px; }
+.settings { display:grid; grid-template-columns:minmax(0,1fr); gap:20px; width:100%; max-width:1160px; padding:24px; margin:0 auto; align-items:start; }
+.settings > section { min-width:0; background:white; border-radius:8px; padding:20px; }
+.settings > button { justify-self:end; min-width:160px; }
+.record { max-width:900px; margin:0 auto; padding:20px 24px; }
+@media (min-width:1100px) { .settings { grid-template-columns:1fr 1fr; } .settings > :first-child { grid-row:span 2; } .settings > button,.settings > [role=alert] { grid-column:1 / -1; } }
+@media (min-width:1440px) { .ratingsGrid { grid-template-columns:minmax(0,1fr) 360px; } }
+@media (max-width:767px) { .analytics { padding:18px 16px 28px; } .analytics h1 { font-size:21px; } .settings { padding:16px; gap:16px; } .record { padding:18px 16px; } .settings > button { width:100%; } }

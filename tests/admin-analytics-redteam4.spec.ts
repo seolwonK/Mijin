@@ -57,21 +57,21 @@ test.describe('G005 코로플레스·경계 파이프라인 레드팀', () => {
 
   test('실화면에서 17개 시도 path, 시군구 드릴다운·시도 복귀와 출처·기준일을 렌더한다', async ({ page }) => {
     await openMap(page);
-    const map = page.getByRole('img', { name: '시도별 수급 압력 지도' });
+    const map = page.getByRole('group', { name: '시도별 접수 지도' });
     await expect(map.locator('path')).toHaveCount(17, { timeout: 20_000 });
-    await expect(page.getByText(/공공누리 제1유형[^]*기준일 \d{4}-\d{2}-\d{2}/)).toBeVisible();
+    await expect(page.getByText(/공공누리 제1유형[^]*경계 기준 \d{4}-\d{2}-\d{2}/)).toBeVisible();
 
-    const selectable = map.locator('path[tabindex="0"]');
+    const selectable = map.locator('path[role="button"]');
     await expect(selectable.first()).toBeVisible();
     await selectable.first().click({ force: true });
     await expect(page).toHaveURL(/\/admin\/analytics\/map\?sido=/);
-    const drilldownMap = page.getByRole('img', { name: /시군구별 수급 압력 지도/ });
+    const drilldownMap = page.getByRole('group', { name: /시군구별 접수 지도/ });
     await expect(drilldownMap).toBeVisible();
     expect(await drilldownMap.locator('path').count()).toBeGreaterThan(0);
     await page.screenshot({ path: 'artifacts/g005-qa/choropleth-drill.jpg', type: 'jpeg', quality: 92, fullPage: true });
-    await page.getByRole('button', { name: '시도 보기', exact: true }).click();
+    await page.getByRole('button', { name: '← 전국 보기', exact: true }).click();
     await expect(page).toHaveURL(/\/admin\/analytics\/map$/);
-    await expect(page.getByRole('img', { name: '시도별 수급 압력 지도' }).locator('path')).toHaveCount(17);
+    await expect(page.getByRole('group', { name: '시도별 접수 지도' }).locator('path')).toHaveCount(17);
   });
 
   test('geojson 404는 순위표와 안내 배너를 유지하고 크래시하지 않는다', async ({ page }) => {
@@ -80,8 +80,8 @@ test.describe('G005 코로플레스·경계 파이프라인 레드팀', () => {
     // 데이터 파일 손실(manifest는 정상) = corrupt 상태 — 정직한 오류 배너 + 순위표 유지 (계약 v2)
     await page.route('**/geo/kr-sido.*.geo.json', (route) => route.fulfill({ status: 404 }));
     await openMap(page);
-    await expect(page.locator('section[role="alert"]')).toContainText('경계 데이터를 불러오지 못했습니다');
-    await expect(page.getByRole('heading', { name: '수급 압력 순위표' })).toBeVisible();
+    await expect(page.locator('section[role="alert"]')).toContainText('지도를 불러오지 못했습니다');
+    await expect(page.getByRole('heading', { name: '지역별 접수' })).toBeVisible();
     expect(pageErrors).toEqual([]);
   });
 
@@ -90,15 +90,15 @@ test.describe('G005 코로플레스·경계 파이프라인 레드팀', () => {
     page.on('pageerror', (error) => pageErrors.push(error));
     await page.route('**/geo/kr-sido.*.geo.json', (route) => route.fulfill({ contentType: 'application/json', body: JSON.stringify({ type: 'FeatureCollection', features: [] }) }));
     await openMap(page);
-    await expect(page.locator('section[role="alert"]')).toContainText('경계 데이터를 불러오지 못했습니다');
-    await expect(page.getByRole('heading', { name: '수급 압력 순위표' })).toBeVisible();
+    await expect(page.locator('section[role="alert"]')).toContainText('지도를 불러오지 못했습니다');
+    await expect(page.getByRole('heading', { name: '지역별 접수' })).toBeVisible();
     expect(pageErrors).toEqual([]);
 
     await page.unroute('**/geo/kr-sido.*.geo.json');
     await page.route('**/geo/kr-sido.*.geo.json', (route) => route.fulfill({ contentType: 'application/json', body: '{broken' }));
     await page.reload();
-    await expect(page.locator('section[role="alert"]')).toContainText('경계 데이터를 불러오지 못했습니다');
-    await expect(page.getByRole('heading', { name: '수급 압력 순위표' })).toBeVisible();
+    await expect(page.locator('section[role="alert"]')).toContainText('지도를 불러오지 못했습니다');
+    await expect(page.getByRole('heading', { name: '지역별 접수' })).toBeVisible();
     expect(pageErrors).toEqual([]);
   });
 
@@ -114,7 +114,7 @@ test.describe('G005 코로플레스·경계 파이프라인 레드팀', () => {
     await appendFile(RESULTS_PATH, `OBSERVED unknown reasons: ${JSON.stringify(reasons)}\n`);
   });
 
-  test('1023px는 map API 요청 0건, API는 GET 전용, dispatch는 8초 재폴링한다', async ({ browser, page }) => {
+  test('1023px에서도 map 조회, API는 GET 전용, 분석에서 dispatch를 불필요하게 조회하지 않는다', async ({ browser, page }) => {
     const narrow = await browser.newContext({ viewport: { width: 1023, height: 800 } });
     const narrowPage = await narrow.newPage();
     const calls: string[] = [];
@@ -123,9 +123,10 @@ test.describe('G005 코로플레스·경계 파이프라인 레드팀', () => {
     });
     await loginAsAdmin(narrowPage);
     await narrowPage.goto('/admin/analytics/map');
-    await expect(narrowPage.getByText('지도 현황은 데스크톱에서 이용할 수 있습니다.')).toBeVisible();
+    await expect(narrowPage.getByRole('heading', { name:'지역별 접수' })).toBeVisible();
     await narrowPage.waitForTimeout(300);
-    expect(calls).toEqual([]);
+    expect(calls.length).toBeGreaterThan(0);
+    expect(calls.every(method=>method==='GET')).toBe(true);
     await narrow.close();
 
     await loginAsAdmin(page);
@@ -140,6 +141,9 @@ test.describe('G005 코로플레스·경계 파이프라인 레드팀', () => {
       return route.continue();
     });
     await page.goto('/admin/analytics/map');
-    await expect.poll(() => dispatchCalls, { timeout: 12_000 }).toBeGreaterThanOrEqual(2);
+    await expect(page.getByRole('heading', { name:'지역별 접수', exact:true })).toBeVisible();
+    await page.clock.install();
+    await page.clock.fastForward(9000);
+    expect(dispatchCalls).toBe(0);
   });
 });

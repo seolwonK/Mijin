@@ -1,17 +1,53 @@
 'use client';
-
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
-
 export type RequestPhotoRef = { id: string; mime: string };
-
-/**
- * 접수에 첨부된 고장 현장 사진 뷰어 (관리자·업체·전기기사 공용).
- *
- * 이미지 원본은 권한 검사 라우트에서만 나오므로 next/image 최적화(`/_next/image`)를 태우지
- * 않는다 — 최적화 서버는 쿠키 없이 원본을 다시 가져오기 때문에 401 이 나고 썸네일이 통째로
- * 깨진다. `unoptimized` 로 브라우저가 직접(=세션 쿠키를 실어) 받아오게 한다.
- */
+function Photo({
+  src,
+  alt,
+  thumbnail = false,
+  onRetry,
+}: {
+  src: string;
+  alt: string;
+  thumbnail?: boolean;
+  onRetry?: () => void;
+}) {
+  const [failed, setFailed] = useState(false);
+  const [attempt, setAttempt] = useState(0);
+  if (failed)
+    return (
+      <div
+        role="status"
+        className={`grid h-full place-content-center gap-3 p-3 text-center text-sm ${thumbnail ? 'text-neutral-700' : 'text-white'}`}
+      >
+        <p>사진을 불러오지 못했습니다.</p>
+        {!thumbnail && (
+          <button
+            onClick={() => {
+              onRetry?.();
+              setFailed(false);
+              setAttempt((n) => n + 1);
+            }}
+            className="min-h-11 rounded-lg border border-white/60 px-4"
+          >
+            사진 다시 시도
+          </button>
+        )}
+      </div>
+    );
+  return (
+    <Image
+      src={`${src}?retry=${attempt}`}
+      alt={alt}
+      fill
+      unoptimized
+      sizes={thumbnail ? '160px' : '100vw'}
+      onError={() => setFailed(true)}
+      className={thumbnail ? 'object-cover' : 'object-contain'}
+    />
+  );
+}
 export default function PhotoGallery({
   requestId,
   photos,
@@ -22,119 +58,131 @@ export default function PhotoGallery({
   className?: string;
 }) {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
+  const dialog = useRef<HTMLDialogElement>(null);
+  const trigger = useRef<HTMLElement | null>(null);
   const count = photos.length;
-
-  const close = useCallback(() => setOpenIndex(null), []);
-  const step = useCallback(
-    (delta: number) =>
-      setOpenIndex((i) => (i == null ? i : (i + delta + count) % count)),
-    [count],
-  );
-
+  const selectedIndex =
+    openIndex == null || count === 0 ? null : Math.min(openIndex, count - 1);
+  const open = selectedIndex != null;
   useEffect(() => {
-    if (openIndex == null) return;
-    function onKey(e: KeyboardEvent) {
-      if (e.key === 'Escape') close();
-      else if (e.key === 'ArrowRight') step(1);
-      else if (e.key === 'ArrowLeft') step(-1);
-    }
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [openIndex, close, step]);
-
-  if (count === 0) return null;
-
+    if (!open) return;
+    const element = dialog.current;
+    const overflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    element?.showModal();
+    return () => {
+      element?.close();
+      document.body.style.overflow = overflow;
+      trigger.current?.focus();
+    };
+  }, [open]);
+  if (!count) return null;
   const src = (id: string) => `/api/requests/${requestId}/photos/${id}`;
-
+  const step = (delta: number) =>
+    setOpenIndex((i) => (i == null ? i : (i + delta + count) % count));
   return (
     <div className={className}>
       <p className="mb-2 text-sm font-medium text-neutral-600">
         고객 첨부 사진 {count}장
       </p>
       <ul className="grid grid-cols-3 gap-2 sm:grid-cols-4">
-        {photos.map((p, i) => (
-          <li key={p.id}>
+        {photos.map((photo, i) => (
+          <li key={photo.id}>
             <button
               type="button"
-              onClick={() => setOpenIndex(i)}
-              className="relative block aspect-square w-full overflow-hidden rounded-xl bg-neutral-100 transition ease-brand duration-brand-base hover:opacity-90 active:scale-[0.98]"
+              onClick={(e) => {
+                trigger.current = e.currentTarget;
+                setOpenIndex(i);
+              }}
+              className="relative block aspect-square w-full overflow-hidden rounded-xl bg-neutral-100"
               aria-label={`고객 첨부 사진 ${i + 1} 크게 보기`}
             >
-              <Image
-                src={src(p.id)}
+              <Photo
+                src={src(photo.id)}
                 alt={`고객 첨부 사진 ${i + 1}`}
-                fill
-                unoptimized
-                sizes="160px"
-                className="object-cover"
+                thumbnail
               />
             </button>
           </li>
         ))}
       </ul>
-
-      {openIndex != null && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-label={`고객 첨부 사진 ${openIndex + 1} / ${count}`}
-          onClick={close}
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-4"
+      {selectedIndex != null && (
+        <dialog
+          ref={dialog}
+          aria-label={`고객 첨부 사진 ${selectedIndex! + 1} / ${count}`}
+          onCancel={() => setOpenIndex(null)}
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setOpenIndex(null);
+          }}
+          onKeyDown={(e) => {
+            if (e.key === 'Tab') {
+              const controls = [
+                ...e.currentTarget.querySelectorAll<HTMLElement>(
+                  'button:not([disabled]), a[href], [tabindex="0"]',
+                ),
+              ];
+              const first = controls[0],
+                last = controls[controls.length - 1];
+              if (e.shiftKey && document.activeElement === first) {
+                e.preventDefault();
+                last?.focus();
+              } else if (!e.shiftKey && document.activeElement === last) {
+                e.preventDefault();
+                first?.focus();
+              }
+            }
+            if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+              e.preventDefault();
+              step(e.key === 'ArrowRight' ? 1 : -1);
+            }
+          }}
+          className="fixed inset-0 m-0 h-dvh max-h-none w-screen max-w-none items-center justify-center bg-black/90 p-4 open:flex backdrop:bg-black/50"
         >
-          {/* 이미지는 화면에 맞춰 그린다. 원본 비율을 모르므로 fill 대신 고정 박스 + object-contain. */}
-          <div
-            className="relative h-full max-h-[80vh] w-full max-w-4xl"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <Image
-              src={src(photos[openIndex].id)}
-              alt={`고객 첨부 사진 ${openIndex + 1}`}
-              fill
-              unoptimized
-              sizes="100vw"
-              className="object-contain"
-            />
-          </div>
-
           <button
             type="button"
-            onClick={close}
+            autoFocus
+            onClick={() => setOpenIndex(null)}
             aria-label="닫기"
-            className="absolute top-4 right-4 flex h-12 w-12 items-center justify-center rounded-full bg-white/15 text-2xl leading-none font-bold text-white hover:bg-white/25"
+            className="absolute right-4 top-4 z-10 min-h-12 min-w-12 rounded-full bg-neutral-800 text-2xl text-white"
           >
             ×
           </button>
-
+          <div className="relative h-[75dvh] w-full max-w-4xl">
+            <Photo
+              key={photos[selectedIndex].id}
+              onRetry={() =>
+                dialog.current
+                  ?.querySelector<HTMLButtonElement>('button')
+                  ?.focus()
+              }
+              src={src(photos[selectedIndex].id)}
+              alt={`고객 첨부 사진 ${selectedIndex! + 1}`}
+            />
+          </div>
           {count > 1 && (
             <>
               <button
                 type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  step(-1);
-                }}
+                onClick={() => step(-1)}
                 aria-label="이전 사진"
-                className="absolute top-1/2 left-3 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full bg-white/15 text-2xl leading-none font-bold text-white hover:bg-white/25"
+                className="absolute left-3 top-1/2 min-h-12 min-w-12 rounded-full bg-neutral-800 text-2xl text-white"
               >
                 ‹
               </button>
               <button
                 type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  step(1);
-                }}
+                onClick={() => step(1)}
                 aria-label="다음 사진"
-                className="absolute top-1/2 right-3 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full bg-white/15 text-2xl leading-none font-bold text-white hover:bg-white/25"
+                className="absolute right-3 top-1/2 min-h-12 min-w-12 rounded-full bg-neutral-800 text-2xl text-white"
               >
                 ›
               </button>
-              <p className="absolute bottom-5 left-1/2 -translate-x-1/2 rounded-full bg-black/60 px-3 py-1 text-sm font-medium text-white">
-                {openIndex + 1} / {count}
-              </p>
             </>
           )}
-        </div>
+          <p role="status" className="absolute bottom-5 text-sm text-white">
+            {selectedIndex + 1} / {count}
+          </p>
+        </dialog>
       )}
     </div>
   );

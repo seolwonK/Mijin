@@ -2,7 +2,11 @@ import { expect, test } from '@playwright/test';
 import { PrismaClient } from '@prisma/client';
 import { loginAsTech } from '../helpers/auth';
 import { ipHeaders } from '../helpers/ip';
-import { FixtureFactory, ephemeralLoginId, ephemeralPhone } from '../helpers/fixtures';
+import {
+  FixtureFactory,
+  ephemeralLoginId,
+  ephemeralPhone,
+} from '../helpers/fixtures';
 
 // ───────────────────────────────────────────────────────────────────────────
 // 전기기사 UI 종단 여정 (계획 5e)
@@ -51,12 +55,17 @@ test('가입 → 로그인 → 계약 서명 → 수락 → 출동 → 완료', 
   await page.getByRole('button', { name: '본인인증', exact: true }).click();
   await expect(page.getByText('휴대폰 본인인증 완료')).toBeVisible();
   // 인증 후 이름·번호는 대행사 검증값으로 잠긴다.
-  await expect(page.getByLabel('성명', { exact: true })).toHaveAttribute('readonly', '');
+  await expect(page.getByLabel('성명', { exact: true })).toHaveAttribute(
+    'readonly',
+    '',
+  );
 
   await page.getByRole('button', { name: /일일 근로자/ }).click();
 
   // 거주 지역 — 상세 주소 입력칸을 품은 섹션의 select 2개가 RegionSelect 다.
-  const infoSection = page.locator('section').filter({ has: page.locator('#tech-addr') });
+  const infoSection = page
+    .locator('section')
+    .filter({ has: page.locator('#tech-addr') });
   await infoSection.locator('select').first().selectOption('서울특별시');
   await infoSection.locator('select').nth(1).selectOption('강남구');
   await page.locator('#tech-addr').fill('테헤란로 1');
@@ -64,13 +73,19 @@ test('가입 → 로그인 → 계약 서명 → 수락 → 출동 → 완료', 
   await page.locator('input[type="checkbox"]').first().check();
   await page.getByRole('button', { name: '가입 신청하기' }).click();
 
-  await expect(page.getByRole('heading', { name: '가입이 완료되었습니다' })).toBeVisible();
+  await expect(
+    page.getByRole('heading', { name: '가입이 완료되었습니다' }),
+  ).toBeVisible();
   // 화면이 약속하는 것: 승인 대기가 아니라 **자동 로그인 + 근로확인서 서명 안내**.
   await expect(page.getByText('자동으로 로그인되었습니다.')).toBeVisible();
 
   const user = await prisma.user.findUnique({
     where: { loginId },
-    select: { id: true, name: true, technician: { select: { id: true, approvalStatus: true } } },
+    select: {
+      id: true,
+      name: true,
+      technician: { select: { id: true, approvalStatus: true } },
+    },
   });
   expect(user).not.toBeNull();
   f.trackUser(user!.id);
@@ -85,11 +100,17 @@ test('가입 → 로그인 → 계약 서명 → 수락 → 출동 → 완료', 
 
   // ── ③ 계약 미서명 상태에서는 포털이 배정을 못 받는다고 경고한다 ──────────
   await expect(page.getByText('근로확인서 작성 필요')).toBeVisible();
-  await expect(page.getByText('서명을 완료해야 배정(일)을 받을 수 있습니다.')).toBeVisible();
+  await expect(
+    page.getByText(
+      '근무조건을 확인하고 서명을 완료해야 배정을 받을 수 있습니다.',
+    ),
+  ).toBeVisible();
 
   // ── ④ 근로확인서 서명 = 근로확인 완료 ─────────────────────────────────────
   await page.goto('/tech/contract');
-  await expect(page.getByText('아래 내용을 확인하고 서명하면 근로확인이 바로 완료됩니다.')).toBeVisible();
+  await expect(
+    page.getByText('아래 내용을 확인하고 서명하면 근로확인이 바로 완료됩니다.'),
+  ).toBeVisible();
   await expect(page.locator('#ct-loc')).not.toHaveValue('');
   await expect(page.locator('#ct-job')).not.toHaveValue('');
   await expect(page.locator('#ct-name')).toHaveValue(name);
@@ -102,9 +123,10 @@ test('가입 → 로그인 → 계약 서명 → 수락 → 출동 → 완료', 
   const box = await canvas.boundingBox();
   expect(box).not.toBeNull();
   const viewport = page.viewportSize();
-  expect(box!.y, '서명 패드가 뷰포트 안에 들어와야 마우스 좌표가 유효하다').toBeLessThan(
-    viewport!.height,
-  );
+  expect(
+    box!.y,
+    '서명 패드가 뷰포트 안에 들어와야 마우스 좌표가 유효하다',
+  ).toBeLessThan(viewport!.height);
   await page.mouse.move(box!.x + 25, box!.y + 30);
   await page.mouse.down();
   await page.mouse.move(box!.x + 90, box!.y + 70, { steps: 8 });
@@ -113,7 +135,9 @@ test('가입 → 로그인 → 계약 서명 → 수락 → 출동 → 완료', 
   await expect(page.getByText('서명됨')).toBeVisible();
 
   await page.getByRole('button', { name: '서명하고 완료' }).click();
-  await expect(page.getByText('서명 완료 — 근로확인이 완료되었습니다.')).toBeVisible();
+  await expect(
+    page.getByText('서명 완료 — 근로확인이 완료되었습니다.'),
+  ).toBeVisible();
   expect(
     (
       await prisma.employmentContract.findUnique({
@@ -144,19 +168,27 @@ test('가입 → 로그인 → 계약 서명 → 수락 → 출동 → 완료', 
 
   await page.goto('/tech');
   // 포털의 "응답 대기"에 실제로 뜬다 (5초 폴링이라 도착까지 기다린다).
-  await expect(page.getByText('E2E 여정: 분전반에서 소리가 납니다').first()).toBeVisible({
+  await expect(
+    page.getByText('E2E 여정: 분전반에서 소리가 납니다').first(),
+  ).toBeVisible({
     timeout: 20_000,
   });
 
   await page.goto(`/tech/jobs/${assignment.id}`);
-  await expect(page.getByText('E2E 여정: 분전반에서 소리가 납니다')).toBeVisible();
+  await expect(
+    page.getByText('E2E 여정: 분전반에서 소리가 납니다'),
+  ).toBeVisible();
   await expect(page.getByText(req.customerName)).toBeVisible();
 
   await page.getByRole('button', { name: '수락하기' }).click();
   await expect(page.getByRole('button', { name: '출동 시작' })).toBeVisible();
   expect(
-    (await prisma.serviceRequest.findUnique({ where: { id: req.id }, select: { status: true } }))
-      ?.status,
+    (
+      await prisma.serviceRequest.findUnique({
+        where: { id: req.id },
+        select: { status: true },
+      })
+    )?.status,
   ).toBe('ACCEPTED');
 
   // ── ⑥ 출동 (되돌릴 수 없는 액션은 2단계 확인) ────────────────────────────
@@ -165,13 +197,19 @@ test('가입 → 로그인 → 계약 서명 → 수락 → 출동 → 완료', 
   await page.getByRole('button', { name: '출동 시작' }).click();
   await expect(page.getByText('출동을 시작했습니다')).toBeVisible();
   expect(
-    (await prisma.serviceRequest.findUnique({ where: { id: req.id }, select: { status: true } }))
-      ?.status,
+    (
+      await prisma.serviceRequest.findUnique({
+        where: { id: req.id },
+        select: { status: true },
+      })
+    )?.status,
   ).toBe('DISPATCHED');
 
   // ── ⑦ 완료 → 만족도 조사가 뒤늦게 따라온다 ───────────────────────────────
   await page.getByRole('button', { name: '완료 처리' }).click();
-  await expect(page.getByText('완료 처리할까요? 되돌릴 수 없습니다.')).toBeVisible();
+  await expect(
+    page.getByText('완료 처리할까요? 되돌릴 수 없습니다.'),
+  ).toBeVisible();
   await page.getByRole('button', { name: '완료 확정' }).click();
   await expect(page.getByText('완료 처리했습니다')).toBeVisible();
 
@@ -184,10 +222,14 @@ test('가입 → 로그인 → 계약 서명 → 수락 → 출동 → 완료', 
 
   // 응답 이후 쓰기 2건 — 설문 행과 그 설문의 SMS 는 각각 따로 기다린다.
   await expect
-    .poll(async () => prisma.satisfactionSurvey.count({ where: { requestId: req.id } }), {
-      timeout: 15_000,
-      message: '완료 후 SatisfactionSurvey 행이 생성되지 않았다',
-    })
+    .poll(
+      async () =>
+        prisma.satisfactionSurvey.count({ where: { requestId: req.id } }),
+      {
+        timeout: 15_000,
+        message: '완료 후 SatisfactionSurvey 행이 생성되지 않았다',
+      },
+    )
     .toBe(1);
   await expect
     .poll(
@@ -195,7 +237,10 @@ test('가입 → 로그인 → 계약 서명 → 수락 → 출동 → 완료', 
         prisma.smsLog.count({
           where: { requestId: req.id, body: { contains: '만족도 조사 참여' } },
         }),
-      { timeout: 15_000, message: '완료 후 설문 안내 SmsLog 가 기록되지 않았다' },
+      {
+        timeout: 15_000,
+        message: '완료 후 설문 안내 SmsLog 가 기록되지 않았다',
+      },
     )
     .toBeGreaterThanOrEqual(1);
 

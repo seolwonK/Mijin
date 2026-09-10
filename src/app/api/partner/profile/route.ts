@@ -29,7 +29,10 @@ export async function GET() {
     include: { user: { select: { loginId: true, name: true, phone: true } } },
   });
   if (!p) {
-    return NextResponse.json({ error: '업체 정보를 찾을 수 없습니다' }, { status: 404 });
+    return NextResponse.json(
+      { error: '업체 정보를 찾을 수 없습니다' },
+      { status: 404 },
+    );
   }
   return NextResponse.json({
     loginId: p.user.loginId,
@@ -67,18 +70,22 @@ export async function PATCH(req: NextRequest) {
     where: { id: session.providerId },
   });
   if (!provider) {
-    return NextResponse.json({ error: '업체 정보를 찾을 수 없습니다' }, { status: 404 });
+    return NextResponse.json(
+      { error: '업체 정보를 찾을 수 없습니다' },
+      { status: 404 },
+    );
   }
 
   const providerData: Record<string, unknown> = {};
-  if (data.address !== undefined) {
+  if (data.address !== undefined && data.address !== provider.address) {
     providerData.address = data.address;
     // 주소가 바뀌면 좌표를 다시 지오코딩 (실패 시 좌표 없음 — 관리자가 보완)
     const geo = await geocode(data.address);
     providerData.lat = geo?.lat ?? null;
     providerData.lng = geo?.lng ?? null;
   }
-  if (data.regions !== undefined) providerData.regions = sanitizeRegionKeys(data.regions);
+  if (data.regions !== undefined)
+    providerData.regions = sanitizeRegionKeys(data.regions);
   if (data.isActive !== undefined) providerData.isActive = data.isActive;
 
   const userData: Record<string, unknown> = {};
@@ -86,7 +93,12 @@ export async function PATCH(req: NextRequest) {
 
   await prisma.$transaction([
     ...(Object.keys(providerData).length
-      ? [prisma.provider.update({ where: { id: session.providerId }, data: providerData })]
+      ? [
+          prisma.provider.update({
+            where: { id: session.providerId },
+            data: providerData,
+          }),
+        ]
       : []),
     ...(Object.keys(userData).length
       ? [prisma.user.update({ where: { id: provider.userId }, data: userData })]

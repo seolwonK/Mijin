@@ -1,8 +1,5 @@
 'use client';
-
-import { useState } from 'react';
-
-// 표시/숨김 토글이 달린 비밀번호 입력 — 가입 폼(tech/partner signup) 공용.
+import { useId, useState } from 'react';
 export default function PasswordInput({
   value,
   onChange,
@@ -11,6 +8,8 @@ export default function PasswordInput({
   className,
   autoComplete = 'new-password',
   ariaLabel = '비밀번호',
+  showLabel = true,
+  error,
 }: {
   value: string;
   onChange: (v: string) => void;
@@ -19,28 +18,51 @@ export default function PasswordInput({
   className: string;
   autoComplete?: string;
   ariaLabel?: string;
+  showLabel?: boolean;
+  error?: string;
 }) {
   const [show, setShow] = useState(false);
+  const generatedId = useId();
+  const inputId = id ?? generatedId;
   return (
-    <div className="relative">
-      <input
-        type={show ? 'text' : 'password'}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        id={id}
-        aria-label={ariaLabel}
-        placeholder={placeholder}
-        autoComplete={autoComplete}
-        className={`${className} pr-14`}
-      />
-      <button
-        type="button"
-        onClick={() => setShow((v) => !v)}
-        aria-label={show ? '비밀번호 숨기기' : '비밀번호 표시'}
-        className="absolute top-1/2 right-2 -translate-y-1/2 rounded-lg px-2 py-1 text-xs font-semibold text-muted transition-colors hover:bg-neutral-100 active:bg-neutral-200"
-      >
-        {show ? '숨김' : '표시'}
-      </button>
+    <div>
+      {showLabel && (
+        <label htmlFor={inputId} className="mb-1 block text-sm font-medium">
+          {ariaLabel}
+        </label>
+      )}
+      <div className="relative">
+        <input
+          type={show ? 'text' : 'password'}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          id={inputId}
+          aria-label={ariaLabel}
+          aria-invalid={!!error}
+          aria-describedby={error ? `${inputId}-error` : undefined}
+          placeholder={placeholder}
+          autoComplete={autoComplete}
+          className={`${className} pr-16`}
+        />
+        <button
+          type="button"
+          onClick={() => setShow((v) => !v)}
+          aria-label={show ? `${ariaLabel} 숨기기` : `${ariaLabel} 표시`}
+          aria-pressed={show}
+          className="absolute right-1 top-1/2 min-h-11 min-w-11 -translate-y-1/2 rounded-lg px-2 text-sm font-semibold text-muted"
+        >
+          {show ? '숨김' : '표시'}
+        </button>
+      </div>
+      {error && (
+        <p
+          id={`${inputId}-error`}
+          role="alert"
+          className="mt-1 text-sm text-red-700"
+        >
+          {error}
+        </p>
+      )}
     </div>
   );
 }

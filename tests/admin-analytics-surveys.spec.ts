@@ -1,79 +1,184 @@
+import type { SurveyOverview } from '../src/lib/surveyAnalytics';
+import { randomUUID } from 'node:crypto';
 import { expect, test } from '@playwright/test';
-import { loginAsAdmin } from './helpers/auth';
-import { buildMock, SURVEYS_SHAPE } from './helpers/shapes';
+import { PrismaClient } from '@prisma/client';
+import { apiContextOptions, seedSession } from './helpers/auth';
+import { FixtureFactory } from './helpers/fixtures';
+import { buildMock, SURVEYS_SHAPE, shapeViolations } from './helpers/shapes';
 
+const prisma = new PrismaClient();
+const fixtures = new FixtureFactory(prisma);
+const rows = Array.from({ length: 52 }, (_, i) => ({
+  surveyId: `survey-${i}`, requestId: `request-${i}`, requestCode: `SURVEY-${String(i).padStart(3, '0')}`,
+  customerName: `설문 고객 ${i}`, customerPhone: '01000000000', elapsedDays: 7,
+  createdAt: '2026-09-01T00:00:00.000Z', submittedAt: i === 3 ? null : '2026-09-02T00:00:00.000Z',
+  rating: i === 3 ? null : 5, paidAmount: i === 0 ? 150000 : i === 1 ? 0 : null,
+}));
+const overview = (items = rows, page = 1) => buildMock(SURVEYS_SHAPE, {
+  responseRate: 51 / 52, submitted: 51, total: 52,
+  surveys: { items: items.slice((page - 1) * 50, page * 50), total: items.length, page, pageSize: 50, pageCount: Math.max(1, Math.ceil(items.length / 50)), hasNext: page * 50 < items.length },
+  paidStats: { sum: 150000, count: 2, avg: 75000 }, updatedAt: '2026-09-10T00:00:00.000Z',
+});
+test.afterAll(async () => { await fixtures.cleanupAll(); await prisma.$disconnect(); });
 
-// 목 본문은 shapes.ts 상수에서 생성한다 — 같은 상수를 Layer 1 이 실응답에 대해
-// 단언하므로 목과 실API의 드리프트가 구조적으로 불가능해진다.
-const surveyOverview = buildMock(SURVEYS_SHAPE, {
-  responseRate: 0.625,
-  submitted: 5,
-  total: 8,
-  pending: {
-    items: [{
-      surveyId: 'pending-survey',
-      requestCode: 'SURVEY-001',
-      customerName: '설문 고객',
-      customerPhone: '01012345678',
-      elapsedDays: 7,
-    }],
-    total: 3,
-    hasNext: true,
-  },
-  paidStats: { sum: 123456, count: 4, avg: 30864 },
-  updatedAt: '2026-07-18T12:00:00.000Z',
+async function setupUi(page: import('@playwright/test').Page) {
+  await seedSession(page.context(), 'ADMIN');
+  await page.route('**/api/admin/analytics/surveys**', route => {
+    const params = new URL(route.request().url()).searchParams;
+    let list = rows;
+    if (params.get('status') === 'SUBMITTED') list = list.filter(row => row.submittedAt);
+    if (params.get('status') === 'PENDING') list = list.filter(row => !row.submittedAt);
+    if (params.get('q')) list = list.filter(row => row.customerName.includes(params.get('q')!));
+    return route.fulfill({ json: overview(list, Number(params.get('page') || 1)) });
+  });
+}
+
+test('전체 목록·고객 입력 금액·0원·미입력·응답일·접수 연결을 표시한다', async ({ page }) => {
+  await setupUi(page);
+  await page.goto('/admin');
+  await page.getByRole('navigation', { name: '관리자 이동' }).getByRole('button', { name: '분석' }).click();
+  await page.getByRole('link', { name: '설문', exact: true }).click();
+  await expect(page.getByRole('button', { name: '전체', exact: true })).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.locator('tbody tr')).toHaveCount(50);
+  const row = (code: string) => page.getByRole('row').filter({ hasText: code });
+  await expect(row('SURVEY-000')).toContainText('150,000원');
+  await expect(row('SURVEY-001')).toContainText('0원');
+  await expect(row('SURVEY-002')).toContainText('금액 미입력');
+  await expect(row('SURVEY-003')).toContainText('미응답');
+  await expect(row('SURVEY-003')).not.toContainText('금액 미입력');
+  await expect(row('SURVEY-000').getByRole('link', { name: 'SURVEY-000' })).toHaveAttribute('href', '/admin/requests/request-0');
+  await expect(row('SURVEY-000').getByRole('link', { name: '01000000000' })).toHaveAttribute('href', 'tel:01000000000');
+  await expect(page.getByText('발송 대비 제출 비율')).toHaveCount(0);
 });
 
-test.describe('관리자 설문 현황', () => {
-  test('① 설문 메뉴에서 3개 영역과 미제출 연락처를 조회 전용으로 표시한다', async ({ page }) => {
-    await page.route('**/api/admin/analytics/surveys', async (route) => {
-      if (route.request().method() === 'GET') {
-        await route.fulfill({ contentType: 'application/json', body: JSON.stringify(surveyOverview) });
-        return;
-      }
-      await route.continue();
-    });
-    await loginAsAdmin(page);
-    await page.getByRole('navigation', { name: '관리자 이동' }).getByRole('button', { name: '분석' }).click();
-    await page.getByRole('menuitem', { name: '설문', exact: true }).click();
-    await expect(page).toHaveURL(/\/admin\/analytics\/surveys$/);
+test('페이지 이동 후 응답 필터·검색 변경은 첫 페이지부터 조회한다', async ({ page }) => {
+  await setupUi(page);
+  await page.goto('/admin/analytics/surveys');
+  await page.getByRole('button', { name: '다음', exact: true }).click();
+  await expect(page.locator('tbody tr')).toHaveCount(2);
+  await expect(page.locator('tbody')).toContainText('SURVEY-050');
+  await expect(page.getByRole('button', { name: '다음', exact: true })).toBeDisabled();
+  await page.getByRole('button', { name: '미응답', exact: true }).click();
+  await expect(page.locator('tbody tr')).toHaveCount(1);
+  await expect(page.locator('tbody')).toContainText('SURVEY-003');
+  await expect(page.getByRole('button', { name: '이전', exact: true })).toBeDisabled();
+  await page.getByRole('button', { name: '응답 완료', exact: true }).click();
+  await expect(page.locator('tbody tr')).toHaveCount(50);
+  await expect(page.locator('tbody')).not.toContainText('SURVEY-003');
+  await page.getByRole('button', { name: '다음', exact: true }).click();
+  await page.getByLabel('접수번호·고객명·전화번호 검색').fill('설문 고객 0');
+  await page.getByRole('button', { name: '검색', exact: true }).click();
+  await expect(page.locator('tbody tr')).toHaveCount(1);
+  await expect(page.locator('tbody')).toContainText('SURVEY-000');
+  await expect(page.getByRole('button', { name: '이전', exact: true })).toBeDisabled();
+  await expect(page.getByRole('region', { name: '전체 설문 요약' })).toContainText('52건');
+  await page.getByRole('button', { name: '검색 해제' }).click();
+  await expect(page.locator('tbody tr')).toHaveCount(50);
+});
 
-    for (const heading of ['응답률', '미제출 목록', '결제 통계']) {
-      await expect(page.getByRole('heading', { name: heading, exact: true })).toBeVisible();
+test('모바일에서도 목록·금액·필터를 확인하고 가로로 넘치지 않는다', async ({ page }) => {
+  await setupUi(page);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/admin/analytics/surveys');
+  await expect(page.getByRole('listitem').filter({ hasText: 'SURVEY-000' })).toContainText('150,000원');
+  await expect(page.getByRole('listitem').filter({ hasText: 'SURVEY-001' })).toContainText('0원');
+  await expect(page.getByRole('listitem').filter({ hasText: 'SURVEY-002' })).toContainText('금액 미입력');
+  await page.getByRole('button', { name: '미응답', exact: true }).click();
+  await expect(page.getByRole('list', { name:'모바일 설문 목록' }).getByRole('listitem')).toHaveCount(1);
+  for (const width of [320, 390, 768, 1023, 1440]) {
+    await page.setViewportSize({ width, height: 900 });
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  }
+});
+
+test('오류와 빈 목록을 구분하고 재시도·지연 응답에도 선택한 필터를 유지한다', async ({ page }) => {
+  await seedSession(page.context(), 'ADMIN');
+  let failed = true;
+  let delaySubmitted = false;
+  await page.route('**/api/admin/analytics/surveys**', async route => {
+    const params = new URL(route.request().url()).searchParams;
+    if (failed) return route.fulfill({ status: 503, json: {} });
+    if (delaySubmitted && params.get('status') === 'SUBMITTED') await new Promise(resolve => setTimeout(resolve, 350));
+    return route.fulfill({ json: overview(params.get('status') === 'PENDING' ? [] : rows.slice(0, 4)) });
+  });
+  await page.goto('/admin/analytics/surveys');
+  await expect(page.getByRole('alert').filter({ hasText: '설문 목록을 불러오지 못했습니다.' })).toBeVisible();
+  await expect(page.getByText('아직 생성된 설문이 없습니다.')).toHaveCount(0);
+  failed = false;
+  await page.getByRole('button', { name: '다시 시도' }).click();
+  await expect(page.locator('tbody tr')).toHaveCount(4);
+  delaySubmitted = true;
+  const slow = page.waitForResponse(r => r.url().includes('status=SUBMITTED'));
+  await page.getByRole('button', { name: '응답 완료', exact: true }).click();
+  await page.getByRole('button', { name: '미응답', exact: true }).click();
+  await expect(page.getByText('미응답 설문이 없습니다.', { exact: true })).toBeVisible();
+  await slow;
+  await expect(page.locator('tbody tr')).toHaveCount(0);
+  await expect(page.getByRole('button', { name: '미응답', exact: true })).toHaveAttribute('aria-pressed', 'true');
+});
+
+test('실제 API: 전체·완료·미응답·52번째 이후·검색·0원/미입력·금액 무변경', async ({ playwright }) => {
+  const admin = await playwright.request.newContext(await apiContextOptions('ADMIN'));
+  const marker = `설문필터${randomUUID().slice(0, 8)}`;
+  const partner = await fixtures.createPartnerFixture({ isActive: false });
+  const requests = await Promise.all(Array.from({ length: 54 }, (_, i) => fixtures.createRequestFixture({ status: 'COMPLETED', customerName: `${marker} 고객 ${i}` })));
+  const stamp = Date.now();
+  await prisma.satisfactionSurvey.createMany({ data: requests.map((r, i) => ({
+    requestId: r.id, providerId: partner.providerId, token: randomUUID(), createdAt: new Date(stamp - i * 1000),
+    submittedAt: i % 2 === 0 ? new Date(stamp) : null, rating: i % 2 === 0 ? 5 : null,
+    paidAmount: i === 0 ? 0 : i === 2 || i % 2 !== 0 ? null : i * 1000,
+  })) });
+  const get = async (params = '') => {
+    const response = await admin.get(`/api/admin/analytics/surveys?q=${encodeURIComponent(marker)}${params}`);
+    expect(response.status()).toBe(200);
+    expect(response.headers()['cache-control']).toContain('no-store');
+    const data = await response.json() as SurveyOverview;
+    expect(shapeViolations(data, SURVEYS_SHAPE)).toEqual([]);
+    return data;
+  };
+  try {
+    const all = await get();
+    expect(all.surveys.total).toBe(54);
+    expect(all.surveys.items).toHaveLength(50);
+    expect(all.surveys.items[0]).toMatchObject({ requestId: requests[0].id, paidAmount: 0 });
+    expect(all.surveys.items[2]).toMatchObject({ requestId: requests[2].id, paidAmount: null });
+    const second = await get('&page=2');
+    expect(second.surveys.items).toHaveLength(4);
+    expect(second.surveys.hasNext).toBe(false);
+    const ids = [...all.surveys.items, ...second.surveys.items].map(row => row.requestId);
+    expect(ids).toEqual(requests.map(r => r.id));
+    expect(new Set(ids).size).toBe(54);
+    expect((await get('&page=999')).surveys.page).toBe(2);
+    for (const status of ['SUBMITTED', 'PENDING']) {
+      const body = await get(`&status=${status}`);
+      expect(body.surveys.total).toBe(27);
+      expect(body.surveys.items.every(row => status === 'SUBMITTED' ? row.submittedAt !== null : row.submittedAt === null)).toBe(true);
+      expect(body.paidStats).toEqual(all.paidStats);
+      expect(body.total).toBe(all.total);
     }
-    await expect(page.getByText('62.5%', { exact: true })).toBeVisible();
-    await expect(page.getByText('SURVEY-001', { exact: true })).toBeVisible();
-    await expect(page.getByRole('link', { name: '01012345678', exact: true })).toHaveAttribute('href', 'tel:01012345678');
-    await expect(page.getByText('7일', { exact: true })).toBeVisible();
-    await expect(page.getByText('외 2건', { exact: true })).toBeVisible();
-    await expect(page.getByRole('button', { name: /재발송/ })).toHaveCount(0);
-  });
+    for (const q of [requests[0].lookupCode, requests[0].customerPhone.replace(/(\d{3})(\d{4})(\d{4})/, '$1-$2-$3')]) {
+      const body = await (await admin.get(`/api/admin/analytics/surveys?q=${encodeURIComponent(q)}`)).json() as SurveyOverview;
+      expect(body.surveys.items.some(row => row.requestId === requests[0].id)).toBe(true);
+    }
+    const empty = await (await admin.get(`/api/admin/analytics/surveys?q=${marker}없는고객`)).json();
+    expect(empty.surveys).toMatchObject({ items: [], total: 0, page: 1, hasNext: false });
+    const saved = await prisma.satisfactionSurvey.findMany({ where: { requestId: { in: requests.map(r => r.id) } } });
+    expect(saved).toHaveLength(54);
+    expect(saved.find(row => row.requestId === requests[0].id)?.paidAmount).toBe(0);
+  } finally { await admin.dispose(); }
+});
 
-  test('② 설문 API는 인증된 GET만 허용한다', async ({ page, request }) => {
-    const anonymousResponse = await request.get('/api/admin/analytics/surveys');
-    expect(anonymousResponse.status()).toBe(401);
-
-    await loginAsAdmin(page);
-    const getResponse = await page.request.get('/api/admin/analytics/surveys');
-    expect(getResponse.status()).toBe(200);
-
-    const postResponse = await page.request.post('/api/admin/analytics/surveys');
-    expect(postResponse.status()).toBe(405);
-  });
-
-  test('③ 1023px에서는 설문 API를 요청하지 않는다', async ({ page }) => {
-    await page.setViewportSize({ width: 1023, height: 800 });
-    const surveyRequests: string[] = [];
-    page.on('request', (request) => {
-      if (new URL(request.url()).pathname === '/api/admin/analytics/surveys') {
-        surveyRequests.push(request.method());
-      }
-    });
-
-    await loginAsAdmin(page);
-    // 1023px에서는 분석 내비 그룹 자체가 숨겨지므로(lg 게이트) URL로 직접 진입한다.
-    await page.goto('/admin/analytics/surveys');
-    await expect(page.getByText('설문 현황은 데스크톱에서 이용할 수 있습니다.', { exact: true })).toBeVisible();
-    expect(surveyRequests).toHaveLength(0);
-  });
+test('API는 관리자 GET만 허용하고 잘못된 조회 조건을 거부한다', async ({ playwright }) => {
+  for (const role of [null, 'PROVIDER', 'TECHNICIAN'] as const) {
+    const context = await playwright.request.newContext(await apiContextOptions(role, { providerId: 'not-admin', technicianId: 'not-admin' }));
+    expect((await context.get('/api/admin/analytics/surveys?status=ALL')).status()).toBe(401);
+    await context.dispose();
+  }
+  const admin = await playwright.request.newContext(await apiContextOptions('ADMIN'));
+  try {
+    for (const query of ['status=UNKNOWN', 'page=0', 'page=-1', 'page=1.5', 'page=no', 'page=1000001', `q=${'a'.repeat(101)}`]) {
+      expect((await admin.get(`/api/admin/analytics/surveys?${query}`)).status()).toBe(400);
+    }
+    expect((await admin.post('/api/admin/analytics/surveys')).status()).toBe(405);
+  } finally { await admin.dispose(); }
 });

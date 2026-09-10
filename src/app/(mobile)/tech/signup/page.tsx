@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import PortalSupportLink from '@/components/PortalSupportLink';
+import { requestError } from '@/lib/clientApi';
 import PageHeader from '@/components/PageHeader';
 import LoginIdCheckField from '@/components/LoginIdCheckField';
 import PasswordInput from '@/components/PasswordInput';
@@ -17,16 +19,26 @@ import {
   REDIRECT_PARAM_MESSAGE,
 } from '@/lib/identity/client';
 import { CheckIcon } from '@/components/icons';
-import ReferrerField, { type ReferrerSelection } from '@/components/ReferrerField';
+import ReferrerField, {
+  type ReferrerSelection,
+} from '@/components/ReferrerField';
 
 const inputClass =
-  'w-full rounded-xl border border-neutral-300 bg-white p-3 text-base text-fg placeholder:text-muted focus:border-brand-500 focus:ring-2 focus:ring-brand-500/15 focus:outline-none';
+  'min-w-0 w-full rounded-xl border border-neutral-300 bg-white p-3 text-base text-fg placeholder:text-muted focus:border-brand-500 focus:ring-2 focus:ring-brand-500/15 focus:outline-none';
 
 type EmploymentType = 'DAILY' | 'PERMANENT';
 
-const EMPLOYMENT_OPTIONS: { value: EmploymentType; label: string; desc: string }[] = [
+const EMPLOYMENT_OPTIONS: {
+  value: EmploymentType;
+  label: string;
+  desc: string;
+}[] = [
   { value: 'DAILY', label: '일일 근로자', desc: '하루 8시간 단위 근로' },
-  { value: 'PERMANENT', label: '상시 근로자', desc: '평일 09:00~18:00 (추후 협의 변동 가능)' },
+  {
+    value: 'PERMANENT',
+    label: '상시 근로자',
+    desc: '평일 09:00~18:00 (추후 협의 변동 가능)',
+  },
 ];
 
 // 모바일 본인인증은 페이지가 통째로 인증창(PASS)으로 갔다가 redirectUrl(이 페이지)로 돌아온다.
@@ -67,7 +79,11 @@ function takeDraft(): Draft | null {
 }
 
 // 리다이렉트 복귀 쿼리를 읽고 URL 에서 지운다(새로고침 시 재검증 요청이 반복되지 않도록).
-function consumeRedirectParams(): { id?: string; code?: string; message?: string } | null {
+function consumeRedirectParams(): {
+  id?: string;
+  code?: string;
+  message?: string;
+} | null {
   const params = new URLSearchParams(window.location.search);
   const id = params.get(REDIRECT_PARAM_ID) ?? undefined;
   const code = params.get(REDIRECT_PARAM_CODE) ?? undefined;
@@ -84,13 +100,16 @@ export default function TechSignupPage() {
   const [passwordConfirm, setPasswordConfirm] = useState('');
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
-  const [employmentType, setEmploymentType] = useState<EmploymentType | null>(null);
+  const [employmentType, setEmploymentType] = useState<EmploymentType | null>(
+    null,
+  );
   const [region, setRegion] = useState<RegionValue>({ sido: '', sigungu: '' });
   const [addrDetail, setAddrDetail] = useState('');
   const [regions, setRegions] = useState<string[]>([]);
   const [referrer, setReferrer] = useState<ReferrerSelection | null>(null);
   const [agreed, setAgreed] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [invalid, setInvalid] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState(false);
   // 휴대폰 본인인증 완료 시 발급받은 토큰. 이 값이 있어야 가입 가능하다.
@@ -142,8 +161,9 @@ export default function TechSignupPage() {
   // 모바일은 인증창으로 리다이렉트됐다가 이 페이지로 돌아온다(복귀 처리는 아래 useEffect).
   async function verifyPhone() {
     setError(null);
-    if (!name.trim()) return setError('성명을 입력해 주세요');
-    if (!phone.trim()) return setError('전화번호를 입력해 주세요');
+    if (!name.trim()) return fail('성명을 입력해 주세요', 'tech-name');
+    if (!/^01[016789]\d{7,8}$/.test(phone.replace(/\D/g, '')))
+      return fail('휴대폰 번호를 확인해 주세요', 'tech-phone');
 
     setVerifying(true);
     try {
@@ -192,7 +212,7 @@ export default function TechSignupPage() {
       if (cancelled) return;
       if (draft) {
         setLoginId(draft.loginId);
-        setIdAvailable(draft.idAvailable);
+        setIdAvailable(false);
         setName(draft.name);
         setPhone(draft.phone);
         setEmploymentType(draft.employmentType);
@@ -207,7 +227,7 @@ export default function TechSignupPage() {
         return;
       }
       setRedirectNotice(
-        '본인인증을 마치고 돌아왔습니다. 보안을 위해 비밀번호는 다시 입력해 주세요.',
+        '본인인증을 마치고 돌아왔습니다. 비밀번호를 다시 입력하고 아이디 중복 확인을 눌러 주세요.',
       );
       setVerifying(true);
       try {
@@ -232,6 +252,7 @@ export default function TechSignupPage() {
   // 유효성 실패 시 안내 + 해당 필드로 스크롤·포커스
   function fail(msg: string, id?: string) {
     setError(msg);
+    setInvalid(id ?? null);
     const el = id ? (document.getElementById(id) as HTMLElement | null) : null;
     el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
     el?.focus();
@@ -240,23 +261,41 @@ export default function TechSignupPage() {
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
-    if (!verificationId) return fail('휴대폰 본인인증을 완료해 주세요');
+    setInvalid(null);
+    if (!verificationId)
+      return fail(
+        '휴대폰 본인인증을 완료해 주세요',
+        !name.trim()
+          ? 'tech-name'
+          : !phone.trim()
+            ? 'tech-phone'
+            : 'tech-verify',
+      );
     if (loginId.trim().length < 3)
       return fail('로그인 아이디를 3자 이상 입력해 주세요', 'tech-loginId');
-    if (!idAvailable) return fail('아이디 중복 확인을 해 주세요', 'tech-loginId');
+    if (!idAvailable)
+      return fail('아이디 중복 확인을 해 주세요', 'tech-loginId');
     if (password.length < 8)
       return fail('비밀번호를 8자 이상 입력해 주세요', 'tech-password');
     if (password !== passwordConfirm)
       return fail('비밀번호가 일치하지 않습니다', 'tech-password-confirm');
-    if (!employmentType) return fail('근로 형태를 선택해 주세요');
-    if (!regionComplete) return fail('거주 지역을 선택해 주세요');
-    if (!addrDetail.trim()) return fail('상세 주소를 입력해 주세요', 'tech-addr');
-    if (!agreed) return fail('개인정보 수집·이용에 동의해 주세요');
+    if (!employmentType)
+      return fail('근로 형태를 선택해 주세요', 'tech-employment');
+    if (!regionComplete)
+      return fail(
+        '거주 지역을 선택해 주세요',
+        !region.sido ? 'tech-region-sido' : 'tech-region-sigungu',
+      );
+    if (!addrDetail.trim())
+      return fail('상세 주소를 입력해 주세요', 'tech-addr');
+    if (!agreed)
+      return fail('개인정보 수집·이용에 동의해 주세요', 'tech-agreed');
 
     setBusy(true);
     try {
       const res = await fetch('/api/tech/signup', {
         method: 'POST',
+        signal: AbortSignal.timeout(30_000),
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           loginId,
@@ -270,14 +309,14 @@ export default function TechSignupPage() {
           ...(referrer ? { referrerUserId: referrer.userId } : {}),
         }),
       });
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
       if (!res.ok) {
         setError(data.error ?? '신청에 실패했습니다');
         return;
       }
       setDone(true);
-    } catch {
-      setError('네트워크 오류가 발생했습니다');
+    } catch (e) {
+      setError(requestError(e));
     } finally {
       setBusy(false);
     }
@@ -290,6 +329,7 @@ export default function TechSignupPage() {
           <span className="flex h-16 w-16 items-center justify-center rounded-2xl bg-brand-600">
             <CheckIcon className="h-8 w-8 text-white" />
           </span>
+          <PortalSupportLink />
           <h1 className="text-2xl font-bold text-fg">가입이 완료되었습니다</h1>
           <p className="text-muted">
             자동으로 로그인되었습니다.
@@ -298,10 +338,16 @@ export default function TechSignupPage() {
             <br />
             바로 배정(일)을 받을 수 있습니다.
           </p>
-          <Link href="/tech/contract" className={buttonClasses('primary', 'lg', 'w-full')}>
+          <Link
+            href="/tech/contract"
+            className={buttonClasses('primary', 'lg', 'w-full')}
+          >
             근로확인서 작성하러 가기
           </Link>
-          <Link href="/tech" className="text-sm font-medium text-neutral-400 hover:text-neutral-600">
+          <Link
+            href="/tech"
+            className="text-sm font-medium text-neutral-400 hover:text-neutral-600"
+          >
             나중에 하기 (전기기사 포털로)
           </Link>
         </div>
@@ -314,6 +360,7 @@ export default function TechSignupPage() {
       <PageHeader title="전기기사 가입 신청" back="/tech/login" />
 
       <form
+        noValidate
         onSubmit={submit}
         className="mx-auto w-full max-w-2xl space-y-5 p-4 pb-10 md:py-8 md:pb-16"
       >
@@ -329,29 +376,42 @@ export default function TechSignupPage() {
         <section className="space-y-2 md:rounded-2xl md:bg-white md:p-6 md:shadow-surface-sm">
           <h2 className="text-sm font-semibold">계정 정보</h2>
           <LoginIdCheckField
+            id="tech-loginId"
+            error={
+              invalid === 'tech-loginId' ? (error ?? undefined) : undefined
+            }
             value={loginId}
             onChange={setLoginId}
             onAvailabilityChange={setIdAvailable}
-            id="tech-loginId"
             className={inputClass}
           />
           <PasswordInput
+            id="tech-password"
+            error={
+              invalid === 'tech-password' ? (error ?? undefined) : undefined
+            }
             value={password}
             onChange={setPassword}
-            id="tech-password"
             placeholder="비밀번호 (8자 이상)"
             className={inputClass}
           />
           <PasswordInput
+            id="tech-password-confirm"
+            error={
+              invalid === 'tech-password-confirm'
+                ? (error ?? undefined)
+                : undefined
+            }
             value={passwordConfirm}
             onChange={setPasswordConfirm}
-            id="tech-password-confirm"
             placeholder="비밀번호 확인 (다시 입력)"
             ariaLabel="비밀번호 확인"
             className={inputClass}
           />
           {passwordConfirm && password !== passwordConfirm && (
-            <p className="text-sm font-medium text-red-600">비밀번호가 일치하지 않습니다</p>
+            <p className="text-sm font-medium text-red-600">
+              비밀번호가 일치하지 않습니다
+            </p>
           )}
         </section>
 
@@ -361,6 +421,13 @@ export default function TechSignupPage() {
             {EMPLOYMENT_OPTIONS.map((opt) => (
               <button
                 key={opt.value}
+                id={opt.value === 'DAILY' ? 'tech-employment' : undefined}
+                aria-pressed={employmentType === opt.value}
+                aria-describedby={
+                  invalid === 'tech-employment'
+                    ? 'tech-employment-error'
+                    : undefined
+                }
                 type="button"
                 onClick={() => setEmploymentType(opt.value)}
                 className={`rounded-xl border p-3 text-left transition-colors ease-portal ${
@@ -374,46 +441,105 @@ export default function TechSignupPage() {
               </button>
             ))}
           </div>
+          {invalid === 'tech-employment' && (
+            <p
+              id="tech-employment-error"
+              role="alert"
+              className="text-sm text-red-700"
+            >
+              {error}
+            </p>
+          )}
         </section>
 
         <section className="space-y-2 md:rounded-2xl md:bg-white md:p-6 md:shadow-surface-sm">
           <h2 className="text-sm font-semibold">전기기사 정보</h2>
-          <input
-            type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            aria-label="성명"
-            placeholder="성명"
-            autoComplete="name"
-            readOnly={!!verificationId}
-            className={`${inputClass} ${verificationId ? 'bg-neutral-100 text-muted' : ''}`}
-          />
-          <div className="flex gap-2">
+          <div className="min-w-0 flex-1">
+            <label
+              htmlFor="tech-name"
+              className="mb-1 block text-sm font-medium"
+            >
+              성명
+            </label>
             <input
-              type="tel"
-              inputMode="tel"
-              autoComplete="tel"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              aria-label="전화번호"
-              placeholder="전화번호 (본인인증 후 배정 안내 문자 수신)"
+              id="tech-name"
+              maxLength={50}
+              aria-invalid={invalid === 'tech-name'}
+              aria-describedby={
+                invalid === 'tech-name' ? 'tech-name-error' : undefined
+              }
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              aria-label="성명"
+              placeholder="성명"
+              autoComplete="name"
               readOnly={!!verificationId}
-              className={`${inputClass} flex-1 ${verificationId ? 'bg-neutral-100 text-muted' : ''}`}
+              className={`${inputClass} ${verificationId ? 'bg-neutral-100 text-muted' : ''}`}
             />
+            {invalid === 'tech-name' && (
+              <p
+                id="tech-name-error"
+                role="alert"
+                className="mt-1 text-sm text-red-700"
+              >
+                {error}
+              </p>
+            )}
+          </div>
+          <div className="flex gap-2">
+            <div className="min-w-0 flex-1">
+              <label
+                htmlFor="tech-phone"
+                className="mb-1 block text-sm font-medium"
+              >
+                전화번호
+              </label>
+              <input
+                id="tech-phone"
+                maxLength={20}
+                aria-invalid={invalid === 'tech-phone'}
+                aria-describedby={
+                  invalid === 'tech-phone' ? 'tech-phone-error' : undefined
+                }
+                type="tel"
+                inputMode="tel"
+                autoComplete="tel"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                aria-label="전화번호"
+                placeholder="전화번호 (본인인증 후 배정 안내 문자 수신)"
+                readOnly={!!verificationId}
+                className={`${inputClass} flex-1 ${verificationId ? 'bg-neutral-100 text-muted' : ''}`}
+              />
+              {invalid === 'tech-phone' && (
+                <p
+                  id="tech-phone-error"
+                  role="alert"
+                  className="mt-1 text-sm text-red-700"
+                >
+                  {error}
+                </p>
+              )}
+            </div>
             {verificationId ? (
               <button
                 type="button"
                 onClick={resetVerification}
-                className="shrink-0 rounded-xl border border-neutral-300 px-4 text-sm font-semibold text-neutral-600"
+                className="min-h-12 shrink-0 self-end rounded-xl border border-neutral-300 px-4 text-sm font-semibold text-neutral-600"
               >
                 변경
               </button>
             ) : (
               <button
                 type="button"
+                id="tech-verify"
+                aria-describedby={
+                  invalid === 'tech-verify' ? 'signup-error' : undefined
+                }
                 onClick={verifyPhone}
-                disabled={verifying || !name.trim() || !phone.trim()}
-                className="shrink-0 rounded-xl bg-neutral-900 px-4 text-sm font-bold text-white transition-colors ease-portal enabled:hover:bg-neutral-950 disabled:opacity-50"
+                disabled={verifying}
+                className="min-h-12 shrink-0 self-end rounded-xl bg-neutral-900 px-4 text-sm font-bold text-white transition-colors ease-portal enabled:hover:bg-neutral-950 disabled:opacity-50"
               >
                 {verifying ? '인증 중…' : '본인인증'}
               </button>
@@ -426,28 +552,61 @@ export default function TechSignupPage() {
             </p>
           ) : (
             <p className="text-xs text-neutral-400">
-              성명·전화번호 입력 후 <b>본인인증</b>을 완료해야 가입할 수 있습니다.
+              성명·전화번호 입력 후 <b>본인인증</b>을 완료해야 가입할 수
+              있습니다.
             </p>
           )}
-          <RegionSelect value={region} onChange={handleRegionChange} />
-          <input
-            type="text"
-            value={addrDetail}
-            onChange={(e) => setAddrDetail(e.target.value)}
-            id="tech-addr"
-            aria-label="상세 주소"
-            placeholder="상세 주소 (도로명, 건물명 등)"
-            autoComplete="street-address"
-            className={inputClass}
+          <RegionSelect
+            idPrefix="tech-region"
+            error={
+              invalid === 'tech-region-sido' ||
+              invalid === 'tech-region-sigungu'
+                ? (error ?? undefined)
+                : undefined
+            }
+            value={region}
+            onChange={handleRegionChange}
           />
+          <div className="min-w-0 flex-1">
+            <label
+              htmlFor="tech-addr"
+              className="mb-1 block text-sm font-medium"
+            >
+              상세 주소
+            </label>
+            <input
+              id="tech-addr"
+              maxLength={160}
+              aria-invalid={invalid === 'tech-addr'}
+              aria-describedby={
+                invalid === 'tech-addr' ? 'tech-addr-error' : undefined
+              }
+              type="text"
+              value={addrDetail}
+              onChange={(e) => setAddrDetail(e.target.value)}
+              aria-label="상세 주소"
+              placeholder="상세 주소 (도로명, 건물명 등)"
+              autoComplete="street-address"
+              className={inputClass}
+            />
+            {invalid === 'tech-addr' && (
+              <p
+                id="tech-addr-error"
+                role="alert"
+                className="mt-1 text-sm text-red-700"
+              >
+                {error}
+              </p>
+            )}
+          </div>
         </section>
 
         <section className="space-y-2 md:rounded-2xl md:bg-white md:p-6 md:shadow-surface-sm">
           <h2 className="text-sm font-semibold">서비스 가능 지역</h2>
           <p className="text-xs text-muted">
-            일(배정)을 받을 지역을 여러 곳 선택할 수 있습니다. 선택한 지역의 요청만
-            받습니다. 그 안에서의 배정 순서는 알 보유량이 먼저이고, 같으면 최근 배정이
-            적은 순, 평균 별점, 거리 순으로 정해집니다.
+            일(배정)을 받을 지역을 여러 곳 선택할 수 있습니다. 선택한 지역의
+            요청만 받습니다. 그 안에서의 배정 순서는 알 보유량이 먼저이고,
+            같으면 최근 배정이 적은 순, 평균 별점, 거리 순으로 정해집니다.
           </p>
           <RegionMultiSelect value={regions} onChange={setRegions} />
         </section>
@@ -457,31 +616,53 @@ export default function TechSignupPage() {
           <p className="text-xs text-muted">
             추천인이 있다면 전화번호로 검색해 지정할 수 있습니다.
           </p>
-          <ReferrerField selected={referrer} onSelectedChange={setReferrer} variant="mobile" />
+          <ReferrerField
+            selected={referrer}
+            onSelectedChange={setReferrer}
+            variant="mobile"
+          />
         </section>
 
-        <label className="flex items-start gap-2 text-sm text-neutral-600">
+        <label className="flex min-h-11 items-start gap-2 py-2 text-sm text-neutral-600">
           <input
             type="checkbox"
             checked={agreed}
             onChange={(e) => setAgreed(e.target.checked)}
-            className="mt-0.5 h-4 w-4 accent-brand-600"
+            id="tech-agreed"
+            aria-invalid={invalid === 'tech-agreed'}
+            aria-describedby={
+              invalid === 'tech-agreed' ? 'signup-error' : undefined
+            }
+            className="mt-0.5 h-5 w-5 accent-brand-600"
           />
           <span>
-            <Link href="/terms" target="_blank" className="font-semibold text-brand-700 underline">
+            <Link
+              href="/terms"
+              target="_blank"
+              className="font-semibold text-brand-700 underline"
+            >
               이용약관
             </Link>
             과{' '}
-            <Link href="/privacy" target="_blank" className="font-semibold text-brand-700 underline">
+            <Link
+              href="/privacy"
+              target="_blank"
+              className="font-semibold text-brand-700 underline"
+            >
               개인정보처리방침
             </Link>
-            을 확인했으며, 가입 심사 및 근로확인을 위한 개인정보(성명, 연락처, 주소, 본인인증
-            결과) 수집·이용에 동의합니다.
+            을 확인했으며, 가입 심사 및 근로확인을 위한 개인정보(성명, 연락처,
+            주소, 본인인증 결과) 수집·이용에 동의합니다.
           </span>
         </label>
 
         {error && (
-          <p className="rounded-xl border border-red-100 bg-red-50 p-3 text-sm font-medium text-red-600">
+          <p
+            role="alert"
+            id="signup-error"
+            tabIndex={-1}
+            className="rounded-xl border border-red-100 bg-red-50 p-3 text-sm font-medium text-red-600"
+          >
             {error}
           </p>
         )}
@@ -493,6 +674,7 @@ export default function TechSignupPage() {
         >
           {busy ? '신청 중…' : '가입 신청하기'}
         </button>
+        <PortalSupportLink />
       </form>
     </main>
   );

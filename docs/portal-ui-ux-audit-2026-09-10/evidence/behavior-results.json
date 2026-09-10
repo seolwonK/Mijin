@@ -1,0 +1,130 @@
+[
+  {
+    "name": "partner-history",
+    "expanded": "true",
+    "links": 6,
+    "phone": "tel:01099002001",
+    "directions": "https://map.kakao.com/link/to/%EC%84%9C%EC%9A%B8%ED%8A%B9%EB%B3%84%EC%8B%9C%20%EA%B0%95%EB%82%A8%EA%B5%AC%20%ED%85%8C%ED%97%A4%EB%9E%80%EB%A1%9C%20152%2C%204%EC%B8%B5%20401%ED%98%B8,37.5006,127.0364"
+  },
+  {
+    "name": "partner-reject-cancel",
+    "stillRequested": "REQUESTED"
+  },
+  {
+    "name": "partner-accept-eggs",
+    "assignment": "ACCEPTED",
+    "balance": 2
+  },
+  {
+    "name": "partner-duplicate-accept",
+    "status": 409,
+    "balance": 2
+  },
+  {
+    "name": "partner-dispatch-cancel",
+    "status": "ACCEPTED"
+  },
+  {
+    "name": "partner-complete-cancel",
+    "status": "DISPATCHED"
+  },
+  {
+    "name": "partner-completed",
+    "status": "COMPLETED"
+  },
+  {
+    "name": "partner-session-expiry",
+    "url": "http://localhost:3001/partner/login?returnTo=%2Fpartner"
+  },
+  {
+    "name": "tech-history",
+    "expanded": "true",
+    "links": 6,
+    "phone": "tel:01099002001",
+    "directions": "https://map.kakao.com/link/to/%EC%84%9C%EC%9A%B8%ED%8A%B9%EB%B3%84%EC%8B%9C%20%EA%B0%95%EB%82%A8%EA%B5%AC%20%ED%85%8C%ED%97%A4%EB%9E%80%EB%A1%9C%20152%2C%204%EC%B8%B5%20401%ED%98%B8,37.5006,127.0364"
+  },
+  {
+    "name": "tech-reject-cancel",
+    "stillRequested": "REQUESTED"
+  },
+  {
+    "name": "tech-accept-eggs",
+    "assignment": "ACCEPTED",
+    "balance": 2
+  },
+  {
+    "name": "tech-duplicate-accept",
+    "status": 409,
+    "balance": 2
+  },
+  {
+    "name": "tech-dispatch-cancel",
+    "status": "ACCEPTED"
+  },
+  {
+    "name": "tech-complete-cancel",
+    "status": "DISPATCHED"
+  },
+  {
+    "name": "tech-completed",
+    "status": "COMPLETED"
+  },
+  {
+    "name": "tech-session-expiry",
+    "url": "http://localhost:3001/tech/login?returnTo=%2Ftech"
+  },
+  {
+    "name": "profile-invalid-phone",
+    "message": "전화번호 형식이 올바르지 않습니다",
+    "value": "123"
+  },
+  {
+    "name": "profile-persistence",
+    "phone": "01099001009",
+    "active": "false"
+  },
+  {
+    "name": "profile-load-failure",
+    "buttons": [
+      "←"
+    ],
+    "body": "←\n내 정보\n\n검증용 일시 장애"
+  },
+  {
+    "name": "profile-expiry-no-return",
+    "url": "http://localhost:3001/partner/profile",
+    "body": "←\n내 정보\n\n권한이 없습니다"
+  },
+  {
+    "name": "contract-empty-signature",
+    "errorVisible": true,
+    "focus": "BUTTON"
+  },
+  {
+    "name": "signature-clear",
+    "empty": true
+  },
+  {
+    "name": "contract-sign-confirm",
+    "status": "CONFIRMED",
+    "disabled": true,
+    "submitButtons": 0
+  },
+  {
+    "name": "contract-home-confirmed",
+    "visible": true
+  },
+  {
+    "name": "login-id-race",
+    "value": "partner1",
+    "message": "사용할 수 있는 아이디입니다"
+  },
+  {
+    "name": "logout-network-failure",
+    "url": "http://localhost:3001/tech",
+    "errors": [
+      "Failed to fetch"
+    ],
+    "alerts": 0
+  }
+]

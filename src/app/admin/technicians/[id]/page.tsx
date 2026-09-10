@@ -188,6 +188,7 @@ export default function EditTechnicianPage({
   return (
     <main className="min-h-screen md:bg-surface">
       <PageHeader
+        width="max-w-[900px]"
         title={detail.name}
         back="/admin/technicians"
         crumbs={[
@@ -203,7 +204,7 @@ export default function EditTechnicianPage({
         }
       />
 
-      <section className="mx-auto max-w-2xl space-y-3 border-b border-neutral-100 p-4">
+      <section className="mx-auto max-w-[900px] space-y-3 border-b border-neutral-100 p-4">
         <div className="rounded-admin-md border border-border p-4 text-sm">
           <p>
             근로형태: <span className="font-bold">{EMPLOYMENT_LABEL[detail.employmentType]}</span>
@@ -296,7 +297,7 @@ export default function EditTechnicianPage({
         )}
       </section>
 
-      <section className="mx-auto max-w-2xl space-y-2 border-b border-neutral-100 p-4">
+      <section className="mx-auto max-w-[900px] space-y-2 border-b border-neutral-100 p-4">
         <h2 className="text-sm font-semibold text-muted">소개자</h2>
         {!referrerEditing ? (
           <div className="flex items-center justify-between rounded-admin-md border border-border p-3 text-sm">

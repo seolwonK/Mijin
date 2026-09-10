@@ -1,0 +1,9 @@
+
+ RUN  v4.1.10 /private/tmp/mijin-portal-audit
+
+
+ Test Files  2 passed (2)
+      Tests  22 passed (22)
+   Start at  10:14:02
+   Duration  1.83s (transform 625ms, setup 0ms, import 875ms, tests 988ms, environment 0ms)
+

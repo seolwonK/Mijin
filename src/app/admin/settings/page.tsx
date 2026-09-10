@@ -1,8 +1,10 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import layout from '@/components/admin-layout.module.css';
 import PageHeader from '@/components/PageHeader';
 import { useConfirm } from '@/components/useConfirm';
+import AdminEggChargeSettings from '@/components/AdminEggChargeSettings';
 
 type Settings = {
   autoAssignEnabled: boolean;
@@ -138,17 +140,18 @@ export default function AdminSettingsPage() {
 
   const rows: { key: keyof Settings; label: string; badge: string }[] = [
     { key: 'waitMinutesCritical', label: '초긴급 (1시간 내)', badge: 'bg-red-600' },
-    { key: 'waitMinutesUrgent', label: '긴급 (2시간 내)', badge: 'bg-orange-500' },
+    { key: 'waitMinutesUrgent', label: '긴급 (2시간 내)', badge: 'bg-orange-700' },
     { key: 'waitMinutesNormal', label: '일반', badge: 'bg-neutral-500' },
   ];
 
   return (
     <main className="min-h-screen md:bg-surface">
-      <PageHeader title="설정" back="/admin" />
+      <PageHeader title="설정" back="/admin" width="max-w-[1160px]" />
 
-      <div className="mx-auto max-w-2xl space-y-6 p-4">
+      <div className={layout.settings}>
+        <AdminEggChargeSettings />
         <section className="rounded-admin-md border border-border p-4">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between gap-4">
             <div>
               <p className="font-bold">자동배정 사용</p>
               <p className="mt-1 text-sm text-muted">
@@ -183,7 +186,7 @@ export default function AdminSettingsPage() {
           <p className="mb-3 font-bold">긴급도별 자동배정 대기시간 (분)</p>
           <div className="space-y-3">
             {rows.map((row) => (
-              <div key={row.key} className="flex items-center justify-between">
+              <div key={row.key} className="flex items-center justify-between gap-4">
                 <span className="flex items-center gap-2 text-sm">
                   <span
                     className={`rounded-full px-2 py-0.5 text-xs font-bold text-white ${row.badge}`}

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { requireSession } from '@/lib/auth';
 import { getCandidates } from '@/lib/matching';
 import { isValidRegionKey, regionKey } from '@/lib/regions';
+import { rotationOverview } from '@/lib/rotationOverview';
 
 // 지역 순환 현황(AC-2) — Option C: 합성 NORMAL 요청으로 matching.ts의 getCandidates()를
 // 그대로 재사용한다(랭킹 로직 0줄 복제, matching.ts 0줄 수정). 결정 근거는
@@ -13,6 +14,13 @@ export async function GET(req: NextRequest) {
   if (!session) return NextResponse.json({ error: '권한이 없습니다' }, { status: 401 });
 
   const { searchParams } = new URL(req.url);
+  const view = searchParams.get('view');
+  if (view === 'overview') {
+    // Same eligibility as matching, without ranking statistics or one query per region.
+    const eligible = await getCandidates({ id: 'rotation-board-synthetic', lat: null, lng: null, address: null, urgency: 'CRITICAL' });
+    return NextResponse.json(rotationOverview(eligible));
+  }
+  if (view !== null) return NextResponse.json({ error: '올바르지 않은 조회 방식입니다' }, { status: 400 });
   const sido = searchParams.get('sido')?.trim() ?? '';
   const sigungu = searchParams.get('sigungu')?.trim() ?? '';
   if (!sido) {
@@ -37,6 +45,8 @@ export async function GET(req: NextRequest) {
 
   return NextResponse.json({
     candidates: candidates.map((c) => ({
+      id: c.id,
+      key: c.key,
       name: c.name,
       kind: c.kind,
       eggBalance: c.eggBalance, // 알 크레딧 — 순환보다 상위 티어(관리자 전용 노출)

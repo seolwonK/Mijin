@@ -1,0 +1,102 @@
+--- original/tests/partner/signup-api.spec.ts
++++ audit-copy/tests/partner/signup-api.spec.ts
+@@ -50,7 +50,7 @@
+   playwright,
+ }) => {
+   const ctx = await anonSignupCtx(playwright, 'partner-signup-json');
+-  const gate = expectGate(SIGNUP, 64);
++  const gate = expectGate(SIGNUP, 65);
+   const res = await ctx.post('/api/partner/signup', { data: signupFields() });
+   expect(res.status()).toBe(gate.status);
+   expect((await res.json()).error).toBe(gate.message);
+@@ -85,7 +85,7 @@
+ 
+ test('사업자등록번호 체크섬 불일치 400 (:84-86, lib/bizRegNo.ts:9-13)', async ({ playwright }) => {
+   const ctx = await anonSignupCtx(playwright, 'partner-signup-checksum');
+-  const gate = expectGate(SIGNUP, 88);
++  const gate = expectGate(SIGNUP, 89);
+   const bad = invalidBizRegNo();
+   const res = await ctx.post('/api/partner/signup', {
+     multipart: signupMultipart(signupFields({ bizRegNo: bad })),
+@@ -116,14 +116,14 @@
+   // 않은 채** 초록이 된다 — 문구까지 대조하는 이유가 이것이다.
+   const ctx = await anonSignupCtx(playwright, 'partner-signup-file');
+ 
+-  const missingGate = expectGate(SIGNUP, 96);
++  const missingGate = expectGate(SIGNUP, 97);
+   const missing = await ctx.post('/api/partner/signup', {
+     multipart: signupMultipart(signupFields(), { cert: null }),
+   });
+   expect(missing.status()).toBe(missingGate.status);
+   expect((await missing.json()).error).toBe(missingGate.message);
+ 
+-  const tooBigGate = expectGate(SIGNUP, 102);
++  const tooBigGate = expectGate(SIGNUP, 103);
+   const tooBig = await ctx.post('/api/partner/signup', {
+     multipart: signupMultipart(signupFields(), {
+       cert: { name: 'big.png', mimeType: 'image/png', buffer: Buffer.alloc(8 * 1024 * 1024 + 1) },
+@@ -133,7 +133,7 @@
+   expect((await tooBig.json()).error).toBe(tooBigGate.message);
+ 
+   // 8MB 이하여야 MIME 게이트까지 온다 (:102 가 :108 을 가린다).
+-  const badMimeGate = expectGate(SIGNUP, 108);
++  const badMimeGate = expectGate(SIGNUP, 109);
+   const badMime = await ctx.post('/api/partner/signup', {
+     multipart: signupMultipart(signupFields(), {
+       cert: { name: 'cert.txt', mimeType: 'text/plain', buffer: Buffer.from('not an image') },
+@@ -157,7 +157,7 @@
+   // 둘 다 **유효한 파일 첨부**가 있어야 도달한다(:96-108 이 앞에 있다).
+   //
+   // 같은 사업자번호 + 다른 아이디 → bizRegNo 충돌. loginId 까지 겹치면 :117 이 먼저다.
+-  const bizGate = expectGate(SIGNUP, 122);
++  const bizGate = expectGate(SIGNUP, 143);
+   const sameBiz = await ctx.post('/api/partner/signup', {
+     multipart: signupMultipart(signupFields({ bizRegNo: first.bizRegNo })),
+   });
+@@ -165,7 +165,7 @@
+   expect((await sameBiz.json()).error).toBe(bizGate.message);
+ 
+   // 같은 아이디 + 다른 사업자번호 → loginId 충돌
+-  const loginGate = expectGate(SIGNUP, 117);
++  const loginGate = expectGate(SIGNUP, 138);
+   const sameLogin = await ctx.post('/api/partner/signup', {
+     multipart: signupMultipart(signupFields({ loginId: first.loginId })),
+   });
+@@ -180,7 +180,7 @@
+ test('추천인 검증 400 — 미승인 추천인(:146) · 자기 자신(:149)', async ({ playwright }) => {
+   const ctx = await anonSignupCtx(playwright, 'partner-signup-referrer');
+ 
+-  const notApprovedGate = expectGate(SIGNUP, 147);
++  const notApprovedGate = expectGate(SIGNUP, 168);
+   const pendingReferrer = await f.createPartnerFixture({ approvalStatus: 'PENDING' });
+   const notApproved = await ctx.post('/api/partner/signup', {
+     multipart: signupMultipart(signupFields({ referrerUserId: pendingReferrer.userId })),
+@@ -189,7 +189,7 @@
+   expect((await notApproved.json()).error).toBe(notApprovedGate.message);
+ 
+   // 자기추천 — 라우트는 User.id 가 아니라 **전화번호 동일성**으로 판정한다.
+-  const selfGate = expectGate(SIGNUP, 152);
++  const selfGate = expectGate(SIGNUP, 173);
+   const approvedReferrer = await f.createPartnerFixture({ approvalStatus: 'APPROVED' });
+   const selfRef = await ctx.post('/api/partner/signup', {
+     multipart: signupMultipart(
+@@ -268,8 +268,8 @@
+   const ctx = await partnerCtx(playwright, pending, 'partner-pending-session');
+   expect(
+     (await ctx.get('/api/partner/jobs')).status(),
+-    'PENDING 업체 세션이 통과한다 = 라우트단 승인 검사 부재 (보고 대상)',
+-  ).toBe(200);
++    '현재 requireSession은 PENDING 업체 세션을 차단한다',
++  ).toBe(401);
+   await ctx.dispose();
+ });
+ 
+@@ -284,7 +284,7 @@
+     });
+     expect(res.status(), `${i + 1}회째는 아직 레이트리밋 전`).toBe(400);
+   }
+-  const gate = expectGate(SIGNUP, 56);
++  const gate = expectGate(SIGNUP, 57);
+   const limited = await ctx.post('/api/partner/signup', {
+     multipart: signupMultipart(signupFields()),
+   });

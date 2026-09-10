@@ -11,10 +11,10 @@ test.describe('관리자 요약 스트립 · 분석 대시보드', () => {
     }));
     await loginAsAdmin(page);
 
-    await expect(page.getByText('오늘 접수', { exact: true })).toHaveCount(1);
-    await expect(page.getByRole('button', { name: '배정 대기 탭으로 이동' })).toContainText('7777');
-    await expect(page.getByRole('button', { name: '배정 대기 탭으로 이동' })).toContainText('확인 필요 8888건');
-    await expect(page.getByRole('link', { name: /긴급 미완료/ })).toContainText('9999');
+    await expect(page.getByText('최근 최대 200건', { exact: true })).toHaveCount(1);
+    await expect(page.getByRole('button', { name: '배정 대기 탭으로 이동' })).toContainText('7,777');
+    await expect(page.getByRole('button', { name: '관리자 확인 접수 보기' })).toContainText('8,888');
+    await expect(page.getByRole('link', { name: /긴급 미완료/ })).toContainText('9,999');
     await expect(page.getByRole('link', { name: /분석 보기/ })).toBeVisible();
   });
 
@@ -35,49 +35,40 @@ test.describe('관리자 요약 스트립 · 분석 대시보드', () => {
     await expect(page.getByRole('button', { name: /^배정대기( \d+)?$/ })).toHaveAttribute('aria-pressed', 'true');
   });
 
-  test('④ 긴급 미완료 카드는 운영 상태 긴급도 분포로 딥링크한다', async ({ page }) => {
+  test('④ 긴급 미완료 카드는 현재 남은 업무로 딥링크한다', async ({ page }) => {
     await loginAsAdmin(page);
     await page.getByRole('link', { name: /긴급 미완료/ }).click();
     await expect(page).toHaveURL(/\/admin\/analytics\/dashboard#operational$/);
     await expect(page.locator('#operational')).toBeVisible();
   });
 
-  test('⑤ lg 미만(1000px)에서는 summary 요청 없이 기존 큐를 유지한다', async ({ page }) => {
+  test('⑤ 작은 화면에서는 조회 범위 요약과 분석 이동을 제공한다', async ({ page }) => {
     await page.setViewportSize({ width: 1000, height: 800 });
     let summaryCalls = 0;
     page.on('request', (request) => {
       if (request.url().includes('/api/admin/analytics/summary')) summaryCalls += 1;
     });
     await loginAsAdmin(page);
-    await expect(page.getByText('긴급 미완료', { exact: true })).toBeHidden();
-    await expect(page.getByText('분석 보기', { exact: true })).toBeHidden();
+    await expect(page.getByRole('link', { name: /긴급 미완료/ })).toContainText('조회된 접수 기준');
+    await expect(page.getByRole('link', { name: '분석 보기', exact: true })).toBeVisible();
     await page.waitForTimeout(250);
     expect(summaryCalls).toBe(0);
     await expect(page.locator('table tbody tr').first()).toBeVisible();
-    await expect(page.getByText('오늘 접수', { exact: true })).toBeVisible();
+    await expect(page.getByText('최근 최대 200건', { exact: true })).toBeVisible();
   });
 
-  test('⑥ 대시보드는 4개 섹션, 긴급도 분포와 접근 가능한 산식 툴팁을 제공한다', async ({ page }) => {
+  test('⑥ 현재 업무와 기간 실적을 구분하고 숫자의 집계 기준을 펼쳐 본다', async ({ page }) => {
     await loginAsAdmin(page);
     await page.goto('/admin/analytics/dashboard');
-
-    for (const heading of ['운영 상태', '접수 · 완료 추이', '처리 성능', '돈 흐름']) {
+    for (const heading of ['기간별 운영 실적', '일별 접수와 완료', '고객이 신고한 작업 금액']) {
       await expect(page.getByRole('heading', { name: heading, exact: true })).toBeVisible();
     }
-    await expect(page.locator('#operational').getByText('초긴급', { exact: true })).toBeVisible();
-    await expect(page.locator('#operational').getByText('긴급', { exact: true })).toBeVisible();
-    await expect(page.locator('#operational').getByText('일반', { exact: true })).toBeVisible();
-    await expect(page.getByText('중앙값', { exact: true }).first()).toBeVisible();
-    await expect(page.getByText('P90', { exact: true }).first()).toBeVisible();
-
-    const rateCard = page.getByText('응답완료 제안 수락률', { exact: true }).locator('..');
-    const tip = rateCard.getByRole('button', { name: '산식 안내' });
-    await tip.focus();
-    await expect(page.getByRole('tooltip')).toContainText('ACCEPTED/(ACCEPTED+REJECTED)');
-    await page.keyboard.press('Escape');
-    await expect(page.getByRole('tooltip')).toHaveCount(0);
-    await tip.click();
-    await expect(page.getByRole('tooltip')).toContainText('응답시각 기준');
+    await expect(page.locator('#operational')).toContainText('전체 기간');
+    await expect(page.locator('#operational')).toContainText('초긴급');
+    await expect(page.getByText('P90', { exact:true })).toHaveCount(0);
+    await page.getByText('숫자는 어떤 기준으로 집계하나요?', { exact:true }).click();
+    await expect(page.getByText('담당자 수락 비율은 선택 기간에 들어온 접수 중 조회 시점까지 수락된 배정이 있는 접수의 비율입니다.')).toBeVisible();
+    await expect(page.getByText('고객 신고 금액은 설문 응답일 기준이며, 0원은 포함하고 금액 미입력 설문은 제외합니다.')).toBeVisible();
   });
 
   test('⑦ dashboard는 50초 이내 양성 재폴링한다', async ({ page }) => {

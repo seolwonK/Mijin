@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/db';
 import { requireSession } from '@/lib/auth';
-import { chargeEggs, adjustEggs, MIN_CHARGE_EGGS } from '@/lib/eggs';
+import { chargeEggs, adjustEggs } from '@/lib/eggs';
+import { EGG_CHARGE_RULE, isValidEggCharge } from '@/lib/eggPricing';
 
 // 알 크레딧 어드민 관리 — 충전(charge)·정정(adjust) + 잔액·장부 조회.
 // 모든 입력 검증은 zod 한 곳으로 수렴(동일 상태코드 분기의 메시지 중복 방지 — gate 모호성 규칙).
@@ -11,7 +12,7 @@ const mutateSchema = z
     kind: z.enum(['PROVIDER', 'TECHNICIAN']),
     id: z.string().min(1),
     action: z.enum(['charge', 'adjust']),
-    count: z.number().int().min(MIN_CHARGE_EGGS).optional(), // charge 전용 (최소 3알)
+    count: z.number().refine(isValidEggCharge, EGG_CHARGE_RULE).optional(),
     delta: z
       .number()
       .int()

@@ -53,9 +53,9 @@ export default function NewTechnicianPage() {
 
   return (
     <main className="min-h-screen md:bg-surface">
-      <PageHeader title="전기기사 직접 등록" back="/admin/technicians" />
+      <PageHeader title="전기기사 직접 등록" back="/admin/technicians" width="max-w-[900px]" />
 
-      <div className="mx-auto w-full max-w-2xl space-y-2 p-4">
+      <div className="mx-auto w-full max-w-[900px] space-y-2 p-4">
         <label className="text-sm font-semibold">추천인 (선택)</label>
         <ReferrerField selected={referrer} onSelectedChange={setReferrer} variant="admin" />
       </div>

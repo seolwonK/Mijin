@@ -31,8 +31,8 @@ export default function PageHeader({
       <header className="sticky top-0 z-20 border-b border-border bg-surface/85 backdrop-blur">
         <div className={`mx-auto flex w-full ${width} items-center gap-2 px-4 py-2.5 md:py-3`}>
           {back && <BackButton fallback={back} />}
-          <h1 className="text-xl font-bold">{title}</h1>
-          {right && <div className="ml-auto flex items-center gap-2">{right}</div>}
+          <h1 className="min-w-0 break-words text-xl font-bold">{title}</h1>
+          {right && <div className="ml-auto flex shrink-0 items-center gap-2">{right}</div>}
         </div>
       </header>
     );
@@ -69,8 +69,8 @@ export default function PageHeader({
         </nav>
         <div className="flex w-full items-center gap-2">
           {back && <BackButton fallback={back} />}
-          <h1 className="text-xl font-bold">{title}</h1>
-          {right && <div className="ml-auto flex items-center gap-2">{right}</div>}
+          <h1 className="min-w-0 break-words text-xl font-bold">{title}</h1>
+          {right && <div className="ml-auto flex shrink-0 items-center gap-2">{right}</div>}
         </div>
       </div>
     </header>

@@ -1,0 +1,4699 @@
+{
+  "config": {
+    "argv": [
+      "/Users/seolwon/.hermes/node/bin/node",
+      "/private/tmp/mijin-portal-audit/node_modules/.bin/playwright",
+      "test",
+      "--config",
+      "playwright.audit.config.ts"
+    ],
+    "configFile": "/private/tmp/mijin-portal-audit/playwright.audit.config.ts",
+    "rootDir": "/private/tmp/mijin-portal-audit/tests",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/private/tmp/mijin-portal-audit/audit-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "chromium",
+        "name": "chromium",
+        "testDir": "/private/tmp/mijin-portal-audit/tests",
+        "testIgnore": [],
+        "testMatch": [
+          "partner/**/*.spec.ts",
+          "tech/**/*.spec.ts",
+          "portal/**/*.spec.ts"
+        ],
+        "timeout": 60000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "audit-results/results.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.61.1",
+    "workers": 1,
+    "webServer": null
+  },
+  "suites": [
+    {
+      "title": "partner/approval-flow.spec.ts",
+      "file": "partner/approval-flow.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "승인 전 로그인 403 → approve 200 → 로그인 200 → partner API 접근 허용",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 1111,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-10T01:14:39.539Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "3149c0de9ab77b52bde3-d299301c922bce1b0b14",
+          "file": "partner/approval-flow.spec.ts",
+          "line": 52,
+          "column": 5
+        },
+        {
+          "title": "approve 404(:15) · 이미 승인된 업체 재승인 409(:18)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 362,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-10T01:14:40.726Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "3149c0de9ab77b52bde3-c517fae9699a3d6cbf3b",
+          "file": "partner/approval-flow.spec.ts",
+          "line": 84,
+          "column": 5
+        },
+        {
+          "title": "reject 200 → 로그인 403(사유 노출) · 반려 후 partner API 차단",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 356,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-10T01:14:41.098Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "3149c0de9ab77b52bde3-b8f43106132edc7d77b4",
+          "file": "partner/approval-flow.spec.ts",
+          "line": 99,
+          "column": 5
+        },
+        {
+          "title": "reject 404(:26) · PENDING 이 아닌 신청 반려 409(:31) · 본문 없이 호출 허용(:20-22)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 406,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-10T01:14:41.461Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "3149c0de9ab77b52bde3-9a95864e4d74f0332eab",
+          "file": "partner/approval-flow.spec.ts",
+          "line": 123,
+          "column": 5
+        },
+        {
+          "title": "GET cert — 업로드한 바이트를 그대로 돌려주고, 증빙 없으면 404(:31)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 377,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-10T01:14:41.876Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "3149c0de9ab77b52bde3-cb49026f98e0d5604976",
+          "file": "partner/approval-flow.spec.ts",
+          "line": 147,
+          "column": 5
+        }
+      ]
+    },
+    {
+      "title": "partner/jobs-lifecycle.spec.ts",
+      "file": "partner/jobs-lifecycle.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "GET /api/partner/jobs 는 본인 배정만 계약된 shape 로 돌려준다 (route.ts:11-35)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 234,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-10T01:14:42.289Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1ecc99a8232b4fc55a6a-27f77f96f841560c8311",
+          "file": "partner/jobs-lifecycle.spec.ts",
+          "line": 68,
+          "column": 5
+        },
+        {
+          "title": "GET /api/partner/jobs/[id] 는 없는 id 에 404, 본인 건은 고객 정보를 포함한다",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 145,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-10T01:14:42.535Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1ecc99a8232b4fc55a6a-92f0ffab3d1e05e63b22",
+          "file": "partner/jobs-lifecycle.spec.ts",
+          "line": 116,
+          "column": 5
+        },
+        {
+          "title": "accept: REQUESTED→ACCEPTED 200, 접수도 ACCEPTED (accept/route.ts:24-34)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 194,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-10T01:14:42.688Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1ecc99a8232b4fc55a6a-0e57ae3556e521d311de",
+          "file": "partner/jobs-lifecycle.spec.ts",
+          "line": 138,
+          "column": 5
+        },
+        {
+          "title": "accept 409 — 재수락과 거절된 배정 수락 (CAS :24-30)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 284,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-10T01:14:42.889Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1ecc99a8232b4fc55a6a-71fbafbb23cd38c433d8",
+          "file": "partner/jobs-lifecycle.spec.ts",
+          "line": 157,
+          "column": 5
+        },
+        {
+          "title": "reject(ADMIN 배정): 200 reassigned:false, 접수가 RECEIVED 로 되돌아간다 (:69-73)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 142,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-10T01:14:43.180Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1ecc99a8232b4fc55a6a-2f03e781cb36c3f2a789",
+          "file": "partner/jobs-lifecycle.spec.ts",
+          "line": 191,
+          "column": 5
+        },
+        {
+          "title": "reject(AUTO 배정): 후보가 없으면 reassigned:false 로 관리자에게 반환된다",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 281,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-10T01:14:43.330Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1ecc99a8232b4fc55a6a-b1f1044c8161d14cb010",
+          "file": "partner/jobs-lifecycle.spec.ts",
+          "line": 226,
+          "column": 5
+        },
+        {
+          "title": "reject(AUTO 배정): 다음 순위 업체로 즉시 재배정하고 배정 문자를 남긴다 (:48-65)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 337,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-10T01:14:43.617Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1ecc99a8232b4fc55a6a-d2948c9676720c7f5a5f",
+          "file": "partner/jobs-lifecycle.spec.ts",
+          "line": 255,
+          "column": 5
+        },
+        {
+          "title": "status 400/404/409 — 잘못된 본문(:25,:29) · 없는 배정(:37) · 미수락 배정(:40)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 215,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-10T01:14:43.960Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1ecc99a8232b4fc55a6a-4e71782cfa1ea164bcf6",
+          "file": "partner/jobs-lifecycle.spec.ts",
+          "line": 322,
+          "column": 5
+        },
+        {
+          "title": "status 409 — 접수 상태가 어긋나면 출동(:48-50)·완료(:56-61)가 막힌다",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 179,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-10T01:14:44.182Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1ecc99a8232b4fc55a6a-f72a203fc770f12b322b",
+          "file": "partner/jobs-lifecycle.spec.ts",
+          "line": 377,
+          "column": 5
+        },
+        {
+          "title": "status happy: 수락→출동→완료, 완료 시 설문 행과 설문 문자가 뒤따른다",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 336,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-10T01:14:44.367Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1ecc99a8232b4fc55a6a-e27d83cd748407ed92b5",
+          "file": "partner/jobs-lifecycle.spec.ts",
+          "line": 412,
+          "column": 5
+        }
+      ]
+    },
+    {
+      "title": "partner/journey.spec.ts",
+      "file": "partner/journey.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "가입 → 승인대기 → 관리자 승인 → 로그인 → 수락 → 출동 → 완료",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 180000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 3320,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-10T01:14:44.723Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "89c407852af8f0e44ebb-80f2a68b9e83aa225ad0",
+          "file": "partner/journey.spec.ts",
+          "line": 34,
+          "column": 5
+        }
+      ]
+    },
+    {
+      "title": "partner/profile-earnings.spec.ts",
+      "file": "partner/profile-earnings.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "GET /api/partner/profile 는 계약된 필드만 돌려준다 (route.ts:34-43)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 213,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-10T01:14:48.321Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "7725095e9470e71d0953-2ec3a6a510b44802ca79",
+          "file": "partner/profile-earnings.spec.ts",
+          "line": 70,
+          "column": 5
+        },
+        {
+          "title": "PATCH 400 — 잘못된 JSON(:55) · 전화번호 형식(:59-62)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 173,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-10T01:14:48.545Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "7725095e9470e71d0953-fd981297d30408e60442",
+          "file": "partner/profile-earnings.spec.ts",
+          "line": 104,
+          "column": 5
+        },
+        {
+          "title": "profile 404 — 세션의 providerId 가 실재하지 않으면 GET(:31-33)·PATCH(:69-71)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 45,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-10T01:14:48.729Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "7725095e9470e71d0953-e8a8d3e2ed4ef0bd12ad",
+          "file": "partner/profile-earnings.spec.ts",
+          "line": 143,
+          "column": 5
+        },
+        {
+          "title": "PATCH 200 — 전화·주소·지역·영업상태가 실제로 반영되고 지역은 화이트리스트로 걸러진다",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 302,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-10T01:14:48.781Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "7725095e9470e71d0953-3e567e21612dfd41a9c0",
+          "file": "partner/profile-earnings.spec.ts",
+          "line": 168,
+          "column": 5
+        },
+        {
+          "title": "GET /api/partner/commissions 는 내가 소개자인 적립만 합산한다",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 570,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-10T01:14:49.090Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "7725095e9470e71d0953-77df5e7eb83f758808f9",
+          "file": "partner/profile-earnings.spec.ts",
+          "line": 207,
+          "column": 5
+        },
+        {
+          "title": "GET /api/partner/referrals 는 내가 소개한 업체·전기기사만 보여준다",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 947,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-10T01:14:49.668Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "7725095e9470e71d0953-9b8136a8be75edb14293",
+          "file": "partner/profile-earnings.spec.ts",
+          "line": 255,
+          "column": 5
+        },
+        {
+          "title": "GET /api/partner/reviews — n<5 는 집계만, n≥5 부터 코멘트가 열린다 (route.ts:9, :30)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 365,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-10T01:14:50.637Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "7725095e9470e71d0953-e16df4617267c7e2f0f7",
+          "file": "partner/profile-earnings.spec.ts",
+          "line": 302,
+          "column": 5
+        },
+        {
+          "title": "GET /api/partner/stats — 30일 배정·수락·평점 집계 (portalStats.ts:19-45)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 330,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-10T01:14:51.022Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "7725095e9470e71d0953-cba148c29ea56b63ea18",
+          "file": "partner/profile-earnings.spec.ts",
+          "line": 347,
+          "column": 5
+        }
+      ]
+    },
+    {
+      "title": "partner/signup-api.spec.ts",
+      "file": "partner/signup-api.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "multipart 이 아니면 400 — JSON 본문은 formData() 에서 거부된다 (:62-65)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 15,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-10T01:14:51.377Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "573e1a6f7f808f91f84c-e8ce87229b3474dbd6c4",
+          "file": "partner/signup-api.spec.ts",
+          "line": 49,
+          "column": 5
+        },
+        {
+          "title": "필수 필드 zod 400 5종 (:76-81)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 51,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-10T01:14:51.403Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "573e1a6f7f808f91f84c-f8f285a96808dfef665c",
+          "file": "partner/signup-api.spec.ts",
+          "line": 60,
+          "column": 5
+        },
+        {
+          "title": "사업자등록번호 체크섬 불일치 400 (:84-86, lib/bizRegNo.ts:9-13)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 168,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-10T01:14:51.461Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "573e1a6f7f808f91f84c-6e70445b1f8b28f8bd74",
+          "file": "partner/signup-api.spec.ts",
+          "line": 86,
+          "column": 5
+        },
+        {
+          "title": "bizCert 미첨부·초과크기·허용외 MIME 400 (:93, :99, :105)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 146,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-10T01:14:51.636Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "573e1a6f7f808f91f84c-f7b2b7810a07be8a415c",
+          "file": "partner/signup-api.spec.ts",
+          "line": 116,
+          "column": 5
+        },
+        {
+          "title": "중복 bizRegNo 409 (:119-123) · 중복 loginId 409 (:116-118)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 376,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-10T01:14:51.790Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "573e1a6f7f808f91f84c-0715ccc214d811f2fbd1",
+          "file": "partner/signup-api.spec.ts",
+          "line": 162,
+          "column": 5
+        },
+        {
+          "title": "추천인 검증 400 — 미승인 추천인(:146) · 자기 자신(:149)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 463,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-10T01:14:52.174Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "573e1a6f7f808f91f84c-ad98c239de6c8b545541",
+          "file": "partner/signup-api.spec.ts",
+          "line": 202,
+          "column": 5
+        },
+        {
+          "title": "가입 성공은 PENDING 으로 만들고 (:184) 승인 전 로그인을 막는다 (login:48-53)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 376,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-10T01:14:52.644Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "573e1a6f7f808f91f84c-a29ce1413175f4eb242b",
+          "file": "partner/signup-api.spec.ts",
+          "line": 253,
+          "column": 5
+        },
+        {
+          "title": "승인 대기 업체 세션은 포털 접근을 차단한다 — approvalStatus 를 재확인하지 않는다",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 202,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-10T01:14:53.028Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "573e1a6f7f808f91f84c-00c4a3da8699e1e8a973",
+          "file": "partner/signup-api.spec.ts",
+          "line": 302,
+          "column": 5
+        },
+        {
+          "title": "레이트리밋 429 — 전용 IP 에서 6회째가 막힌다 (:37-48, :53-58)",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 51,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-10T01:14:53.237Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "573e1a6f7f808f91f84c-dca75327d4179a342ab2",
+          "file": "partner/signup-api.spec.ts",
+          "line": 321,
+          "column": 5
+        }
+      ]
+    },
+    {
+      "title": "portal/improvements-api.spec.ts",
+      "file": "portal/improvements-api.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "partner: 100건을 넘은 과거 이력 뒤의 활성 배정과 동일 시각 커서",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 450,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-10T01:14:53.309Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "fe98e6497cc1c83f1a77-782b231d6ad7c0340061",
+          "file": "portal/improvements-api.spec.ts",
+          "line": 17,
+          "column": 7
+        },
+        {
+          "title": "partner: 배정 중지 상태는 순위에서 제외하고 내 정보 저장은 좌표를 보존",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 216,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-10T01:14:53.770Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "fe98e6497cc1c83f1a77-6d0b0204e1904f767b32",
+          "file": "portal/improvements-api.spec.ts",
+          "line": 120,
+          "column": 7
+        },
+        {
+          "title": "partner: 수수료 51번째 내역과 정확한 전체 합계",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 830,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-10T01:14:53.995Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "fe98e6497cc1c83f1a77-c6dc50f58a05ef584704",
+          "file": "portal/improvements-api.spec.ts",
+          "line": 194,
+          "column": 7
+        },
+        {
+          "title": "tech: 100건을 넘은 과거 이력 뒤의 활성 배정과 동일 시각 커서",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 382,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-10T01:14:54.832Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "fe98e6497cc1c83f1a77-0a1cfb7994408451ce3e",
+          "file": "portal/improvements-api.spec.ts",
+          "line": 17,
+          "column": 7
+        },
+        {
+          "title": "tech: 배정 중지 상태는 순위에서 제외하고 내 정보 저장은 좌표를 보존",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 235,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-10T01:14:55.223Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "fe98e6497cc1c83f1a77-a3d8fd95f6032e2f7935",
+          "file": "portal/improvements-api.spec.ts",
+          "line": 120,
+          "column": 7
+        },
+        {
+          "title": "tech: 수수료 51번째 내역과 정확한 전체 합계",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 583,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-10T01:14:55.465Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "fe98e6497cc1c83f1a77-c5add8f4d33aadb161d1",
+          "file": "portal/improvements-api.spec.ts",
+          "line": 194,
+          "column": 7
+        },
+        {
+          "title": "근로확인서: 조회 버전 안정성, 서명 전 변경 감지, 확정본 수정 차단",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 371,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-10T01:14:56.057Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "fe98e6497cc1c83f1a77-91dcd3657572faae3bb3",
+          "file": "portal/improvements-api.spec.ts",
+          "line": 258,
+          "column": 5
+        }
+      ]
+    },
+    {
+      "title": "portal/improvements-ui.spec.ts",
+      "file": "portal/improvements-ui.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "아이디 확인 요청 중 수정하면 이전 성공 응답은 무효",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 500,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-10T01:15:18.319Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "d74bd4258dc25ca19d7b-b9ff1042f2282f43f0d1",
+          "file": "portal/improvements-ui.spec.ts",
+          "line": 351,
+          "column": 5
+        },
+        {
+          "title": "가입 필드 라벨·첨부 키보드 포커스·고용 선택 상태",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 504,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-10T01:15:18.826Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "d74bd4258dc25ca19d7b-ba4c32d246a66269be17",
+          "file": "portal/improvements-ui.spec.ts",
+          "line": 373,
+          "column": 5
+        },
+        {
+          "title": "근로확인서 전체 조건·키보드 서명·완료본 인쇄",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 748,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-10T01:15:19.338Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "d74bd4258dc25ca19d7b-a847d2632693bbbb498d",
+          "file": "portal/improvements-ui.spec.ts",
+          "line": 388,
+          "column": 5
+        },
+        {
+          "title": "partner: 모든 조회 실패와 계약 오류는 빈 상태로 오인하지 않는다",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 389,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-10T01:15:20.100Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "d74bd4258dc25ca19d7b-f2be5b2a30fb13f52771",
+          "file": "portal/improvements-ui.spec.ts",
+          "line": 487,
+          "column": 7
+        },
+        {
+          "title": "partner: 종료된 배정은 사유와 시간을 표시하고 처리 버튼을 숨긴다",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 607,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-10T01:15:20.499Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "d74bd4258dc25ca19d7b-d27a0efd7c485028bc22",
+          "file": "portal/improvements-ui.spec.ts",
+          "line": 521,
+          "column": 7
+        },
+        {
+          "title": "partner: 로그아웃 실패는 현재 화면에서 재시도",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 553,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-10T01:15:21.113Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "d74bd4258dc25ca19d7b-0c46ee26452cf4bff159",
+          "file": "portal/improvements-ui.spec.ts",
+          "line": 553,
+          "column": 7
+        },
+        {
+          "title": "tech: 모든 조회 실패와 계약 오류는 빈 상태로 오인하지 않는다",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 408,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-10T01:15:21.677Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "d74bd4258dc25ca19d7b-08980cd0e6bf9e9634ea",
+          "file": "portal/improvements-ui.spec.ts",
+          "line": 487,
+          "column": 7
+        },
+        {
+          "title": "tech: 종료된 배정은 사유와 시간을 표시하고 처리 버튼을 숨긴다",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 566,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-10T01:15:22.093Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "d74bd4258dc25ca19d7b-82495484e57b8ad2e25d",
+          "file": "portal/improvements-ui.spec.ts",
+          "line": 521,
+          "column": 7
+        },
+        {
+          "title": "tech: 로그아웃 실패는 현재 화면에서 재시도",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 560,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-10T01:15:22.666Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "d74bd4258dc25ca19d7b-bc70871d55370972849d",
+          "file": "portal/improvements-ui.spec.ts",
+          "line": 553,
+          "column": 7
+        }
+      ],
+      "suites": [
+        {
+          "title": "partner",
+          "file": "portal/improvements-ui.spec.ts",
+          "line": 83,
+          "column": 8,
+          "specs": [
+            {
+              "title": "모바일 우선순위·9자리 금액·상태와 접근성",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1244,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-10T01:14:56.473Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "d74bd4258dc25ca19d7b-7f0b0421eb6ce5eb4177",
+              "file": "portal/improvements-ui.spec.ts",
+              "line": 97,
+              "column": 9
+            },
+            {
+              "title": "조회 실패는 빈 내역으로 표시하지 않고 전체 새로고침으로 복구",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 568,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-10T01:14:57.726Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "d74bd4258dc25ca19d7b-80a0657be1b7fd78a804",
+              "file": "portal/improvements-ui.spec.ts",
+              "line": 153,
+              "column": 9
+            },
+            {
+              "title": "상세 통신 실패에도 연락처 유지·처리 버튼 잠금·복구",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 617,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-10T01:14:58.304Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "d74bd4258dc25ca19d7b-f508ac06eda347a366b2",
+              "file": "portal/improvements-ui.spec.ts",
+              "line": 185,
+              "column": 9
+            },
+            {
+              "title": "사진 대화상자 키보드 이동·초점 복귀·이미지 재시도",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 5871,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveAttribute\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator:  getByRole('dialog')\nExpected: \u001b[32m\"고객 첨부 사진 \u001b[7m2\u001b[27m / 2\"\u001b[39m\nReceived: \u001b[31m\"고객 첨부 사진 \u001b[7m1\u001b[27m / 2\"\u001b[39m\nTimeout:  5000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveAttribute\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByRole('dialog')\u001b[22m\n\u001b[2m    14 × locator resolved to <dialog open=\"\" aria-label=\"고객 첨부 사진 1 / 2\" class=\"fixed inset-0 m-0 h-dvh max-h-none w-screen max-w-none items-center justify-center bg-black/90 p-4 open:flex backdrop:bg-black/50\">…</dialog>\u001b[22m\n\u001b[2m       - unexpected value \"고객 첨부 사진 1 / 2\"\u001b[22m\n",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveAttribute\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator:  getByRole('dialog')\nExpected: \u001b[32m\"고객 첨부 사진 \u001b[7m2\u001b[27m / 2\"\u001b[39m\nReceived: \u001b[31m\"고객 첨부 사진 \u001b[7m1\u001b[27m / 2\"\u001b[39m\nTimeout:  5000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveAttribute\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByRole('dialog')\u001b[22m\n\u001b[2m    14 × locator resolved to <dialog open=\"\" aria-label=\"고객 첨부 사진 1 / 2\" class=\"fixed inset-0 m-0 h-dvh max-h-none w-screen max-w-none items-center justify-center bg-black/90 p-4 open:flex backdrop:bg-black/50\">…</dialog>\u001b[22m\n\u001b[2m       - unexpected value \"고객 첨부 사진 1 / 2\"\u001b[22m\n\n    at /private/tmp/mijin-portal-audit/tests/portal/improvements-ui.spec.ts:251:28",
+                        "location": {
+                          "file": "/private/tmp/mijin-portal-audit/tests/portal/improvements-ui.spec.ts",
+                          "column": 28,
+                          "line": 251
+                        },
+                        "snippet": "  249 |       await expect(dialog.getByRole('img')).toBeVisible();\n  250 |       await page.keyboard.press('ArrowRight');\n> 251 |       await expect(dialog).toHaveAttribute(\n      |                            ^\n  252 |         'aria-label',\n  253 |         '고객 첨부 사진 2 / 2',\n  254 |       );"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/private/tmp/mijin-portal-audit/tests/portal/improvements-ui.spec.ts",
+                            "column": 28,
+                            "line": 251
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveAttribute\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator:  getByRole('dialog')\nExpected: \u001b[32m\"고객 첨부 사진 \u001b[7m2\u001b[27m / 2\"\u001b[39m\nReceived: \u001b[31m\"고객 첨부 사진 \u001b[7m1\u001b[27m / 2\"\u001b[39m\nTimeout:  5000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveAttribute\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByRole('dialog')\u001b[22m\n\u001b[2m    14 × locator resolved to <dialog open=\"\" aria-label=\"고객 첨부 사진 1 / 2\" class=\"fixed inset-0 m-0 h-dvh max-h-none w-screen max-w-none items-center justify-center bg-black/90 p-4 open:flex backdrop:bg-black/50\">…</dialog>\u001b[22m\n\u001b[2m       - unexpected value \"고객 첨부 사진 1 / 2\"\u001b[22m\n\n\n  249 |       await expect(dialog.getByRole('img')).toBeVisible();\n  250 |       await page.keyboard.press('ArrowRight');\n> 251 |       await expect(dialog).toHaveAttribute(\n      |                            ^\n  252 |         'aria-label',\n  253 |         '고객 첨부 사진 2 / 2',\n  254 |       );\n    at /private/tmp/mijin-portal-audit/tests/portal/improvements-ui.spec.ts:251:28"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-10T01:14:58.934Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "/private/tmp/mijin-portal-audit/audit-results/portal-improvements-ui-partner-사진-대화상자-키보드-이동·초점-복귀·이미지-재시도-chromium/video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/private/tmp/mijin-portal-audit/audit-results/portal-improvements-ui-partner-사진-대화상자-키보드-이동·초점-복귀·이미지-재시도-chromium/error-context.md"
+                        },
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "/private/tmp/mijin-portal-audit/audit-results/portal-improvements-ui-partner-사진-대화상자-키보드-이동·초점-복귀·이미지-재시도-chromium/trace.zip"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "/private/tmp/mijin-portal-audit/tests/portal/improvements-ui.spec.ts",
+                        "column": 28,
+                        "line": 251
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "d74bd4258dc25ca19d7b-693d55f8767313912bda",
+              "file": "portal/improvements-ui.spec.ts",
+              "line": 218,
+              "column": 9
+            },
+            {
+              "title": "내 정보 재시도·미저장 상태·저장 실패 후 입력 유지",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 848,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-10T01:15:05.508Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "d74bd4258dc25ca19d7b-cbe6af8ceb8325b72e5d",
+              "file": "portal/improvements-ui.spec.ts",
+              "line": 260,
+              "column": 9
+            },
+            {
+              "title": "지난 내역 검색과 페이지 이동",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 551,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-10T01:15:06.711Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "d74bd4258dc25ca19d7b-9fd2b7f3429a2599936b",
+              "file": "portal/improvements-ui.spec.ts",
+              "line": 315,
+              "column": 9
+            }
+          ]
+        },
+        {
+          "title": "tech",
+          "file": "portal/improvements-ui.spec.ts",
+          "line": 83,
+          "column": 8,
+          "specs": [
+            {
+              "title": "모바일 우선순위·9자리 금액·상태와 접근성",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1486,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-10T01:15:07.271Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "d74bd4258dc25ca19d7b-96290678c2c858d0e217",
+              "file": "portal/improvements-ui.spec.ts",
+              "line": 97,
+              "column": 9
+            },
+            {
+              "title": "조회 실패는 빈 내역으로 표시하지 않고 전체 새로고침으로 복구",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 668,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-10T01:15:08.770Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "d74bd4258dc25ca19d7b-ce040b08e3fe53d3547d",
+              "file": "portal/improvements-ui.spec.ts",
+              "line": 153,
+              "column": 9
+            },
+            {
+              "title": "상세 통신 실패에도 연락처 유지·처리 버튼 잠금·복구",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 514,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-10T01:15:09.449Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "d74bd4258dc25ca19d7b-e219e081a1170627a207",
+              "file": "portal/improvements-ui.spec.ts",
+              "line": 185,
+              "column": 9
+            },
+            {
+              "title": "사진 대화상자 키보드 이동·초점 복귀·이미지 재시도",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 5829,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveAttribute\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator:  getByRole('dialog')\nExpected: \u001b[32m\"고객 첨부 사진 \u001b[7m2\u001b[27m / 2\"\u001b[39m\nReceived: \u001b[31m\"고객 첨부 사진 \u001b[7m1\u001b[27m / 2\"\u001b[39m\nTimeout:  5000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveAttribute\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByRole('dialog')\u001b[22m\n\u001b[2m    14 × locator resolved to <dialog open=\"\" aria-label=\"고객 첨부 사진 1 / 2\" class=\"fixed inset-0 m-0 h-dvh max-h-none w-screen max-w-none items-center justify-center bg-black/90 p-4 open:flex backdrop:bg-black/50\">…</dialog>\u001b[22m\n\u001b[2m       - unexpected value \"고객 첨부 사진 1 / 2\"\u001b[22m\n",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveAttribute\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator:  getByRole('dialog')\nExpected: \u001b[32m\"고객 첨부 사진 \u001b[7m2\u001b[27m / 2\"\u001b[39m\nReceived: \u001b[31m\"고객 첨부 사진 \u001b[7m1\u001b[27m / 2\"\u001b[39m\nTimeout:  5000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveAttribute\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByRole('dialog')\u001b[22m\n\u001b[2m    14 × locator resolved to <dialog open=\"\" aria-label=\"고객 첨부 사진 1 / 2\" class=\"fixed inset-0 m-0 h-dvh max-h-none w-screen max-w-none items-center justify-center bg-black/90 p-4 open:flex backdrop:bg-black/50\">…</dialog>\u001b[22m\n\u001b[2m       - unexpected value \"고객 첨부 사진 1 / 2\"\u001b[22m\n\n    at /private/tmp/mijin-portal-audit/tests/portal/improvements-ui.spec.ts:251:28",
+                        "location": {
+                          "file": "/private/tmp/mijin-portal-audit/tests/portal/improvements-ui.spec.ts",
+                          "column": 28,
+                          "line": 251
+                        },
+                        "snippet": "  249 |       await expect(dialog.getByRole('img')).toBeVisible();\n  250 |       await page.keyboard.press('ArrowRight');\n> 251 |       await expect(dialog).toHaveAttribute(\n      |                            ^\n  252 |         'aria-label',\n  253 |         '고객 첨부 사진 2 / 2',\n  254 |       );"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/private/tmp/mijin-portal-audit/tests/portal/improvements-ui.spec.ts",
+                            "column": 28,
+                            "line": 251
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveAttribute\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator:  getByRole('dialog')\nExpected: \u001b[32m\"고객 첨부 사진 \u001b[7m2\u001b[27m / 2\"\u001b[39m\nReceived: \u001b[31m\"고객 첨부 사진 \u001b[7m1\u001b[27m / 2\"\u001b[39m\nTimeout:  5000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveAttribute\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByRole('dialog')\u001b[22m\n\u001b[2m    14 × locator resolved to <dialog open=\"\" aria-label=\"고객 첨부 사진 1 / 2\" class=\"fixed inset-0 m-0 h-dvh max-h-none w-screen max-w-none items-center justify-center bg-black/90 p-4 open:flex backdrop:bg-black/50\">…</dialog>\u001b[22m\n\u001b[2m       - unexpected value \"고객 첨부 사진 1 / 2\"\u001b[22m\n\n\n  249 |       await expect(dialog.getByRole('img')).toBeVisible();\n  250 |       await page.keyboard.press('ArrowRight');\n> 251 |       await expect(dialog).toHaveAttribute(\n      |                            ^\n  252 |         'aria-label',\n  253 |         '고객 첨부 사진 2 / 2',\n  254 |       );\n    at /private/tmp/mijin-portal-audit/tests/portal/improvements-ui.spec.ts:251:28"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-10T01:15:09.971Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "/private/tmp/mijin-portal-audit/audit-results/portal-improvements-ui-tech-사진-대화상자-키보드-이동·초점-복귀·이미지-재시도-chromium/video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/private/tmp/mijin-portal-audit/audit-results/portal-improvements-ui-tech-사진-대화상자-키보드-이동·초점-복귀·이미지-재시도-chromium/error-context.md"
+                        },
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "/private/tmp/mijin-portal-audit/audit-results/portal-improvements-ui-tech-사진-대화상자-키보드-이동·초점-복귀·이미지-재시도-chromium/trace.zip"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "/private/tmp/mijin-portal-audit/tests/portal/improvements-ui.spec.ts",
+                        "column": 28,
+                        "line": 251
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "d74bd4258dc25ca19d7b-8025699a9e41df1f09a4",
+              "file": "portal/improvements-ui.spec.ts",
+              "line": 218,
+              "column": 9
+            },
+            {
+              "title": "내 정보 재시도·미저장 상태·저장 실패 후 입력 유지",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 714,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-10T01:15:16.760Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "d74bd4258dc25ca19d7b-3e20cf1fe414055e1b87",
+              "file": "portal/improvements-ui.spec.ts",
+              "line": 260,
+              "column": 9
+            },
+            {
+              "title": "지난 내역 검색과 페이지 이동",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 547,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-10T01:15:17.764Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "d74bd4258dc25ca19d7b-4faa702018f3971a7654",
+              "file": "portal/improvements-ui.spec.ts",
+              "line": 315,
+              "column": 9
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "tech/contract-gate.spec.ts",
+      "file": "tech/contract-gate.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "배정 후보 계약 게이트",
+          "file": "tech/contract-gate.spec.ts",
+          "line": 45,
+          "column": 6,
+          "specs": [
+            {
+              "title": "계약이 없거나 DRAFT·SUBMITTED 인 전기기사는 후보에서 제외된다",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 613,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-10T01:15:23.265Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "a4626c69fd722dfa8b28-5f431da207ddac47de02",
+              "file": "tech/contract-gate.spec.ts",
+              "line": 46,
+              "column": 7
+            },
+            {
+              "title": "DRAFT → CONFIRMED 로 바뀌면 같은 접수의 후보에 나타난다",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 214,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-10T01:15:23.893Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "a4626c69fd722dfa8b28-ba7a2e1735d8dbfe0c09",
+              "file": "tech/contract-gate.spec.ts",
+              "line": 73,
+              "column": 7
+            },
+            {
+              "title": "CONFIRMED 라도 비활성·미승인이면 후보가 아니다 (matching.ts:51-53)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 412,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-10T01:15:24.114Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "a4626c69fd722dfa8b28-ec6f87a2b4ca02ade116",
+              "file": "tech/contract-gate.spec.ts",
+              "line": 110,
+              "column": 7
+            },
+            {
+              "title": "후보 항목은 계약 게이트 통과 후 표시 계약(shape)을 채운다",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 209,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-10T01:15:24.532Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "a4626c69fd722dfa8b28-1dc139248c18c0ab9501",
+              "file": "tech/contract-gate.spec.ts",
+              "line": 138,
+              "column": 7
+            },
+            {
+              "title": "이 접수를 거절한 전기기사는 후보에 남되 rejectedThisRequest 로 표시된다",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 167,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-10T01:15:24.750Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "a4626c69fd722dfa8b28-42b42bdba9f6bc142e78",
+              "file": "tech/contract-gate.spec.ts",
+              "line": 168,
+              "column": 7
+            },
+            {
+              "title": "존재하지 않는 접수의 후보 조회는 404 (candidates/route.ts:18-20)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 84,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-10T01:15:24.926Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "a4626c69fd722dfa8b28-33a6c02b95b7ec794724",
+              "file": "tech/contract-gate.spec.ts",
+              "line": 200,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "tech/earnings.spec.ts",
+      "file": "tech/earnings.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "GET /api/tech/commissions",
+          "file": "tech/earnings.spec.ts",
+          "line": 88,
+          "column": 6,
+          "specs": [
+            {
+              "title": "소개자 본인의 적립만 대기·지급 합계로 집계한다",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 319,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-10T01:15:25.034Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "4ad02097baa0fabf420d-dfa3ef08fbc3d81a57b9",
+              "file": "tech/earnings.spec.ts",
+              "line": 89,
+              "column": 7
+            },
+            {
+              "title": "소개 이력이 없으면 0·빈 배열",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 152,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-10T01:15:25.361Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "4ad02097baa0fabf420d-24539d0f85b6ac496bc3",
+              "file": "tech/earnings.spec.ts",
+              "line": 138,
+              "column": 7
+            }
+          ]
+        },
+        {
+          "title": "GET /api/tech/referrals",
+          "file": "tech/earnings.spec.ts",
+          "line": 155,
+          "column": 6,
+          "specs": [
+            {
+              "title": "내가 소개한 전기기사가 승인상태·적립과 함께 나온다",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 297,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-10T01:15:25.522Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "4ad02097baa0fabf420d-1d81e63e7c31d3c2fd08",
+              "file": "tech/earnings.spec.ts",
+              "line": 156,
+              "column": 7
+            },
+            {
+              "title": "소개한 사람이 없으면 빈 개요",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 161,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-10T01:15:25.825Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "4ad02097baa0fabf420d-6e4c2a069fd17bd12c58",
+              "file": "tech/earnings.spec.ts",
+              "line": 191,
+              "column": 7
+            }
+          ]
+        },
+        {
+          "title": "GET /api/tech/reviews",
+          "file": "tech/earnings.spec.ts",
+          "line": 205,
+          "column": 6,
+          "specs": [
+            {
+              "title": "후기 5건 미만이면 코멘트를 공개하지 않는다 (n≥5 임계)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 135,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-10T01:15:25.993Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "4ad02097baa0fabf420d-5d7d4b3bd9332d757d28",
+              "file": "tech/earnings.spec.ts",
+              "line": 206,
+              "column": 7
+            },
+            {
+              "title": "후기 5건부터 코멘트가 공개되고 분포·평균이 맞는다",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 217,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-10T01:15:26.134Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "4ad02097baa0fabf420d-2bc50e82fddd286d5e74",
+              "file": "tech/earnings.spec.ts",
+              "line": 222,
+              "column": 7
+            },
+            {
+              "title": "남의 후기는 섞이지 않는다",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 243,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-10T01:15:26.357Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "4ad02097baa0fabf420d-c0e97f74d84cb828bab8",
+              "file": "tech/earnings.spec.ts",
+              "line": 252,
+              "column": 7
+            }
+          ]
+        },
+        {
+          "title": "GET /api/tech/stats",
+          "file": "tech/earnings.spec.ts",
+          "line": 275,
+          "column": 6,
+          "specs": [
+            {
+              "title": "30일 배정은 수락+거절 합산, 수락은 수락만",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 143,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-10T01:15:26.606Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "4ad02097baa0fabf420d-c93fb5eb33a918b28afc",
+              "file": "tech/earnings.spec.ts",
+              "line": 276,
+              "column": 7
+            },
+            {
+              "title": "후기가 있으면 실측 평균을 준다 (랭킹용 3.0 중립값이 아니다)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 157,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-10T01:15:26.755Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "4ad02097baa0fabf420d-5213fa948942c489f6e1",
+              "file": "tech/earnings.spec.ts",
+              "line": 313,
+              "column": 7
+            }
+          ]
+        },
+        {
+          "title": "GET /api/tech/contract",
+          "file": "tech/earnings.spec.ts",
+          "line": 340,
+          "column": 6,
+          "specs": [
+            {
+              "title": "근로확인서가 없으면 DRAFT 로 생성하고 근무조건·임금 기본값을 채운다",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 179,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-10T01:15:26.918Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "4ad02097baa0fabf420d-ad3bd02c7ffb336a8122",
+              "file": "tech/earnings.spec.ts",
+              "line": 341,
+              "column": 7
+            },
+            {
+              "title": "상시 근로자는 주5일·주휴일 기본값을 받는다",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 219,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-10T01:15:27.105Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "4ad02097baa0fabf420d-dbac31ba709f5f39b669",
+              "file": "tech/earnings.spec.ts",
+              "line": 367,
+              "column": 7
+            },
+            {
+              "title": "반복 조회해도 근로확인서는 1건만 생긴다 (멱등)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 198,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-10T01:15:27.331Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "4ad02097baa0fabf420d-719324d94a206f3520fe",
+              "file": "tech/earnings.spec.ts",
+              "line": 378,
+              "column": 7
+            },
+            {
+              "title": "전기기사 정보가 없으면 404 (contract/route.ts:118-120)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 165,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-10T01:15:27.535Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "4ad02097baa0fabf420d-82b1fc5788cc2771b210",
+              "file": "tech/earnings.spec.ts",
+              "line": 393,
+              "column": 7
+            }
+          ]
+        },
+        {
+          "title": "PUT /api/tech/contract",
+          "file": "tech/earnings.spec.ts",
+          "line": 410,
+          "column": 6,
+          "specs": [
+            {
+              "title": "서명하면 즉시 CONFIRMED 가 되고 일일 근로자는 계약기간이 당일이다",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 171,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-10T01:15:27.706Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "4ad02097baa0fabf420d-2a8485d8b618a2f79d77",
+              "file": "tech/earnings.spec.ts",
+              "line": 411,
+              "column": 7
+            },
+            {
+              "title": "상시 근로자는 계약종료일이 없다",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 204,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-10T01:15:27.889Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "4ad02097baa0fabf420d-ec0235dbeeb4a596b98d",
+              "file": "tech/earnings.spec.ts",
+              "line": 439,
+              "column": 7
+            },
+            {
+              "title": "확정된 근로확인서는 다시 고칠 수 없다 → 409 (contract/route.ts:149-154)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 143,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-10T01:15:28.101Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "4ad02097baa0fabf420d-c1242d8d51140faa2e7f",
+              "file": "tech/earnings.spec.ts",
+              "line": 452,
+              "column": 7
+            },
+            {
+              "title": "임금이 비어 있으면 서명할 수 없다 → 409 (contract/route.ts:157-162)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 216,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-10T01:15:28.252Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "4ad02097baa0fabf420d-e955b972ae9158c795f4",
+              "file": "tech/earnings.spec.ts",
+              "line": 466,
+              "column": 7
+            },
+            {
+              "title": "잘못된 JSON → 400 (contract/route.ts:131-135)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 155,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-10T01:15:28.475Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "4ad02097baa0fabf420d-a80f8448f155a17fe54c",
+              "file": "tech/earnings.spec.ts",
+              "line": 488,
+              "column": 7
+            },
+            {
+              "title": "zod 경계 — 서명·필수항목·날짜 형식은 400 (contract.ts:5-20)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 275,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-10T01:15:28.638Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "4ad02097baa0fabf420d-2a45ee6920b49bbd299b",
+              "file": "tech/earnings.spec.ts",
+              "line": 501,
+              "column": 7
+            },
+            {
+              "title": "전기기사 정보가 없으면 404 (contract/route.ts:146-148)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 212,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-10T01:15:28.922Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "4ad02097baa0fabf420d-22bd0ef17d99dfb97bc1",
+              "file": "tech/earnings.spec.ts",
+              "line": 557,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "tech/identity-config.spec.ts",
+      "file": "tech/identity-config.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "GET /api/identity/config — mock 환경에서는 provider=mock 만 내려주고 비밀값은 없다",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 60000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 7,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-10T01:15:29.150Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "e8822863ad41b93a4eba-ed1871f079e0aacce875",
+          "file": "tech/identity-config.spec.ts",
+          "line": 6,
+          "column": 5
+        }
+      ]
+    },
+    {
+      "title": "tech/jobs-lifecycle.spec.ts",
+      "file": "tech/jobs-lifecycle.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "GET /api/tech/jobs",
+          "file": "tech/jobs-lifecycle.spec.ts",
+          "line": 87,
+          "column": 6,
+          "specs": [
+            {
+              "title": "본인 배정만 반환한다 (jobs/route.ts:11-16)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 394,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-10T01:15:29.171Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "a2622beb25378334a8a7-5e65cb6e067e65b2acb5",
+              "file": "tech/jobs-lifecycle.spec.ts",
+              "line": 88,
+              "column": 7
+            },
+            {
+              "title": "목록 항목은 배정 + 접수 요약 계약을 지킨다",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 147,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-10T01:15:29.573Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "a2622beb25378334a8a7-1fd1884643bfd7fb840f",
+              "file": "tech/jobs-lifecycle.spec.ts",
+              "line": 106,
+              "column": 7
+            },
+            {
+              "title": "GET /api/tech/jobs/[id] 는 상세에서 고객 연락처를 준다",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 133,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-10T01:15:29.726Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "a2622beb25378334a8a7-3e37414fa65259e60fac",
+              "file": "tech/jobs-lifecycle.spec.ts",
+              "line": 136,
+              "column": 7
+            }
+          ]
+        },
+        {
+          "title": "POST /api/tech/jobs/[id]/accept",
+          "file": "tech/jobs-lifecycle.spec.ts",
+          "line": 160,
+          "column": 6,
+          "specs": [
+            {
+              "title": "수락하면 배정과 접수가 함께 ACCEPTED 로 간다",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 174,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-10T01:15:29.864Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "a2622beb25378334a8a7-c570030108c7abd26eb5",
+              "file": "tech/jobs-lifecycle.spec.ts",
+              "line": 161,
+              "column": 7
+            },
+            {
+              "title": "재수락은 409 (accept/route.ts:28-30 의 CAS)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 215,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-10T01:15:30.045Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "a2622beb25378334a8a7-f7b34549f019d476c8cd",
+              "file": "tech/jobs-lifecycle.spec.ts",
+              "line": 185,
+              "column": 7
+            },
+            {
+              "title": "거절된 배정은 수락할 수 없다 (409)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 210,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-10T01:15:30.266Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "a2622beb25378334a8a7-b5f8fb806a672a8f1652",
+              "file": "tech/jobs-lifecycle.spec.ts",
+              "line": 202,
+              "column": 7
+            },
+            {
+              "title": "없는 배정 → 404",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 141,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-10T01:15:30.482Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "a2622beb25378334a8a7-44945c02864b84dc3d5f",
+              "file": "tech/jobs-lifecycle.spec.ts",
+              "line": 220,
+              "column": 7
+            }
+          ]
+        },
+        {
+          "title": "POST /api/tech/jobs/[id]/reject",
+          "file": "tech/jobs-lifecycle.spec.ts",
+          "line": 237,
+          "column": 6,
+          "specs": [
+            {
+              "title": "수동배정 거절은 접수를 RECEIVED 로 되돌리고 needsAttention 을 켠다",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 143,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-10T01:15:30.629Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "a2622beb25378334a8a7-a6bc40cde9ddcebc77de",
+              "file": "tech/jobs-lifecycle.spec.ts",
+              "line": 238,
+              "column": 7
+            },
+            {
+              "title": "바디 없이 거절해도 200 (reject/route.ts:26-28)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 188,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-10T01:15:30.779Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "a2622beb25378334a8a7-4f45c2b7c4ce671b2bab",
+              "file": "tech/jobs-lifecycle.spec.ts",
+              "line": 282,
+              "column": 7
+            },
+            {
+              "title": "자동배정 건은 재배정을 시도하고, 후보가 없으면 관리자에게 반환한다",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 156,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-10T01:15:30.974Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "a2622beb25378334a8a7-3998e2ca97601f5b7ef5",
+              "file": "tech/jobs-lifecycle.spec.ts",
+              "line": 307,
+              "column": 7
+            },
+            {
+              "title": "재거절은 409 (reject/route.ts:43-45 의 CAS)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 234,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-10T01:15:31.137Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "a2622beb25378334a8a7-e03d6cd246c9121963cd",
+              "file": "tech/jobs-lifecycle.spec.ts",
+              "line": 348,
+              "column": 7
+            },
+            {
+              "title": "수락한 배정은 거절할 수 없다 (409)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 202,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-10T01:15:31.378Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "a2622beb25378334a8a7-bfcd1829478ae2527657",
+              "file": "tech/jobs-lifecycle.spec.ts",
+              "line": 369,
+              "column": 7
+            }
+          ]
+        },
+        {
+          "title": "POST /api/tech/jobs/[id]/status",
+          "file": "tech/jobs-lifecycle.spec.ts",
+          "line": 404,
+          "column": 6,
+          "specs": [
+            {
+              "title": "수락 전에는 진행할 수 없다 → 409 (status/route.ts:39-41)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 300,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-10T01:15:31.587Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "a2622beb25378334a8a7-2af57c4c60a86806338e",
+              "file": "tech/jobs-lifecycle.spec.ts",
+              "line": 405,
+              "column": 7
+            },
+            {
+              "title": "잘못된 JSON·상태값은 400 (status/route.ts:24-30)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 161,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-10T01:15:31.895Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "a2622beb25378334a8a7-7d714ae97cd8620c6b5c",
+              "file": "tech/jobs-lifecycle.spec.ts",
+              "line": 432,
+              "column": 7
+            },
+            {
+              "title": "출동 → 완료 순서를 지켜야 하며, 어긋난 전이는 전부 409",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 265,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-10T01:15:32.064Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "a2622beb25378334a8a7-75a0ef80447aedd7cd6b",
+              "file": "tech/jobs-lifecycle.spec.ts",
+              "line": 453,
+              "column": 7
+            },
+            {
+              "title": "완료 시 설문 행과 설문 SMS 가 각각 뒤늦게 도착한다 (2중 fire-and-forget)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 201,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-10T01:15:32.336Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "a2622beb25378334a8a7-232d1c259e6d24b5c682",
+              "file": "tech/jobs-lifecycle.spec.ts",
+              "line": 512,
+              "column": 7
+            },
+            {
+              "title": "남의 배정 상태는 바꿀 수 없다 → 404, 그리고 zod 게이트가 이 분기를 가린다",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 315,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-10T01:15:32.543Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "a2622beb25378334a8a7-b306d404ee55ceda1913",
+              "file": "tech/jobs-lifecycle.spec.ts",
+              "line": 570,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "tech/journey.spec.ts",
+      "file": "tech/journey.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "가입 → 로그인 → 계약 서명 → 수락 → 출동 → 완료",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 150000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 2,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2915,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-10T01:15:32.890Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "615a91324177fecd6bbc-9168b46796bc5130b290",
+          "file": "tech/journey.spec.ts",
+          "line": 35,
+          "column": 5
+        }
+      ]
+    },
+    {
+      "title": "tech/signup-api.spec.ts",
+      "file": "tech/signup-api.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "POST /api/identity/verify",
+          "file": "tech/signup-api.spec.ts",
+          "line": 78,
+          "column": 6,
+          "specs": [
+            {
+              "title": "mock provider 는 입력한 이름·번호를 그대로 인증하고 verificationId 를 발급한다",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 48,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-10T01:15:35.842Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "0ab2ba833b6c466902c1-f5baf6996522aaf9cfd7",
+              "file": "tech/signup-api.spec.ts",
+              "line": 79,
+              "column": 7
+            },
+            {
+              "title": "이름·번호가 없으면 400 (mock provider 가 거부)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 21,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-10T01:15:35.900Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "0ab2ba833b6c466902c1-c7bd61335b62f4d6c1b0",
+              "file": "tech/signup-api.spec.ts",
+              "line": 105,
+              "column": 7
+            },
+            {
+              "title": "인증된 번호 형식이 틀리면 400 (identity/index.ts:50-52)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 11,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-10T01:15:35.928Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "0ab2ba833b6c466902c1-e7298277271b8c54d45a",
+              "file": "tech/signup-api.spec.ts",
+              "line": 113,
+              "column": 7
+            }
+          ]
+        },
+        {
+          "title": "POST /api/tech/signup — 입력 게이트",
+          "file": "tech/signup-api.spec.ts",
+          "line": 126,
+          "column": 6,
+          "specs": [
+            {
+              "title": "verificationId 누락 → 400 (route.ts:25-29)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 14,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-10T01:15:35.946Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "0ab2ba833b6c466902c1-45250895fe03904a7b38",
+              "file": "tech/signup-api.spec.ts",
+              "line": 127,
+              "column": 7
+            },
+            {
+              "title": "잘못된 JSON → 400 (route.ts:62-63)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 15,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-10T01:15:35.967Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "0ab2ba833b6c466902c1-ca4970996abdf83b9440",
+              "file": "tech/signup-api.spec.ts",
+              "line": 139,
+              "column": 7
+            },
+            {
+              "title": "이미 사용된 본인인증 → 400 (route.ts:94-99)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 78,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-10T01:15:35.989Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "0ab2ba833b6c466902c1-7736fc77f5d06187952d",
+              "file": "tech/signup-api.spec.ts",
+              "line": 149,
+              "column": 7
+            },
+            {
+              "title": "만료된 본인인증 → 400 (route.ts:100-105)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 17,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-10T01:15:36.074Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "0ab2ba833b6c466902c1-8134369c8961d0ef08b7",
+              "file": "tech/signup-api.spec.ts",
+              "line": 161,
+              "column": 7
+            },
+            {
+              "title": "존재하지 않는 verificationId → 400 (route.ts:88-93)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 26,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-10T01:15:36.097Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "0ab2ba833b6c466902c1-29f6447275dcb795c9ea",
+              "file": "tech/signup-api.spec.ts",
+              "line": 176,
+              "column": 7
+            },
+            {
+              "title": "인증한 번호와 가입 번호가 다르면 400 (route.ts:106-111)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 23,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-10T01:15:36.130Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "0ab2ba833b6c466902c1-93cb55369717f2a547ad",
+              "file": "tech/signup-api.spec.ts",
+              "line": 187,
+              "column": 7
+            },
+            {
+              "title": "인증한 이름과 가입 이름이 다르면 400 (route.ts:112-121)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 74,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-10T01:15:36.159Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "0ab2ba833b6c466902c1-9f36bbeddfbe5214b7d5",
+              "file": "tech/signup-api.spec.ts",
+              "line": 201,
+              "column": 7
+            },
+            {
+              "title": "공백 표기만 다른 이름은 통과한다 (\"홍 길동\" = \"홍길동\")",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 246,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-10T01:15:36.240Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "0ab2ba833b6c466902c1-fb5c9a7c2acaa066156f",
+              "file": "tech/signup-api.spec.ts",
+              "line": 218,
+              "column": 7
+            },
+            {
+              "title": "중복 loginId → 409 (route.ts:79-81)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 143,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-10T01:15:36.499Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "0ab2ba833b6c466902c1-bda067467d7f3abdf7b0",
+              "file": "tech/signup-api.spec.ts",
+              "line": 232,
+              "column": 7
+            }
+          ]
+        },
+        {
+          "title": "POST /api/tech/signup — 추천인",
+          "file": "tech/signup-api.spec.ts",
+          "line": 249,
+          "column": 6,
+          "specs": [
+            {
+              "title": "본인을 추천인으로 지정하면 400 (route.ts:137-142)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 151,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-10T01:15:36.650Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "0ab2ba833b6c466902c1-d0e88aa5b8adb0ca068f",
+              "file": "tech/signup-api.spec.ts",
+              "line": 250,
+              "column": 7
+            },
+            {
+              "title": "미승인 추천인 → 400 (route.ts:134-136)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 227,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-10T01:15:36.808Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "0ab2ba833b6c466902c1-c40c3e4f0d7e1d3409f6",
+              "file": "tech/signup-api.spec.ts",
+              "line": 263,
+              "column": 7
+            },
+            {
+              "title": "비활성 추천인 → 400 (route.ts:134-136 의 isActive 분기)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 158,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-10T01:15:37.051Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "0ab2ba833b6c466902c1-00a16a92a23a30abb943",
+              "file": "tech/signup-api.spec.ts",
+              "line": 276,
+              "column": 7
+            },
+            {
+              "title": "승인된 추천인은 referredByUserId 로 기록된다",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 543,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-10T01:15:37.219Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "0ab2ba833b6c466902c1-d259f980c0985255f0b3",
+              "file": "tech/signup-api.spec.ts",
+              "line": 289,
+              "column": 7
+            }
+          ]
+        },
+        {
+          "title": "POST /api/tech/signup — 성공 계약",
+          "file": "tech/signup-api.spec.ts",
+          "line": 309,
+          "column": 6,
+          "specs": [
+            {
+              "title": "가입 즉시 APPROVED 이고 세션 쿠키가 발급된다 (route.ts:176, :203-211)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 232,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-10T01:15:37.775Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "0ab2ba833b6c466902c1-f2e14adb372644502325",
+              "file": "tech/signup-api.spec.ts",
+              "line": 310,
+              "column": 7
+            },
+            {
+              "title": "가입한 본인인증은 두 번 쓸 수 없다 (재사용 → 400)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 275,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-10T01:15:38.015Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "0ab2ba833b6c466902c1-9c8c8d22bb1953ede965",
+              "file": "tech/signup-api.spec.ts",
+              "line": 368,
+              "column": 7
+            },
+            {
+              "title": "zod 경계 — 짧은 아이디·짧은 비밀번호·잘못된 근로형태는 400",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 438,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-10T01:15:38.304Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "0ab2ba833b6c466902c1-7f23a312365ffde01774",
+              "file": "tech/signup-api.spec.ts",
+              "line": 385,
+              "column": 7
+            }
+          ]
+        },
+        {
+          "title": "POST /api/tech/signup — 레이트리밋",
+          "file": "tech/signup-api.spec.ts",
+          "line": 406,
+          "column": 6,
+          "specs": [
+            {
+              "title": "전용 IP 로 5회를 넘기면 429 (route.ts:34-48)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 156,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-09-10T01:15:38.804Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "0ab2ba833b6c466902c1-0fec988d851d9ba5c33e",
+              "file": "tech/signup-api.spec.ts",
+              "line": 407,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-09-10T01:14:37.932Z",
+    "duration": 61421.780999999995,
+    "expected": 124,
+    "skipped": 0,
+    "unexpected": 2,
+    "flaky": 0
+  }
+}

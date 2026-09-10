@@ -1,207 +1,352 @@
 'use client';
 
+import Link from 'next/link';
 import { useCallback, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import DesktopOnlyNotice from '@/components/DesktopOnlyNotice';
-import InfoTip from '@/components/InfoTip';
-import { useIsLg } from '@/components/useIsLg';
 import { usePolling } from '@/components/usePolling';
 import MapChoropleth, { type GeoLoadState } from '@/components/MapChoropleth';
+import type { RegionOverview } from '@/lib/mapOverview';
+import { kstDateString, kstRangeUtc } from '@/lib/kst';
+import styles from '@/components/analytics-board.module.css';
 
-type PressureState = 'NORMAL' | 'CRITICAL_ALERT' | 'INACTIVE' | 'ZERO';
+const number = (value: number) => value.toLocaleString('ko-KR');
+type Filter = 'ACTIVE' | 'ALL' | 'UNCOVERED';
 
-type Region = {
-  key: string;
-  name: string;
-  hasSigungu: boolean;
-  supply: number;
-  demand: number;
-  pressure: number | null;
-  state: PressureState;
-};
-
-type RegionsResponse = {
-  level: 'sido' | 'sigungu';
-  sido: string | null;
-  regions: Region[];
-  gapAlerts: { key: string; name: string; demand: number }[];
-  unknownLocation: { count: number; reasons: Record<string, number> };
-  sigunguUnknown: number;
-  sourceLabel: string;
-  asOf: string;
-};
-
-type DispatchResponse = {
-  pins: { requestId: string; lookupCode: string; lat: number; lng: number; address: string | null }[];
-  unknownCount: number;
-  asOf: string;
-};
-
-function refreshTime(updatedAt?: number | null) {
-  return updatedAt
-    ? `마지막 갱신 ${new Date(updatedAt).toLocaleTimeString('ko-KR', {
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
-      })}`
-    : '마지막 갱신 —';
-}
-
-function stateLabel(state: PressureState) {
-  return {
-    NORMAL: '정상',
-    CRITICAL_ALERT: '공급없음경보',
-    INACTIVE: '활동없음',
-    ZERO: '수요없음',
-  }[state];
-}
-
-function stateClass(state: PressureState) {
-  return state === 'CRITICAL_ALERT'
-    ? 'bg-amber-100 text-amber-800'
-    : state === 'INACTIVE'
-      ? 'bg-neutral-200 text-neutral-700'
-      : state === 'ZERO'
-        ? 'bg-sky-100 text-sky-800'
-        : 'bg-emerald-100 text-emerald-800';
-}
-
-function pressureLabel(region: Region) {
-  return region.pressure == null ? '—' : region.pressure.toFixed(2);
-}
-
-export default function AnalyticsMap() {
-  const isLg = useIsLg();
+function RegionBoard({ sido }: { sido: string | null }) {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const sido = searchParams.get('sido');
-  const [geoLoadState, setGeoLoadState] = useState<GeoLoadState>({ kind: 'loading' });
-  const handleSelectSido = useCallback((selectedSido: string) => {
-    router.push(selectedSido ? `/admin/analytics/map?sido=${encodeURIComponent(selectedSido)}` : '/admin/analytics/map');
-  }, [router]);
-  const handleGeoLoadStateChange = useCallback((state: GeoLoadState) => setGeoLoadState(state), []);
-  const regionsUrl = isLg
-    ? `/api/admin/analytics/map/regions${sido ? `?sido=${encodeURIComponent(sido)}` : ''}`
-    : null;
-  const { data: regionsData, error: regionsError, lastUpdatedAt: regionsUpdatedAt } = usePolling<RegionsResponse>(regionsUrl, 45_000);
-  const { data: dispatchData, error: dispatchError, lastUpdatedAt: dispatchUpdatedAt } = usePolling<DispatchResponse>(
-    isLg ? '/api/admin/analytics/map/dispatch' : null,
-    8_000,
+  const [filter, setFilter] = useState<Filter>('ACTIVE');
+  const [query, setQuery] = useState('');
+  const [refreshing, setRefreshing] = useState(false);
+  const [geoRevision, setGeoRevision] = useState(0);
+  const [geoState, setGeoState] = useState<GeoLoadState>({ kind: 'loading' });
+  const { data, error, refresh } = usePolling<RegionOverview>(
+    `/api/admin/analytics/map/regions${sido ? `?sido=${encodeURIComponent(sido)}` : ''}`,
+    45_000,
   );
-  const regions = [...(regionsData?.regions ?? [])].sort((a, b) => {
-    if (a.pressure == null && b.pressure == null) return 0;
-    if (a.pressure == null) return 1;
-    if (b.pressure == null) return -1;
-    return b.pressure - a.pressure;
-  });
-  const gapAlerts = [...(regionsData?.gapAlerts ?? [])].sort((a, b) => b.demand - a.demand);
-
+  const selectSido = useCallback(
+    (name: string) =>
+      router.push(
+        name
+          ? `/admin/analytics/map?sido=${encodeURIComponent(name)}`
+          : '/admin/analytics/map',
+      ),
+    [router],
+  );
+  const onGeoState = useCallback(
+    (value: GeoLoadState) => setGeoState(value),
+    [],
+  );
+  const all = [...(data?.regions ?? [])].sort(
+    (a, b) => b.demand - a.demand || a.name.localeCompare(b.name, 'ko'),
+  );
+  const count = all.reduce((sum, row) => sum + row.demand, 0);
+  const active = all.filter((row) => row.demand > 0);
+  const uncovered = active.filter((row) => row.supply === 0);
+  const shown = all.filter(
+    (row) =>
+      (filter === 'ALL' ||
+        (filter === 'ACTIVE'
+          ? row.demand > 0
+          : row.demand > 0 && row.supply === 0)) &&
+      row.name.includes(query.trim()),
+  );
+  const dateRange = data ? kstRangeUtc('month', new Date(data.asOf)) : null;
+  const from = dateRange ? kstDateString(dateRange.gte) : null;
+  const through = dateRange
+    ? kstDateString(new Date(dateRange.lt.getTime() - 1))
+    : null;
+  async function reload() {
+    setRefreshing(true);
+    if (geoState.kind === 'unavailable' || geoState.kind === 'corrupt') {
+      setGeoRevision((revision) => revision + 1);
+    }
+    try {
+      await refresh();
+    } finally {
+      setRefreshing(false);
+    }
+  }
   return (
-    <main className="min-h-screen bg-surface text-sm text-fg">
-      <div className="p-4 lg:hidden">
-        <DesktopOnlyNotice message="지도 현황은 데스크톱에서 이용할 수 있습니다." />
-      </div>
-      <div className="hidden lg:block">
-        <div className="mx-auto max-w-7xl p-6">
-          <div className="mb-6">
-            <h1 className="text-xl font-bold">전국 지도 현황</h1>
-            <p className="mt-1 text-sm text-muted">지역별 수급 압력과 출동 고객 목적지를 확인합니다.</p>
-          </div>
-
-          {regionsError && <p className="mb-4 text-sm text-red-600">{regionsError}</p>}
-          {dispatchError && <p className="mb-4 text-sm text-red-600">{dispatchError}</p>}
-          {!regionsData ? (
-            <p className="rounded-admin-lg border border-border bg-white p-6 text-sm text-muted shadow-surface-sm">지도 현황을 불러오는 중…</p>
-          ) : (
-            <div className="grid gap-5">
-              <MapChoropleth
-                level={regionsData.level}
-                sido={regionsData.sido}
-                regions={regionsData.regions}
-                pins={dispatchData?.pins ?? []}
-                onSelectSido={handleSelectSido}
-                onLoadStateChange={handleGeoLoadStateChange}
-              />
-              {geoLoadState.kind === 'unavailable' && <section className="rounded-admin-md border border-brand-200 bg-brand-50 p-5" aria-label="지도 안내">
-                <p className="font-semibold">지도 시각화(코로플레스)는 VWorld 행정경계 스냅샷 확보 후 제공 예정 — 현재는 지역 순위표로 제공됩니다</p>
-                <p className="mt-2 text-sm text-muted">{regionsData.sourceLabel}</p>
-              </section>}
-
-              <section className="rounded-admin-md border border-amber-300 bg-amber-50 p-5" aria-labelledby="gap-alerts-heading">
-                <div className="flex items-baseline justify-between gap-3">
-                  <h2 id="gap-alerts-heading" className="text-base font-bold">갭 경보</h2>
-                  <span className="font-mono text-xs text-muted">{refreshTime(regionsUpdatedAt)}</span>
-                </div>
-                {gapAlerts.length === 0 ? (
-                  <p className="mt-3 text-sm text-muted">공급 0명·수요 있음 지역이 없습니다.</p>
-                ) : (
-                  <ol className="mt-3 grid gap-2 md:grid-cols-2">
-                    {gapAlerts.map((alert) => (
-                      <li key={alert.key} className="rounded-admin-sm border border-amber-200 bg-white px-3 py-2">
-                        <span className="font-semibold">{alert.name}</span><span className="ml-2 text-sm text-muted">공급 0명 · 수요 {alert.demand}건</span>
-                      </li>
-                    ))}
-                  </ol>
-                )}
-              </section>
-
-              <section className="rounded-admin-lg border border-border bg-white p-5 shadow-surface-sm" aria-labelledby="pressure-heading">
-                <div className="flex items-baseline justify-between gap-3">
-                  <div className="flex items-center gap-2">
-                    <h2 id="pressure-heading" className="text-base font-bold">수급 압력 순위표</h2>
-                    <InfoTip text="최근 30일 유효 요청 ÷ 명시 커버 활성·승인 공급자 수, KST 귀속" />
-                  </div>
-                  <span className="font-mono text-xs text-muted">{refreshTime(regionsUpdatedAt)}</span>
-                </div>
-                {regionsData.level === 'sigungu' && (
-                  <div className="mt-3 flex items-center justify-between gap-3">
-                    <p className="text-sm text-muted">{regionsData.sido} 시군구</p>
-                    <button type="button" onClick={() => router.push('/admin/analytics/map')} className="text-sm font-semibold text-brand-600 underline">시도 목록으로 돌아가기</button>
-                  </div>
-                )}
-                {regionsData.level === 'sigungu' && regionsData.sigunguUnknown > 0 && (
-                  <p className="mt-3 rounded-admin-sm bg-neutral-100 px-3 py-2 text-sm text-muted">{regionsData.sido} 시군구 미상 {regionsData.sigunguUnknown}건</p>
-                )}
-                <div className="mt-4 overflow-x-auto">
-                  <table className="w-full min-w-[640px] text-left text-sm">
-                    <thead className="border-b border-border text-muted">
-                      <tr><th className="px-3 py-2 font-semibold">지역</th><th className="px-3 py-2 text-right font-semibold">공급</th><th className="px-3 py-2 text-right font-semibold">수요</th><th className="px-3 py-2 text-right font-semibold">압력 (수요/공급)</th><th className="px-3 py-2 font-semibold">상태</th></tr>
-                    </thead>
-                    <tbody>
-                      {regions.map((region) => (
-                        <tr key={region.key} className="border-b border-border last:border-0">
-                          <td className="px-3 py-3">
-                            {regionsData.level === 'sido' && region.hasSigungu ? <button type="button" onClick={() => router.push(`/admin/analytics/map?sido=${encodeURIComponent(region.name)}`)} className="font-semibold text-brand-600 underline">{region.name}</button> : region.name}
-                          </td>
-                          <td className="px-3 py-3 text-right font-mono">{region.supply}명</td>
-                          <td className="px-3 py-3 text-right font-mono">{region.demand}건</td>
-                          <td className="px-3 py-3 text-right font-mono">{pressureLabel(region)} ({region.demand}/{region.supply})</td>
-                          <td className="px-3 py-3"><span className={`rounded-full px-2 py-1 text-xs font-semibold ${stateClass(region.state)}`}>{stateLabel(region.state)}</span></td>
-                        </tr>
-                      ))}
-                      {regions.length === 0 && <tr><td colSpan={5} className="px-3 py-6 text-center text-muted">표시할 지역이 없습니다.</td></tr>}
-                    </tbody>
-                  </table>
-                </div>
-                <div className="mt-4 rounded-admin-sm bg-neutral-50 p-3 text-sm text-muted">
-                  <p className="font-semibold text-fg">위치 미상 {regionsData.unknownLocation.count}건</p>
-                  {Object.entries(regionsData.unknownLocation.reasons).map(([reason, count]) => <p key={reason} className="mt-1">{reason} {count}건</p>)}
-                </div>
-              </section>
-
-            </div>
-          )}
-          <section className="mt-5 rounded-admin-lg border border-border bg-white p-5 shadow-surface-sm" aria-labelledby="dispatch-heading">
-            <div className="flex items-baseline justify-between gap-3">
-              <div><h2 id="dispatch-heading" className="text-base font-bold">출동 현황</h2><p className="mt-1 text-sm text-muted">차량 추적 아님 — 고객 목적지 기준</p></div>
-              <span className="font-mono text-xs text-muted">{refreshTime(dispatchUpdatedAt)} · 8초 갱신</span>
-            </div>
-            {!dispatchData ? <p className="mt-4 text-sm text-muted">출동 현황을 불러오는 중…</p> : (
-              <><div className="mt-4 overflow-x-auto"><table className="w-full min-w-[620px] text-left text-sm"><thead className="border-b border-border text-muted"><tr><th className="px-3 py-2 font-semibold">접수번호</th><th className="px-3 py-2 font-semibold">주소</th><th className="px-3 py-2 font-semibold">좌표</th></tr></thead><tbody>{dispatchData.pins.map((pin) => <tr key={pin.requestId} className="border-b border-border last:border-0"><td className="px-3 py-3 font-mono">{pin.lookupCode}</td><td className="px-3 py-3">{pin.address ?? '주소 미상'}</td><td className="px-3 py-3 font-mono">{pin.lat}, {pin.lng}</td></tr>)}{dispatchData.pins.length === 0 && <tr><td colSpan={3} className="px-3 py-6 text-center text-muted">출동 중인 고객 목적지가 없습니다.</td></tr>}</tbody></table></div><p className="mt-3 text-sm text-muted">좌표 미상 {dispatchData.unknownCount}건</p></>
-            )}
-          </section>
+    <main className={styles.page}>
+      <header className={styles.header}>
+        <div>
+          <h1>전국 지도 현황</h1>
+          <p>어느 지역에 접수가 몰리는지, 담당 등록이 있는지 확인합니다.</p>
         </div>
+        <div className={styles.tools}>
+          <span className={styles.updated}>
+            {data
+              ? `${new Date(data.asOf).toLocaleTimeString('ko-KR', { timeZone: 'Asia/Seoul', hour: '2-digit', minute: '2-digit' })} 기준`
+              : ''}
+          </span>
+          <button
+            className={styles.button}
+            onClick={reload}
+            disabled={refreshing}
+          >
+            {refreshing ? '갱신 중…' : '새로고침'}
+          </button>
+        </div>
+      </header>
+      <div className={styles.periodBar}>
+        <div>
+          <h2>{sido ?? '전국'} · 최근 30일</h2>
+          <p>
+            {from && through
+              ? `${from} — ${through} · 취소 제외`
+              : '집계 기간을 확인하는 중'}
+          </p>
+        </div>
+        {sido && (
+          <button className={styles.button} onClick={() => selectSido('')}>
+            ← 전국 보기
+          </button>
+        )}
       </div>
+      {error && (
+        <div role="alert" className={styles.error}>
+          <p>
+            {data
+              ? '최신 정보를 불러오지 못했습니다. 마지막 조회 결과입니다.'
+              : '지역 데이터를 불러오지 못했습니다.'}
+          </p>
+          <button
+            className={styles.button}
+            onClick={reload}
+            disabled={refreshing}
+          >
+            다시 시도
+          </button>
+        </div>
+      )}
+      {!data && !error && (
+        <p role="status" className={styles.state}>
+          지역별 접수를 불러오는 중…
+        </p>
+      )}
+      {data && (
+        <>
+          <dl
+            className={`${styles.metrics} ${styles.mapMetrics}`}
+            aria-label="지역 집계 요약"
+          >
+            <div className={styles.metric}>
+              <dt>지역 확인된 접수</dt>
+              <dd className={styles.value}>
+                {number(count)}
+                <small>건</small>
+              </dd>
+              <dd className={styles.note}>
+                {sido ? `${sido} 내 시군구 확인 건` : '전국 시도 확인 건'} ·
+                최근 30일
+              </dd>
+            </div>
+            <div className={styles.metric}>
+              <dt>접수가 있는 지역</dt>
+              <dd className={styles.value}>
+                {active.length}
+                <small>곳</small>
+              </dd>
+              <dd className={styles.note}>
+                {all.length}개 {sido ? '시군구' : '시도'} 중 접수 발생 지역
+              </dd>
+            </div>
+            <div className={styles.metric}>
+              <dt>담당 등록이 없는 접수 지역</dt>
+              <dd className={styles.value}>
+                {uncovered.length}
+                <small>곳</small>
+              </dd>
+              <dd className={styles.note}>
+                {uncovered.length
+                  ? `최근 접수 ${number(uncovered.reduce((sum, row) => sum + row.demand, 0))}건의 지역 담당을 확인해 주세요.`
+                  : !active.length
+                    ? '최근 30일 접수가 없습니다.'
+                    : '접수 발생 지역에 모두 담당 등록이 있습니다.'}
+              </dd>
+            </div>
+          </dl>
+          <div className={styles.mapGrid}>
+            <section
+              className={`${styles.panel} ${styles.regionPanel}`}
+              aria-labelledby="region-list-title"
+            >
+              <header className={styles.panelHead}>
+                <h2 id="region-list-title">지역별 접수</h2>
+                <p>
+                  {sido
+                    ? '배정 후보를 확인할 지역을 선택하세요.'
+                    : '지역 이름을 누르면 시군구별로 볼 수 있습니다.'}
+                </p>
+              </header>
+              <div
+                className={styles.regionControls}
+                role="group"
+                aria-label="지역 목록 필터"
+              >
+                {(
+                  [
+                    { key: 'ACTIVE', label: `접수 있는 지역 ${active.length}` },
+                    { key: 'ALL', label: `전체 ${all.length}` },
+                    {
+                      key: 'UNCOVERED',
+                      label: `담당 등록 없음 ${uncovered.length}`,
+                    },
+                  ] as const
+                ).map((item) => (
+                  <button
+                    type="button"
+                    key={item.key}
+                    aria-pressed={filter === item.key}
+                    onClick={() => setFilter(item.key)}
+                  >
+                    {item.label}
+                  </button>
+                ))}
+                <input
+                  type="search"
+                  aria-label="지역 이름 검색"
+                  value={query}
+                  onChange={(event) => setQuery(event.target.value)}
+                  placeholder="지역 이름 검색"
+                />
+              </div>
+              <div className={styles.regionHead} aria-hidden="true">
+                <span>지역</span>
+                <span>접수</span>
+                <span>담당 등록</span>
+              </div>
+              <div className={styles.regionRows}>
+                <ul aria-label="지역별 접수 목록">
+                  {shown.map((row) => (
+                    <li className={styles.regionRow} key={row.key}>
+                      <div>
+                        {data.level === 'sido' && row.hasSigungu ? (
+                          <button
+                            type="button"
+                            onClick={() => selectSido(row.name)}
+                            aria-label={`${row.name} 시군구별 보기`}
+                          >
+                            {row.name} <span aria-hidden="true">›</span>
+                          </button>
+                        ) : (
+                          <Link
+                            href={`/admin/rotation?${new URLSearchParams({ sido: data.level === 'sido' ? row.name : (data.sido ?? ''), ...(data.level === 'sigungu' ? { sigungu: row.name } : {}) })}`}
+                            aria-label={`${row.name} 배정 후보 보기`}
+                          >
+                            {row.name} <span aria-hidden="true">↗</span>
+                          </Link>
+                        )}
+                        {row.demand > 0 && row.supply === 0 && (
+                          <span className={styles.rowMeta}>
+                            담당 지역 등록 확인 필요
+                          </span>
+                        )}
+                      </div>
+                      <span
+                        className={styles.regionValue}
+                        aria-label={`접수 ${number(row.demand)}건`}
+                      >
+                        {number(row.demand)}
+                        <small>건</small>
+                      </span>
+                      <span
+                        className={styles.registration}
+                        data-empty={row.supply === 0}
+                        aria-label={`담당 등록 ${number(row.supply)}`}
+                      >
+                        {number(row.supply)}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+                {!shown.length && (
+                  <div className={styles.state}>
+                    <p>
+                      {query
+                        ? '검색한 지역이 없습니다.'
+                        : filter === 'UNCOVERED'
+                          ? active.length
+                            ? '접수 지역에 모두 담당 등록이 있습니다.'
+                            : '최근 30일 접수가 없습니다.'
+                          : '조건에 맞는 접수 지역이 없습니다.'}
+                    </p>
+                    <button
+                      className={styles.link}
+                      onClick={() => {
+                        setFilter('ALL');
+                        setQuery('');
+                      }}
+                    >
+                      전체 지역 보기
+                    </button>
+                  </div>
+                )}
+              </div>
+              <footer className={styles.regionFoot}>
+                <span>{shown.length}개 지역 · 접수 많은 순</span>
+                <span>담당 등록: 업체와 기사 합산</span>
+              </footer>
+            </section>
+            <div className={styles.mapVisual}>
+              <MapChoropleth
+                key={geoRevision}
+                level={data.level}
+                sido={data.sido}
+                regions={data.regions}
+                onSelectSido={selectSido}
+                onLoadStateChange={onGeoState}
+              />
+              {geoState.kind === 'unavailable' && (
+                <section className={styles.panel} aria-label="지도 안내">
+                  <p className={styles.state}>
+                    지도를 준비하지 못했습니다. 지역별 접수 목록에서 같은 수치를
+                    확인할 수 있습니다.
+                  </p>
+                </section>
+              )}
+            </div>
+          </div>
+          {(data.sigunguUnknown > 0 || data.unknownLocation.count > 0) && (
+            <p className={styles.muted} style={{ marginTop: 16 }}>
+              {data.sigunguUnknown > 0
+                ? `${sido} 접수 중 시군구를 확인하지 못한 ${number(data.sigunguUnknown)}건은 목록에서 제외했습니다. `
+                : ''}
+              {data.unknownLocation.count > 0
+                ? `전국 기준 지역 미확인 ${number(data.unknownLocation.count)}건은 별도입니다.`
+                : ''}
+            </p>
+          )}
+          <details className={styles.basis}>
+            <summary>접수 건수와 담당 등록은 어떻게 계산하나요?</summary>
+            <ul>
+              <li>
+                접수는 오늘을 포함한 최근 30일의 접수일 기준이며, 취소된 건은
+                제외합니다. 현재 진행 중인 건수와는 다릅니다.
+              </li>
+              <li>
+                담당 등록은 해당 지역을 담당으로 지정한 활성·승인 업체와
+                전기기사를 합산합니다. 한 대상이 여러 지역에 등록될 수 있으므로
+                지역별 등록 수를 더해 전국 인원으로 사용하지 않습니다.
+              </li>
+              <li>
+                담당 지역을 지정하지 않은 대상은 이 집계에서 제외됩니다. 실제
+                배정 후보는 알, 계약, 배정 규칙에 따라 달라지며 순환 현황에서
+                확인할 수 있습니다.
+              </li>
+              <li>
+                지도 색은 현재 조회 범위의 접수 건수를 비교합니다. 등록 수 대비
+                비율이나 위험 등급을 뜻하지 않습니다.
+              </li>
+            </ul>
+          </details>
+        </>
+      )}
     </main>
   );
+}
+export default function AnalyticsMap() {
+  const params = useSearchParams();
+  const sido = params.get('sido');
+  return <RegionBoard key={sido ?? 'nationwide'} sido={sido} />;
 }

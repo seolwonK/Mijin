@@ -69,26 +69,17 @@ export const DASHBOARD_SHAPE = obj({
   updatedAt: iso,
 });
 
-/** GET /api/admin/analytics/surveys — src/lib/surveyAnalytics.ts:13-28 */
+/** GET /api/admin/analytics/surveys — 전체 설문·상태 필터·페이지 목록 */
 export const SURVEYS_SHAPE = obj({
-  responseRate: numOrNull,
-  submitted: num,
-  total: num,
-  pending: obj({
-    items: arr(
-      obj({
-        surveyId: str,
-        requestCode: str,
-        customerName: str,
-        customerPhone: str,
-        elapsedDays: num,
-      }),
-    ),
-    total: num,
-    hasNext: bool,
+  responseRate: numOrNull, submitted: num, total: num,
+  surveys: obj({
+    items: arr(obj({
+      surveyId: str, requestId: str, requestCode: str, customerName: str, customerPhone: str,
+      createdAt: iso, submittedAt: strOrNull, elapsedDays: num, rating: numOrNull, paidAmount: numOrNull,
+    })),
+    total: num, page: num, pageSize: num, pageCount: num, hasNext: bool,
   }),
-  paidStats: obj({ sum: num, count: num, avg: numOrNull }),
-  updatedAt: iso,
+  paidStats: obj({ sum: num, count: num, avg: numOrNull }), updatedAt: iso,
 });
 
 /** GET /api/admin/analytics/ratings — src/lib/ratingsAnalytics.ts:5-12 */

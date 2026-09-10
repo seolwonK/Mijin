@@ -92,85 +92,99 @@ async function mockMap(page: Page, { regionsStatus = 200, geoStatus = 200, corru
 }
 
 test.describe('관리자 전국 지도 현황', () => {
-  test('갭 경보, 수급 순위, 위치 미상과 출동 현황을 조회 전용으로 표시하고 시군구로 드릴다운한다', async ({ page }) => {
+  test('접수 많은 순·필터·담당 등록·출처를 표시하고 시군구에서 배정 후보로 연결한다', async ({ page }) => {
     await mockMap(page);
     await loginAsAdmin(page);
-    await page.getByRole('navigation', { name: '관리자 이동' }).getByRole('button', { name: '분석' }).click();
-    await page.getByRole('menuitem', { name: '지도', exact: true }).click();
-
-    await expect(page.getByRole('img', { name: '시도별 수급 압력 지도' }).locator('path')).toHaveCount(17);
-    await expect(page.getByText('공공누리 제1유형 (출처표시) · 기준일 2026-07-18 · https://www.vworld.kr')).toBeVisible();
-    await expect(page.getByText('지도 시각화(코로플레스)는 VWorld 행정경계 스냅샷 확보 후 제공 예정 — 현재는 지역 순위표로 제공됩니다')).toHaveCount(0);
-    await expect(page.getByRole('heading', { name: '갭 경보' })).toBeVisible();
-    await expect(page.getByText('공급 0명 · 수요 9건')).toBeVisible();
-    await expect(page.getByRole('heading', { name: '수급 압력 순위표' })).toBeVisible();
-    await expect(page.getByText('공급없음경보')).toBeVisible();
-    await expect(page.getByText('위치 미상 2건')).toBeVisible();
-    await expect(page.getByText('주소 미입력 1건')).toBeVisible();
-    await expect(page.getByRole('heading', { name: '출동 현황' })).toBeVisible();
-    await expect(page.getByText('차량 추적 아님 — 고객 목적지 기준')).toHaveCount(2);
-    await expect(page.getByText('REQ-001')).toBeVisible();
-    await expect(page.getByText('좌표 미상 1건')).toBeVisible();
-    await expect(page.getByRole('button', { name: '세종특별자치시', exact: true })).toHaveCount(0);
-
+    await page.getByRole('navigation', { name:'관리자 이동' }).getByRole('button', { name:'분석' }).click();
+    await page.getByRole('link', { name:'지도', exact:true }).click();
+    await expect(page.getByRole('group', { name:'시도별 접수 지도' }).locator('path')).toHaveCount(17);
+    await expect(page.getByText('공공누리 제1유형 (출처표시) · 경계 기준 2026-07-18 · 지도 출처')).toBeVisible();
+    await expect(page.getByRole('link', { name:'지도 출처' })).toHaveAttribute('href','https://www.vworld.kr');
+    await expect(page.getByLabel('지역 집계 요약')).toContainText('15건');
+    const list = page.getByRole('list', { name:'지역별 접수 목록' });
+    await expect(list.getByRole('listitem')).toHaveCount(2);
+    await expect(list.getByRole('listitem').first()).toContainText('서울특별시');
+    await expect(page.getByText('전국 기준 지역 미확인 2건은 별도입니다.')).toBeVisible();
+    await page.getByRole('button', { name:'전체 4', exact:true }).click();
+    await expect(list.getByRole('listitem')).toHaveCount(4);
+    await expect(page.getByRole('link', { name:'세종특별자치시 배정 후보 보기' })).toHaveAttribute('href', /sido=/);
+    await page.getByRole('button', { name:'담당 등록 없음 1', exact:true }).click();
+    await expect(list.getByRole('listitem')).toHaveCount(1);
+    await expect(list).toContainText('서울특별시');
     const boundaryRequests: string[] = [];
-    page.on('request', (request) => {
-      const pathname = new URL(request.url()).pathname;
-      if (pathname.startsWith('/geo/kr-sigungu.')) boundaryRequests.push(pathname);
-    });
-    const drilldownRequest = page.waitForRequest((request) => new URL(request.url()).pathname.endsWith('/api/admin/analytics/map/regions') && new URL(request.url()).searchParams.get('sido') === '서울특별시');
-    await page.getByLabel(/서울특별시: 공급 0명, 수요 9건/).click();
-    await drilldownRequest;
-    await expect(page).toHaveURL(/\?sido=%EC%84%9C%EC%9A%B8%ED%8A%B9%EB%B3%84%EC%8B%9C$/);
-    await expect(page.getByText('서울특별시 시군구 미상 3건')).toBeVisible();
-    await expect(page.getByText('강남구', { exact: true })).toBeVisible();
-    await expect.poll(() => boundaryRequests).toEqual(['/geo/kr-sigungu.11.2026-07-18-fixture.geo.json']);
+    page.on('request', request => { const path = new URL(request.url()).pathname; if(path.startsWith('/geo/kr-sigungu.')) boundaryRequests.push(path); });
+    await page.getByRole('button', { name:'서울특별시: 접수 9건, 담당 등록 0' }).focus();
+    await page.keyboard.press('Enter');
+    await expect(page).toHaveURL(/\?sido=/);
+    await expect(page.getByRole('group', { name:'서울특별시 시군구별 접수 지도' }).locator('path')).toHaveCount(1);
+    await expect(page.getByText(/서울특별시 접수 중 시군구를 확인하지 못한 3건/)).toBeVisible();
+    await expect(page.getByRole('link', { name:'강남구 배정 후보 보기' })).toHaveAttribute('href', /sigungu=/);
+    await expect(page.getByRole('button', { name:'접수 있는 지역 1' })).toHaveAttribute('aria-pressed','true');
+    expect(boundaryRequests).toEqual(['/geo/kr-sigungu.11.2026-07-18-fixture.geo.json']);
   });
 
-  test('출동 현황은 8초 간격으로 재폴링한다', async ({ page }) => {
+  test('새로고침한 건수는 지도 설명·색상 범위·목록에 함께 반영된다', async ({ page }) => {
+    await mockMap(page);await loginAsAdmin(page);await page.goto('/admin/analytics/map');
+    await page.getByRole('button',{name:'서울특별시: 접수 9건, 담당 등록 0'}).focus();
+    await expect(page.getByRole('status')).toContainText('접수 9건 · 담당 등록 0');
+    const updated={...regions,regions:(regions.regions as Array<{key:string;demand:number;supply:number}>).map(row=>row.key==='seoul'?{...row,demand:20,supply:3}:row)};
+    await page.route('**/api/admin/analytics/map/regions',route=>route.fulfill({json:updated}));
+    await page.getByRole('button',{name:'새로고침',exact:true}).click();
+    await expect(page.getByRole('status')).toContainText('접수 20건 · 담당 등록 3');
+    await expect(page.getByRole('button',{name:'서울특별시: 접수 20건, 담당 등록 3'})).toBeAttached();
+    await expect(page.getByLabel('지도 색상 범례')).toContainText('11–20건');
+    await expect(page.getByLabel('지역 집계 요약')).toContainText('26건');
+  });
+
+  test('분석은 지역 집계만 조회하고 출동 좌표를 불필요하게 폴링하지 않는다', async ({ page }) => {
     const dispatchRequests = await mockMap(page);
     await loginAsAdmin(page);
     await page.goto('/admin/analytics/map');
-    await expect(page.getByText('REQ-001')).toBeVisible();
-    await expect.poll(dispatchRequests, { timeout: 12_000 }).toBeGreaterThanOrEqual(2);
+    await expect(page.getByRole('heading', { name:'지역별 접수', exact:true })).toBeVisible();
+    await page.clock.install();
+    await page.clock.fastForward(9000);
+    expect(dispatchRequests()).toBe(0);
+    await expect(page.getByText('REQ-001')).toHaveCount(0);
   });
-  test('지역 집계가 실패해도 출동 현황을 표시한다', async ({ page }) => {
-    await mockMap(page, { regionsStatus: 500 });
+
+  test('지역 집계 실패는 0건으로 표시하지 않고 재시도를 제공한다', async ({ page }) => {
+    await mockMap(page, { regionsStatus:500 });
     await loginAsAdmin(page);
     await page.goto('/admin/analytics/map');
-
-    await expect(page.getByRole('heading', { name: '출동 현황' })).toBeVisible();
-    await expect(page.getByText('REQ-001')).toBeVisible();
+    await expect(page.locator('main [role=alert]')).toContainText('지역 데이터를 불러오지 못했습니다.');
+    await expect(page.getByLabel('지역 집계 요약')).toHaveCount(0);
+    await page.route('**/api/admin/analytics/map/regions', route=>route.fulfill({json:regions}));
+    await page.getByRole('button', { name:'다시 시도' }).click();
+    await expect(page.getByLabel('지역 집계 요약')).toContainText('15건');
+    await expect(page.locator('main [role=alert]')).toHaveCount(0);
   });
 
-
-  test('경계 파일이 없으면 순위표와 안내 배너를 유지한다', async ({ page }) => {
-    await mockMap(page, { geoStatus: 404 });
+  test('경계 파일이 없으면 지역 목록과 안내를 유지한다', async ({ page }) => {
+    await mockMap(page, { geoStatus:404 });
     await loginAsAdmin(page);
     await page.goto('/admin/analytics/map');
-
-    await expect(page.getByText('지도 시각화(코로플레스)는 VWorld 행정경계 스냅샷 확보 후 제공 예정 — 현재는 지역 순위표로 제공됩니다')).toBeVisible();
-    await expect(page.getByRole('heading', { name: '수급 압력 순위표' })).toBeVisible();
+    await expect(page.getByLabel('지도 안내')).toContainText('지역별 접수 목록에서 같은 수치를 확인할 수 있습니다.');
+    await expect(page.getByRole('heading', { name:'지역별 접수', exact:true })).toBeVisible();
   });
-  test('checksum mismatch displays a corrupt-boundary banner while retaining the ranking table', async ({ page }) => {
-    await mockMap(page, { corruptGeo: true });
+
+  test('경계 체크섬이 잘못되어도 지역 목록은 유지한다', async ({ page }) => {
+    await mockMap(page, { corruptGeo:true });
     await loginAsAdmin(page);
     await page.goto('/admin/analytics/map');
-
-    await expect(page.locator('section[role="alert"]')).toContainText('경계 데이터를 불러오지 못했습니다 — boundary checksum mismatch');
-    await expect(page.getByRole('heading', { name: '수급 압력 순위표' })).toBeVisible();
-    await expect(page.getByText('스냅샷 확보 후 제공 예정')).toHaveCount(0);
+    await expect(page.locator('section[role="alert"]')).toContainText('지도를 불러오지 못했습니다.');
+    await expect(page.getByRole('heading', { name:'지역별 접수', exact:true })).toBeVisible();
+    await expect(page.getByText('boundary checksum mismatch')).toHaveCount(0);
   });
-  test('1023px 이하에서는 지도 API를 요청하지 않는다', async ({ page }) => {
-    await page.setViewportSize({ width: 1023, height: 800 });
+
+  test('1023px에서도 지도와 지역 데이터를 GET으로 조회한다', async ({ page }) => {
+    await page.setViewportSize({width:1023,height:800});
     const requests: string[] = [];
-    page.on('request', (request) => {
-      if (new URL(request.url()).pathname.startsWith('/api/admin/analytics/map/')) requests.push(request.method());
-    });
+    page.on('request', request => { if(new URL(request.url()).pathname.startsWith('/api/admin/analytics/map/')) requests.push(request.method()); });
     await loginAsAdmin(page);
     await page.goto('/admin/analytics/map');
-    await expect(page.getByText('지도 현황은 데스크톱에서 이용할 수 있습니다.')).toBeVisible();
-    expect(requests).toHaveLength(0);
+    await expect(page.getByRole('heading', {name:'지역별 접수', exact:true})).toBeVisible();
+    expect(requests.length).toBeGreaterThan(0);
+    expect(requests.every(method=>method==='GET')).toBe(true);
   });
 
   test('실제 API는 GET만 허용하고 인증·sido 입력을 검증한다', async ({ page, request }) => {

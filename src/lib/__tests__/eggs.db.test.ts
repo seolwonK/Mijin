@@ -72,32 +72,44 @@ describe('chargeEggs (실 DB)', () => {
     expect(await ledgerCount()).toBe(0);
   });
 
+  it.each([31, 59, 61, 30.5])('30알 단위가 아닌 %s알은 잔액·장부 변경 없이 거부한다', async count => {
+    await expect(chargeEggs({ kind: 'PROVIDER', id: providerId }, count, '입금 확인', 'admin', key())).rejects.toThrow('30알 단위');
+    expect(await balance()).toBe(0);
+    expect(await ledgerCount()).toBe(0);
+  });
+
+  it('두 판 충전은 60알을 지급한다', async () => {
+    await chargeEggs({ kind: 'PROVIDER', id: providerId }, 60, '입금 확인', 'admin', key());
+    expect(await balance()).toBe(60);
+    expect(await ledgerCount()).toBe(1);
+  });
+
   it('정상 충전은 잔액과 장부를 함께 갱신한다', async () => {
-    const r = await chargeEggs({ kind: 'PROVIDER', id: providerId }, 3, '입금 확인', 'admin', key());
+    const r = await chargeEggs({ kind: 'PROVIDER', id: providerId }, MIN_CHARGE_EGGS, '입금 확인', 'admin', key());
     expect(r).toBe('CHARGED');
-    expect(await balance()).toBe(3);
+    expect(await balance()).toBe(MIN_CHARGE_EGGS);
     expect(await ledgerCount()).toBe(1);
   });
 
   it('같은 chargeKey 재제출은 멱등 no-op이다 (더블서브밋 방어)', async () => {
     const k = key();
-    expect(await chargeEggs({ kind: 'PROVIDER', id: providerId }, 3, '입금 확인', 'admin', k)).toBe(
+    expect(await chargeEggs({ kind: 'PROVIDER', id: providerId }, MIN_CHARGE_EGGS, '입금 확인', 'admin', k)).toBe(
       'CHARGED',
     );
-    expect(await chargeEggs({ kind: 'PROVIDER', id: providerId }, 3, '입금 확인', 'admin', k)).toBe(
+    expect(await chargeEggs({ kind: 'PROVIDER', id: providerId }, MIN_CHARGE_EGGS, '입금 확인', 'admin', k)).toBe(
       'ALREADY_CHARGED',
     );
-    expect(await balance()).toBe(3); // 6이 아님
+    expect(await balance()).toBe(MIN_CHARGE_EGGS); // 중복 충전 없음
     expect(await ledgerCount()).toBe(1);
   });
 });
 
 describe('spendEggOnAccept (실 DB)', () => {
   it('잔액이 있으면 1알 차감 + 장부 1행 (SPENT)', async () => {
-    await chargeEggs({ kind: 'PROVIDER', id: providerId }, 3, '충전', 'admin', key());
+    await chargeEggs({ kind: 'PROVIDER', id: providerId }, MIN_CHARGE_EGGS, '충전', 'admin', key());
     const r = await spendEggOnAccept({ kind: 'PROVIDER', id: providerId }, key());
     expect(r).toBe('SPENT');
-    expect(await balance()).toBe(2);
+    expect(await balance()).toBe(MIN_CHARGE_EGGS - 1);
     expect(await ledgerCount()).toBe(2); // CHARGE + ACCEPT_SPEND
   });
 
@@ -109,21 +121,21 @@ describe('spendEggOnAccept (실 DB)', () => {
   });
 
   it('같은 assignmentId 2회 호출 → 장부 1행·잔액 -1 (멱등성 — 이중차감의 1차 증거)', async () => {
-    await chargeEggs({ kind: 'PROVIDER', id: providerId }, 3, '충전', 'admin', key());
+    await chargeEggs({ kind: 'PROVIDER', id: providerId }, MIN_CHARGE_EGGS, '충전', 'admin', key());
     const assignmentId = key();
     expect(await spendEggOnAccept({ kind: 'PROVIDER', id: providerId }, assignmentId)).toBe('SPENT');
     expect(await spendEggOnAccept({ kind: 'PROVIDER', id: providerId }, assignmentId)).toBe(
       'ALREADY_SPENT',
     );
-    expect(await balance()).toBe(2); // 1이 아님
+    expect(await balance()).toBe(MIN_CHARGE_EGGS - 1); // 1회만 차감
     expect(
       await prisma.eggLedger.count({ where: { providerId, reason: 'ACCEPT_SPEND' } }),
     ).toBe(1);
   });
 
   it('오버스펜드 레이스: 잔액 1·서로 다른 배정 2건 동시 → 정확히 SPENT 1 + ZERO_BALANCE 1', async () => {
-    await chargeEggs({ kind: 'PROVIDER', id: providerId }, 3, '충전', 'admin', key());
-    await adjustEggs({ kind: 'PROVIDER', id: providerId }, -2, '레이스 셋업', 'admin');
+    await chargeEggs({ kind: 'PROVIDER', id: providerId }, MIN_CHARGE_EGGS, '충전', 'admin', key());
+    await adjustEggs({ kind: 'PROVIDER', id: providerId }, -(MIN_CHARGE_EGGS - 1), '레이스 셋업', 'admin');
     expect(await balance()).toBe(1);
 
     const results = await Promise.all([
@@ -141,18 +153,18 @@ describe('spendEggOnAccept (실 DB)', () => {
 
 describe('adjustEggs (실 DB)', () => {
   it('감액 결과가 음수가 되면 거부하고 장부도 남기지 않는다(롤백)', async () => {
-    await chargeEggs({ kind: 'PROVIDER', id: providerId }, 3, '충전', 'admin', key());
+    await chargeEggs({ kind: 'PROVIDER', id: providerId }, MIN_CHARGE_EGGS, '충전', 'admin', key());
     await expect(
-      adjustEggs({ kind: 'PROVIDER', id: providerId }, -4, '과감액 시도', 'admin'),
+      adjustEggs({ kind: 'PROVIDER', id: providerId }, -(MIN_CHARGE_EGGS + 1), '과감액 시도', 'admin'),
     ).rejects.toThrow('음수');
-    expect(await balance()).toBe(3);
+    expect(await balance()).toBe(MIN_CHARGE_EGGS);
     expect(await ledgerCount()).toBe(1); // CHARGE만
   });
 
   it('정상 정정은 잔액·장부 동시 갱신', async () => {
-    await chargeEggs({ kind: 'PROVIDER', id: providerId }, 3, '충전', 'admin', key());
+    await chargeEggs({ kind: 'PROVIDER', id: providerId }, MIN_CHARGE_EGGS, '충전', 'admin', key());
     await adjustEggs({ kind: 'PROVIDER', id: providerId }, -1, '환불 1알', 'admin');
-    expect(await balance()).toBe(2);
+    expect(await balance()).toBe(MIN_CHARGE_EGGS - 1);
     expect(await ledgerCount()).toBe(2);
   });
 });

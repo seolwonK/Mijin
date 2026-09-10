@@ -14,22 +14,33 @@ function won(value: number) {
 }
 
 const METRIC_LABEL = 'font-mono text-xs tracking-wide text-muted uppercase';
-const METRIC_VALUE = 'text-xl font-extrabold tabular-nums leading-none text-fg sm:text-2xl';
+const METRIC_VALUE =
+  'break-all text-xl font-extrabold tabular-nums leading-none text-fg sm:text-2xl';
 
-export default function PortalHeadline({ stats, commission }: PortalHeadlineProps) {
+export default function PortalHeadline({
+  stats,
+  commission,
+}: PortalHeadlineProps) {
   return (
-    <section aria-label="포털 요약" className="grid grid-cols-3 divide-x divide-border rounded-2xl bg-white py-3 shadow-surface-sm">
+    <section
+      aria-label="포털 요약"
+      className="grid grid-cols-1 gap-4 sm:grid-cols-3 sm:divide-x divide-border rounded-2xl bg-white py-3 shadow-surface-sm"
+    >
       <div className="space-y-1 px-3 text-center">
         <p className={METRIC_LABEL}>30일 수락</p>
         <p className={METRIC_VALUE}>{stats ? `${stats.accepted30d}건` : '—'}</p>
       </div>
       <div className="space-y-1 px-3 text-center">
         <p className={METRIC_LABEL}>적립 대기</p>
-        <p className={METRIC_VALUE}>{commission ? won(commission.pendingTotal) : '—'}</p>
+        <p className={METRIC_VALUE}>
+          {commission ? won(commission.pendingTotal) : '—'}
+        </p>
       </div>
       <div className="space-y-1 px-3 text-center">
         <p className={METRIC_LABEL}>지급 완료</p>
-        <p className={METRIC_VALUE}>{commission ? won(commission.paidTotal) : '—'}</p>
+        <p className={METRIC_VALUE}>
+          {commission ? won(commission.paidTotal) : '—'}
+        </p>
       </div>
     </section>
   );

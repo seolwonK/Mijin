@@ -307,7 +307,7 @@ model CommissionEntry {
 }
 
 enum EggLedgerReason {
-  CHARGE // 어드민 수동 충전 (최소 3알, 1알=₩1,000 — 단가는 components/AdminEggManager.tsx EGG_PRICE)
+  CHARGE // 입금 확인 후 충전 (최소 30알·30알 단위, 1알=1,000원 — lib/eggPricing.ts)
   ACCEPT_SPEND // 배정 수락 시 1알 차감
   ADMIN_ADJUST // 어드민 정정 (양·음)
 }
@@ -351,6 +351,10 @@ model AppSettings {
   defaultMonthlyWage       Int? // 상시 기본 월급
   defaultPayDate           String? // 기본 임금지급일 (예: "매월 25일")
   defaultPayMethod         PayMethod? // 기본 지급방법
+  // 알 충전 계좌이체 안내 — 관리자 설정, 세 필드를 함께 등록/해제한다.
+  eggBankName               String?
+  eggBankAccountNumber      String?
+  eggBankAccountHolder      String?
   updatedAt                DateTime   @updatedAt
 }
 

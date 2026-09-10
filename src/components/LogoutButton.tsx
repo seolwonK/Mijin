@@ -1,20 +1,46 @@
 'use client';
-
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-
+import { requestError } from '@/lib/clientApi';
 export default function LogoutButton({ loginPath }: { loginPath: string }) {
   const router = useRouter();
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
   async function logout() {
-    await fetch('/api/auth/logout', { method: 'POST' });
-    router.replace(loginPath);
+    setBusy(true);
+    setError('');
+    try {
+      const response = await fetch('/api/auth/logout', {
+        method: 'POST',
+        signal: AbortSignal.timeout(15_000),
+      });
+      if (!response.ok)
+        throw new Error('로그아웃하지 못했습니다. 다시 시도해 주세요.');
+      router.replace(loginPath);
+      router.refresh();
+    } catch (e) {
+      setError(requestError(e));
+      setBusy(false);
+    }
   }
   return (
-    <button
-      type="button"
-      onClick={logout}
-      className="inline-flex min-h-[40px] items-center rounded-lg border border-border bg-white px-4 py-2 text-sm font-medium text-muted transition active:scale-[0.98] hover:bg-neutral-50 active:bg-neutral-100"
-    >
-      로그아웃
-    </button>
+    <div className="relative">
+      <button
+        type="button"
+        onClick={logout}
+        disabled={busy}
+        className="inline-flex min-h-11 items-center rounded-lg border border-border bg-white px-3 text-sm font-medium text-muted disabled:opacity-50"
+      >
+        {busy ? '로그아웃 중…' : '로그아웃'}
+      </button>
+      {error && (
+        <p
+          role="alert"
+          className="absolute right-0 top-full z-30 mt-2 w-64 rounded-lg border border-red-200 bg-white p-3 text-sm text-red-700"
+        >
+          {error}
+        </p>
+      )}
+    </div>
   );
 }

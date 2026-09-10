@@ -1,8 +1,8 @@
 // ───────────────────────────────────────────────────────────────────────────
 // API 라우트 매트릭스 — 단일 진실 원천.
 //
-// 70개 route.ts 파일이 81개 핸들러를 export 한다 (11개 라우트가 2개 메서드).
-// 그중 17개가 설계상 공개이고, 나머지 **64개가 가드 대상**이다.
+// 75개 route.ts 파일이 88개 핸들러를 export 한다 (13개 라우트가 2개 메서드).
+// 그중 17개가 설계상 공개이고, 나머지 **71개가 가드 대상**이다.
 //
 // 이 표를 손으로 유지하지 않는다: tests/cross/matrix-completeness.spec.ts 가
 // src/app/api/** 를 걸어 실제 export 와 대조하므로, 라우트가 추가·삭제되면
@@ -62,10 +62,13 @@ export const ROUTES: RouteEntry[] = [
   admin('/api/admin/analytics/ratings/[subject]', 'GET'),
   admin('/api/admin/analytics/summary', 'GET'),
   admin('/api/admin/analytics/surveys', 'GET'),
+  admin('/api/admin/analytics/surveys/[id]/resend', 'POST'),
   admin('/api/admin/commissions', 'GET'),
   admin('/api/admin/commissions/pay', 'POST'),
   admin('/api/admin/eggs', 'GET'),
   admin('/api/admin/eggs', 'POST'),
+  admin('/api/admin/egg-charge-account', 'GET'),
+  admin('/api/admin/egg-charge-account', 'PUT'),
   admin('/api/admin/geocode', 'GET'),
   admin('/api/admin/providers', 'GET'),
   admin('/api/admin/providers', 'POST'),
@@ -100,6 +103,9 @@ export const ROUTES: RouteEntry[] = [
   tech('/api/tech/contract', 'GET'),
   tech('/api/tech/contract', 'PUT'),
   tech('/api/tech/eggs', 'GET'),
+  tech('/api/tech/eggs/charge', 'GET'),
+  tech('/api/tech/profile', 'GET'),
+  tech('/api/tech/profile', 'PATCH'),
   tech('/api/tech/jobs', 'GET'),
   tech('/api/tech/jobs/[id]', 'GET'),
   tech('/api/tech/jobs/[id]/accept', 'POST'),
@@ -112,6 +118,7 @@ export const ROUTES: RouteEntry[] = [
   // ── 업체 (12 핸들러, PROVIDER 세션 필요) ─────────────────────────────
   partner('/api/partner/commissions', 'GET'),
   partner('/api/partner/eggs', 'GET'),
+  partner('/api/partner/eggs/charge', 'GET'),
   partner('/api/partner/jobs', 'GET'),
   partner('/api/partner/jobs/[id]', 'GET'),
   partner('/api/partner/jobs/[id]/accept', 'POST'),

@@ -70,7 +70,11 @@ test('GET /api/partner/jobs 는 본인 배정만 계약된 shape 로 돌려준�
 }) => {
   const partner = await f.createPartnerFixture();
   const req = await f.createRequestFixture({ status: 'ASSIGNED' });
-  const a = await assign({ requestId: req.id, providerId: partner.providerId, distanceKm: 3.5 });
+  const a = await assign({
+    requestId: req.id,
+    providerId: partner.providerId,
+    distanceKm: 3.5,
+  });
 
   const ctx = await partnerCtx(playwright, partner, 'jobs-list');
   const res = await ctx.get('/api/partner/jobs');
@@ -79,13 +83,32 @@ test('GET /api/partner/jobs 는 본인 배정만 계약된 shape 로 돌려준�
   const mine = jobs.find((j) => j.id === a.id);
   expect(mine, '방금 만든 배정이 목록에 있어야 한다').toBeDefined();
   expect(Object.keys(mine!).sort()).toEqual(
-    ['assignedBy', 'createdAt', 'distanceKm', 'id', 'rejectReason', 'request', 'status'].sort(),
+    [
+      'assignedBy',
+      'createdAt',
+      'distanceKm',
+      'id',
+      'rejectReason',
+      'respondedAt',
+      'request',
+      'status',
+    ].sort(),
   );
   expect(mine!.status).toBe('REQUESTED');
   expect(mine!.distanceKm).toBe(3.5);
-  // 목록은 상세와 달리 고객 연락처를 담지 않는다 (route.ts:26-33 의 select 범위).
+  // 본인 배정의 연락처·좌표로 목록에서 바로 전화와 길찾기를 제공한다.
   expect(Object.keys(mine!.request as object).sort()).toEqual(
-    ['address', 'createdAt', 'description', 'id', 'status', 'urgency'].sort(),
+    [
+      'address',
+      'createdAt',
+      'description',
+      'id',
+      'status',
+      'urgency',
+      'customerPhone',
+      'lat',
+      'lng',
+    ].sort(),
   );
   await ctx.dispose();
 });
@@ -120,7 +143,9 @@ test('accept: REQUESTED→ACCEPTED 200, 접수도 ACCEPTED (accept/route.ts:24-3
   const a = await assign({ requestId: req.id, providerId: partner.providerId });
 
   const ctx = await partnerCtx(playwright, partner, 'jobs-accept');
-  expect((await ctx.post(`/api/partner/jobs/${a.id}/accept`)).status()).toBe(200);
+  expect((await ctx.post(`/api/partner/jobs/${a.id}/accept`)).status()).toBe(
+    200,
+  );
 
   const after = await prisma.assignment.findUnique({ where: { id: a.id } });
   expect(after?.status).toBe('ACCEPTED');
@@ -129,7 +154,9 @@ test('accept: REQUESTED→ACCEPTED 200, 접수도 ACCEPTED (accept/route.ts:24-3
   await ctx.dispose();
 });
 
-test('accept 409 — 재수락과 거절된 배정 수락 (CAS :24-30)', async ({ playwright }) => {
+test('accept 409 — 재수락과 거절된 배정 수락 (CAS :24-30)', async ({
+  playwright,
+}) => {
   const partner = await f.createPartnerFixture();
   const req = await f.createRequestFixture({ status: 'ASSIGNED' });
   const a = await assign({ requestId: req.id, providerId: partner.providerId });
@@ -140,19 +167,22 @@ test('accept 409 — 재수락과 거절된 배정 수락 (CAS :24-30)', async (
   });
 
   const ctx = await partnerCtx(playwright, partner, 'jobs-accept-409');
-  expect((await ctx.post(`/api/partner/jobs/${a.id}/accept`)).status()).toBe(200);
+  expect((await ctx.post(`/api/partner/jobs/${a.id}/accept`)).status()).toBe(
+    200,
+  );
   const acceptConflict = expectGate(ACCEPT, 30); // egg-credit: import 1줄로 +1
   const again = await ctx.post(`/api/partner/jobs/${a.id}/accept`);
   expect(again.status()).toBe(acceptConflict.status);
   expect((await again.json()).error).toBe(acceptConflict.message);
-  expect((await ctx.post(`/api/partner/jobs/${rejected.id}/accept`)).status()).toBe(
-    acceptConflict.status,
-  );
+  expect(
+    (await ctx.post(`/api/partner/jobs/${rejected.id}/accept`)).status(),
+  ).toBe(acceptConflict.status);
 
   // 409 가 상태를 바꾸지 않았다.
-  expect((await prisma.assignment.findUnique({ where: { id: rejected.id } }))?.status).toBe(
-    'REJECTED',
-  );
+  expect(
+    (await prisma.assignment.findUnique({ where: { id: rejected.id } }))
+      ?.status,
+  ).toBe('REJECTED');
   await ctx.dispose();
 });
 
@@ -166,7 +196,9 @@ test('reject(ADMIN 배정): 200 reassigned:false, 접수가 RECEIVED 로 되돌�
   const a = await assign({ requestId: req.id, providerId: partner.providerId });
 
   const ctx = await partnerCtx(playwright, partner, 'jobs-reject-manual');
-  const res = await ctx.post(`/api/partner/jobs/${a.id}/reject`, { data: { reason: '거리 초과' } });
+  const res = await ctx.post(`/api/partner/jobs/${a.id}/reject`, {
+    data: { reason: '거리 초과' },
+  });
   expect(res.status()).toBe(200);
   expect(await res.json()).toEqual({ ok: true, reassigned: false });
 
@@ -175,13 +207,17 @@ test('reject(ADMIN 배정): 200 reassigned:false, 접수가 RECEIVED 로 되돌�
   expect(after?.rejectReason).toBe('거리 초과');
   expect(after?.respondedAt).not.toBeNull();
 
-  const request = await prisma.serviceRequest.findUnique({ where: { id: req.id } });
+  const request = await prisma.serviceRequest.findUnique({
+    where: { id: req.id },
+  });
   expect(request?.status).toBe('RECEIVED');
   expect(request?.needsAttention).toBe(true);
 
   // 재거절 409 (:43-45)
   const rejectConflict = expectGate(REJECT, 44);
-  const again = await ctx.post(`/api/partner/jobs/${a.id}/reject`, { data: {} });
+  const again = await ctx.post(`/api/partner/jobs/${a.id}/reject`, {
+    data: {},
+  });
   expect(again.status()).toBe(rejectConflict.status);
   expect((await again.json()).error).toBe(rejectConflict.message);
   await ctx.dispose();
@@ -194,15 +230,25 @@ test('reject(AUTO 배정): 후보가 없으면 reassigned:false 로 관리자에
   // `c.distanceKm != null` 필터가 전부 걷어낸다. 실 데이터에 어떤 업체가 있든
   // 결과가 결정적이므로 네임스페이스 밖 업체를 끌어들이지 않는다.
   const partner = await f.createPartnerFixture();
-  const req = await f.createRequestFixture({ status: 'ASSIGNED', lat: null, lng: null });
-  const a = await assign({ requestId: req.id, providerId: partner.providerId, assignedBy: 'AUTO' });
+  const req = await f.createRequestFixture({
+    status: 'ASSIGNED',
+    lat: null,
+    lng: null,
+  });
+  const a = await assign({
+    requestId: req.id,
+    providerId: partner.providerId,
+    assignedBy: 'AUTO',
+  });
 
   const ctx = await partnerCtx(playwright, partner, 'jobs-reject-auto-empty');
   const res = await ctx.post(`/api/partner/jobs/${a.id}/reject`, { data: {} });
   expect(res.status()).toBe(200);
   expect(await res.json()).toEqual({ ok: true, reassigned: false });
   expect(await requestStatus(req.id)).toBe('RECEIVED');
-  expect(await prisma.assignment.count({ where: { requestId: req.id } })).toBe(1);
+  expect(await prisma.assignment.count({ where: { requestId: req.id } })).toBe(
+    1,
+  );
   await ctx.dispose();
 });
 
@@ -234,7 +280,9 @@ test('reject(AUTO 배정): 다음 순위 업체로 즉시 재배정하고 배정
   const res = await ctx.post(`/api/partner/jobs/${a.id}/reject`, { data: {} });
   expect(res.status()).toBe(200);
   const body = await res.json();
-  expect(body.reassigned, '거리 0 후보가 있으므로 재배정되어야 한다').toBe(true);
+  expect(body.reassigned, '거리 0 후보가 있으므로 재배정되어야 한다').toBe(
+    true,
+  );
 
   // 재배정 건이 실제로 생겼고, 접수는 ASSIGNED 를 유지한다(관리자에게 돌아가지 않는다).
   const created = await prisma.assignment.findFirst({
@@ -249,12 +297,21 @@ test('reject(AUTO 배정): 다음 순위 업체로 즉시 재배정하고 배정
     .poll(
       async () =>
         prisma.smsLog.count({
-          where: { requestId: req.id, to: next.phone, body: { contains: '새 출동 배정' } },
+          where: {
+            requestId: req.id,
+            to: next.phone,
+            body: { contains: '새 출동 배정' },
+          },
         }),
-      { ...POLL, message: '배정 문자(assignment.ts:46)는 응답 이후에 기록된다' },
+      {
+        ...POLL,
+        message: '배정 문자(assignment.ts:46)는 응답 이후에 기록된다',
+      },
     )
     .toBeGreaterThan(0);
-  const sms = await prisma.smsLog.findFirst({ where: { requestId: req.id, to: next.phone } });
+  const sms = await prisma.smsLog.findFirst({
+    where: { requestId: req.id, to: next.phone },
+  });
   expect(sms?.provider, '실발송 게이트웨이로 새면 안 된다').toBe('console');
 
   await ctx.dispose();
@@ -306,8 +363,12 @@ test('status 400/404/409 — 잘못된 본문(:25,:29) · 없는 배정(:37) · 
 
   // 양성대조 — 위 404·409 가 "이 라우트는 늘 실패한다"가 아니었음을 같은 컨텍스트·같은
   // 본문으로 증명한다. 수락 게이트만 풀면 **동일 요청**이 200 이 된다.
-  expect((await ctx.post(`/api/partner/jobs/${a.id}/accept`)).status()).toBe(200);
-  const ok = await ctx.post(`/api/partner/jobs/${a.id}/status`, { data: { status: 'DISPATCHED' } });
+  expect((await ctx.post(`/api/partner/jobs/${a.id}/accept`)).status()).toBe(
+    200,
+  );
+  const ok = await ctx.post(`/api/partner/jobs/${a.id}/status`, {
+    data: { status: 'DISPATCHED' },
+  });
   expect(ok.status(), '앞선 실패는 전부 조건부였다').toBe(200);
   expect(await requestStatus(req.id)).toBe('DISPATCHED');
   await ctx.dispose();
@@ -321,18 +382,27 @@ test('status 409 — 접수 상태가 어긋나면 출동(:48-50)·완료(:56-61
   const a = await assign({ requestId: req.id, providerId: partner.providerId });
 
   const ctx = await partnerCtx(playwright, partner, 'jobs-status-409');
-  expect((await ctx.post(`/api/partner/jobs/${a.id}/accept`)).status()).toBe(200);
+  expect((await ctx.post(`/api/partner/jobs/${a.id}/accept`)).status()).toBe(
+    200,
+  );
 
   // 출동 없이 완료 시도 — 접수가 ACCEPTED 라 DISPATCHED CAS 가 0건
-  const early = await ctx.post(`/api/partner/jobs/${a.id}/status`, { data: { status: 'COMPLETED' } });
+  const early = await ctx.post(`/api/partner/jobs/${a.id}/status`, {
+    data: { status: 'COMPLETED' },
+  });
   const completeGate = expectGate(STATUS, 59);
   expect(early.status()).toBe(completeGate.status);
   expect((await early.json()).error).toBe(completeGate.message);
   expect(await requestStatus(req.id)).toBe('ACCEPTED');
 
   // 배정은 ACCEPTED 인데 접수가 이미 DISPATCHED 로 넘어간 경우 → 출동 재시도 409
-  await prisma.serviceRequest.update({ where: { id: req.id }, data: { status: 'DISPATCHED' } });
-  const twice = await ctx.post(`/api/partner/jobs/${a.id}/status`, { data: { status: 'DISPATCHED' } });
+  await prisma.serviceRequest.update({
+    where: { id: req.id },
+    data: { status: 'DISPATCHED' },
+  });
+  const twice = await ctx.post(`/api/partner/jobs/${a.id}/status`, {
+    data: { status: 'DISPATCHED' },
+  });
   const dispatchGate = expectGate(STATUS, 49);
   expect(twice.status()).toBe(dispatchGate.status);
   expect((await twice.json()).error).toBe(dispatchGate.message);
@@ -347,28 +417,49 @@ test('status happy: 수락→출동→완료, 완료 시 설문 행과 설문 �
   const a = await assign({ requestId: req.id, providerId: partner.providerId });
 
   const ctx = await partnerCtx(playwright, partner, 'jobs-status-happy');
-  expect((await ctx.post(`/api/partner/jobs/${a.id}/accept`)).status()).toBe(200);
+  expect((await ctx.post(`/api/partner/jobs/${a.id}/accept`)).status()).toBe(
+    200,
+  );
   expect(
-    (await ctx.post(`/api/partner/jobs/${a.id}/status`, { data: { status: 'DISPATCHED' } })).status(),
+    (
+      await ctx.post(`/api/partner/jobs/${a.id}/status`, {
+        data: { status: 'DISPATCHED' },
+      })
+    ).status(),
   ).toBe(200);
   expect(await requestStatus(req.id)).toBe('DISPATCHED');
 
   expect(
-    (await ctx.post(`/api/partner/jobs/${a.id}/status`, { data: { status: 'COMPLETED' } })).status(),
+    (
+      await ctx.post(`/api/partner/jobs/${a.id}/status`, {
+        data: { status: 'COMPLETED' },
+      })
+    ).status(),
   ).toBe(200);
-  const completed = await prisma.serviceRequest.findUnique({ where: { id: req.id } });
+  const completed = await prisma.serviceRequest.findUnique({
+    where: { id: req.id },
+  });
   expect(completed?.status).toBe('COMPLETED');
   expect(completed?.completedAt).not.toBeNull();
 
   // ④ 설문 행 — status/route.ts:64 가 void 로 던진다.
   await expect
-    .poll(async () => prisma.satisfactionSurvey.count({ where: { requestId: req.id } }), {
-      ...POLL,
-      message: 'createSurveyAndNotify(status/route.ts:64)는 응답 이후에 행을 만든다',
-    })
+    .poll(
+      async () =>
+        prisma.satisfactionSurvey.count({ where: { requestId: req.id } }),
+      {
+        ...POLL,
+        message:
+          'createSurveyAndNotify(status/route.ts:64)는 응답 이후에 행을 만든다',
+      },
+    )
     .toBe(1);
-  const survey = await prisma.satisfactionSurvey.findUnique({ where: { requestId: req.id } });
-  expect(survey?.providerId, '완료 시점 수락 배정 대상 스냅샷').toBe(partner.providerId);
+  const survey = await prisma.satisfactionSurvey.findUnique({
+    where: { requestId: req.id },
+  });
+  expect(survey?.providerId, '완료 시점 수락 배정 대상 스냅샷').toBe(
+    partner.providerId,
+  );
   expect(survey?.technicianId).toBeNull();
   expect(survey?.submittedAt).toBeNull();
 
@@ -378,7 +469,11 @@ test('status happy: 수락→출동→완료, 완료 시 설문 행과 설문 �
     .poll(
       async () =>
         prisma.smsLog.count({
-          where: { requestId: req.id, to: req.customerPhone, body: { contains: '만족도 조사 참여' } },
+          where: {
+            requestId: req.id,
+            to: req.customerPhone,
+            body: { contains: '만족도 조사 참여' },
+          },
         }),
       { ...POLL, message: 'survey.ts:42 의 2차 지연 — 설문 행 도착과 별개다' },
     )

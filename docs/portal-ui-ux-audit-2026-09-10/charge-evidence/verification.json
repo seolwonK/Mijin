@@ -1,0 +1,104 @@
+[
+  {
+    "scope": "partner",
+    "login": true,
+    "commissionUnified": true,
+    "realBankUnregistered": true,
+    "clipboard": true,
+    "layouts": [
+      {
+        "view": "dashboard",
+        "width": 320,
+        "overflow": false
+      },
+      {
+        "view": "dashboard",
+        "width": 390,
+        "overflow": false
+      },
+      {
+        "view": "dashboard",
+        "width": 768,
+        "overflow": false
+      },
+      {
+        "view": "dashboard",
+        "width": 1440,
+        "overflow": false
+      },
+      {
+        "view": "charge",
+        "width": 320,
+        "overflow": false
+      },
+      {
+        "view": "charge",
+        "width": 390,
+        "overflow": false
+      },
+      {
+        "view": "charge",
+        "width": 768,
+        "overflow": false
+      },
+      {
+        "view": "charge",
+        "width": 1440,
+        "overflow": false
+      }
+    ],
+    "violations": [],
+    "errors": []
+  },
+  {
+    "scope": "tech",
+    "login": true,
+    "commissionUnified": true,
+    "realBankUnregistered": true,
+    "clipboard": true,
+    "layouts": [
+      {
+        "view": "dashboard",
+        "width": 320,
+        "overflow": false
+      },
+      {
+        "view": "dashboard",
+        "width": 390,
+        "overflow": false
+      },
+      {
+        "view": "dashboard",
+        "width": 768,
+        "overflow": false
+      },
+      {
+        "view": "dashboard",
+        "width": 1440,
+        "overflow": false
+      },
+      {
+        "view": "charge",
+        "width": 320,
+        "overflow": false
+      },
+      {
+        "view": "charge",
+        "width": 390,
+        "overflow": false
+      },
+      {
+        "view": "charge",
+        "width": 768,
+        "overflow": false
+      },
+      {
+        "view": "charge",
+        "width": 1440,
+        "overflow": false
+      }
+    ],
+    "violations": [],
+    "errors": []
+  }
+]

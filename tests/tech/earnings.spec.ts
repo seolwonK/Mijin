@@ -1,4 +1,9 @@
-import { expect, test, type APIRequestContext, type PlaywrightWorkerArgs } from '@playwright/test';
+import {
+  expect,
+  test,
+  type APIRequestContext,
+  type PlaywrightWorkerArgs,
+} from '@playwright/test';
 import { PrismaClient } from '@prisma/client';
 import { apiContextOptions } from '../helpers/auth';
 import { ipHeaders } from '../helpers/ip';
@@ -30,7 +35,11 @@ test.afterEach(async () => {
 
 type Pw = PlaywrightWorkerArgs['playwright'];
 
-async function techCtx(playwright: Pw, tech: TechFixture, seed: string): Promise<APIRequestContext> {
+async function techCtx(
+  playwright: Pw,
+  tech: TechFixture,
+  seed: string,
+): Promise<APIRequestContext> {
   return playwright.request.newContext(
     await apiContextOptions(
       'TECHNICIAN',
@@ -41,7 +50,10 @@ async function techCtx(playwright: Pw, tech: TechFixture, seed: string): Promise
 }
 
 /** 존재하지 않는 전기기사를 가리키는 세션 — contract 404 분기 전용. */
-async function ghostCtx(playwright: Pw, seed: string): Promise<APIRequestContext> {
+async function ghostCtx(
+  playwright: Pw,
+  seed: string,
+): Promise<APIRequestContext> {
   return playwright.request.newContext(
     await apiContextOptions(
       'TECHNICIAN',
@@ -52,7 +64,11 @@ async function ghostCtx(playwright: Pw, seed: string): Promise<APIRequestContext
 }
 
 /** 제출 완료된 만족도 조사 1건 (후기·평점 집계의 원천). */
-async function submittedSurvey(technicianId: string, rating: number, comment: string | null) {
+async function submittedSurvey(
+  technicianId: string,
+  rating: number,
+  comment: string | null,
+) {
   const req = await f.createRequestFixture({ status: 'COMPLETED' });
   return prisma.satisfactionSurvey.create({
     data: {
@@ -70,7 +86,9 @@ async function submittedSurvey(technicianId: string, rating: number, comment: st
 // ── 수수료 ─────────────────────────────────────────────────────────────────
 
 test.describe('GET /api/tech/commissions', () => {
-  test('소개자 본인의 적립만 대기·지급 합계로 집계한다', async ({ playwright }) => {
+  test('소개자 본인의 적립만 대기·지급 합계로 집계한다', async ({
+    playwright,
+  }) => {
     const me = await f.createTechFixture();
     const referee = await f.createTechFixture();
     const survey1 = await submittedSurvey(referee.technicianId, 5, null);
@@ -121,7 +139,13 @@ test.describe('GET /api/tech/commissions', () => {
     const me = await f.createTechFixture();
     const ctx = await techCtx(playwright, me, 'comm-empty');
     const body = await (await ctx.get('/api/tech/commissions')).json();
-    expect(body).toEqual({ pendingTotal: 0, paidTotal: 0, entries: [] });
+    expect(body).toEqual({
+      pendingTotal: 0,
+      paidTotal: 0,
+      entries: [],
+      totalCount: 0,
+      nextCursor: null,
+    });
     await ctx.dispose();
   });
 });
@@ -129,7 +153,9 @@ test.describe('GET /api/tech/commissions', () => {
 // ── 추천 현황 ──────────────────────────────────────────────────────────────
 
 test.describe('GET /api/tech/referrals', () => {
-  test('내가 소개한 전기기사가 승인상태·적립과 함께 나온다', async ({ playwright }) => {
+  test('내가 소개한 전기기사가 승인상태·적립과 함께 나온다', async ({
+    playwright,
+  }) => {
     const me = await f.createTechFixture();
     const referee = await f.createTechFixture({ approvalStatus: 'APPROVED' });
     await prisma.technician.update({
@@ -166,7 +192,10 @@ test.describe('GET /api/tech/referrals', () => {
     const me = await f.createTechFixture();
     const ctx = await techCtx(playwright, me, 'ref-empty');
     const body = await (await ctx.get('/api/tech/referrals')).json();
-    expect(body).toEqual({ referees: [], totals: { refereeCount: 0, pendingSurveyCount: 0 } });
+    expect(body).toEqual({
+      referees: [],
+      totals: { refereeCount: 0, pendingSurveyCount: 0 },
+    });
     await ctx.dispose();
   });
 });
@@ -174,7 +203,9 @@ test.describe('GET /api/tech/referrals', () => {
 // ── 받은 후기 ──────────────────────────────────────────────────────────────
 
 test.describe('GET /api/tech/reviews', () => {
-  test('후기 5건 미만이면 코멘트를 공개하지 않는다 (n≥5 임계)', async ({ playwright }) => {
+  test('후기 5건 미만이면 코멘트를 공개하지 않는다 (n≥5 임계)', async ({
+    playwright,
+  }) => {
     const me = await f.createTechFixture();
     await submittedSurvey(me.technicianId, 5, '친절했습니다');
     await submittedSurvey(me.technicianId, 3, '보통');
@@ -188,7 +219,9 @@ test.describe('GET /api/tech/reviews', () => {
     await ctx.dispose();
   });
 
-  test('후기 5건부터 코멘트가 공개되고 분포·평균이 맞는다', async ({ playwright }) => {
+  test('후기 5건부터 코멘트가 공개되고 분포·평균이 맞는다', async ({
+    playwright,
+  }) => {
     const me = await f.createTechFixture();
     const ratings: Array<[number, string | null]> = [
       [5, '빠른 출동'],
@@ -277,7 +310,9 @@ test.describe('GET /api/tech/stats', () => {
     await ctx.dispose();
   });
 
-  test('후기가 있으면 실측 평균을 준다 (랭킹용 3.0 중립값이 아니다)', async ({ playwright }) => {
+  test('후기가 있으면 실측 평균을 준다 (랭킹용 3.0 중립값이 아니다)', async ({
+    playwright,
+  }) => {
     const me = await f.createTechFixture();
     await submittedSurvey(me.technicianId, 5, null);
     await submittedSurvey(me.technicianId, 4, null);
@@ -340,18 +375,24 @@ test.describe('GET /api/tech/contract', () => {
     await ctx.dispose();
   });
 
-  test('반복 조회해도 근로확인서는 1건만 생긴다 (멱등)', async ({ playwright }) => {
+  test('반복 조회해도 근로확인서는 1건만 생긴다 (멱등)', async ({
+    playwright,
+  }) => {
     const me = await f.createTechFixture();
     const ctx = await techCtx(playwright, me, 'contract-get-idem');
     expect((await ctx.get('/api/tech/contract')).status()).toBe(200);
     expect((await ctx.get('/api/tech/contract')).status()).toBe(200);
     expect(
-      await prisma.employmentContract.count({ where: { technicianId: me.technicianId } }),
+      await prisma.employmentContract.count({
+        where: { technicianId: me.technicianId },
+      }),
     ).toBe(1);
     await ctx.dispose();
   });
 
-  test('전기기사 정보가 없으면 404 (contract/route.ts:118-120)', async ({ playwright }) => {
+  test('전기기사 정보가 없으면 404 (contract/route.ts:118-120)', async ({
+    playwright,
+  }) => {
     const ghost = await ghostCtx(playwright, 'contract-get-404');
     const res = await ghost.get('/api/tech/contract');
     expect(res.status()).toBe(404);
@@ -374,7 +415,9 @@ test.describe('PUT /api/tech/contract', () => {
     const ctx = await techCtx(playwright, me, 'contract-put-daily');
     const today = new Date().toISOString().slice(0, 10);
 
-    const res = await ctx.put('/api/tech/contract', { data: signBody({ contractStartDate: today }) });
+    const res = await ctx.put('/api/tech/contract', {
+      data: signBody({ contractStartDate: today }),
+    });
     expect(res.status()).toBe(200);
     const c = (await res.json()).contract;
     expect(c.status).toBe('CONFIRMED');
@@ -396,7 +439,9 @@ test.describe('PUT /api/tech/contract', () => {
   test('상시 근로자는 계약종료일이 없다', async ({ playwright }) => {
     const me = await f.createTechFixture({ employmentType: 'PERMANENT' });
     const ctx = await techCtx(playwright, me, 'contract-put-perm');
-    const c = (await (await ctx.put('/api/tech/contract', { data: signBody() })).json()).contract;
+    const c = (
+      await (await ctx.put('/api/tech/contract', { data: signBody() })).json()
+    ).contract;
     expect(c.status).toBe('CONFIRMED');
     expect(c.contractEndDate).toBeNull();
     // 클라이언트가 무엇을 보내든 근무조건은 서버가 다시 세팅한다.
@@ -409,7 +454,9 @@ test.describe('PUT /api/tech/contract', () => {
   }) => {
     const me = await f.createTechFixture();
     const ctx = await techCtx(playwright, me, 'contract-put-409');
-    expect((await ctx.put('/api/tech/contract', { data: signBody() })).status()).toBe(200);
+    expect(
+      (await ctx.put('/api/tech/contract', { data: signBody() })).status(),
+    ).toBe(200);
     const again = await ctx.put('/api/tech/contract', { data: signBody() });
     expect(again.status()).toBe(409);
     expect((await again.json()).error).toContain('이미 확정된 근로확인서');
@@ -438,7 +485,9 @@ test.describe('PUT /api/tech/contract', () => {
     await ctx.dispose();
   });
 
-  test('잘못된 JSON → 400 (contract/route.ts:131-135)', async ({ playwright }) => {
+  test('잘못된 JSON → 400 (contract/route.ts:131-135)', async ({
+    playwright,
+  }) => {
     const me = await f.createTechFixture();
     const ctx = await techCtx(playwright, me, 'contract-put-badjson');
     const res = await ctx.put('/api/tech/contract', {
@@ -449,7 +498,9 @@ test.describe('PUT /api/tech/contract', () => {
     await ctx.dispose();
   });
 
-  test('zod 경계 — 서명·필수항목·날짜 형식은 400 (contract.ts:5-20)', async ({ playwright }) => {
+  test('zod 경계 — 서명·필수항목·날짜 형식은 400 (contract.ts:5-20)', async ({
+    playwright,
+  }) => {
     const me = await f.createTechFixture();
     const ctx = await techCtx(playwright, me, 'contract-put-zod');
     // PUT 은 바디 파싱(400)이 loadOrCreate 보다 **먼저**다 — 400 만으로는 계약 행이
@@ -465,8 +516,16 @@ test.describe('PUT /api/tech/contract', () => {
         { workerSignatureDataUrl: 'https://example.com/sign.png' },
         '서명을 해 주세요',
       ],
-      ['근로개시일 공백', { contractStartDate: '   ' }, '근로개시일을 입력해 주세요'],
-      ['근로개시일 형식', { contractStartDate: '어제' }, '날짜 형식이 올바르지 않습니다'],
+      [
+        '근로개시일 공백',
+        { contractStartDate: '   ' },
+        '근로개시일을 입력해 주세요',
+      ],
+      [
+        '근로개시일 형식',
+        { contractStartDate: '어제' },
+        '날짜 형식이 올바르지 않습니다',
+      ],
       ['근무장소 공백', { workLocation: '  ' }, '근무장소를 입력해 주세요'],
       ['업무 내용 공백', { jobDescription: '' }, '업무 내용을 입력해 주세요'],
       ['성명 공백', { workerSignatureName: '' }, '성명을 입력해 주세요'],
@@ -489,11 +548,15 @@ test.describe('PUT /api/tech/contract', () => {
     ).toBe('DRAFT');
 
     // 양성 대조 — 온전한 바디는 같은 엔드포인트에서 200 이다(위 400 들이 "PUT 이 늘 400" 이 아님).
-    expect((await ctx.put('/api/tech/contract', { data: signBody() })).status()).toBe(200);
+    expect(
+      (await ctx.put('/api/tech/contract', { data: signBody() })).status(),
+    ).toBe(200);
     await ctx.dispose();
   });
 
-  test('전기기사 정보가 없으면 404 (contract/route.ts:146-148)', async ({ playwright }) => {
+  test('전기기사 정보가 없으면 404 (contract/route.ts:146-148)', async ({
+    playwright,
+  }) => {
     // 바디가 **유효해야** zod(:137-142)를 지나 loadOrCreate 의 404 까지 온다.
     // 빈 바디로 보냈다면 400 이 나고 이 분기는 실행조차 되지 않았을 것이다.
     const ghost = await ghostCtx(playwright, 'contract-put-404');
@@ -507,7 +570,9 @@ test.describe('PUT /api/tech/contract', () => {
     // 양성 대조 — **같은 바디**를 실재하는 전기기사로 보내면 200 이다.
     const me = await f.createTechFixture();
     const real = await techCtx(playwright, me, 'contract-put-404-control');
-    expect((await real.put('/api/tech/contract', { data: signBody() })).status()).toBe(200);
+    expect(
+      (await real.put('/api/tech/contract', { data: signBody() })).status(),
+    ).toBe(200);
     await real.dispose();
   });
 });

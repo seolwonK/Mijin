@@ -1,0 +1,1518 @@
+[
+  {
+    "name": "partner-login-320",
+    "metrics": {
+      "width": 320,
+      "scrollWidth": 320,
+      "height": 1280,
+      "fields": [
+        {
+          "tag": "INPUT",
+          "type": "text",
+          "name": "아이디",
+          "w": 272,
+          "h": 52
+        },
+        {
+          "tag": "INPUT",
+          "type": "password",
+          "name": "비밀번호",
+          "w": 272,
+          "h": 52
+        }
+      ],
+      "overflow": []
+    },
+    "axe": []
+  },
+  {
+    "name": "partner-login-390",
+    "metrics": {
+      "width": 390,
+      "scrollWidth": 390,
+      "height": 1232,
+      "fields": [
+        {
+          "tag": "INPUT",
+          "type": "text",
+          "name": "아이디",
+          "w": 342,
+          "h": 52
+        },
+        {
+          "tag": "INPUT",
+          "type": "password",
+          "name": "비밀번호",
+          "w": 342,
+          "h": 52
+        }
+      ],
+      "overflow": []
+    },
+    "axe": []
+  },
+  {
+    "name": "partner-login-768",
+    "metrics": {
+      "width": 768,
+      "scrollWidth": 768,
+      "height": 1194,
+      "fields": [
+        {
+          "tag": "INPUT",
+          "type": "text",
+          "name": "아이디",
+          "w": 368,
+          "h": 52
+        },
+        {
+          "tag": "INPUT",
+          "type": "password",
+          "name": "비밀번호",
+          "w": 368,
+          "h": 52
+        }
+      ],
+      "overflow": []
+    },
+    "axe": []
+  },
+  {
+    "name": "partner-login-1440",
+    "metrics": {
+      "width": 1440,
+      "scrollWidth": 1440,
+      "height": 1194,
+      "fields": [
+        {
+          "tag": "INPUT",
+          "type": "text",
+          "name": "아이디",
+          "w": 368,
+          "h": 52
+        },
+        {
+          "tag": "INPUT",
+          "type": "password",
+          "name": "비밀번호",
+          "w": 368,
+          "h": 52
+        }
+      ],
+      "overflow": []
+    },
+    "axe": []
+  },
+  {
+    "name": "partner-signup-320",
+    "metrics": {
+      "width": 320,
+      "scrollWidth": 320,
+      "height": 2023,
+      "fields": [
+        {
+          "tag": "INPUT",
+          "type": "text",
+          "name": "로그인 아이디",
+          "w": 164.09375,
+          "h": 52
+        },
+        {
+          "tag": "INPUT",
+          "type": "password",
+          "name": "비밀번호",
+          "w": 256,
+          "h": 52
+        },
+        {
+          "tag": "INPUT",
+          "type": "password",
+          "name": "비밀번호 확인",
+          "w": 256,
+          "h": 52
+        },
+        {
+          "tag": "INPUT",
+          "type": "text",
+          "name": "업체명",
+          "w": 256,
+          "h": 52
+        },
+        {
+          "tag": "INPUT",
+          "type": "tel",
+          "name": "전화번호",
+          "w": 256,
+          "h": 52
+        },
+        {
+          "tag": "SELECT",
+          "type": "select-one",
+          "name": "",
+          "w": 124,
+          "h": 52
+        },
+        {
+          "tag": "SELECT",
+          "type": "select-one",
+          "name": "",
+          "w": 124,
+          "h": 52
+        },
+        {
+          "tag": "INPUT",
+          "type": "text",
+          "name": "상세 주소",
+          "w": 256,
+          "h": 52
+        },
+        {
+          "tag": "SELECT",
+          "type": "select-one",
+          "name": "",
+          "w": 91.875,
+          "h": 52
+        },
+        {
+          "tag": "SELECT",
+          "type": "select-one",
+          "name": "",
+          "w": 91.890625,
+          "h": 52
+        },
+        {
+          "tag": "INPUT",
+          "type": "text",
+          "name": "사업자등록번호",
+          "w": 256,
+          "h": 52
+        },
+        {
+          "tag": "INPUT",
+          "type": "file",
+          "name": "사업자등록증 첨부",
+          "w": 0,
+          "h": 0
+        },
+        {
+          "tag": "INPUT",
+          "type": "file",
+          "name": "전기공사업 등록증 첨부",
+          "w": 0,
+          "h": 0
+        },
+        {
+          "tag": "INPUT",
+          "type": "tel",
+          "name": "추천인 전화번호",
+          "w": 191.765625,
+          "h": 52
+        },
+        {
+          "tag": "INPUT",
+          "type": "checkbox",
+          "name": "이용약관과 개인정보처리방침을 확인했으며, 가입 심사를 위한 개인정보(사업자등록증, 전기공사업 등록증, 연락처) 수집·이용에 동의합니다. 수집된 증빙은 심사 목적 외에 사용되지 않습니다.",
+          "w": 13,
+          "h": 16
+        }
+      ],
+      "overflow": []
+    },
+    "axe": [
+      {
+        "id": "color-contrast",
+        "impact": "serious",
+        "description": "Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds",
+        "nodes": [
+          {
+            "target": [
+              ".space-y-2 > .text-neutral-400"
+            ],
+            "summary": "Fix any of the following:\n  Element has insufficient color contrast of 2.83 (foreground color: #959aa0, background color: #ffffff, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1"
+          },
+          {
+            "target": [
+              "b"
+            ],
+            "summary": "Fix any of the following:\n  Element has insufficient color contrast of 2.83 (foreground color: #959aa0, background color: #ffffff, font size: 9.0pt (12px), font weight: bold). Expected contrast ratio of 4.5:1"
+          }
+        ]
+      },
+      {
+        "id": "select-name",
+        "impact": "critical",
+        "description": "Ensure select element has an accessible name",
+        "nodes": [
+          {
+            "target": [
+              ".grid-cols-2 > select:nth-child(1)"
+            ],
+            "summary": "Fix any of the following:\n  Element does not have an implicit (wrapped) <label>\n  Element does not have an explicit <label>\n  aria-label attribute does not exist or is empty\n  aria-labelledby attribute does not exist, references elements that do not exist or references elements that are empty\n  Element has no title attribute\n  Element's default semantics were not overridden with role=\"none\" or role=\"presentation\""
+          },
+          {
+            "target": [
+              ".grid-cols-2 > select:nth-child(2)"
+            ],
+            "summary": "Fix any of the following:\n  Element does not have an implicit (wrapped) <label>\n  Element does not have an explicit <label>\n  aria-label attribute does not exist or is empty\n  aria-labelledby attribute does not exist, references elements that do not exist or references elements that are empty\n  Element has no title attribute\n  Element's default semantics were not overridden with role=\"none\" or role=\"presentation\""
+          },
+          {
+            "target": [
+              ".grid-cols-\\[1fr_1fr_auto\\] > select:nth-child(1)"
+            ],
+            "summary": "Fix any of the following:\n  Element does not have an implicit (wrapped) <label>\n  Element does not have an explicit <label>\n  aria-label attribute does not exist or is empty\n  aria-labelledby attribute does not exist, references elements that do not exist or references elements that are empty\n  Element has no title attribute\n  Element's default semantics were not overridden with role=\"none\" or role=\"presentation\""
+          },
+          {
+            "target": [
+              ".grid-cols-\\[1fr_1fr_auto\\] > select:nth-child(2)"
+            ],
+            "summary": "Fix any of the following:\n  Element does not have an implicit (wrapped) <label>\n  Element does not have an explicit <label>\n  aria-label attribute does not exist or is empty\n  aria-labelledby attribute does not exist, references elements that do not exist or references elements that are empty\n  Element has no title attribute\n  Element's default semantics were not overridden with role=\"none\" or role=\"presentation\""
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "partner-signup-390",
+    "metrics": {
+      "width": 390,
+      "scrollWidth": 390,
+      "height": 1939,
+      "fields": [
+        {
+          "tag": "INPUT",
+          "type": "text",
+          "name": "로그인 아이디",
+          "w": 234.09375,
+          "h": 52
+        },
+        {
+          "tag": "INPUT",
+          "type": "password",
+          "name": "비밀번호",
+          "w": 326,
+          "h": 52
+        },
+        {
+          "tag": "INPUT",
+          "type": "password",
+          "name": "비밀번호 확인",
+          "w": 326,
+          "h": 52
+        },
+        {
+          "tag": "INPUT",
+          "type": "text",
+          "name": "업체명",
+          "w": 326,
+          "h": 52
+        },
+        {
+          "tag": "INPUT",
+          "type": "tel",
+          "name": "전화번호",
+          "w": 326,
+          "h": 52
+        },
+        {
+          "tag": "SELECT",
+          "type": "select-one",
+          "name": "",
+          "w": 159,
+          "h": 52
+        },
+        {
+          "tag": "SELECT",
+          "type": "select-one",
+          "name": "",
+          "w": 159,
+          "h": 52
+        },
+        {
+          "tag": "INPUT",
+          "type": "text",
+          "name": "상세 주소",
+          "w": 326,
+          "h": 52
+        },
+        {
+          "tag": "SELECT",
+          "type": "select-one",
+          "name": "",
+          "w": 126.875,
+          "h": 52
+        },
+        {
+          "tag": "SELECT",
+          "type": "select-one",
+          "name": "",
+          "w": 126.890625,
+          "h": 52
+        },
+        {
+          "tag": "INPUT",
+          "type": "text",
+          "name": "사업자등록번호",
+          "w": 326,
+          "h": 52
+        },
+        {
+          "tag": "INPUT",
+          "type": "file",
+          "name": "사업자등록증 첨부",
+          "w": 0,
+          "h": 0
+        },
+        {
+          "tag": "INPUT",
+          "type": "file",
+          "name": "전기공사업 등록증 첨부",
+          "w": 0,
+          "h": 0
+        },
+        {
+          "tag": "INPUT",
+          "type": "tel",
+          "name": "추천인 전화번호",
+          "w": 261.765625,
+          "h": 52
+        },
+        {
+          "tag": "INPUT",
+          "type": "checkbox",
+          "name": "이용약관과 개인정보처리방침을 확인했으며, 가입 심사를 위한 개인정보(사업자등록증, 전기공사업 등록증, 연락처) 수집·이용에 동의합니다. 수집된 증빙은 심사 목적 외에 사용되지 않습니다.",
+          "w": 13,
+          "h": 16
+        }
+      ],
+      "overflow": []
+    },
+    "axe": [
+      {
+        "id": "color-contrast",
+        "impact": "serious",
+        "description": "Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds",
+        "nodes": [
+          {
+            "target": [
+              ".space-y-2 > .text-neutral-400"
+            ],
+            "summary": "Fix any of the following:\n  Element has insufficient color contrast of 2.83 (foreground color: #959aa0, background color: #ffffff, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1"
+          },
+          {
+            "target": [
+              "b"
+            ],
+            "summary": "Fix any of the following:\n  Element has insufficient color contrast of 2.83 (foreground color: #959aa0, background color: #ffffff, font size: 9.0pt (12px), font weight: bold). Expected contrast ratio of 4.5:1"
+          }
+        ]
+      },
+      {
+        "id": "select-name",
+        "impact": "critical",
+        "description": "Ensure select element has an accessible name",
+        "nodes": [
+          {
+            "target": [
+              ".grid-cols-2 > select:nth-child(1)"
+            ],
+            "summary": "Fix any of the following:\n  Element does not have an implicit (wrapped) <label>\n  Element does not have an explicit <label>\n  aria-label attribute does not exist or is empty\n  aria-labelledby attribute does not exist, references elements that do not exist or references elements that are empty\n  Element has no title attribute\n  Element's default semantics were not overridden with role=\"none\" or role=\"presentation\""
+          },
+          {
+            "target": [
+              ".grid-cols-2 > select:nth-child(2)"
+            ],
+            "summary": "Fix any of the following:\n  Element does not have an implicit (wrapped) <label>\n  Element does not have an explicit <label>\n  aria-label attribute does not exist or is empty\n  aria-labelledby attribute does not exist, references elements that do not exist or references elements that are empty\n  Element has no title attribute\n  Element's default semantics were not overridden with role=\"none\" or role=\"presentation\""
+          },
+          {
+            "target": [
+              ".grid-cols-\\[1fr_1fr_auto\\] > select:nth-child(1)"
+            ],
+            "summary": "Fix any of the following:\n  Element does not have an implicit (wrapped) <label>\n  Element does not have an explicit <label>\n  aria-label attribute does not exist or is empty\n  aria-labelledby attribute does not exist, references elements that do not exist or references elements that are empty\n  Element has no title attribute\n  Element's default semantics were not overridden with role=\"none\" or role=\"presentation\""
+          },
+          {
+            "target": [
+              ".grid-cols-\\[1fr_1fr_auto\\] > select:nth-child(2)"
+            ],
+            "summary": "Fix any of the following:\n  Element does not have an implicit (wrapped) <label>\n  Element does not have an explicit <label>\n  aria-label attribute does not exist or is empty\n  aria-labelledby attribute does not exist, references elements that do not exist or references elements that are empty\n  Element has no title attribute\n  Element's default semantics were not overridden with role=\"none\" or role=\"presentation\""
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "partner-signup-768",
+    "metrics": {
+      "width": 768,
+      "scrollWidth": 768,
+      "height": 1945,
+      "fields": [
+        {
+          "tag": "INPUT",
+          "type": "text",
+          "name": "로그인 아이디",
+          "w": 500.09375,
+          "h": 52
+        },
+        {
+          "tag": "INPUT",
+          "type": "password",
+          "name": "비밀번호",
+          "w": 592,
+          "h": 52
+        },
+        {
+          "tag": "INPUT",
+          "type": "password",
+          "name": "비밀번호 확인",
+          "w": 592,
+          "h": 52
+        },
+        {
+          "tag": "INPUT",
+          "type": "text",
+          "name": "업체명",
+          "w": 592,
+          "h": 52
+        },
+        {
+          "tag": "INPUT",
+          "type": "tel",
+          "name": "전화번호",
+          "w": 592,
+          "h": 52
+        },
+        {
+          "tag": "SELECT",
+          "type": "select-one",
+          "name": "",
+          "w": 292,
+          "h": 52
+        },
+        {
+          "tag": "SELECT",
+          "type": "select-one",
+          "name": "",
+          "w": 292,
+          "h": 52
+        },
+        {
+          "tag": "INPUT",
+          "type": "text",
+          "name": "상세 주소",
+          "w": 592,
+          "h": 52
+        },
+        {
+          "tag": "SELECT",
+          "type": "select-one",
+          "name": "",
+          "w": 259.875,
+          "h": 52
+        },
+        {
+          "tag": "SELECT",
+          "type": "select-one",
+          "name": "",
+          "w": 259.890625,
+          "h": 52
+        },
+        {
+          "tag": "INPUT",
+          "type": "text",
+          "name": "사업자등록번호",
+          "w": 592,
+          "h": 52
+        },
+        {
+          "tag": "INPUT",
+          "type": "file",
+          "name": "사업자등록증 첨부",
+          "w": 0,
+          "h": 0
+        },
+        {
+          "tag": "INPUT",
+          "type": "file",
+          "name": "전기공사업 등록증 첨부",
+          "w": 0,
+          "h": 0
+        },
+        {
+          "tag": "INPUT",
+          "type": "tel",
+          "name": "추천인 전화번호",
+          "w": 527.765625,
+          "h": 52
+        },
+        {
+          "tag": "INPUT",
+          "type": "checkbox",
+          "name": "이용약관과 개인정보처리방침을 확인했으며, 가입 심사를 위한 개인정보(사업자등록증, 전기공사업 등록증, 연락처) 수집·이용에 동의합니다. 수집된 증빙은 심사 목적 외에 사용되지 않습니다.",
+          "w": 13,
+          "h": 16
+        }
+      ],
+      "overflow": []
+    },
+    "axe": [
+      {
+        "id": "color-contrast",
+        "impact": "serious",
+        "description": "Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds",
+        "nodes": [
+          {
+            "target": [
+              ".space-y-2 > .text-neutral-400"
+            ],
+            "summary": "Fix any of the following:\n  Element has insufficient color contrast of 2.83 (foreground color: #959aa0, background color: #ffffff, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1"
+          },
+          {
+            "target": [
+              "b"
+            ],
+            "summary": "Fix any of the following:\n  Element has insufficient color contrast of 2.83 (foreground color: #959aa0, background color: #ffffff, font size: 9.0pt (12px), font weight: bold). Expected contrast ratio of 4.5:1"
+          }
+        ]
+      },
+      {
+        "id": "select-name",
+        "impact": "critical",
+        "description": "Ensure select element has an accessible name",
+        "nodes": [
+          {
+            "target": [
+              ".grid-cols-2 > select:nth-child(1)"
+            ],
+            "summary": "Fix any of the following:\n  Element does not have an implicit (wrapped) <label>\n  Element does not have an explicit <label>\n  aria-label attribute does not exist or is empty\n  aria-labelledby attribute does not exist, references elements that do not exist or references elements that are empty\n  Element has no title attribute\n  Element's default semantics were not overridden with role=\"none\" or role=\"presentation\""
+          },
+          {
+            "target": [
+              ".grid-cols-2 > select:nth-child(2)"
+            ],
+            "summary": "Fix any of the following:\n  Element does not have an implicit (wrapped) <label>\n  Element does not have an explicit <label>\n  aria-label attribute does not exist or is empty\n  aria-labelledby attribute does not exist, references elements that do not exist or references elements that are empty\n  Element has no title attribute\n  Element's default semantics were not overridden with role=\"none\" or role=\"presentation\""
+          },
+          {
+            "target": [
+              ".grid-cols-\\[1fr_1fr_auto\\] > select:nth-child(1)"
+            ],
+            "summary": "Fix any of the following:\n  Element does not have an implicit (wrapped) <label>\n  Element does not have an explicit <label>\n  aria-label attribute does not exist or is empty\n  aria-labelledby attribute does not exist, references elements that do not exist or references elements that are empty\n  Element has no title attribute\n  Element's default semantics were not overridden with role=\"none\" or role=\"presentation\""
+          },
+          {
+            "target": [
+              ".grid-cols-\\[1fr_1fr_auto\\] > select:nth-child(2)"
+            ],
+            "summary": "Fix any of the following:\n  Element does not have an implicit (wrapped) <label>\n  Element does not have an explicit <label>\n  aria-label attribute does not exist or is empty\n  aria-labelledby attribute does not exist, references elements that do not exist or references elements that are empty\n  Element has no title attribute\n  Element's default semantics were not overridden with role=\"none\" or role=\"presentation\""
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "partner-signup-1440",
+    "metrics": {
+      "width": 1440,
+      "scrollWidth": 1440,
+      "height": 1945,
+      "fields": [
+        {
+          "tag": "INPUT",
+          "type": "text",
+          "name": "로그인 아이디",
+          "w": 500.09375,
+          "h": 52
+        },
+        {
+          "tag": "INPUT",
+          "type": "password",
+          "name": "비밀번호",
+          "w": 592,
+          "h": 52
+        },
+        {
+          "tag": "INPUT",
+          "type": "password",
+          "name": "비밀번호 확인",
+          "w": 592,
+          "h": 52
+        },
+        {
+          "tag": "INPUT",
+          "type": "text",
+          "name": "업체명",
+          "w": 592,
+          "h": 52
+        },
+        {
+          "tag": "INPUT",
+          "type": "tel",
+          "name": "전화번호",
+          "w": 592,
+          "h": 52
+        },
+        {
+          "tag": "SELECT",
+          "type": "select-one",
+          "name": "",
+          "w": 292,
+          "h": 52
+        },
+        {
+          "tag": "SELECT",
+          "type": "select-one",
+          "name": "",
+          "w": 292,
+          "h": 52
+        },
+        {
+          "tag": "INPUT",
+          "type": "text",
+          "name": "상세 주소",
+          "w": 592,
+          "h": 52
+        },
+        {
+          "tag": "SELECT",
+          "type": "select-one",
+          "name": "",
+          "w": 259.875,
+          "h": 52
+        },
+        {
+          "tag": "SELECT",
+          "type": "select-one",
+          "name": "",
+          "w": 259.890625,
+          "h": 52
+        },
+        {
+          "tag": "INPUT",
+          "type": "text",
+          "name": "사업자등록번호",
+          "w": 592,
+          "h": 52
+        },
+        {
+          "tag": "INPUT",
+          "type": "file",
+          "name": "사업자등록증 첨부",
+          "w": 0,
+          "h": 0
+        },
+        {
+          "tag": "INPUT",
+          "type": "file",
+          "name": "전기공사업 등록증 첨부",
+          "w": 0,
+          "h": 0
+        },
+        {
+          "tag": "INPUT",
+          "type": "tel",
+          "name": "추천인 전화번호",
+          "w": 527.765625,
+          "h": 52
+        },
+        {
+          "tag": "INPUT",
+          "type": "checkbox",
+          "name": "이용약관과 개인정보처리방침을 확인했으며, 가입 심사를 위한 개인정보(사업자등록증, 전기공사업 등록증, 연락처) 수집·이용에 동의합니다. 수집된 증빙은 심사 목적 외에 사용되지 않습니다.",
+          "w": 13,
+          "h": 16
+        }
+      ],
+      "overflow": []
+    },
+    "axe": [
+      {
+        "id": "color-contrast",
+        "impact": "serious",
+        "description": "Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds",
+        "nodes": [
+          {
+            "target": [
+              ".space-y-2 > .text-neutral-400"
+            ],
+            "summary": "Fix any of the following:\n  Element has insufficient color contrast of 2.83 (foreground color: #959aa0, background color: #ffffff, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1"
+          },
+          {
+            "target": [
+              "b"
+            ],
+            "summary": "Fix any of the following:\n  Element has insufficient color contrast of 2.83 (foreground color: #959aa0, background color: #ffffff, font size: 9.0pt (12px), font weight: bold). Expected contrast ratio of 4.5:1"
+          }
+        ]
+      },
+      {
+        "id": "select-name",
+        "impact": "critical",
+        "description": "Ensure select element has an accessible name",
+        "nodes": [
+          {
+            "target": [
+              ".grid-cols-2 > select:nth-child(1)"
+            ],
+            "summary": "Fix any of the following:\n  Element does not have an implicit (wrapped) <label>\n  Element does not have an explicit <label>\n  aria-label attribute does not exist or is empty\n  aria-labelledby attribute does not exist, references elements that do not exist or references elements that are empty\n  Element has no title attribute\n  Element's default semantics were not overridden with role=\"none\" or role=\"presentation\""
+          },
+          {
+            "target": [
+              ".grid-cols-2 > select:nth-child(2)"
+            ],
+            "summary": "Fix any of the following:\n  Element does not have an implicit (wrapped) <label>\n  Element does not have an explicit <label>\n  aria-label attribute does not exist or is empty\n  aria-labelledby attribute does not exist, references elements that do not exist or references elements that are empty\n  Element has no title attribute\n  Element's default semantics were not overridden with role=\"none\" or role=\"presentation\""
+          },
+          {
+            "target": [
+              ".grid-cols-\\[1fr_1fr_auto\\] > select:nth-child(1)"
+            ],
+            "summary": "Fix any of the following:\n  Element does not have an implicit (wrapped) <label>\n  Element does not have an explicit <label>\n  aria-label attribute does not exist or is empty\n  aria-labelledby attribute does not exist, references elements that do not exist or references elements that are empty\n  Element has no title attribute\n  Element's default semantics were not overridden with role=\"none\" or role=\"presentation\""
+          },
+          {
+            "target": [
+              ".grid-cols-\\[1fr_1fr_auto\\] > select:nth-child(2)"
+            ],
+            "summary": "Fix any of the following:\n  Element does not have an implicit (wrapped) <label>\n  Element does not have an explicit <label>\n  aria-label attribute does not exist or is empty\n  aria-labelledby attribute does not exist, references elements that do not exist or references elements that are empty\n  Element has no title attribute\n  Element's default semantics were not overridden with role=\"none\" or role=\"presentation\""
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "tech-login-320",
+    "metrics": {
+      "width": 320,
+      "scrollWidth": 320,
+      "height": 1280,
+      "fields": [
+        {
+          "tag": "INPUT",
+          "type": "text",
+          "name": "아이디",
+          "w": 272,
+          "h": 52
+        },
+        {
+          "tag": "INPUT",
+          "type": "password",
+          "name": "비밀번호",
+          "w": 272,
+          "h": 52
+        }
+      ],
+      "overflow": []
+    },
+    "axe": []
+  },
+  {
+    "name": "tech-login-390",
+    "metrics": {
+      "width": 390,
+      "scrollWidth": 390,
+      "height": 1232,
+      "fields": [
+        {
+          "tag": "INPUT",
+          "type": "text",
+          "name": "아이디",
+          "w": 342,
+          "h": 52
+        },
+        {
+          "tag": "INPUT",
+          "type": "password",
+          "name": "비밀번호",
+          "w": 342,
+          "h": 52
+        }
+      ],
+      "overflow": []
+    },
+    "axe": []
+  },
+  {
+    "name": "tech-login-768",
+    "metrics": {
+      "width": 768,
+      "scrollWidth": 768,
+      "height": 1194,
+      "fields": [
+        {
+          "tag": "INPUT",
+          "type": "text",
+          "name": "아이디",
+          "w": 368,
+          "h": 52
+        },
+        {
+          "tag": "INPUT",
+          "type": "password",
+          "name": "비밀번호",
+          "w": 368,
+          "h": 52
+        }
+      ],
+      "overflow": []
+    },
+    "axe": []
+  },
+  {
+    "name": "tech-login-1440",
+    "metrics": {
+      "width": 1440,
+      "scrollWidth": 1440,
+      "height": 1194,
+      "fields": [
+        {
+          "tag": "INPUT",
+          "type": "text",
+          "name": "아이디",
+          "w": 368,
+          "h": 52
+        },
+        {
+          "tag": "INPUT",
+          "type": "password",
+          "name": "비밀번호",
+          "w": 368,
+          "h": 52
+        }
+      ],
+      "overflow": []
+    },
+    "axe": []
+  },
+  {
+    "name": "tech-signup-320",
+    "metrics": {
+      "width": 320,
+      "scrollWidth": 320,
+      "height": 1747,
+      "fields": [
+        {
+          "tag": "INPUT",
+          "type": "text",
+          "name": "로그인 아이디",
+          "w": 196.09375,
+          "h": 52
+        },
+        {
+          "tag": "INPUT",
+          "type": "password",
+          "name": "비밀번호",
+          "w": 288,
+          "h": 52
+        },
+        {
+          "tag": "INPUT",
+          "type": "password",
+          "name": "비밀번호 확인",
+          "w": 288,
+          "h": 52
+        },
+        {
+          "tag": "INPUT",
+          "type": "text",
+          "name": "성명",
+          "w": 288,
+          "h": 52
+        },
+        {
+          "tag": "INPUT",
+          "type": "tel",
+          "name": "전화번호",
+          "w": 199.546875,
+          "h": 52
+        },
+        {
+          "tag": "SELECT",
+          "type": "select-one",
+          "name": "",
+          "w": 140,
+          "h": 52
+        },
+        {
+          "tag": "SELECT",
+          "type": "select-one",
+          "name": "",
+          "w": 140,
+          "h": 52
+        },
+        {
+          "tag": "INPUT",
+          "type": "text",
+          "name": "상세 주소",
+          "w": 288,
+          "h": 52
+        },
+        {
+          "tag": "SELECT",
+          "type": "select-one",
+          "name": "",
+          "w": 107.875,
+          "h": 52
+        },
+        {
+          "tag": "SELECT",
+          "type": "select-one",
+          "name": "",
+          "w": 107.890625,
+          "h": 52
+        },
+        {
+          "tag": "INPUT",
+          "type": "tel",
+          "name": "추천인 전화번호",
+          "w": 223.765625,
+          "h": 52
+        },
+        {
+          "tag": "INPUT",
+          "type": "checkbox",
+          "name": "이용약관과 개인정보처리방침을 확인했으며, 가입 심사 및 근로확인을 위한 개인정보(성명, 연락처, 주소, 본인인증 결과) 수집·이용에 동의합니다.",
+          "w": 13,
+          "h": 16
+        }
+      ],
+      "overflow": []
+    },
+    "axe": [
+      {
+        "id": "color-contrast",
+        "impact": "serious",
+        "description": "Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds",
+        "nodes": [
+          {
+            "target": [
+              "section:nth-child(3) > .text-neutral-400.text-xs"
+            ],
+            "summary": "Fix any of the following:\n  Element has insufficient color contrast of 2.83 (foreground color: #959aa0, background color: #ffffff, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1"
+          },
+          {
+            "target": [
+              "section:nth-child(3) > .text-neutral-400.text-xs > b"
+            ],
+            "summary": "Fix any of the following:\n  Element has insufficient color contrast of 2.83 (foreground color: #959aa0, background color: #ffffff, font size: 9.0pt (12px), font weight: bold). Expected contrast ratio of 4.5:1"
+          },
+          {
+            "target": [
+              "section:nth-child(4) > .space-y-2 > .text-neutral-400.text-xs"
+            ],
+            "summary": "Fix any of the following:\n  Element has insufficient color contrast of 2.83 (foreground color: #959aa0, background color: #ffffff, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1"
+          },
+          {
+            "target": [
+              "section:nth-child(4) > .space-y-2 > .text-neutral-400.text-xs > b"
+            ],
+            "summary": "Fix any of the following:\n  Element has insufficient color contrast of 2.83 (foreground color: #959aa0, background color: #ffffff, font size: 9.0pt (12px), font weight: bold). Expected contrast ratio of 4.5:1"
+          }
+        ]
+      },
+      {
+        "id": "select-name",
+        "impact": "critical",
+        "description": "Ensure select element has an accessible name",
+        "nodes": [
+          {
+            "target": [
+              ".grid-cols-2.grid.gap-2 > select:nth-child(1)"
+            ],
+            "summary": "Fix any of the following:\n  Element does not have an implicit (wrapped) <label>\n  Element does not have an explicit <label>\n  aria-label attribute does not exist or is empty\n  aria-labelledby attribute does not exist, references elements that do not exist or references elements that are empty\n  Element has no title attribute\n  Element's default semantics were not overridden with role=\"none\" or role=\"presentation\""
+          },
+          {
+            "target": [
+              ".grid-cols-2.grid.gap-2 > select:nth-child(2)"
+            ],
+            "summary": "Fix any of the following:\n  Element does not have an implicit (wrapped) <label>\n  Element does not have an explicit <label>\n  aria-label attribute does not exist or is empty\n  aria-labelledby attribute does not exist, references elements that do not exist or references elements that are empty\n  Element has no title attribute\n  Element's default semantics were not overridden with role=\"none\" or role=\"presentation\""
+          },
+          {
+            "target": [
+              ".grid-cols-\\[1fr_1fr_auto\\] > select:nth-child(1)"
+            ],
+            "summary": "Fix any of the following:\n  Element does not have an implicit (wrapped) <label>\n  Element does not have an explicit <label>\n  aria-label attribute does not exist or is empty\n  aria-labelledby attribute does not exist, references elements that do not exist or references elements that are empty\n  Element has no title attribute\n  Element's default semantics were not overridden with role=\"none\" or role=\"presentation\""
+          },
+          {
+            "target": [
+              ".grid-cols-\\[1fr_1fr_auto\\] > select:nth-child(2)"
+            ],
+            "summary": "Fix any of the following:\n  Element does not have an implicit (wrapped) <label>\n  Element does not have an explicit <label>\n  aria-label attribute does not exist or is empty\n  aria-labelledby attribute does not exist, references elements that do not exist or references elements that are empty\n  Element has no title attribute\n  Element's default semantics were not overridden with role=\"none\" or role=\"presentation\""
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "tech-signup-390",
+    "metrics": {
+      "width": 390,
+      "scrollWidth": 390,
+      "height": 1641,
+      "fields": [
+        {
+          "tag": "INPUT",
+          "type": "text",
+          "name": "로그인 아이디",
+          "w": 266.09375,
+          "h": 52
+        },
+        {
+          "tag": "INPUT",
+          "type": "password",
+          "name": "비밀번호",
+          "w": 358,
+          "h": 52
+        },
+        {
+          "tag": "INPUT",
+          "type": "password",
+          "name": "비밀번호 확인",
+          "w": 358,
+          "h": 52
+        },
+        {
+          "tag": "INPUT",
+          "type": "text",
+          "name": "성명",
+          "w": 358,
+          "h": 52
+        },
+        {
+          "tag": "INPUT",
+          "type": "tel",
+          "name": "전화번호",
+          "w": 269.546875,
+          "h": 52
+        },
+        {
+          "tag": "SELECT",
+          "type": "select-one",
+          "name": "",
+          "w": 175,
+          "h": 52
+        },
+        {
+          "tag": "SELECT",
+          "type": "select-one",
+          "name": "",
+          "w": 175,
+          "h": 52
+        },
+        {
+          "tag": "INPUT",
+          "type": "text",
+          "name": "상세 주소",
+          "w": 358,
+          "h": 52
+        },
+        {
+          "tag": "SELECT",
+          "type": "select-one",
+          "name": "",
+          "w": 142.875,
+          "h": 52
+        },
+        {
+          "tag": "SELECT",
+          "type": "select-one",
+          "name": "",
+          "w": 142.890625,
+          "h": 52
+        },
+        {
+          "tag": "INPUT",
+          "type": "tel",
+          "name": "추천인 전화번호",
+          "w": 293.765625,
+          "h": 52
+        },
+        {
+          "tag": "INPUT",
+          "type": "checkbox",
+          "name": "이용약관과 개인정보처리방침을 확인했으며, 가입 심사 및 근로확인을 위한 개인정보(성명, 연락처, 주소, 본인인증 결과) 수집·이용에 동의합니다.",
+          "w": 13,
+          "h": 16
+        }
+      ],
+      "overflow": []
+    },
+    "axe": [
+      {
+        "id": "color-contrast",
+        "impact": "serious",
+        "description": "Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds",
+        "nodes": [
+          {
+            "target": [
+              "section:nth-child(3) > .text-neutral-400.text-xs"
+            ],
+            "summary": "Fix any of the following:\n  Element has insufficient color contrast of 2.83 (foreground color: #959aa0, background color: #ffffff, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1"
+          },
+          {
+            "target": [
+              "section:nth-child(3) > .text-neutral-400.text-xs > b"
+            ],
+            "summary": "Fix any of the following:\n  Element has insufficient color contrast of 2.83 (foreground color: #959aa0, background color: #ffffff, font size: 9.0pt (12px), font weight: bold). Expected contrast ratio of 4.5:1"
+          },
+          {
+            "target": [
+              "section:nth-child(4) > .space-y-2 > .text-neutral-400.text-xs"
+            ],
+            "summary": "Fix any of the following:\n  Element has insufficient color contrast of 2.83 (foreground color: #959aa0, background color: #ffffff, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1"
+          },
+          {
+            "target": [
+              "section:nth-child(4) > .space-y-2 > .text-neutral-400.text-xs > b"
+            ],
+            "summary": "Fix any of the following:\n  Element has insufficient color contrast of 2.83 (foreground color: #959aa0, background color: #ffffff, font size: 9.0pt (12px), font weight: bold). Expected contrast ratio of 4.5:1"
+          }
+        ]
+      },
+      {
+        "id": "select-name",
+        "impact": "critical",
+        "description": "Ensure select element has an accessible name",
+        "nodes": [
+          {
+            "target": [
+              ".grid-cols-2.grid.gap-2 > select:nth-child(1)"
+            ],
+            "summary": "Fix any of the following:\n  Element does not have an implicit (wrapped) <label>\n  Element does not have an explicit <label>\n  aria-label attribute does not exist or is empty\n  aria-labelledby attribute does not exist, references elements that do not exist or references elements that are empty\n  Element has no title attribute\n  Element's default semantics were not overridden with role=\"none\" or role=\"presentation\""
+          },
+          {
+            "target": [
+              ".grid-cols-2.grid.gap-2 > select:nth-child(2)"
+            ],
+            "summary": "Fix any of the following:\n  Element does not have an implicit (wrapped) <label>\n  Element does not have an explicit <label>\n  aria-label attribute does not exist or is empty\n  aria-labelledby attribute does not exist, references elements that do not exist or references elements that are empty\n  Element has no title attribute\n  Element's default semantics were not overridden with role=\"none\" or role=\"presentation\""
+          },
+          {
+            "target": [
+              ".grid-cols-\\[1fr_1fr_auto\\] > select:nth-child(1)"
+            ],
+            "summary": "Fix any of the following:\n  Element does not have an implicit (wrapped) <label>\n  Element does not have an explicit <label>\n  aria-label attribute does not exist or is empty\n  aria-labelledby attribute does not exist, references elements that do not exist or references elements that are empty\n  Element has no title attribute\n  Element's default semantics were not overridden with role=\"none\" or role=\"presentation\""
+          },
+          {
+            "target": [
+              ".grid-cols-\\[1fr_1fr_auto\\] > select:nth-child(2)"
+            ],
+            "summary": "Fix any of the following:\n  Element does not have an implicit (wrapped) <label>\n  Element does not have an explicit <label>\n  aria-label attribute does not exist or is empty\n  aria-labelledby attribute does not exist, references elements that do not exist or references elements that are empty\n  Element has no title attribute\n  Element's default semantics were not overridden with role=\"none\" or role=\"presentation\""
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "tech-signup-768",
+    "metrics": {
+      "width": 768,
+      "scrollWidth": 768,
+      "height": 1829,
+      "fields": [
+        {
+          "tag": "INPUT",
+          "type": "text",
+          "name": "로그인 아이디",
+          "w": 500.09375,
+          "h": 52
+        },
+        {
+          "tag": "INPUT",
+          "type": "password",
+          "name": "비밀번호",
+          "w": 592,
+          "h": 52
+        },
+        {
+          "tag": "INPUT",
+          "type": "password",
+          "name": "비밀번호 확인",
+          "w": 592,
+          "h": 52
+        },
+        {
+          "tag": "INPUT",
+          "type": "text",
+          "name": "성명",
+          "w": 592,
+          "h": 52
+        },
+        {
+          "tag": "INPUT",
+          "type": "tel",
+          "name": "전화번호",
+          "w": 503.546875,
+          "h": 52
+        },
+        {
+          "tag": "SELECT",
+          "type": "select-one",
+          "name": "",
+          "w": 292,
+          "h": 52
+        },
+        {
+          "tag": "SELECT",
+          "type": "select-one",
+          "name": "",
+          "w": 292,
+          "h": 52
+        },
+        {
+          "tag": "INPUT",
+          "type": "text",
+          "name": "상세 주소",
+          "w": 592,
+          "h": 52
+        },
+        {
+          "tag": "SELECT",
+          "type": "select-one",
+          "name": "",
+          "w": 259.875,
+          "h": 52
+        },
+        {
+          "tag": "SELECT",
+          "type": "select-one",
+          "name": "",
+          "w": 259.890625,
+          "h": 52
+        },
+        {
+          "tag": "INPUT",
+          "type": "tel",
+          "name": "추천인 전화번호",
+          "w": 527.765625,
+          "h": 52
+        },
+        {
+          "tag": "INPUT",
+          "type": "checkbox",
+          "name": "이용약관과 개인정보처리방침을 확인했으며, 가입 심사 및 근로확인을 위한 개인정보(성명, 연락처, 주소, 본인인증 결과) 수집·이용에 동의합니다.",
+          "w": 13,
+          "h": 16
+        }
+      ],
+      "overflow": []
+    },
+    "axe": [
+      {
+        "id": "color-contrast",
+        "impact": "serious",
+        "description": "Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds",
+        "nodes": [
+          {
+            "target": [
+              "section:nth-child(3) > .text-neutral-400.text-xs"
+            ],
+            "summary": "Fix any of the following:\n  Element has insufficient color contrast of 2.83 (foreground color: #959aa0, background color: #ffffff, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1"
+          },
+          {
+            "target": [
+              "section:nth-child(3) > .text-neutral-400.text-xs > b"
+            ],
+            "summary": "Fix any of the following:\n  Element has insufficient color contrast of 2.83 (foreground color: #959aa0, background color: #ffffff, font size: 9.0pt (12px), font weight: bold). Expected contrast ratio of 4.5:1"
+          },
+          {
+            "target": [
+              "section:nth-child(4) > .space-y-2 > .text-neutral-400.text-xs"
+            ],
+            "summary": "Fix any of the following:\n  Element has insufficient color contrast of 2.83 (foreground color: #959aa0, background color: #ffffff, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1"
+          },
+          {
+            "target": [
+              "section:nth-child(4) > .space-y-2 > .text-neutral-400.text-xs > b"
+            ],
+            "summary": "Fix any of the following:\n  Element has insufficient color contrast of 2.83 (foreground color: #959aa0, background color: #ffffff, font size: 9.0pt (12px), font weight: bold). Expected contrast ratio of 4.5:1"
+          }
+        ]
+      },
+      {
+        "id": "select-name",
+        "impact": "critical",
+        "description": "Ensure select element has an accessible name",
+        "nodes": [
+          {
+            "target": [
+              ".grid-cols-2.grid.gap-2 > select:nth-child(1)"
+            ],
+            "summary": "Fix any of the following:\n  Element does not have an implicit (wrapped) <label>\n  Element does not have an explicit <label>\n  aria-label attribute does not exist or is empty\n  aria-labelledby attribute does not exist, references elements that do not exist or references elements that are empty\n  Element has no title attribute\n  Element's default semantics were not overridden with role=\"none\" or role=\"presentation\""
+          },
+          {
+            "target": [
+              ".grid-cols-2.grid.gap-2 > select:nth-child(2)"
+            ],
+            "summary": "Fix any of the following:\n  Element does not have an implicit (wrapped) <label>\n  Element does not have an explicit <label>\n  aria-label attribute does not exist or is empty\n  aria-labelledby attribute does not exist, references elements that do not exist or references elements that are empty\n  Element has no title attribute\n  Element's default semantics were not overridden with role=\"none\" or role=\"presentation\""
+          },
+          {
+            "target": [
+              ".grid-cols-\\[1fr_1fr_auto\\] > select:nth-child(1)"
+            ],
+            "summary": "Fix any of the following:\n  Element does not have an implicit (wrapped) <label>\n  Element does not have an explicit <label>\n  aria-label attribute does not exist or is empty\n  aria-labelledby attribute does not exist, references elements that do not exist or references elements that are empty\n  Element has no title attribute\n  Element's default semantics were not overridden with role=\"none\" or role=\"presentation\""
+          },
+          {
+            "target": [
+              ".grid-cols-\\[1fr_1fr_auto\\] > select:nth-child(2)"
+            ],
+            "summary": "Fix any of the following:\n  Element does not have an implicit (wrapped) <label>\n  Element does not have an explicit <label>\n  aria-label attribute does not exist or is empty\n  aria-labelledby attribute does not exist, references elements that do not exist or references elements that are empty\n  Element has no title attribute\n  Element's default semantics were not overridden with role=\"none\" or role=\"presentation\""
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "tech-signup-1440",
+    "metrics": {
+      "width": 1440,
+      "scrollWidth": 1440,
+      "height": 1829,
+      "fields": [
+        {
+          "tag": "INPUT",
+          "type": "text",
+          "name": "로그인 아이디",
+          "w": 500.09375,
+          "h": 52
+        },
+        {
+          "tag": "INPUT",
+          "type": "password",
+          "name": "비밀번호",
+          "w": 592,
+          "h": 52
+        },
+        {
+          "tag": "INPUT",
+          "type": "password",
+          "name": "비밀번호 확인",
+          "w": 592,
+          "h": 52
+        },
+        {
+          "tag": "INPUT",
+          "type": "text",
+          "name": "성명",
+          "w": 592,
+          "h": 52
+        },
+        {
+          "tag": "INPUT",
+          "type": "tel",
+          "name": "전화번호",
+          "w": 503.546875,
+          "h": 52
+        },
+        {
+          "tag": "SELECT",
+          "type": "select-one",
+          "name": "",
+          "w": 292,
+          "h": 52
+        },
+        {
+          "tag": "SELECT",
+          "type": "select-one",
+          "name": "",
+          "w": 292,
+          "h": 52
+        },
+        {
+          "tag": "INPUT",
+          "type": "text",
+          "name": "상세 주소",
+          "w": 592,
+          "h": 52
+        },
+        {
+          "tag": "SELECT",
+          "type": "select-one",
+          "name": "",
+          "w": 259.875,
+          "h": 52
+        },
+        {
+          "tag": "SELECT",
+          "type": "select-one",
+          "name": "",
+          "w": 259.890625,
+          "h": 52
+        },
+        {
+          "tag": "INPUT",
+          "type": "tel",
+          "name": "추천인 전화번호",
+          "w": 527.765625,
+          "h": 52
+        },
+        {
+          "tag": "INPUT",
+          "type": "checkbox",
+          "name": "이용약관과 개인정보처리방침을 확인했으며, 가입 심사 및 근로확인을 위한 개인정보(성명, 연락처, 주소, 본인인증 결과) 수집·이용에 동의합니다.",
+          "w": 13,
+          "h": 16
+        }
+      ],
+      "overflow": []
+    },
+    "axe": [
+      {
+        "id": "color-contrast",
+        "impact": "serious",
+        "description": "Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds",
+        "nodes": [
+          {
+            "target": [
+              "section:nth-child(3) > .text-neutral-400.text-xs"
+            ],
+            "summary": "Fix any of the following:\n  Element has insufficient color contrast of 2.83 (foreground color: #959aa0, background color: #ffffff, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1"
+          },
+          {
+            "target": [
+              "section:nth-child(3) > .text-neutral-400.text-xs > b"
+            ],
+            "summary": "Fix any of the following:\n  Element has insufficient color contrast of 2.83 (foreground color: #959aa0, background color: #ffffff, font size: 9.0pt (12px), font weight: bold). Expected contrast ratio of 4.5:1"
+          },
+          {
+            "target": [
+              "section:nth-child(4) > .space-y-2 > .text-neutral-400.text-xs"
+            ],
+            "summary": "Fix any of the following:\n  Element has insufficient color contrast of 2.83 (foreground color: #959aa0, background color: #ffffff, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1"
+          },
+          {
+            "target": [
+              "section:nth-child(4) > .space-y-2 > .text-neutral-400.text-xs > b"
+            ],
+            "summary": "Fix any of the following:\n  Element has insufficient color contrast of 2.83 (foreground color: #959aa0, background color: #ffffff, font size: 9.0pt (12px), font weight: bold). Expected contrast ratio of 4.5:1"
+          }
+        ]
+      },
+      {
+        "id": "select-name",
+        "impact": "critical",
+        "description": "Ensure select element has an accessible name",
+        "nodes": [
+          {
+            "target": [
+              ".grid-cols-2.grid.gap-2 > select:nth-child(1)"
+            ],
+            "summary": "Fix any of the following:\n  Element does not have an implicit (wrapped) <label>\n  Element does not have an explicit <label>\n  aria-label attribute does not exist or is empty\n  aria-labelledby attribute does not exist, references elements that do not exist or references elements that are empty\n  Element has no title attribute\n  Element's default semantics were not overridden with role=\"none\" or role=\"presentation\""
+          },
+          {
+            "target": [
+              ".grid-cols-2.grid.gap-2 > select:nth-child(2)"
+            ],
+            "summary": "Fix any of the following:\n  Element does not have an implicit (wrapped) <label>\n  Element does not have an explicit <label>\n  aria-label attribute does not exist or is empty\n  aria-labelledby attribute does not exist, references elements that do not exist or references elements that are empty\n  Element has no title attribute\n  Element's default semantics were not overridden with role=\"none\" or role=\"presentation\""
+          },
+          {
+            "target": [
+              ".grid-cols-\\[1fr_1fr_auto\\] > select:nth-child(1)"
+            ],
+            "summary": "Fix any of the following:\n  Element does not have an implicit (wrapped) <label>\n  Element does not have an explicit <label>\n  aria-label attribute does not exist or is empty\n  aria-labelledby attribute does not exist, references elements that do not exist or references elements that are empty\n  Element has no title attribute\n  Element's default semantics were not overridden with role=\"none\" or role=\"presentation\""
+          },
+          {
+            "target": [
+              ".grid-cols-\\[1fr_1fr_auto\\] > select:nth-child(2)"
+            ],
+            "summary": "Fix any of the following:\n  Element does not have an implicit (wrapped) <label>\n  Element does not have an explicit <label>\n  aria-label attribute does not exist or is empty\n  aria-labelledby attribute does not exist, references elements that do not exist or references elements that are empty\n  Element has no title attribute\n  Element's default semantics were not overridden with role=\"none\" or role=\"presentation\""
+          }
+        ]
+      }
+    ]
+  }
+]

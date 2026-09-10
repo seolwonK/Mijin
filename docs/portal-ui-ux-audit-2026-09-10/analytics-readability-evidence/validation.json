@@ -1,0 +1,42 @@
+{
+  "results": [
+    {
+      "route": "dashboard",
+      "width": 390,
+      "overflow": 0,
+      "violations": []
+    },
+    {
+      "route": "dashboard",
+      "width": 768,
+      "overflow": 0,
+      "violations": []
+    },
+    {
+      "route": "dashboard",
+      "width": 1440,
+      "overflow": 0,
+      "violations": []
+    },
+    {
+      "route": "map",
+      "width": 390,
+      "overflow": 0,
+      "violations": []
+    },
+    {
+      "route": "map",
+      "width": 768,
+      "overflow": 0,
+      "violations": []
+    },
+    {
+      "route": "map",
+      "width": 1440,
+      "overflow": 0,
+      "violations": []
+    }
+  ],
+  "errors": [],
+  "writes": []
+}

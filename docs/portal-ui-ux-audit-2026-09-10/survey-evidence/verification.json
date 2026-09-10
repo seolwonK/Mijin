@@ -1,0 +1,48 @@
+{
+  "adminLogin": true,
+  "states": [
+    {
+      "label": "전체",
+      "status": "ALL",
+      "total": 63
+    },
+    {
+      "label": "응답 완료",
+      "status": "SUBMITTED",
+      "total": 56
+    },
+    {
+      "label": "미응답",
+      "status": "PENDING",
+      "total": 7
+    }
+  ],
+  "layouts": [
+    {
+      "width": 320,
+      "overflow": false,
+      "violations": []
+    },
+    {
+      "width": 390,
+      "overflow": false,
+      "violations": []
+    },
+    {
+      "width": 768,
+      "overflow": false,
+      "violations": []
+    },
+    {
+      "width": 1023,
+      "overflow": false,
+      "violations": []
+    },
+    {
+      "width": 1440,
+      "overflow": false,
+      "violations": []
+    }
+  ],
+  "errors": []
+}

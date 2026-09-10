@@ -1,192 +1,94 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useRef, useState } from 'react';
+import { Suspense, useEffect, useId, useRef, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { usePolling } from '@/components/usePolling';
 import LogoutButton from '@/components/LogoutButton';
 import BrandLogo from '@/components/BrandLogo';
-import { ChevronDownIcon } from '@/components/icons';
+import AdminDrawer from '@/components/AdminDrawer';
+import AdminWorkspaceTabs, { clearAdminWorkspace } from '@/components/AdminWorkspaceTabs';
+import { ADMIN_GROUPS, isAdminLinkActive } from './admin-navigation';
+import { ChevronDownIcon, SearchIcon } from '@/components/icons';
+import styles from '@/components/admin-shell.module.css';
 
-// 관리자 셸 — 상단 탭으로 주요 관리 화면을 이동한다.
-// 데스크톱(md+) 전용 — 모바일은 각 admin 페이지가 보유한 인라인 내비를 그대로 쓴다(변경 없음).
-// children을 감싸는 구조라 폴링 훅은 뷰포트와 무관하게 항상 1회만 마운트된다(중복 요청 방지).
-type NavItem = {
-  label: string;
-  href?: string;
-  children?: { href: string; label: string }[];
-};
-
-const NAV: NavItem[] = [
-  { href: '/admin', label: '대시보드' },
-  { href: '/admin/providers', label: '업체 관리' },
-  { href: '/admin/technicians', label: '전기기사 관리' },
-  { href: '/admin/rotation', label: '순환 현황' },
-  { href: '/admin/commissions', label: '정산' },
-  { href: '/admin/settlements', label: '정산 집계' },
-  { label: '분석', children: [{ href: '/admin/analytics/dashboard', label: '현황' }, { href: '/admin/analytics/map', label: '지도' }, { href: '/admin/analytics/surveys', label: '설문' }, { href: '/admin/analytics/ratings', label: '평점' }] },
-  { href: '/admin/settings', label: '설정' },
-];
+function AdminNavigation({ pathname, badges, onNavigate }: { pathname: string; badges: Record<string, number>; onNavigate?: () => void }) {
+  const [collapsed, setCollapsed] = useState<Record<string, string>>(pathname.startsWith('/admin/analytics') ? {} : { analytics: pathname });
+  const [query, setQuery] = useState('');
+  const navId = useId();
+  const normalizedQuery = query.trim().replace(/\s/g, '').toLowerCase();
+  const groups = ADMIN_GROUPS.map(group => ({ ...group, items: group.items.filter(item =>
+    `${group.label}${item.label}${'tabLabel' in item ? item.tabLabel : ''}`.replace(/\s/g, '').toLowerCase().includes(normalizedQuery),
+  ) })).filter(group => group.items.length);
+  function navigate() { setQuery(''); onNavigate?.(); }
+  return <>
+    <div className={styles.brand}><Link href="/admin" onNavigate={navigate}><BrandLogo tone="inverse" size="sm" /></Link><span>업무 시스템</span></div>
+    <div className={styles.menuSearch}><SearchIcon /><input type="search" value={query} onChange={event => setQuery(event.target.value)} aria-label="업무 메뉴 검색" placeholder="메뉴 검색" onKeyDown={event => { if (event.key === 'Escape' && query) { event.preventDefault(); event.stopPropagation(); setQuery(''); } }} /></div>
+    <div className={styles.menuHeading}><span>업무 메뉴</span><span>{groups.reduce((count, group) => count + group.items.length, 0)}</span></div>
+    <nav className={styles.nav} aria-label="관리자 이동">
+      {groups.map(group => {
+        const containsActive = group.items.some(item => isAdminLinkActive(pathname, item.href));
+        const expanded = !!normalizedQuery || !(group.id in collapsed) || (containsActive && collapsed[group.id] !== pathname);
+        const groupId = `${navId}-${group.id}`;
+        return <div key={group.id} className={styles.group} onKeyDown={event => {
+          if (event.key === 'Escape' && expanded && !normalizedQuery) {
+            event.preventDefault(); event.stopPropagation();
+            setCollapsed(previous => ({ ...previous, [group.id]: pathname }));
+            event.currentTarget.querySelector('button')?.focus();
+          }
+        }}>
+          <button type="button" className={styles.groupToggle} aria-expanded={expanded} aria-controls={groupId}
+            disabled={!!normalizedQuery} onClick={() => setCollapsed(previous => {
+              const next = { ...previous };
+              if (expanded) next[group.id] = pathname; else delete next[group.id];
+              return next;
+            })}>
+            <ChevronDownIcon className={expanded ? styles.chevronOpen : styles.chevron} /><span>{group.label}</span>
+          </button>
+          <div id={groupId} className={styles.subnav} hidden={!expanded}>
+            {group.items.map(item => <Link key={item.href} href={item.href} onNavigate={navigate} aria-current={isAdminLinkActive(pathname, item.href) ? 'page' : undefined} className={styles.navLink}>
+              <span>{item.label}</span>{!!badges[item.href] && <span className={styles.count} aria-label={`승인 대기 ${badges[item.href]}건`}>{badges[item.href]}</span>}
+            </Link>)}
+          </div>
+        </div>;
+      })}
+      {!groups.length && <p className={styles.noMenu} role="status">일치하는 메뉴가 없습니다.</p>}
+    </nav>
+    <div className={styles.account}><span className={styles.accountMark} aria-hidden="true">관</span><div><strong>관리자</strong><span>전기아저씨 관제</span></div><LogoutButton loginPath="/admin/login" /></div>
+  </>;
+}
 
 export default function AdminShell({ children }: { children: React.ReactNode }) {
-  const [openNav, setOpenNav] = useState<string | null>(null);
-  const navButtonRefs = useRef<Record<string, HTMLButtonElement | null>>({});
-  const navItemRefs = useRef<Record<string, (HTMLAnchorElement | null)[]>>({});
   const pathname = usePathname();
-  const isLoginPage = pathname === '/admin/login';
-  const { data: provData } = usePolling<{ providers: { approvalStatus: string }[] }>(
-    isLoginPage ? null : '/api/admin/providers',
-    30_000,
-  );
-  const { data: techData } = usePolling<{ technicians: { approvalStatus: string }[] }>(
-    isLoginPage ? null : '/api/admin/technicians',
-    30_000,
-  );
-  const badge: Record<string, number> = {
-    '/admin/providers': (provData?.providers ?? []).filter((p) => p.approvalStatus === 'PENDING')
-      .length,
-    '/admin/technicians': (techData?.technicians ?? []).filter(
-      (t) => t.approvalStatus === 'PENDING',
-    ).length,
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const menuTrigger = useRef<HTMLButtonElement>(null);
+  const isLogin = pathname === '/admin/login';
+  const isPrint = pathname.endsWith('/contract/print');
+  const { data: providers } = usePolling<{ providers: { approvalStatus: string }[] }>(isLogin || isPrint ? null : '/api/admin/providers', 30_000);
+  const { data: technicians } = usePolling<{ technicians: { approvalStatus: string }[] }>(isLogin || isPrint ? null : '/api/admin/technicians', 30_000);
+  const badges = {
+    '/admin/providers': providers?.providers.filter(p => p.approvalStatus === 'PENDING').length ?? 0,
+    '/admin/technicians': technicians?.technicians.filter(t => t.approvalStatus === 'PENDING').length ?? 0,
   };
+  function closeMenu() { setMenuOpen(false); requestAnimationFrame(() => menuTrigger.current?.focus()); }
   useEffect(() => {
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') setOpenNav(null);
-    };
-    window.addEventListener('keydown', onKeyDown);
-    return () => window.removeEventListener('keydown', onKeyDown);
+    const media = window.matchMedia('(min-width: 1280px)');
+    const closeOnWide = () => { if (media.matches) setMenuOpen(false); };
+    media.addEventListener('change', closeOnWide);
+    return () => media.removeEventListener('change', closeOnWide);
   }, []);
-
-  if (isLoginPage) return <>{children}</>;
-
-  return (
-    <div className="min-h-screen bg-white md:flex md:flex-col">
-      <div data-print-hide className="hidden border-b border-border bg-white md:block">
-        <header className="flex h-11 items-center gap-1 px-4 text-fg">
-          <span className="mr-3 flex items-center gap-2 text-sm font-bold">
-            {/* 브랜드 노출은 락업 전체가 아니라 버스트(아이콘)만 — 관제 밀도·액센트 절제 원칙상
-                채도 높은 워드마크를 반복 노출하지 않는다(G0 §5 "포털·어드민 — 로고 락업만"). */}
-            <BrandLogo variant="bust" size="sm" />
-            <span className="h-4 w-px bg-border" aria-hidden="true" />
-            관제탑
-          </span>
-          <nav className="flex h-11 items-center gap-0.5" aria-label="관리자 이동">
-            {NAV.map((n) => {
-              const active = n.href
-                ? n.href === '/admin'
-                  ? pathname === '/admin' || pathname.startsWith('/admin/requests')
-                  : pathname.startsWith(n.href)
-                : n.children?.some((child) => pathname.startsWith(child.href)) ?? false;
-              const count = n.href ? badge[n.href] ?? 0 : 0;
-
-              if (n.children) {
-                const open = openNav === n.label;
-                return (
-                  <div
-                    key={n.label}
-                    className="relative hidden lg:block"
-                    onMouseEnter={() => setOpenNav(n.label)}
-                    onMouseLeave={() => setOpenNav(null)}
-                  >
-                    <button
-                      type="button"
-                      aria-expanded={open}
-                      aria-haspopup="menu"
-                      aria-controls={`admin-nav-${n.label}`}
-                      aria-current={active ? 'page' : undefined}
-                      onClick={() => setOpenNav(open ? null : n.label)}
-                      onKeyDown={(event) => {
-                        if (event.key !== 'ArrowDown') return;
-                        event.preventDefault();
-                        setOpenNav(n.label);
-                        requestAnimationFrame(() => navItemRefs.current[n.label]?.[0]?.focus());
-                      }}
-                      ref={(element) => {
-                        navButtonRefs.current[n.label] = element;
-                      }}
-                      className={`flex h-11 items-center gap-1 border-b-2 px-3 text-sm font-semibold transition-colors ease-portal ${
-                        active
-                          ? 'border-brand-600 text-fg'
-                          : 'border-transparent text-muted hover:text-fg'
-                      }`}
-                    >
-                      {n.label}
-                      <ChevronDownIcon className={`h-3 w-3 transition-transform ease-portal ${open ? 'rotate-180' : ''}`} />
-                    </button>
-                    {open && (
-                      <div id={`admin-nav-${n.label}`} role="menu" className="absolute top-full left-0 z-30 min-w-28 overflow-hidden rounded-admin-md border border-border bg-white py-1 shadow-pop">
-                        {n.children.map((child) => {
-                          const childActive = pathname.startsWith(child.href);
-                          return (
-                            <Link
-                              key={child.href}
-                              href={child.href}
-                              aria-current={childActive ? 'page' : undefined}
-                              role="menuitem"
-                              ref={(element) => {
-                                const items = navItemRefs.current[n.label] ?? [];
-                                items[n.children!.indexOf(child)] = element;
-                                navItemRefs.current[n.label] = items;
-                              }}
-                              onKeyDown={(event) => {
-                                const items = navItemRefs.current[n.label] ?? [];
-                                const index = items.indexOf(event.currentTarget);
-                                if (event.key === 'Escape') {
-                                  event.preventDefault();
-                                  setOpenNav(null);
-                                  requestAnimationFrame(() => navButtonRefs.current[n.label]?.focus());
-                                  return;
-                                }
-                                if (event.key !== 'ArrowDown' && event.key !== 'ArrowUp') return;
-                                event.preventDefault();
-                                const nextIndex = (index + (event.key === 'ArrowDown' ? 1 : -1) + items.length) % items.length;
-                                items[nextIndex]?.focus();
-                              }}
-                              onClick={() => setOpenNav(null)}
-                              className={`block px-3 py-2 text-sm font-semibold whitespace-nowrap ${
-                                childActive
-                                  ? 'bg-neutral-100 text-fg'
-                                  : 'text-muted hover:bg-neutral-50 hover:text-fg'
-                              }`}
-                            >
-                              {child.label}
-                            </Link>
-                          );
-                        })}
-                      </div>
-                    )}
-                  </div>
-                );
-              }
-
-              return (
-                <Link
-                  key={n.href}
-                  href={n.href!}
-                  aria-current={active ? 'page' : undefined}
-                  className={`flex h-11 items-center gap-2 border-b-2 px-3 text-sm font-semibold transition-colors ease-portal ${
-                    active
-                      ? 'border-brand-600 text-fg'
-                      : 'border-transparent text-muted hover:text-fg'
-                  }`}
-                >
-                  {n.label}
-                  {count > 0 && (
-                    <span className="font-mono text-xs font-bold text-brand-600">
-                      {count}
-                    </span>
-                  )}
-                </Link>
-              );
-            })}
-          </nav>
-          <div className="ml-auto">
-            <LogoutButton loginPath="/admin/login" />
-          </div>
-        </header>
-      </div>
-
-      <div className="min-w-0 flex-1">{children}</div>
+  useEffect(() => { if (isLogin) clearAdminWorkspace(); }, [isLogin]);
+  if (isLogin || isPrint) return <>{children}</>;
+  return <div className={styles.shell} data-nav-collapsed={sidebarCollapsed}>
+    <a href="#admin-content" className={styles.skip}>본문으로 건너뛰기</a>
+    <aside data-print-hide className={styles.sidebar} aria-label="관리자 메뉴"><AdminNavigation pathname={pathname} badges={badges} /></aside>
+    <header data-print-hide className={styles.mobileHeader}><Link href="/admin"><BrandLogo size="sm" /></Link><button ref={menuTrigger} type="button" onClick={() => setMenuOpen(true)} aria-expanded={menuOpen} aria-label="관리자 메뉴 열기"><span aria-hidden="true" className={styles.menuIcon} />메뉴</button></header>
+    {menuOpen && <AdminDrawer label="관리자 메뉴" className={styles.drawer} onClose={closeMenu}><button type="button" className={styles.close} onClick={closeMenu} aria-label="관리자 메뉴 닫기">닫기 ×</button><AdminNavigation key={pathname} pathname={pathname} badges={badges} onNavigate={() => setMenuOpen(false)} /></AdminDrawer>}
+    <div className={styles.workbar} data-print-hide>
+      <button type="button" className={styles.sidebarToggle} onClick={() => setSidebarCollapsed(!sidebarCollapsed)} aria-label={sidebarCollapsed ? '업무 메뉴 펼치기' : '업무 메뉴 접기'} aria-expanded={!sidebarCollapsed} title={sidebarCollapsed ? '업무 메뉴 펼치기' : '업무 메뉴 접기'}><span aria-hidden="true">{sidebarCollapsed ? '›' : '‹'}</span></button>
+      <Suspense fallback={<div className={styles.tabsLoading}>대시보드</div>}><AdminWorkspaceTabs /></Suspense>
     </div>
-  );
+    <div id="admin-content" className={styles.content} tabIndex={-1}>{children}</div>
+  </div>;
 }

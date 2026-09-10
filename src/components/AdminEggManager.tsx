@@ -7,10 +7,9 @@
 import { useState } from 'react';
 import { EggIcon } from '@/components/EggIcon';
 import { usePolling } from '@/components/usePolling';
+import { EGG_PACK_SIZE, EGG_PRICE_WON, MIN_CHARGE_EGGS, MAX_CHARGE_EGGS, EGG_CHARGE_RULE, isValidEggCharge } from '@/lib/eggPricing';
 
 // 원화 표기는 "결제(충전) 폼" 한정 — 잔액·이력 등 보유 표기는 알 개수로만 한다(정책).
-const EGG_PRICE = 1_000; // 1알 = ₩1,000 (충전 결제 단가)
-const MIN_CHARGE = 3;
 
 type LedgerRow = {
   id: string;
@@ -44,7 +43,7 @@ export default function AdminEggManager({
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
-  const [chargeCount, setChargeCount] = useState(MIN_CHARGE);
+  const [chargeCount, setChargeCount] = useState(MIN_CHARGE_EGGS);
   const [chargeMemo, setChargeMemo] = useState('');
   const [chargeKey, setChargeKey] = useState(() => crypto.randomUUID());
 
@@ -67,6 +66,8 @@ export default function AdminEggManager({
       }
       after();
       refresh();
+    } catch {
+      setError('네트워크 연결을 확인하고 다시 시도해 주세요.');
     } finally {
       setBusy(false);
     }
@@ -95,22 +96,25 @@ export default function AdminEggManager({
           }}
         >
           <p className="mb-2 text-xs font-bold text-muted">
-            충전 (최소 {MIN_CHARGE}알 · 1알 = ₩{EGG_PRICE.toLocaleString()})
+            입금 확인 후 충전 · 1판 {EGG_PACK_SIZE}알 · 1알 {EGG_PRICE_WON.toLocaleString()}원
           </p>
           <div className="flex flex-wrap items-center gap-2">
             <input
               type="number"
-              min={MIN_CHARGE}
-              step={1}
+              min={MIN_CHARGE_EGGS}
+              max={MAX_CHARGE_EGGS}
+              step={EGG_PACK_SIZE}
+              disabled={busy}
               value={chargeCount}
               onChange={(e) => setChargeCount(Number(e.target.value))}
               className="w-20 rounded-admin-sm border border-border px-2 py-1.5 font-mono text-sm focus:border-admin-cyan-ink focus:outline-none"
               aria-label="충전 알 수"
             />
             <span className="font-mono text-xs text-muted">
-              결제 금액 <span className="font-bold text-fg">₩{(chargeCount * EGG_PRICE || 0).toLocaleString()}</span>
+              입금 금액 <span className="font-bold text-fg">{isValidEggCharge(chargeCount) ? `${(chargeCount * EGG_PRICE_WON).toLocaleString()}원` : '—'}</span>
             </span>
           </div>
+          <p className={`mt-2 text-xs ${isValidEggCharge(chargeCount) ? 'text-muted' : 'text-red-700'}`}>{EGG_CHARGE_RULE}</p>
           <input
             type="text"
             value={chargeMemo}
@@ -121,7 +125,7 @@ export default function AdminEggManager({
           />
           <button
             type="submit"
-            disabled={busy || chargeCount < MIN_CHARGE || !chargeMemo.trim()}
+            disabled={busy || !isValidEggCharge(chargeCount) || !chargeMemo.trim()}
             className="mt-2 rounded-admin-sm bg-admin-cyan-ink px-3 py-1.5 text-sm font-bold text-white transition-colors ease-portal disabled:opacity-50"
           >
             충전

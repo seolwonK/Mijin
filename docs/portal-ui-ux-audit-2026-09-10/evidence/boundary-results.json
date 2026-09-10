@@ -1,0 +1,95 @@
+[
+  {
+    "name": "partner-100-limit",
+    "returned": 100,
+    "oldActiveId": "cmtut19il000e1itf89jcf4v2",
+    "oldActivePresent": false,
+    "actualActive": 2
+  },
+  {
+    "name": "partner-expand-collapse",
+    "pastBefore": 20,
+    "pastExpanded": 24,
+    "commissionBefore": 5,
+    "commissionExpanded": 6,
+    "commissionCollapsed": 5
+  },
+  {
+    "name": "partner-reviews-4",
+    "thresholdMessage": true
+  },
+  {
+    "name": "partner-reviews-5",
+    "commentVisible": true
+  },
+  {
+    "name": "partner-card-contact-retry",
+    "telBefore": 0,
+    "telAfterRecovery": 0
+  },
+  {
+    "name": "tech-100-limit",
+    "returned": 100,
+    "oldActiveId": "cmtut19vm00181itfnz7lrsuv",
+    "oldActivePresent": false,
+    "actualActive": 2
+  },
+  {
+    "name": "tech-expand-collapse",
+    "pastBefore": 20,
+    "pastExpanded": 24,
+    "commissionBefore": 5,
+    "commissionExpanded": 6,
+    "commissionCollapsed": 5
+  },
+  {
+    "name": "tech-reviews-4",
+    "thresholdMessage": true
+  },
+  {
+    "name": "tech-reviews-5",
+    "commentVisible": true
+  },
+  {
+    "name": "tech-card-contact-retry",
+    "telBefore": 0,
+    "telAfterRecovery": 0
+  },
+  {
+    "name": "partner-login-empty",
+    "disabled": true
+  },
+  {
+    "name": "partner-login-invalid",
+    "message": "아이디 또는 비밀번호가 올바르지 않습니다"
+  },
+  {
+    "name": "tech-login-empty",
+    "disabled": true
+  },
+  {
+    "name": "tech-login-invalid",
+    "message": "아이디 또는 비밀번호가 올바르지 않습니다"
+  },
+  {
+    "name": "password-toggle",
+    "type": "text"
+  },
+  {
+    "name": "region-add",
+    "chips": 1
+  },
+  {
+    "name": "region-remove",
+    "emptyMessage": true
+  },
+  {
+    "name": "referrer-empty",
+    "visible": true
+  },
+  {
+    "name": "referrer-select-remove",
+    "masked": "강○○기 (업체)",
+    "reset": true
+  }
+]

@@ -2,6 +2,9 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import PasswordInput from '@/components/PasswordInput';
+import PortalSupportLink from '@/components/PortalSupportLink';
+import { requestError } from '@/lib/clientApi';
 import { buttonClasses } from '@/components/Button';
 
 // variant: 'c'(결, 소프트-프리미엄 — 업체·전기기사 로그인) | 'b'(관리자).
@@ -35,15 +38,23 @@ export default function LoginForm({
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
+    if (!loginId.trim() || !password) {
+      setError('아이디와 비밀번호를 입력해 주세요.');
+      document
+        .getElementById(!loginId.trim() ? 'loginId' : 'password')
+        ?.focus();
+      return;
+    }
     setBusy(true);
     setError(null);
     try {
       const res = await fetch('/api/auth/login', {
         method: 'POST',
+        signal: AbortSignal.timeout(15_000),
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ loginId, password }),
       });
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
       if (!res.ok) {
         setError(data.error ?? '로그인에 실패했습니다');
         return;
@@ -55,14 +66,17 @@ export default function LoginForm({
             ? '/tech'
             : '/partner';
       // 로그인 전 가려던 화면(returnTo)이 이 역할의 경로면 그곳으로, 아니면 포털 홈으로.
-      const returnTo = new URLSearchParams(window.location.search).get('returnTo');
+      const returnTo = new URLSearchParams(window.location.search).get(
+        'returnTo',
+      );
       const dest =
-        returnTo && (returnTo === rolePrefix || returnTo.startsWith(`${rolePrefix}/`))
+        returnTo &&
+        (returnTo === rolePrefix || returnTo.startsWith(`${rolePrefix}/`))
           ? returnTo
           : rolePrefix;
       router.replace(dest);
-    } catch {
-      setError('네트워크 오류가 발생했습니다');
+    } catch (e) {
+      setError(requestError(e));
     } finally {
       setBusy(false);
     }
@@ -80,7 +94,10 @@ export default function LoginForm({
           )}
           <form onSubmit={submit} className="space-y-3">
             <div>
-              <label htmlFor="loginId" className="mb-1 block text-xs font-medium text-muted">
+              <label
+                htmlFor="loginId"
+                className="mb-1 block text-xs font-medium text-muted"
+              >
                 아이디
               </label>
               <input
@@ -94,33 +111,40 @@ export default function LoginForm({
               />
             </div>
             <div>
-              <label htmlFor="password" className="mb-1 block text-xs font-medium text-muted">
+              <label
+                htmlFor="password"
+                className="mb-1 block text-xs font-medium text-muted"
+              >
                 비밀번호
               </label>
-              <input
+              <PasswordInput
                 id="password"
-                type="password"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="비밀번호"
+                onChange={setPassword}
+                showLabel={false}
                 autoComplete="current-password"
                 className="w-full rounded-admin-md border border-border bg-white p-3 text-base text-fg placeholder:text-muted transition-colors focus:border-brand-500 focus:ring-2 focus:ring-brand-500/15 focus:outline-none"
               />
             </div>
             {error && (
-              <p role="alert" className="rounded-admin-md border border-red-200 bg-red-50 p-3 text-sm font-medium text-red-600">
+              <p
+                role="alert"
+                className="rounded-admin-md border border-red-200 bg-red-50 p-3 text-sm font-medium text-red-600"
+              >
                 {error}
               </p>
             )}
             <button
               type="submit"
-              disabled={busy || !loginId || !password}
+              disabled={busy}
               className="flex h-14 w-full items-center justify-center rounded-admin-md bg-brand-600 text-lg font-bold text-white transition disabled:cursor-not-allowed disabled:opacity-50 enabled:hover:opacity-90 enabled:active:scale-[0.98] enabled:active:opacity-80"
             >
               {busy ? '로그인 중…' : '로그인'}
             </button>
           </form>
-          {footer && <div className="mt-4 text-center text-sm text-muted">{footer}</div>}
+          {footer && (
+            <div className="mt-4 text-center text-sm text-muted">{footer}</div>
+          )}
         </div>
       </main>
     );
@@ -137,7 +161,10 @@ export default function LoginForm({
         )}
         <form onSubmit={submit} className="space-y-3">
           <div>
-            <label htmlFor="loginId" className="mb-1 block text-xs font-medium text-muted">
+            <label
+              htmlFor="loginId"
+              className="mb-1 block text-xs font-medium text-muted"
+            >
               아이디
             </label>
             <input
@@ -151,32 +178,42 @@ export default function LoginForm({
             />
           </div>
           <div>
-            <label htmlFor="password" className="mb-1 block text-xs font-medium text-muted">
+            <label
+              htmlFor="password"
+              className="mb-1 block text-xs font-medium text-muted"
+            >
               비밀번호
             </label>
-            <input
+            <PasswordInput
               id="password"
-              type="password"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="비밀번호"
+              onChange={setPassword}
+              showLabel={false}
               autoComplete="current-password"
               className="w-full rounded-xl border border-border p-3 text-base transition-colors focus:border-brand-500 focus:ring-2 focus:ring-brand-500/15 focus:outline-none"
             />
           </div>
           {error && (
-            <p role="alert" className="rounded-xl bg-red-50 p-3 text-sm font-medium text-red-600">
+            <p
+              role="alert"
+              className="rounded-xl bg-red-50 p-3 text-sm font-medium text-red-600"
+            >
               {error}
             </p>
           )}
           <button
             type="submit"
-            disabled={busy || !loginId || !password}
+            disabled={busy}
             className={buttonClasses('primary', 'lg', 'w-full')}
           >
             {busy ? '로그인 중…' : '로그인'}
           </button>
         </form>
+        <div className="mt-3 text-center">
+          <PortalSupportLink>
+            아이디·비밀번호 찾기 / 가입 문의
+          </PortalSupportLink>
+        </div>
         {footer && (
           <div className="mt-4 text-center text-sm text-muted">{footer}</div>
         )}

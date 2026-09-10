@@ -8,8 +8,9 @@
 import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/db';
 import { assigneeFk, type AssigneeTarget } from '@/lib/assignee';
+import { EGG_CHARGE_RULE, isValidEggCharge } from '@/lib/eggPricing';
 
-export const MIN_CHARGE_EGGS = 3; // 최소 충전 단위 (1알 = ₩1,000)
+export { MIN_CHARGE_EGGS } from '@/lib/eggPricing';
 
 // 센티널 — 문자열 리터럴 비교의 취약성 회피 (트랜잭션 롤백 신호)
 export const EGG_ZERO_BALANCE = 'EGG_ZERO_BALANCE' as const;
@@ -46,22 +47,31 @@ export async function spendEggOnAccept(
   try {
     await prisma.$transaction(async (tx) => {
       await tx.eggLedger.create({
-        data: { ...assigneeFk(target), delta: -1, reason: 'ACCEPT_SPEND', assignmentId },
+        data: {
+          ...assigneeFk(target),
+          delta: -1,
+          reason: 'ACCEPT_SPEND',
+          assignmentId,
+        },
       });
       const count = await decrementIfPositive(tx, target);
       if (count === 0) throw new Error(EGG_ZERO_BALANCE); // 롤백 → 장부 행 소멸 = 무차감 수락
     });
     return 'SPENT';
   } catch (e) {
-    if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === 'P2002') {
+    if (
+      e instanceof Prisma.PrismaClientKnownRequestError &&
+      e.code === 'P2002'
+    ) {
       return 'ALREADY_SPENT';
     }
-    if (e instanceof Error && e.message === EGG_ZERO_BALANCE) return 'ZERO_BALANCE';
+    if (e instanceof Error && e.message === EGG_ZERO_BALANCE)
+      return 'ZERO_BALANCE';
     throw e; // 커넥션·타임아웃·버그는 삼키지 않는다 (commission.ts 관례)
   }
 }
 
-// 어드민 수동 충전 — 최소 3알, chargeKey 멱등(더블서브밋 방어).
+// 어드민 입금 확인 후 충전 — 최소 30알, 30알 단위, chargeKey 멱등.
 export async function chargeEggs(
   target: AssigneeTarget,
   count: number,
@@ -69,8 +79,8 @@ export async function chargeEggs(
   actorAdminUserId: string,
   chargeKey: string,
 ): Promise<ChargeResult> {
-  if (!Number.isInteger(count) || count < MIN_CHARGE_EGGS) {
-    throw new Error(`최소 충전 단위는 ${MIN_CHARGE_EGGS}알입니다`);
+  if (!isValidEggCharge(count)) {
+    throw new Error(EGG_CHARGE_RULE);
   }
   if (!memo.trim()) throw new Error('충전 사유(memo)는 필수입니다');
   if (!chargeKey.trim()) throw new Error('chargeKey는 필수입니다');
@@ -100,7 +110,10 @@ export async function chargeEggs(
     });
     return 'CHARGED';
   } catch (e) {
-    if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === 'P2002') {
+    if (
+      e instanceof Prisma.PrismaClientKnownRequestError &&
+      e.code === 'P2002'
+    ) {
       return 'ALREADY_CHARGED';
     }
     throw e;
@@ -114,11 +127,18 @@ export async function adjustEggs(
   memo: string,
   actorAdminUserId: string,
 ): Promise<void> {
-  if (!Number.isInteger(delta) || delta === 0) throw new Error('delta는 0이 아닌 정수여야 합니다');
+  if (!Number.isInteger(delta) || delta === 0)
+    throw new Error('delta는 0이 아닌 정수여야 합니다');
   if (!memo.trim()) throw new Error('정정 사유(memo)는 필수입니다');
   await prisma.$transaction(async (tx) => {
     await tx.eggLedger.create({
-      data: { ...assigneeFk(target), delta, reason: 'ADMIN_ADJUST', memo, actorAdminUserId },
+      data: {
+        ...assigneeFk(target),
+        delta,
+        reason: 'ADMIN_ADJUST',
+        memo,
+        actorAdminUserId,
+      },
     });
     const where =
       delta < 0
@@ -126,33 +146,57 @@ export async function adjustEggs(
         : { id: target.id };
     const hit =
       target.kind === 'PROVIDER'
-        ? await tx.provider.updateMany({ where, data: { eggBalance: { increment: delta } } })
-        : await tx.technician.updateMany({ where, data: { eggBalance: { increment: delta } } });
-    if (hit.count === 0) throw new Error('정정 결과 잔액이 음수가 되거나 대상이 없습니다');
+        ? await tx.provider.updateMany({
+            where,
+            data: { eggBalance: { increment: delta } },
+          })
+        : await tx.technician.updateMany({
+            where,
+            data: { eggBalance: { increment: delta } },
+          });
+    if (hit.count === 0)
+      throw new Error('정정 결과 잔액이 음수가 되거나 대상이 없습니다');
   });
 }
 
 // 본인 알 순위 — 같은 종류(kind) 내, 배정 자격자 풀 기준(업체: 활성·승인 / 기사: +계약 CONFIRMED).
 // 동률 공동 순위: (풀에서 내 잔액보다 큰 수) + 1. 타인 정보는 반환하지 않는다(스칼라만).
-export async function getMyEggRank(
-  target: AssigneeTarget,
-): Promise<{ balance: number; rank: number; poolSize: number } | null> {
+export async function getMyEggRank(target: AssigneeTarget): Promise<{
+  balance: number;
+  rank: number | null;
+  poolSize: number;
+  eligible: boolean;
+} | null> {
   if (target.kind === 'PROVIDER') {
     const me = await prisma.provider.findUnique({
       where: { id: target.id },
-      select: { eggBalance: true },
+      select: { eggBalance: true, isActive: true, approvalStatus: true },
     });
     if (!me) return null;
     const pool = { isActive: true, approvalStatus: 'APPROVED' as const };
     const [above, poolSize] = await Promise.all([
-      prisma.provider.count({ where: { ...pool, eggBalance: { gt: me.eggBalance } } }),
+      prisma.provider.count({
+        where: { ...pool, eggBalance: { gt: me.eggBalance } },
+      }),
       prisma.provider.count({ where: pool }),
     ]);
-    return { balance: me.eggBalance, rank: above + 1, poolSize };
+    const eligible =
+      me.isActive && me.approvalStatus === 'APPROVED' && poolSize > 0;
+    return {
+      balance: me.eggBalance,
+      rank: eligible ? above + 1 : null,
+      poolSize,
+      eligible,
+    };
   }
   const me = await prisma.technician.findUnique({
     where: { id: target.id },
-    select: { eggBalance: true },
+    select: {
+      eggBalance: true,
+      isActive: true,
+      approvalStatus: true,
+      contract: { select: { status: true } },
+    },
   });
   if (!me) return null;
   const pool = {
@@ -161,8 +205,20 @@ export async function getMyEggRank(
     contract: { status: 'CONFIRMED' as const },
   };
   const [above, poolSize] = await Promise.all([
-    prisma.technician.count({ where: { ...pool, eggBalance: { gt: me.eggBalance } } }),
+    prisma.technician.count({
+      where: { ...pool, eggBalance: { gt: me.eggBalance } },
+    }),
     prisma.technician.count({ where: pool }),
   ]);
-  return { balance: me.eggBalance, rank: above + 1, poolSize };
+  const eligible =
+    me.isActive &&
+    me.approvalStatus === 'APPROVED' &&
+    me.contract?.status === 'CONFIRMED' &&
+    poolSize > 0;
+  return {
+    balance: me.eggBalance,
+    rank: eligible ? above + 1 : null,
+    poolSize,
+    eligible,
+  };
 }

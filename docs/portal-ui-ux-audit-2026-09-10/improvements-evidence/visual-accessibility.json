@@ -1,0 +1,366 @@
+[
+  {
+    "path": "/partner/login",
+    "issues": [],
+    "sizes": [
+      {
+        "width": 320,
+        "overflow": false
+      },
+      {
+        "width": 360,
+        "overflow": false
+      },
+      {
+        "width": 390,
+        "overflow": false
+      },
+      {
+        "width": 768,
+        "overflow": false
+      },
+      {
+        "width": 1280,
+        "overflow": false
+      }
+    ]
+  },
+  {
+    "path": "/tech/login",
+    "issues": [],
+    "sizes": [
+      {
+        "width": 320,
+        "overflow": false
+      },
+      {
+        "width": 360,
+        "overflow": false
+      },
+      {
+        "width": 390,
+        "overflow": false
+      },
+      {
+        "width": 768,
+        "overflow": false
+      },
+      {
+        "width": 1280,
+        "overflow": false
+      }
+    ]
+  },
+  {
+    "path": "/partner/signup",
+    "issues": [],
+    "sizes": [
+      {
+        "width": 320,
+        "overflow": false
+      },
+      {
+        "width": 360,
+        "overflow": false
+      },
+      {
+        "width": 390,
+        "overflow": false
+      },
+      {
+        "width": 768,
+        "overflow": false
+      },
+      {
+        "width": 1280,
+        "overflow": false
+      }
+    ]
+  },
+  {
+    "path": "/tech/signup",
+    "issues": [],
+    "sizes": [
+      {
+        "width": 320,
+        "overflow": false
+      },
+      {
+        "width": 360,
+        "overflow": false
+      },
+      {
+        "width": 390,
+        "overflow": false
+      },
+      {
+        "width": 768,
+        "overflow": false
+      },
+      {
+        "width": 1280,
+        "overflow": false
+      }
+    ]
+  },
+  {
+    "path": "/support",
+    "issues": [],
+    "sizes": [
+      {
+        "width": 320,
+        "overflow": false
+      },
+      {
+        "width": 360,
+        "overflow": false
+      },
+      {
+        "width": 390,
+        "overflow": false
+      },
+      {
+        "width": 768,
+        "overflow": false
+      },
+      {
+        "width": 1280,
+        "overflow": false
+      }
+    ]
+  },
+  {
+    "path": "/partner",
+    "issues": [],
+    "sizes": [
+      {
+        "width": 320,
+        "overflow": false
+      },
+      {
+        "width": 360,
+        "overflow": false
+      },
+      {
+        "width": 390,
+        "overflow": false
+      },
+      {
+        "width": 768,
+        "overflow": false
+      },
+      {
+        "width": 1280,
+        "overflow": false
+      }
+    ]
+  },
+  {
+    "path": "/partner/profile",
+    "issues": [],
+    "sizes": [
+      {
+        "width": 320,
+        "overflow": false
+      },
+      {
+        "width": 360,
+        "overflow": false
+      },
+      {
+        "width": 390,
+        "overflow": false
+      },
+      {
+        "width": 768,
+        "overflow": false
+      },
+      {
+        "width": 1280,
+        "overflow": false
+      }
+    ]
+  },
+  {
+    "path": "/partner/history",
+    "issues": [],
+    "sizes": [
+      {
+        "width": 320,
+        "overflow": false
+      },
+      {
+        "width": 360,
+        "overflow": false
+      },
+      {
+        "width": 390,
+        "overflow": false
+      },
+      {
+        "width": 768,
+        "overflow": false
+      },
+      {
+        "width": 1280,
+        "overflow": false
+      }
+    ]
+  },
+  {
+    "path": "/partner/commissions",
+    "issues": [],
+    "sizes": [
+      {
+        "width": 320,
+        "overflow": false
+      },
+      {
+        "width": 360,
+        "overflow": false
+      },
+      {
+        "width": 390,
+        "overflow": false
+      },
+      {
+        "width": 768,
+        "overflow": false
+      },
+      {
+        "width": 1280,
+        "overflow": false
+      }
+    ]
+  },
+  {
+    "path": "/tech",
+    "issues": [],
+    "sizes": [
+      {
+        "width": 320,
+        "overflow": false
+      },
+      {
+        "width": 360,
+        "overflow": false
+      },
+      {
+        "width": 390,
+        "overflow": false
+      },
+      {
+        "width": 768,
+        "overflow": false
+      },
+      {
+        "width": 1280,
+        "overflow": false
+      }
+    ]
+  },
+  {
+    "path": "/tech/profile",
+    "issues": [],
+    "sizes": [
+      {
+        "width": 320,
+        "overflow": false
+      },
+      {
+        "width": 360,
+        "overflow": false
+      },
+      {
+        "width": 390,
+        "overflow": false
+      },
+      {
+        "width": 768,
+        "overflow": false
+      },
+      {
+        "width": 1280,
+        "overflow": false
+      }
+    ]
+  },
+  {
+    "path": "/tech/history",
+    "issues": [],
+    "sizes": [
+      {
+        "width": 320,
+        "overflow": false
+      },
+      {
+        "width": 360,
+        "overflow": false
+      },
+      {
+        "width": 390,
+        "overflow": false
+      },
+      {
+        "width": 768,
+        "overflow": false
+      },
+      {
+        "width": 1280,
+        "overflow": false
+      }
+    ]
+  },
+  {
+    "path": "/tech/commissions",
+    "issues": [],
+    "sizes": [
+      {
+        "width": 320,
+        "overflow": false
+      },
+      {
+        "width": 360,
+        "overflow": false
+      },
+      {
+        "width": 390,
+        "overflow": false
+      },
+      {
+        "width": 768,
+        "overflow": false
+      },
+      {
+        "width": 1280,
+        "overflow": false
+      }
+    ]
+  },
+  {
+    "path": "/tech/contract",
+    "issues": [],
+    "sizes": [
+      {
+        "width": 320,
+        "overflow": false
+      },
+      {
+        "width": 360,
+        "overflow": false
+      },
+      {
+        "width": 390,
+        "overflow": false
+      },
+      {
+        "width": 768,
+        "overflow": false
+      },
+      {
+        "width": 1280,
+        "overflow": false
+      }
+    ]
+  }
+]

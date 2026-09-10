@@ -1,0 +1,1091 @@
+[
+  {
+    "path": "/admin",
+    "width": 390,
+    "overflow": false,
+    "bodyWidth": 390,
+    "mainWidth": 390,
+    "heading": "접수 관리",
+    "desktopOnly": false,
+    "overflowing": []
+  },
+  {
+    "path": "/admin",
+    "width": 768,
+    "overflow": false,
+    "bodyWidth": 768,
+    "mainWidth": 768,
+    "heading": "접수 관리",
+    "desktopOnly": false,
+    "overflowing": []
+  },
+  {
+    "path": "/admin",
+    "width": 1280,
+    "overflow": false,
+    "bodyWidth": 1280,
+    "mainWidth": 1096,
+    "heading": "접수 관리",
+    "desktopOnly": false,
+    "overflowing": []
+  },
+  {
+    "path": "/admin",
+    "width": 1440,
+    "overflow": false,
+    "bodyWidth": 1440,
+    "mainWidth": 1256,
+    "heading": "접수 관리",
+    "desktopOnly": false,
+    "overflowing": []
+  },
+  {
+    "path": "/admin",
+    "width": 1920,
+    "overflow": false,
+    "bodyWidth": 1920,
+    "mainWidth": 1736,
+    "heading": "접수 관리",
+    "desktopOnly": false,
+    "overflowing": []
+  },
+  {
+    "path": "/admin/rotation",
+    "width": 390,
+    "overflow": false,
+    "bodyWidth": 390,
+    "mainWidth": 390,
+    "heading": "순환 현황",
+    "desktopOnly": false,
+    "overflowing": []
+  },
+  {
+    "path": "/admin/rotation",
+    "width": 768,
+    "overflow": false,
+    "bodyWidth": 768,
+    "mainWidth": 768,
+    "heading": "순환 현황",
+    "desktopOnly": false,
+    "overflowing": []
+  },
+  {
+    "path": "/admin/rotation",
+    "width": 1280,
+    "overflow": false,
+    "bodyWidth": 1280,
+    "mainWidth": 1096,
+    "heading": "순환 현황",
+    "desktopOnly": false,
+    "overflowing": []
+  },
+  {
+    "path": "/admin/rotation",
+    "width": 1440,
+    "overflow": false,
+    "bodyWidth": 1440,
+    "mainWidth": 1256,
+    "heading": "순환 현황",
+    "desktopOnly": false,
+    "overflowing": []
+  },
+  {
+    "path": "/admin/rotation",
+    "width": 1920,
+    "overflow": false,
+    "bodyWidth": 1920,
+    "mainWidth": 1736,
+    "heading": "순환 현황",
+    "desktopOnly": false,
+    "overflowing": []
+  },
+  {
+    "path": "/admin/providers",
+    "width": 390,
+    "overflow": false,
+    "bodyWidth": 390,
+    "mainWidth": 390,
+    "heading": "업체 관리",
+    "desktopOnly": false,
+    "overflowing": [
+      {
+        "tag": "TABLE",
+        "cls": "w-full min-w-[880px] border-collapse text-sm"
+      },
+      {
+        "tag": "THEAD",
+        "cls": ""
+      },
+      {
+        "tag": "TR",
+        "cls": ""
+      },
+      {
+        "tag": "TH",
+        "cls": "sticky top-0 border-b border-border bg-neutral-50 px-3.5 py-2.5 font-mono text-xs font-semibold tracking-wide text-muted uppercase text-left"
+      },
+      {
+        "tag": "BUTTON",
+        "cls": "inline-flex items-center gap-1 normal-case hover:text-fg"
+      }
+    ]
+  },
+  {
+    "path": "/admin/providers",
+    "width": 768,
+    "overflow": false,
+    "bodyWidth": 768,
+    "mainWidth": 768,
+    "heading": "업체 관리",
+    "desktopOnly": false,
+    "overflowing": [
+      {
+        "tag": "TABLE",
+        "cls": "w-full min-w-[880px] border-collapse text-sm"
+      },
+      {
+        "tag": "THEAD",
+        "cls": ""
+      },
+      {
+        "tag": "TR",
+        "cls": ""
+      },
+      {
+        "tag": "TH",
+        "cls": "sticky top-0 border-b border-border bg-neutral-50 px-3.5 py-2.5 font-mono text-xs font-semibold tracking-wide text-muted uppercase text-left"
+      },
+      {
+        "tag": "TH",
+        "cls": "sticky top-0 border-b border-border bg-neutral-50 px-3.5 py-2.5 font-mono text-xs font-semibold tracking-wide text-muted uppercase text-right"
+      }
+    ]
+  },
+  {
+    "path": "/admin/providers",
+    "width": 1280,
+    "overflow": false,
+    "bodyWidth": 1280,
+    "mainWidth": 1096,
+    "heading": "업체 관리",
+    "desktopOnly": false,
+    "overflowing": []
+  },
+  {
+    "path": "/admin/providers",
+    "width": 1440,
+    "overflow": false,
+    "bodyWidth": 1440,
+    "mainWidth": 1256,
+    "heading": "업체 관리",
+    "desktopOnly": false,
+    "overflowing": []
+  },
+  {
+    "path": "/admin/providers",
+    "width": 1920,
+    "overflow": false,
+    "bodyWidth": 1920,
+    "mainWidth": 1736,
+    "heading": "업체 관리",
+    "desktopOnly": false,
+    "overflowing": []
+  },
+  {
+    "path": "/admin/technicians",
+    "width": 390,
+    "overflow": false,
+    "bodyWidth": 390,
+    "mainWidth": 390,
+    "heading": "전기기사 관리",
+    "desktopOnly": false,
+    "overflowing": [
+      {
+        "tag": "TABLE",
+        "cls": "w-full min-w-[880px] border-collapse text-sm"
+      },
+      {
+        "tag": "THEAD",
+        "cls": ""
+      },
+      {
+        "tag": "TR",
+        "cls": ""
+      },
+      {
+        "tag": "TH",
+        "cls": "sticky top-0 border-b border-border bg-neutral-50 px-3.5 py-2.5 font-mono text-xs font-semibold tracking-wide text-muted uppercase text-left"
+      },
+      {
+        "tag": "TH",
+        "cls": "sticky top-0 border-b border-border bg-neutral-50 px-3.5 py-2.5 font-mono text-xs font-semibold tracking-wide text-muted uppercase text-left"
+      }
+    ]
+  },
+  {
+    "path": "/admin/technicians",
+    "width": 768,
+    "overflow": false,
+    "bodyWidth": 768,
+    "mainWidth": 768,
+    "heading": "전기기사 관리",
+    "desktopOnly": false,
+    "overflowing": [
+      {
+        "tag": "TABLE",
+        "cls": "w-full min-w-[880px] border-collapse text-sm"
+      },
+      {
+        "tag": "THEAD",
+        "cls": ""
+      },
+      {
+        "tag": "TR",
+        "cls": ""
+      },
+      {
+        "tag": "TH",
+        "cls": "sticky top-0 border-b border-border bg-neutral-50 px-3.5 py-2.5 font-mono text-xs font-semibold tracking-wide text-muted uppercase text-left"
+      },
+      {
+        "tag": "TH",
+        "cls": "sticky top-0 border-b border-border bg-neutral-50 px-3.5 py-2.5 font-mono text-xs font-semibold tracking-wide text-muted uppercase text-right"
+      }
+    ]
+  },
+  {
+    "path": "/admin/technicians",
+    "width": 1280,
+    "overflow": false,
+    "bodyWidth": 1280,
+    "mainWidth": 1096,
+    "heading": "전기기사 관리",
+    "desktopOnly": false,
+    "overflowing": []
+  },
+  {
+    "path": "/admin/technicians",
+    "width": 1440,
+    "overflow": false,
+    "bodyWidth": 1440,
+    "mainWidth": 1256,
+    "heading": "전기기사 관리",
+    "desktopOnly": false,
+    "overflowing": []
+  },
+  {
+    "path": "/admin/technicians",
+    "width": 1920,
+    "overflow": false,
+    "bodyWidth": 1920,
+    "mainWidth": 1736,
+    "heading": "전기기사 관리",
+    "desktopOnly": false,
+    "overflowing": []
+  },
+  {
+    "path": "/admin/commissions",
+    "width": 390,
+    "overflow": false,
+    "bodyWidth": 390,
+    "mainWidth": 390,
+    "heading": "정산",
+    "desktopOnly": false,
+    "overflowing": [
+      {
+        "tag": "TABLE",
+        "cls": "w-full min-w-[880px] border-collapse text-sm"
+      },
+      {
+        "tag": "THEAD",
+        "cls": ""
+      },
+      {
+        "tag": "TR",
+        "cls": ""
+      },
+      {
+        "tag": "TH",
+        "cls": "sticky top-0 border-b border-border bg-neutral-50 px-3.5 py-2.5 font-mono text-xs font-semibold tracking-wide text-muted uppercase text-left"
+      },
+      {
+        "tag": "TH",
+        "cls": "sticky top-0 border-b border-border bg-neutral-50 px-3.5 py-2.5 font-mono text-xs font-semibold tracking-wide text-muted uppercase text-right"
+      }
+    ]
+  },
+  {
+    "path": "/admin/commissions",
+    "width": 768,
+    "overflow": false,
+    "bodyWidth": 768,
+    "mainWidth": 768,
+    "heading": "정산",
+    "desktopOnly": false,
+    "overflowing": [
+      {
+        "tag": "TABLE",
+        "cls": "w-full min-w-[880px] border-collapse text-sm"
+      },
+      {
+        "tag": "THEAD",
+        "cls": ""
+      },
+      {
+        "tag": "TR",
+        "cls": ""
+      },
+      {
+        "tag": "TH",
+        "cls": "sticky top-0 border-b border-border bg-neutral-50 px-3.5 py-2.5 font-mono text-xs font-semibold tracking-wide text-muted uppercase text-right"
+      },
+      {
+        "tag": "BUTTON",
+        "cls": "inline-flex items-center gap-1 normal-case hover:text-fg"
+      }
+    ]
+  },
+  {
+    "path": "/admin/commissions",
+    "width": 1280,
+    "overflow": false,
+    "bodyWidth": 1280,
+    "mainWidth": 1096,
+    "heading": "정산",
+    "desktopOnly": false,
+    "overflowing": []
+  },
+  {
+    "path": "/admin/commissions",
+    "width": 1440,
+    "overflow": false,
+    "bodyWidth": 1440,
+    "mainWidth": 1256,
+    "heading": "정산",
+    "desktopOnly": false,
+    "overflowing": []
+  },
+  {
+    "path": "/admin/commissions",
+    "width": 1920,
+    "overflow": false,
+    "bodyWidth": 1920,
+    "mainWidth": 1736,
+    "heading": "정산",
+    "desktopOnly": false,
+    "overflowing": []
+  },
+  {
+    "path": "/admin/settlements",
+    "width": 390,
+    "overflow": false,
+    "bodyWidth": 390,
+    "mainWidth": 390,
+    "heading": "정산 집계 리포트",
+    "desktopOnly": false,
+    "overflowing": [
+      {
+        "tag": "TABLE",
+        "cls": "w-full min-w-[880px] border-collapse text-sm"
+      },
+      {
+        "tag": "THEAD",
+        "cls": ""
+      },
+      {
+        "tag": "TR",
+        "cls": ""
+      },
+      {
+        "tag": "TH",
+        "cls": "sticky top-0 border-b border-border bg-neutral-50 px-3.5 py-2.5 font-mono text-xs font-semibold tracking-wide text-muted uppercase text-right"
+      },
+      {
+        "tag": "BUTTON",
+        "cls": "inline-flex items-center gap-1 normal-case hover:text-fg"
+      }
+    ]
+  },
+  {
+    "path": "/admin/settlements",
+    "width": 768,
+    "overflow": false,
+    "bodyWidth": 768,
+    "mainWidth": 768,
+    "heading": "정산 집계 리포트",
+    "desktopOnly": false,
+    "overflowing": [
+      {
+        "tag": "TABLE",
+        "cls": "w-full min-w-[880px] border-collapse text-sm"
+      },
+      {
+        "tag": "THEAD",
+        "cls": ""
+      },
+      {
+        "tag": "TR",
+        "cls": ""
+      },
+      {
+        "tag": "TH",
+        "cls": "sticky top-0 border-b border-border bg-neutral-50 px-3.5 py-2.5 font-mono text-xs font-semibold tracking-wide text-muted uppercase text-right"
+      },
+      {
+        "tag": "BUTTON",
+        "cls": "inline-flex items-center gap-1 normal-case hover:text-fg"
+      }
+    ]
+  },
+  {
+    "path": "/admin/settlements",
+    "width": 1280,
+    "overflow": false,
+    "bodyWidth": 1280,
+    "mainWidth": 1096,
+    "heading": "정산 집계 리포트",
+    "desktopOnly": false,
+    "overflowing": []
+  },
+  {
+    "path": "/admin/settlements",
+    "width": 1440,
+    "overflow": false,
+    "bodyWidth": 1440,
+    "mainWidth": 1256,
+    "heading": "정산 집계 리포트",
+    "desktopOnly": false,
+    "overflowing": []
+  },
+  {
+    "path": "/admin/settlements",
+    "width": 1920,
+    "overflow": false,
+    "bodyWidth": 1920,
+    "mainWidth": 1736,
+    "heading": "정산 집계 리포트",
+    "desktopOnly": false,
+    "overflowing": []
+  },
+  {
+    "path": "/admin/analytics/dashboard",
+    "width": 390,
+    "overflow": false,
+    "bodyWidth": 390,
+    "mainWidth": 390,
+    "heading": "분석 현황",
+    "desktopOnly": true,
+    "overflowing": []
+  },
+  {
+    "path": "/admin/analytics/dashboard",
+    "width": 768,
+    "overflow": false,
+    "bodyWidth": 768,
+    "mainWidth": 768,
+    "heading": "분석 현황",
+    "desktopOnly": true,
+    "overflowing": []
+  },
+  {
+    "path": "/admin/analytics/dashboard",
+    "width": 1280,
+    "overflow": false,
+    "bodyWidth": 1280,
+    "mainWidth": 1096,
+    "heading": "분석 현황",
+    "desktopOnly": false,
+    "overflowing": []
+  },
+  {
+    "path": "/admin/analytics/dashboard",
+    "width": 1440,
+    "overflow": false,
+    "bodyWidth": 1440,
+    "mainWidth": 1256,
+    "heading": "분석 현황",
+    "desktopOnly": false,
+    "overflowing": []
+  },
+  {
+    "path": "/admin/analytics/dashboard",
+    "width": 1920,
+    "overflow": false,
+    "bodyWidth": 1920,
+    "mainWidth": 1736,
+    "heading": "분석 현황",
+    "desktopOnly": false,
+    "overflowing": []
+  },
+  {
+    "path": "/admin/analytics/map",
+    "width": 390,
+    "overflow": false,
+    "bodyWidth": 390,
+    "mainWidth": 390,
+    "heading": "전국 지도 현황",
+    "desktopOnly": true,
+    "overflowing": []
+  },
+  {
+    "path": "/admin/analytics/map",
+    "width": 768,
+    "overflow": false,
+    "bodyWidth": 768,
+    "mainWidth": 768,
+    "heading": "전국 지도 현황",
+    "desktopOnly": true,
+    "overflowing": []
+  },
+  {
+    "path": "/admin/analytics/map",
+    "width": 1280,
+    "overflow": false,
+    "bodyWidth": 1280,
+    "mainWidth": 1096,
+    "heading": "전국 지도 현황",
+    "desktopOnly": false,
+    "overflowing": []
+  },
+  {
+    "path": "/admin/analytics/map",
+    "width": 1440,
+    "overflow": false,
+    "bodyWidth": 1440,
+    "mainWidth": 1256,
+    "heading": "전국 지도 현황",
+    "desktopOnly": false,
+    "overflowing": []
+  },
+  {
+    "path": "/admin/analytics/map",
+    "width": 1920,
+    "overflow": false,
+    "bodyWidth": 1920,
+    "mainWidth": 1736,
+    "heading": "전국 지도 현황",
+    "desktopOnly": false,
+    "overflowing": []
+  },
+  {
+    "path": "/admin/analytics/surveys",
+    "width": 390,
+    "overflow": false,
+    "bodyWidth": 390,
+    "mainWidth": 390,
+    "heading": "설문 현황",
+    "desktopOnly": false,
+    "overflowing": []
+  },
+  {
+    "path": "/admin/analytics/surveys",
+    "width": 768,
+    "overflow": false,
+    "bodyWidth": 768,
+    "mainWidth": 768,
+    "heading": "설문 현황",
+    "desktopOnly": false,
+    "overflowing": [
+      {
+        "tag": "TABLE",
+        "cls": "w-full min-w-[900px] text-left text-sm"
+      },
+      {
+        "tag": "THEAD",
+        "cls": "border-b border-border bg-neutral-50 text-xs text-muted"
+      },
+      {
+        "tag": "TR",
+        "cls": ""
+      },
+      {
+        "tag": "TH",
+        "cls": "px-4 py-3 font-medium "
+      },
+      {
+        "tag": "TH",
+        "cls": "px-4 py-3 font-medium "
+      }
+    ]
+  },
+  {
+    "path": "/admin/analytics/surveys",
+    "width": 1280,
+    "overflow": false,
+    "bodyWidth": 1280,
+    "mainWidth": 1096,
+    "heading": "설문 현황",
+    "desktopOnly": false,
+    "overflowing": []
+  },
+  {
+    "path": "/admin/analytics/surveys",
+    "width": 1440,
+    "overflow": false,
+    "bodyWidth": 1440,
+    "mainWidth": 1256,
+    "heading": "설문 현황",
+    "desktopOnly": false,
+    "overflowing": []
+  },
+  {
+    "path": "/admin/analytics/surveys",
+    "width": 1920,
+    "overflow": false,
+    "bodyWidth": 1920,
+    "mainWidth": 1736,
+    "heading": "설문 현황",
+    "desktopOnly": false,
+    "overflowing": []
+  },
+  {
+    "path": "/admin/analytics/ratings",
+    "width": 390,
+    "overflow": false,
+    "bodyWidth": 390,
+    "mainWidth": 390,
+    "heading": "평점 현황",
+    "desktopOnly": true,
+    "overflowing": []
+  },
+  {
+    "path": "/admin/analytics/ratings",
+    "width": 768,
+    "overflow": false,
+    "bodyWidth": 768,
+    "mainWidth": 768,
+    "heading": "평점 현황",
+    "desktopOnly": true,
+    "overflowing": []
+  },
+  {
+    "path": "/admin/analytics/ratings",
+    "width": 1280,
+    "overflow": false,
+    "bodyWidth": 1280,
+    "mainWidth": 1096,
+    "heading": "평점 현황",
+    "desktopOnly": false,
+    "overflowing": []
+  },
+  {
+    "path": "/admin/analytics/ratings",
+    "width": 1440,
+    "overflow": false,
+    "bodyWidth": 1440,
+    "mainWidth": 1256,
+    "heading": "평점 현황",
+    "desktopOnly": false,
+    "overflowing": []
+  },
+  {
+    "path": "/admin/analytics/ratings",
+    "width": 1920,
+    "overflow": false,
+    "bodyWidth": 1920,
+    "mainWidth": 1736,
+    "heading": "평점 현황",
+    "desktopOnly": false,
+    "overflowing": []
+  },
+  {
+    "path": "/admin/settings",
+    "width": 390,
+    "overflow": false,
+    "bodyWidth": 390,
+    "mainWidth": 390,
+    "heading": "설정",
+    "desktopOnly": false,
+    "overflowing": []
+  },
+  {
+    "path": "/admin/settings",
+    "width": 768,
+    "overflow": false,
+    "bodyWidth": 768,
+    "mainWidth": 768,
+    "heading": "설정",
+    "desktopOnly": false,
+    "overflowing": []
+  },
+  {
+    "path": "/admin/settings",
+    "width": 1280,
+    "overflow": false,
+    "bodyWidth": 1280,
+    "mainWidth": 1096,
+    "heading": "설정",
+    "desktopOnly": false,
+    "overflowing": []
+  },
+  {
+    "path": "/admin/settings",
+    "width": 1440,
+    "overflow": false,
+    "bodyWidth": 1440,
+    "mainWidth": 1256,
+    "heading": "설정",
+    "desktopOnly": false,
+    "overflowing": []
+  },
+  {
+    "path": "/admin/settings",
+    "width": 1920,
+    "overflow": false,
+    "bodyWidth": 1920,
+    "mainWidth": 1736,
+    "heading": "설정",
+    "desktopOnly": false,
+    "overflowing": []
+  },
+  {
+    "path": "/admin/providers/new",
+    "width": 390,
+    "overflow": false,
+    "bodyWidth": 390,
+    "mainWidth": 390,
+    "heading": "업체 등록",
+    "desktopOnly": false,
+    "overflowing": []
+  },
+  {
+    "path": "/admin/providers/new",
+    "width": 768,
+    "overflow": false,
+    "bodyWidth": 768,
+    "mainWidth": 768,
+    "heading": "업체 등록",
+    "desktopOnly": false,
+    "overflowing": []
+  },
+  {
+    "path": "/admin/providers/new",
+    "width": 1280,
+    "overflow": false,
+    "bodyWidth": 1280,
+    "mainWidth": 1096,
+    "heading": "업체 등록",
+    "desktopOnly": false,
+    "overflowing": []
+  },
+  {
+    "path": "/admin/providers/new",
+    "width": 1440,
+    "overflow": false,
+    "bodyWidth": 1440,
+    "mainWidth": 1256,
+    "heading": "업체 등록",
+    "desktopOnly": false,
+    "overflowing": []
+  },
+  {
+    "path": "/admin/providers/new",
+    "width": 1920,
+    "overflow": false,
+    "bodyWidth": 1920,
+    "mainWidth": 1736,
+    "heading": "업체 등록",
+    "desktopOnly": false,
+    "overflowing": []
+  },
+  {
+    "path": "/admin/technicians/new",
+    "width": 390,
+    "overflow": false,
+    "bodyWidth": 390,
+    "mainWidth": 390,
+    "heading": "전기기사 직접 등록",
+    "desktopOnly": false,
+    "overflowing": []
+  },
+  {
+    "path": "/admin/technicians/new",
+    "width": 768,
+    "overflow": false,
+    "bodyWidth": 768,
+    "mainWidth": 768,
+    "heading": "전기기사 직접 등록",
+    "desktopOnly": false,
+    "overflowing": []
+  },
+  {
+    "path": "/admin/technicians/new",
+    "width": 1280,
+    "overflow": false,
+    "bodyWidth": 1280,
+    "mainWidth": 1096,
+    "heading": "전기기사 직접 등록",
+    "desktopOnly": false,
+    "overflowing": []
+  },
+  {
+    "path": "/admin/technicians/new",
+    "width": 1440,
+    "overflow": false,
+    "bodyWidth": 1440,
+    "mainWidth": 1256,
+    "heading": "전기기사 직접 등록",
+    "desktopOnly": false,
+    "overflowing": []
+  },
+  {
+    "path": "/admin/technicians/new",
+    "width": 1920,
+    "overflow": false,
+    "bodyWidth": 1920,
+    "mainWidth": 1736,
+    "heading": "전기기사 직접 등록",
+    "desktopOnly": false,
+    "overflowing": []
+  },
+  {
+    "path": "/admin/providers/cmtut19d000021itf1vln1tri",
+    "width": 390,
+    "overflow": false,
+    "bodyWidth": 390,
+    "mainWidth": 390,
+    "heading": "검증용 강남전기",
+    "desktopOnly": false,
+    "overflowing": []
+  },
+  {
+    "path": "/admin/providers/cmtut19d000021itf1vln1tri",
+    "width": 768,
+    "overflow": false,
+    "bodyWidth": 768,
+    "mainWidth": 768,
+    "heading": "검증용 강남전기",
+    "desktopOnly": false,
+    "overflowing": []
+  },
+  {
+    "path": "/admin/providers/cmtut19d000021itf1vln1tri",
+    "width": 1280,
+    "overflow": false,
+    "bodyWidth": 1280,
+    "mainWidth": 1096,
+    "heading": "검증용 강남전기",
+    "desktopOnly": false,
+    "overflowing": []
+  },
+  {
+    "path": "/admin/providers/cmtut19d000021itf1vln1tri",
+    "width": 1440,
+    "overflow": false,
+    "bodyWidth": 1440,
+    "mainWidth": 1256,
+    "heading": "검증용 강남전기",
+    "desktopOnly": false,
+    "overflowing": []
+  },
+  {
+    "path": "/admin/providers/cmtut19d000021itf1vln1tri",
+    "width": 1920,
+    "overflow": false,
+    "bodyWidth": 1920,
+    "mainWidth": 1736,
+    "heading": "검증용 강남전기",
+    "desktopOnly": false,
+    "overflowing": []
+  },
+  {
+    "path": "/admin/technicians/cmtut19v2000w1itftroolibe",
+    "width": 390,
+    "overflow": false,
+    "bodyWidth": 390,
+    "mainWidth": 390,
+    "heading": "검증용 김기사",
+    "desktopOnly": false,
+    "overflowing": []
+  },
+  {
+    "path": "/admin/technicians/cmtut19v2000w1itftroolibe",
+    "width": 768,
+    "overflow": false,
+    "bodyWidth": 768,
+    "mainWidth": 768,
+    "heading": "검증용 김기사",
+    "desktopOnly": false,
+    "overflowing": []
+  },
+  {
+    "path": "/admin/technicians/cmtut19v2000w1itftroolibe",
+    "width": 1280,
+    "overflow": false,
+    "bodyWidth": 1280,
+    "mainWidth": 1096,
+    "heading": "검증용 김기사",
+    "desktopOnly": false,
+    "overflowing": []
+  },
+  {
+    "path": "/admin/technicians/cmtut19v2000w1itftroolibe",
+    "width": 1440,
+    "overflow": false,
+    "bodyWidth": 1440,
+    "mainWidth": 1256,
+    "heading": "검증용 김기사",
+    "desktopOnly": false,
+    "overflowing": []
+  },
+  {
+    "path": "/admin/technicians/cmtut19v2000w1itftroolibe",
+    "width": 1920,
+    "overflow": false,
+    "bodyWidth": 1920,
+    "mainWidth": 1736,
+    "heading": "검증용 김기사",
+    "desktopOnly": false,
+    "overflowing": []
+  },
+  {
+    "path": "/admin/technicians/cmtut19v2000w1itftroolibe/contract",
+    "width": 390,
+    "overflow": false,
+    "bodyWidth": 390,
+    "mainWidth": 390,
+    "heading": "근로확인서 — 검증용 김기사",
+    "desktopOnly": false,
+    "overflowing": []
+  },
+  {
+    "path": "/admin/technicians/cmtut19v2000w1itftroolibe/contract",
+    "width": 768,
+    "overflow": false,
+    "bodyWidth": 768,
+    "mainWidth": 768,
+    "heading": "근로확인서 — 검증용 김기사",
+    "desktopOnly": false,
+    "overflowing": []
+  },
+  {
+    "path": "/admin/technicians/cmtut19v2000w1itftroolibe/contract",
+    "width": 1280,
+    "overflow": false,
+    "bodyWidth": 1280,
+    "mainWidth": 1096,
+    "heading": "근로확인서 — 검증용 김기사",
+    "desktopOnly": false,
+    "overflowing": []
+  },
+  {
+    "path": "/admin/technicians/cmtut19v2000w1itftroolibe/contract",
+    "width": 1440,
+    "overflow": false,
+    "bodyWidth": 1440,
+    "mainWidth": 1256,
+    "heading": "근로확인서 — 검증용 김기사",
+    "desktopOnly": false,
+    "overflowing": []
+  },
+  {
+    "path": "/admin/technicians/cmtut19v2000w1itftroolibe/contract",
+    "width": 1920,
+    "overflow": false,
+    "bodyWidth": 1920,
+    "mainWidth": 1736,
+    "heading": "근로확인서 — 검증용 김기사",
+    "desktopOnly": false,
+    "overflowing": []
+  },
+  {
+    "path": "/admin/technicians/cmtut19v2000w1itftroolibe/contract/print",
+    "width": 390,
+    "overflow": false,
+    "bodyWidth": 390,
+    "mainWidth": 390,
+    "heading": "일용근로자 표준근로확인서",
+    "desktopOnly": false,
+    "overflowing": []
+  },
+  {
+    "path": "/admin/technicians/cmtut19v2000w1itftroolibe/contract/print",
+    "width": 768,
+    "overflow": false,
+    "bodyWidth": 768,
+    "mainWidth": 768,
+    "heading": "일용근로자 표준근로확인서",
+    "desktopOnly": false,
+    "overflowing": []
+  },
+  {
+    "path": "/admin/technicians/cmtut19v2000w1itftroolibe/contract/print",
+    "width": 1280,
+    "overflow": false,
+    "bodyWidth": 1280,
+    "mainWidth": 1280,
+    "heading": "일용근로자 표준근로확인서",
+    "desktopOnly": false,
+    "overflowing": []
+  },
+  {
+    "path": "/admin/technicians/cmtut19v2000w1itftroolibe/contract/print",
+    "width": 1440,
+    "overflow": false,
+    "bodyWidth": 1440,
+    "mainWidth": 1440,
+    "heading": "일용근로자 표준근로확인서",
+    "desktopOnly": false,
+    "overflowing": []
+  },
+  {
+    "path": "/admin/technicians/cmtut19v2000w1itftroolibe/contract/print",
+    "width": 1920,
+    "overflow": false,
+    "bodyWidth": 1920,
+    "mainWidth": 1920,
+    "heading": "일용근로자 표준근로확인서",
+    "desktopOnly": false,
+    "overflowing": []
+  },
+  {
+    "path": "/admin/requests/portal-demo-20260910-tech-request-1",
+    "width": 390,
+    "overflow": false,
+    "bodyWidth": 390,
+    "mainWidth": 390,
+    "heading": "접수 #860038",
+    "desktopOnly": false,
+    "overflowing": []
+  },
+  {
+    "path": "/admin/requests/portal-demo-20260910-tech-request-1",
+    "width": 768,
+    "overflow": false,
+    "bodyWidth": 768,
+    "mainWidth": 768,
+    "heading": "접수 #860038",
+    "desktopOnly": false,
+    "overflowing": []
+  },
+  {
+    "path": "/admin/requests/portal-demo-20260910-tech-request-1",
+    "width": 1280,
+    "overflow": false,
+    "bodyWidth": 1280,
+    "mainWidth": 1096,
+    "heading": "접수 #860038",
+    "desktopOnly": false,
+    "overflowing": []
+  },
+  {
+    "path": "/admin/requests/portal-demo-20260910-tech-request-1",
+    "width": 1440,
+    "overflow": false,
+    "bodyWidth": 1440,
+    "mainWidth": 1256,
+    "heading": "접수 #860038",
+    "desktopOnly": false,
+    "overflowing": []
+  },
+  {
+    "path": "/admin/requests/portal-demo-20260910-tech-request-1",
+    "width": 1920,
+    "overflow": false,
+    "bodyWidth": 1920,
+    "mainWidth": 1736,
+    "heading": "접수 #860038",
+    "desktopOnly": false,
+    "overflowing": []
+  }
+]

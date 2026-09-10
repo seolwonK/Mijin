@@ -3,13 +3,21 @@ import { z } from 'zod';
 // 전기기사가 작성하는 근로확인서 항목 (인적사항 + 근무장소·업무·근로개시일).
 // 소정근로시간·근무일·주휴일은 서버가 근로형태에 따라 세팅하므로 여기에 없다.
 export const techContractSchema = z.object({
+  version: z.string().datetime().optional(),
   contractStartDate: z
     .string()
     .trim()
     .min(1, '근로개시일을 입력해 주세요')
-    .refine((s) => !Number.isNaN(Date.parse(s)), '날짜 형식이 올바르지 않습니다'),
+    .refine(
+      (s) => !Number.isNaN(Date.parse(s)),
+      '날짜 형식이 올바르지 않습니다',
+    ),
   workLocation: z.string().trim().min(1, '근무장소를 입력해 주세요').max(200),
-  jobDescription: z.string().trim().min(1, '업무 내용을 입력해 주세요').max(500),
+  jobDescription: z
+    .string()
+    .trim()
+    .min(1, '업무 내용을 입력해 주세요')
+    .max(500),
   workerAddress: z.string().trim().min(1, '주소를 입력해 주세요').max(200),
   workerSignatureName: z.string().trim().min(1, '성명을 입력해 주세요').max(50),
   // 캔버스 손글씨 서명 (data URL PNG) — 서명 시 계약이 확정된다

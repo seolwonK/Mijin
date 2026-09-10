@@ -52,8 +52,8 @@ export default function NewProviderPage() {
 
   return (
     <main className="min-h-screen md:bg-surface">
-      <PageHeader title="업체 등록" back="/admin/providers" />
-      <div className="mx-auto w-full max-w-2xl space-y-2 p-4">
+      <PageHeader title="업체 등록" back="/admin/providers" width="max-w-[900px]" />
+      <div className="mx-auto w-full max-w-[900px] space-y-2 p-4">
         <label className="text-sm font-semibold">추천인 (선택)</label>
         <ReferrerField selected={referrer} onSelectedChange={setReferrer} variant="admin" />
       </div>

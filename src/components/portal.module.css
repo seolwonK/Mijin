@@ -1,0 +1,101 @@
+.frame {
+  --color-muted: #58616d;
+  --color-neutral-400: #66717e;
+  --shadow-surface-sm: 0 0 0 1px #e2e6ec;
+  --shadow-surface-md: 0 0 0 1px #e2e6ec;
+  --shadow-surface-lg: 0 0 0 1px #d8dfe8;
+  --radius-2xl: 1rem;
+  --radius-3xl: 1.25rem;
+  --text-xs: 0.8125rem;
+  --text-xs--line-height: 1.25rem;
+  color: var(--color-fg);
+  overflow-wrap: anywhere;
+}
+.frame :is(input, textarea, select, button, a, summary):focus-visible {
+  outline: 2px solid var(--color-brand-600);
+  outline-offset: 3px;
+}
+.frame :is(input, select, textarea) {
+  min-width: 0;
+}
+.frame h2,
+.frame [id] {
+  scroll-margin-top: 90px;
+}
+@media print {
+  .frame {
+    --shadow-surface-sm: none;
+    --shadow-surface-md: none;
+    --shadow-surface-lg: none;
+  }
+}
+
+@media print {
+  :global(body):has(.frame) :global(header),
+  :global(body):has(.frame) :global(footer) {
+    display: none;
+  }
+  .frame {
+    background: white;
+    color: black;
+    font-size: 12pt;
+  }
+  .frame section {
+    break-inside: avoid;
+  }
+  .frame :global(a[href='/support']) {
+    display: none;
+  }
+}
+
+/* Theme utilities compile to values; scope the rendered utilities as well. */
+.frame :global(.text-muted) {
+  color: #58616d;
+}
+.frame :global(.text-neutral-400) {
+  color: #66717e;
+}
+.frame :global(.text-xs) {
+  font-size: 0.8125rem;
+  line-height: 1.25rem;
+}
+.frame
+  :is(
+    :global(.shadow-surface-sm),
+    :global(.shadow-surface-md),
+    :global(.shadow-surface-lg)
+  ) {
+  box-shadow: 0 0 0 1px #e2e6ec;
+}
+.frame :global(.rounded-2xl) {
+  border-radius: 1rem;
+}
+.frame :global(.rounded-3xl) {
+  border-radius: 1.25rem;
+}
+:global(body):has(.frame) :global(footer) {
+  color: #58616d;
+  font-size: 0.8125rem;
+}
+:global(body):has(.frame) :global(footer p) {
+  color: #58616d;
+  font-size: 0.8125rem;
+}
+:global(body):has(.frame) :global(footer a) {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+}
+.frame :global(dialog button:focus-visible) {
+  outline-color: white;
+}
+@media print {
+  .frame
+    :is(
+      :global(.shadow-surface-sm),
+      :global(.shadow-surface-md),
+      :global(.shadow-surface-lg)
+    ) {
+    box-shadow: none;
+  }
+}

@@ -28,14 +28,14 @@ async function mockRatings(page: Page) {
 }
 
 test.describe('관리자 평점 현황', () => {
-  test('does not request ratings data below the lg breakpoint', async ({ page }) => {
+  test('loads ratings on tablet widths', async ({ page }) => {
     await page.setViewportSize({ width: 1023, height: 800 });
     await loginAsAdmin(page);
     const requestCount = await mockRatings(page);
     await page.goto('/admin/analytics/ratings');
 
-    await expect(page.getByText('평점 현황은 데스크톱에서 이용할 수 있습니다.')).toBeVisible();
-    expect(requestCount()).toBe(0);
+    await expect(page.getByText('가 업체')).toBeVisible();
+    expect(requestCount()).toBeGreaterThan(0);
   });
   test('sorts, filters, and loads a selected subject detail through GET', async ({ page }) => {
     await loginAsAdmin(page);

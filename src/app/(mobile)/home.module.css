@@ -1,0 +1,594 @@
+.page {
+  background: white;
+  color: var(--color-fg);
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+
+.container {
+  width: min(100% - 40px, 1040px);
+  margin-inline: auto;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 76px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.header > a {
+  display: inline-flex;
+  flex-shrink: 0;
+}
+
+.headerNav {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  font-size: 14px;
+}
+
+.headerNav a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+}
+
+.headerNav a:hover, .textLink:hover, .partnerLink a:hover {
+  color: var(--color-brand-600);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.headerNav .desktopLink {
+  display: none;
+}
+
+.hero {
+  padding-block: 28px 32px;
+}
+
+.heroHeading {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 64px;
+  align-items: end;
+  gap: 4px;
+}
+
+.eyebrow {
+  margin-bottom: 12px;
+  color: var(--color-brand-700);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.title {
+  font-size: clamp(24px, 7.4vw, 34px);
+  line-height: 1.2;
+  letter-spacing: -0.045em;
+  font-weight: 800;
+}
+
+.title span {
+  display: block;
+  white-space: nowrap;
+}
+
+.character {
+  width: 64px;
+  height: auto;
+}
+
+.lead {
+  margin-top: 16px;
+  color: var(--color-muted);
+  font-size: 16px;
+  line-height: 1.7;
+  max-width: 32ch;
+}
+
+.lead span {
+  white-space: nowrap;
+}
+
+.heroAction {
+  display: none;
+}
+
+.priceNote {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 14px;
+  color: var(--color-brand-700);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.symptoms {
+  margin-top: 32px;
+}
+
+.symptoms h2 {
+  font-size: 22px;
+  font-weight: 750;
+  letter-spacing: -0.035em;
+  line-height: 1.4;
+}
+
+.sectionDescription {
+  margin-top: 8px;
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--color-muted);
+}
+
+.symptomGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.symptomLink {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 10px;
+  min-height: 108px;
+  padding: 14px;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.4;
+  transition: border-color 160ms, background-color 160ms;
+}
+
+.symptomLink:hover {
+  border-color: var(--color-brand-400);
+  background: var(--color-brand-50);
+}
+
+.symptomLink:active {
+  background: var(--color-brand-100);
+}
+
+.symptomIcon {
+  height: 28px;
+  width: 28px;
+  flex-shrink: 0;
+  color: var(--color-brand-700);
+}
+
+.otherSymptom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 52px;
+  margin-top: 8px;
+  padding-block: 12px;
+  font-size: 14px;
+  color: var(--color-muted);
+}
+
+.otherSymptom:hover {
+  color: var(--color-brand-700);
+}
+
+.otherSymptom > span {
+  font-size: 20px;
+}
+
+.serviceNotes {
+  border-block: 1px solid var(--color-border);
+  padding-block: 24px;
+  display: grid;
+  gap: 20px;
+}
+
+.serviceNotes h2 {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.serviceNotes p {
+  margin-top: 5px;
+  color: var(--color-muted);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.section {
+  padding-block: 40px;
+  scroll-margin-top: 24px;
+}
+
+.section h2, .leakSection h2 {
+  font-size: 24px;
+  line-height: 1.35;
+  font-weight: 750;
+  letter-spacing: -0.035em;
+}
+
+.sectionHeading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px 20px;
+}
+
+.textLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 44px;
+  color: var(--color-brand-700);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.textLink > span {
+  font-size: 18px;
+}
+
+.processList {
+  display: grid;
+  gap: 24px;
+  margin-top: 24px;
+}
+
+.processList li {
+  display: flex;
+  align-items: baseline;
+  gap: 18px;
+}
+
+.stepNumber {
+  flex-shrink: 0;
+  color: var(--color-brand-600);
+  font-size: 14px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.processList h3 {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.processList p {
+  margin-top: 6px;
+  color: var(--color-muted);
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.leakSection {
+  border-top: 1px solid var(--color-border);
+  padding-block: 32px 36px;
+  display: grid;
+  gap: 24px;
+}
+
+.leakEyebrow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+  color: var(--color-red-700);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.leakSigns {
+  display: grid;
+  gap: 12px;
+  padding-left: 18px;
+  list-style: disc;
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.leakSigns li::marker {
+  color: var(--color-neutral-400);
+}
+
+.safetyNote {
+  border-left: 2px solid var(--color-red-200);
+  margin-top: 20px;
+  padding-left: 14px;
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--color-muted);
+}
+
+.leakSection .textLink {
+  margin-top: 12px;
+}
+
+.faqSection {
+  display: grid;
+  gap: 24px;
+  border-top: 1px solid var(--color-border);
+}
+
+.faqList {
+  border-top: 1px solid var(--color-border);
+}
+
+.faqList details {
+  border-bottom: 1px solid var(--color-border);
+}
+
+.faqList summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding-block: 20px;
+  min-height: 64px;
+  cursor: pointer;
+  list-style: none;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.6;
+}
+
+.faqList summary::-webkit-details-marker {
+  display: none;
+}
+
+.faqToggle {
+  position: relative;
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  color: var(--color-muted);
+}
+
+.faqToggle::before, .faqToggle::after {
+  content: '';
+  position: absolute;
+  background: currentColor;
+}
+
+.faqToggle::before {
+  width: 14px;
+  height: 1.5px;
+  top: 7px;
+  left: 1px;
+}
+
+.faqToggle::after {
+  width: 1.5px;
+  height: 14px;
+  left: 7px;
+  top: 1px;
+}
+
+.faqList details[open] .faqToggle::after {
+  display: none;
+}
+
+.faqList details[open] summary {
+  color: var(--color-brand-700);
+}
+
+.faqList details > p {
+  padding-bottom: 22px;
+  color: var(--color-muted);
+  font-size: 15px;
+  line-height: 1.8;
+}
+
+.partnerLink {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 4px 20px;
+  padding-block: 20px 32px;
+  font-size: 14px;
+  color: var(--color-muted);
+}
+
+.partnerLink > span {
+  align-self: center;
+}
+
+.partnerLink a {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  color: var(--color-fg);
+}
+
+/* 홈에서만 공통 푸터의 정렬선을 본문과 맞춘다. */
+
+.page + footer > div {
+  max-width: 1040px;
+}
+
+@media (max-width: 767px) {
+  .intro {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 44%;
+    grid-template-rows: auto 1fr auto;
+    gap: 16px 12px;
+    align-items: start;
+  }
+  .heroHeading {
+    display: contents;
+  }
+  .heroHeading > div {
+    grid-column: 1;
+    grid-row: 1;
+  }
+  .character {
+    grid-column: 2;
+    grid-row: 1 / 3;
+    align-self: center;
+    width: 100%;
+  }
+  .lead {
+    grid-column: 1;
+    grid-row: 2;
+    margin-top: 0;
+    font-size: 15px;
+  }
+  .priceNote {
+    grid-column: 1 / -1;
+    margin-top: 0;
+  }
+}
+
+@media (min-width: 768px) {
+  .page + footer {
+    padding-inline: 32px;
+  }
+  .container {
+    width: min(100% - 64px, 1040px);
+  }
+  .header {
+    min-height: 96px;
+  }
+  .headerNav .desktopLink {
+    display: inline-flex;
+  }
+  .hero {
+    padding-block: 40px;
+  }
+  .heroHeading {
+    grid-template-columns: minmax(0, 1fr) 88px;
+  }
+  .character {
+    width: 88px;
+  }
+  .title {
+    font-size: 44px;
+  }
+  .eyebrow {
+    font-size: 13px;
+  }
+  .heroAction {
+    display: block;
+    margin-top: 24px;
+  }
+  .primaryLink {
+    display: inline-flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 28px;
+    min-height: 54px;
+    padding: 14px 22px;
+    border-radius: 10px;
+    background: var(--color-brand-700);
+    color: white;
+    font-size: 17px;
+    font-weight: 650;
+    transition: background-color 160ms;
+  }
+  .primaryLink:hover {
+    background: var(--color-brand-800);
+  }
+  .primaryLink:active {
+    background: var(--color-brand-900);
+  }
+  .symptomGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .serviceNotes {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 24px;
+    padding-block: 28px;
+  }
+  .section {
+    padding-block: 48px;
+  }
+  .section h2, .leakSection h2 {
+    font-size: 27px;
+  }
+  .processList {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 24px;
+    margin-top: 30px;
+  }
+  .processList li {
+    flex-direction: column;
+    gap: 16px;
+    border-top: 1px solid var(--color-border);
+    padding-top: 18px;
+  }
+  .leakSection {
+    grid-template-columns: 1fr 1.3fr;
+    gap: 40px;
+    padding-block: 40px;
+  }
+  .faqSection {
+    grid-template-columns: 1fr 1.6fr;
+    gap: 40px;
+  }
+  .faqList {
+    border-top: 0;
+  }
+  .faqList details:first-child summary {
+    padding-top: 0;
+    min-height: 44px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .hero {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 64px;
+    padding-block: 52px;
+  }
+  .intro {
+    position: relative;
+    padding-bottom: 148px;
+  }
+  .heroHeading {
+    display: block;
+  }
+  .character {
+    position: absolute;
+    width: 148px;
+    right: 0;
+    bottom: 0;
+  }
+  .title {
+    font-size: 48px;
+  }
+  .lead {
+    max-width: 30ch;
+    font-size: 17px;
+  }
+  .symptoms {
+    margin-top: 0;
+    padding-left: 32px;
+    border-left: 1px solid var(--color-border);
+  }
+  .symptomGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .symptomLink {
+    min-height: 112px;
+  }
+  .serviceNotes {
+    gap: 40px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .symptomLink, .primaryLink {
+    transition: none;
+  }
+}

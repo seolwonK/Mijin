@@ -116,14 +116,14 @@ test('shapes: buildMock 은 목이 실API에 없는 필드를 지어내면 거�
     /shape 에 없는 키/,
   );
   expect(() =>
-    buildMock(SURVEYS_SHAPE, { pending: { items: [{ surveyId: 's', bogusField: 1 }] } }),
+    buildMock(SURVEYS_SHAPE, { surveys: { items: [{ surveyId: 's', bogusField: 1 }] } }),
   ).toThrow(/shape 에 없는 키/);
 });
 
 test('shapes: buildMock 은 오버라이드 타입이 틀리면 거부한다', () => {
   expect(() => buildMock(SUMMARY_SHAPE, { received: '일곱' })).toThrow(/유한 number/);
   expect(() => buildMock(SUMMARY_SHAPE, { updatedAt: 'not-a-date' })).toThrow(/ISO 8601/);
-  expect(() => buildMock(SURVEYS_SHAPE, { pending: { items: [{ elapsedDays: null }] } })).toThrow(
+  expect(() => buildMock(SURVEYS_SHAPE, { surveys: { items: [{ elapsedDays: null }] } })).toThrow(
     /유한 number/,
   );
 });
@@ -133,9 +133,9 @@ test('shapes: buildMock 은 목이 빠뜨린 필드를 shape 골격으로 채운
   // 실API에 필드가 늘면 목이 조용히 빠뜨린 채 통과하지 못한다는 뜻이다.
   const built = buildMock(SURVEYS_SHAPE, { submitted: 5 });
   expect(Object.keys(built).sort()).toEqual(
-    ['paidStats', 'pending', 'responseRate', 'submitted', 'total', 'updatedAt'].sort(),
+    ['paidStats', 'surveys', 'responseRate', 'submitted', 'total', 'updatedAt'].sort(),
   );
-  expect(Object.keys(built.pending as object).sort()).toEqual(['hasNext', 'items', 'total']);
+  expect(Object.keys(built.surveys as object).sort()).toEqual(['hasNext', 'items', 'page', 'pageCount', 'pageSize', 'total']);
   expect(built.submitted).toBe(5);
 });
 

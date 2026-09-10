@@ -167,7 +167,7 @@ test('analytics/surveys GET 200 — shape · responseRate 와 paidStats.avg 자�
     responseRate: number | null;
     submitted: number;
     total: number;
-    pending: { items: Array<{ elapsedDays: number }>; total: number; hasNext: boolean };
+    surveys: { items: Array<{ elapsedDays: number }>; total: number; hasNext: boolean };
     paidStats: { sum: number; count: number; avg: number | null };
   };
   expect(shapeViolations(body, shapeOf('/api/admin/analytics/surveys'))).toEqual([]);
@@ -177,9 +177,9 @@ test('analytics/surveys GET 200 — shape · responseRate 와 paidStats.avg 자�
   expect(body.paidStats.avg).toBe(ratio(body.paidStats.sum, body.paidStats.count));
 
   // 페이지 크기 계약: 한 페이지는 50건이고 hasNext 는 그 초과 여부다 (:3, :77).
-  expect(body.pending.items.length).toBeLessThanOrEqual(50);
-  if (body.pending.hasNext) expect(body.pending.items.length).toBe(50);
-  for (const item of body.pending.items) {
+  expect(body.surveys.items.length).toBeLessThanOrEqual(50);
+  if (body.surveys.hasNext) expect(body.surveys.items.length).toBe(50);
+  for (const item of body.surveys.items) {
     expect(Number.isInteger(item.elapsedDays)).toBe(true);
     expect(item.elapsedDays).toBeGreaterThanOrEqual(0);
   }

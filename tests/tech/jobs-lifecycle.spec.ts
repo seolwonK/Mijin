@@ -1,4 +1,9 @@
-import { expect, test, type APIRequestContext, type PlaywrightWorkerArgs } from '@playwright/test';
+import {
+  expect,
+  test,
+  type APIRequestContext,
+  type PlaywrightWorkerArgs,
+} from '@playwright/test';
 import { PrismaClient } from '@prisma/client';
 import { apiContextOptions } from '../helpers/auth';
 import { ipHeaders } from '../helpers/ip';
@@ -29,7 +34,11 @@ test.afterEach(async () => {
 
 type Pw = PlaywrightWorkerArgs['playwright'];
 
-async function techCtx(playwright: Pw, tech: TechFixture, seed: string): Promise<APIRequestContext> {
+async function techCtx(
+  playwright: Pw,
+  tech: TechFixture,
+  seed: string,
+): Promise<APIRequestContext> {
   return playwright.request.newContext(
     await apiContextOptions(
       'TECHNICIAN',
@@ -59,9 +68,19 @@ async function makeAssignment(
 }
 
 const requestStatus = async (id: string) =>
-  (await prisma.serviceRequest.findUnique({ where: { id }, select: { status: true } }))?.status;
+  (
+    await prisma.serviceRequest.findUnique({
+      where: { id },
+      select: { status: true },
+    })
+  )?.status;
 const assignmentStatus = async (id: string) =>
-  (await prisma.assignment.findUnique({ where: { id }, select: { status: true } }))?.status;
+  (
+    await prisma.assignment.findUnique({
+      where: { id },
+      select: { status: true },
+    })
+  )?.status;
 
 // ── 목록 스코프 ────────────────────────────────────────────────────────────
 
@@ -76,7 +95,9 @@ test.describe('GET /api/tech/jobs', () => {
     const ctx = await techCtx(playwright, me, 'jobs-scope');
     const res = await ctx.get('/api/tech/jobs');
     expect(res.status()).toBe(200);
-    const ids = ((await res.json()).jobs as Array<{ id: string }>).map((j) => j.id);
+    const ids = ((await res.json()).jobs as Array<{ id: string }>).map(
+      (j) => j.id,
+    );
     expect(ids).toContain(mine.id);
     expect(ids).not.toContain(theirs.id);
     await ctx.dispose();
@@ -94,9 +115,9 @@ test.describe('GET /api/tech/jobs', () => {
 
     const ctx = await techCtx(playwright, me, 'jobs-shape');
     const res = await ctx.get('/api/tech/jobs');
-    const job = ((await res.json()).jobs as Array<Record<string, unknown>>).find(
-      (j) => j.id === a.id,
-    );
+    const job = (
+      (await res.json()).jobs as Array<Record<string, unknown>>
+    ).find((j) => j.id === a.id);
     expect(job).toBeDefined();
     expect(job!.status).toBe('REQUESTED');
     expect(job!.assignedBy).toBe('ADMIN');
@@ -107,12 +128,14 @@ test.describe('GET /api/tech/jobs', () => {
     expect(request.urgency).toBe('URGENT');
     expect(request.description).toBe('E2E 생애주기 점검');
     expect(request.address).toBe('서울특별시 강남구 테헤란로 1');
-    // 목록에는 고객 연락처가 없다 — 상세(jobs/[id])에서만 노출된다.
-    expect(request).not.toHaveProperty('customerPhone');
+    // 목록에서 본인 배정의 고객에게 바로 연락할 수 있다.
+    expect(request.customerPhone).toBe(req.customerPhone);
     await ctx.dispose();
   });
 
-  test('GET /api/tech/jobs/[id] 는 상세에서 고객 연락처를 준다', async ({ playwright }) => {
+  test('GET /api/tech/jobs/[id] 는 상세에서 고객 연락처를 준다', async ({
+    playwright,
+  }) => {
     const me = await f.createTechFixture();
     const req = await f.createRequestFixture({ status: 'ASSIGNED' });
     const a = await makeAssignment(me.technicianId, req.id);
@@ -125,7 +148,9 @@ test.describe('GET /api/tech/jobs', () => {
     expect(body.request.customerName).toBe(req.customerName);
     expect(body.request.customerPhone).toBe(req.customerPhone);
 
-    expect((await ctx.get('/api/tech/jobs/e2e-no-such-assignment')).status()).toBe(404);
+    expect(
+      (await ctx.get('/api/tech/jobs/e2e-no-such-assignment')).status(),
+    ).toBe(404);
     await ctx.dispose();
   });
 });
@@ -133,7 +158,9 @@ test.describe('GET /api/tech/jobs', () => {
 // ── 수락 / 거절 ────────────────────────────────────────────────────────────
 
 test.describe('POST /api/tech/jobs/[id]/accept', () => {
-  test('수락하면 배정과 접수가 함께 ACCEPTED 로 간다', async ({ playwright }) => {
+  test('수락하면 배정과 접수가 함께 ACCEPTED 로 간다', async ({
+    playwright,
+  }) => {
     const me = await f.createTechFixture();
     const req = await f.createRequestFixture({ status: 'ASSIGNED' });
     const a = await makeAssignment(me.technicianId, req.id);
@@ -145,19 +172,27 @@ test.describe('POST /api/tech/jobs/[id]/accept', () => {
     expect(await assignmentStatus(a.id)).toBe('ACCEPTED');
     expect(await requestStatus(req.id)).toBe('ACCEPTED');
     expect(
-      (await prisma.assignment.findUnique({ where: { id: a.id }, select: { respondedAt: true } }))
-        ?.respondedAt,
+      (
+        await prisma.assignment.findUnique({
+          where: { id: a.id },
+          select: { respondedAt: true },
+        })
+      )?.respondedAt,
     ).not.toBeNull();
     await ctx.dispose();
   });
 
-  test('재수락은 409 (accept/route.ts:28-30 의 CAS)', async ({ playwright }) => {
+  test('재수락은 409 (accept/route.ts:28-30 의 CAS)', async ({
+    playwright,
+  }) => {
     const me = await f.createTechFixture();
     const req = await f.createRequestFixture({ status: 'ASSIGNED' });
     const a = await makeAssignment(me.technicianId, req.id);
 
     const ctx = await techCtx(playwright, me, 'accept-409');
-    expect((await ctx.post(`/api/tech/jobs/${a.id}/accept`)).status()).toBe(200);
+    expect((await ctx.post(`/api/tech/jobs/${a.id}/accept`)).status()).toBe(
+      200,
+    );
     const again = await ctx.post(`/api/tech/jobs/${a.id}/accept`);
     expect(again.status()).toBe(409);
     expect((await again.json()).error).toContain('이미 처리된 배정');
@@ -171,10 +206,14 @@ test.describe('POST /api/tech/jobs/[id]/accept', () => {
     const fresh = await makeAssignment(me.technicianId, req.id, 'REQUESTED');
 
     const ctx = await techCtx(playwright, me, 'accept-rejected');
-    expect((await ctx.post(`/api/tech/jobs/${rejected.id}/accept`)).status()).toBe(409);
+    expect(
+      (await ctx.post(`/api/tech/jobs/${rejected.id}/accept`)).status(),
+    ).toBe(409);
     // 양성 대조 — 같은 전기기사·같은 접수의 REQUESTED 배정은 수락된다.
     // 이게 없으면 위 409 가 "accept 가 늘 409" 인 결함과 구분되지 않는다.
-    expect((await ctx.post(`/api/tech/jobs/${fresh.id}/accept`)).status()).toBe(200);
+    expect((await ctx.post(`/api/tech/jobs/${fresh.id}/accept`)).status()).toBe(
+      200,
+    );
     await ctx.dispose();
   });
 
@@ -184,9 +223,13 @@ test.describe('POST /api/tech/jobs/[id]/accept', () => {
     const real = await makeAssignment(me.technicianId, req.id);
 
     const ctx = await techCtx(playwright, me, 'accept-404');
-    expect((await ctx.post('/api/tech/jobs/e2e-no-such/accept')).status()).toBe(404);
+    expect((await ctx.post('/api/tech/jobs/e2e-no-such/accept')).status()).toBe(
+      404,
+    );
     // 양성 대조 — 실제 존재하는 내 배정은 같은 호출로 200 이 된다.
-    expect((await ctx.post(`/api/tech/jobs/${real.id}/accept`)).status()).toBe(200);
+    expect((await ctx.post(`/api/tech/jobs/${real.id}/accept`)).status()).toBe(
+      200,
+    );
     await ctx.dispose();
   });
 });
@@ -197,10 +240,17 @@ test.describe('POST /api/tech/jobs/[id]/reject', () => {
   }) => {
     const me = await f.createTechFixture();
     const req = await f.createRequestFixture({ status: 'ASSIGNED' });
-    const a = await makeAssignment(me.technicianId, req.id, 'REQUESTED', 'ADMIN');
+    const a = await makeAssignment(
+      me.technicianId,
+      req.id,
+      'REQUESTED',
+      'ADMIN',
+    );
 
     const ctx = await techCtx(playwright, me, 'reject-manual');
-    const res = await ctx.post(`/api/tech/jobs/${a.id}/reject`, { data: { reason: '거리 초과' } });
+    const res = await ctx.post(`/api/tech/jobs/${a.id}/reject`, {
+      data: { reason: '거리 초과' },
+    });
     expect(res.status()).toBe(200);
     expect(await res.json()).toEqual({ ok: true, reassigned: false });
     expect(await assignmentStatus(a.id)).toBe('REJECTED');
@@ -211,8 +261,12 @@ test.describe('POST /api/tech/jobs/[id]/reject', () => {
     expect(after?.status).toBe('RECEIVED');
     expect(after?.needsAttention).toBe(true);
     expect(
-      (await prisma.assignment.findUnique({ where: { id: a.id }, select: { rejectReason: true } }))
-        ?.rejectReason,
+      (
+        await prisma.assignment.findUnique({
+          where: { id: a.id },
+          select: { rejectReason: true },
+        })
+      )?.rejectReason,
     ).toBe('거리 초과');
 
     // 단언이 끝나면 즉시 RECEIVED 를 걷는다. 자동배정 워커는 가드가 꺼 뒀지만,
@@ -225,7 +279,9 @@ test.describe('POST /api/tech/jobs/[id]/reject', () => {
     await ctx.dispose();
   });
 
-  test('바디 없이 거절해도 200 (reject/route.ts:26-28)', async ({ playwright }) => {
+  test('바디 없이 거절해도 200 (reject/route.ts:26-28)', async ({
+    playwright,
+  }) => {
     const me = await f.createTechFixture();
     const req = await f.createRequestFixture({ status: 'ASSIGNED' });
     const a = await makeAssignment(me.technicianId, req.id);
@@ -234,8 +290,12 @@ test.describe('POST /api/tech/jobs/[id]/reject', () => {
     const res = await ctx.post(`/api/tech/jobs/${a.id}/reject`);
     expect(res.status()).toBe(200);
     expect(
-      (await prisma.assignment.findUnique({ where: { id: a.id }, select: { rejectReason: true } }))
-        ?.rejectReason,
+      (
+        await prisma.assignment.findUnique({
+          where: { id: a.id },
+          select: { rejectReason: true },
+        })
+      )?.rejectReason,
     ).toBeNull();
     await prisma.serviceRequest.update({
       where: { id: req.id },
@@ -256,8 +316,17 @@ test.describe('POST /api/tech/jobs/[id]/reject', () => {
     //    null 을 주고, 그러면 regions.ts:137 이 **모든 후보를 covers=true 로 취급**한다.
     //    따라서 lat/lng 를 null 로 두는 것이 이 테스트의 유일한 격리 수단이다.
     const me = await f.createTechFixture();
-    const req = await f.createRequestFixture({ status: 'ASSIGNED', lat: null, lng: null });
-    const a = await makeAssignment(me.technicianId, req.id, 'REQUESTED', 'AUTO');
+    const req = await f.createRequestFixture({
+      status: 'ASSIGNED',
+      lat: null,
+      lng: null,
+    });
+    const a = await makeAssignment(
+      me.technicianId,
+      req.id,
+      'REQUESTED',
+      'AUTO',
+    );
 
     const ctx = await techCtx(playwright, me, 'reject-auto');
     const res = await ctx.post(`/api/tech/jobs/${a.id}/reject`, { data: {} });
@@ -265,7 +334,9 @@ test.describe('POST /api/tech/jobs/[id]/reject', () => {
     expect(await res.json()).toEqual({ ok: true, reassigned: false });
     expect(await requestStatus(req.id)).toBe('RECEIVED');
     // 이 접수에 새 배정이 생기지 않았음을 확인한다(재배정 미발생).
-    expect(await prisma.assignment.count({ where: { requestId: req.id } })).toBe(1);
+    expect(
+      await prisma.assignment.count({ where: { requestId: req.id } }),
+    ).toBe(1);
 
     await prisma.serviceRequest.update({
       where: { id: req.id },
@@ -274,13 +345,17 @@ test.describe('POST /api/tech/jobs/[id]/reject', () => {
     await ctx.dispose();
   });
 
-  test('재거절은 409 (reject/route.ts:43-45 의 CAS)', async ({ playwright }) => {
+  test('재거절은 409 (reject/route.ts:43-45 의 CAS)', async ({
+    playwright,
+  }) => {
     const me = await f.createTechFixture();
     const req = await f.createRequestFixture({ status: 'ASSIGNED' });
     const a = await makeAssignment(me.technicianId, req.id);
 
     const ctx = await techCtx(playwright, me, 'reject-409');
-    expect((await ctx.post(`/api/tech/jobs/${a.id}/reject`, { data: {} })).status()).toBe(200);
+    expect(
+      (await ctx.post(`/api/tech/jobs/${a.id}/reject`, { data: {} })).status(),
+    ).toBe(200);
     const again = await ctx.post(`/api/tech/jobs/${a.id}/reject`, { data: {} });
     expect(again.status()).toBe(409);
     expect((await again.json()).error).toContain('이미 처리된 배정');
@@ -297,13 +372,25 @@ test.describe('POST /api/tech/jobs/[id]/reject', () => {
     const accepted = await makeAssignment(me.technicianId, req.id, 'ACCEPTED');
 
     const ctx = await techCtx(playwright, me, 'reject-accepted');
-    expect((await ctx.post(`/api/tech/jobs/${accepted.id}/reject`, { data: {} })).status()).toBe(409);
+    expect(
+      (
+        await ctx.post(`/api/tech/jobs/${accepted.id}/reject`, { data: {} })
+      ).status(),
+    ).toBe(409);
     expect(await requestStatus(req.id)).toBe('ACCEPTED');
 
     // 양성 대조 — REQUESTED 배정은 같은 호출로 거절된다(별도 접수를 써서 위 단언을 오염시키지 않는다).
     const other = await f.createRequestFixture({ status: 'ASSIGNED' });
-    const pending = await makeAssignment(me.technicianId, other.id, 'REQUESTED');
-    expect((await ctx.post(`/api/tech/jobs/${pending.id}/reject`, { data: {} })).status()).toBe(200);
+    const pending = await makeAssignment(
+      me.technicianId,
+      other.id,
+      'REQUESTED',
+    );
+    expect(
+      (
+        await ctx.post(`/api/tech/jobs/${pending.id}/reject`, { data: {} })
+      ).status(),
+    ).toBe(200);
     await prisma.serviceRequest.update({
       where: { id: other.id },
       data: { status: 'CANCELED', needsAttention: false },
@@ -315,26 +402,36 @@ test.describe('POST /api/tech/jobs/[id]/reject', () => {
 // ── 상태 전이 ──────────────────────────────────────────────────────────────
 
 test.describe('POST /api/tech/jobs/[id]/status', () => {
-  test('수락 전에는 진행할 수 없다 → 409 (status/route.ts:39-41)', async ({ playwright }) => {
+  test('수락 전에는 진행할 수 없다 → 409 (status/route.ts:39-41)', async ({
+    playwright,
+  }) => {
     const me = await f.createTechFixture();
     const req = await f.createRequestFixture({ status: 'ASSIGNED' });
     const a = await makeAssignment(me.technicianId, req.id);
 
     const ctx = await techCtx(playwright, me, 'status-not-accepted');
     // 바디는 유효해야 한다 — 그래야 zod(:27-30)를 지나 :39-41 까지 도달한다.
-    const res = await ctx.post(`/api/tech/jobs/${a.id}/status`, { data: { status: 'DISPATCHED' } });
+    const res = await ctx.post(`/api/tech/jobs/${a.id}/status`, {
+      data: { status: 'DISPATCHED' },
+    });
     expect(res.status()).toBe(409);
     expect((await res.json()).error).toContain('수락된 배정만');
 
     // 양성 대조 — 수락하고 나면 **같은 호출**이 200 이 된다.
-    expect((await ctx.post(`/api/tech/jobs/${a.id}/accept`)).status()).toBe(200);
-    const after = await ctx.post(`/api/tech/jobs/${a.id}/status`, { data: { status: 'DISPATCHED' } });
+    expect((await ctx.post(`/api/tech/jobs/${a.id}/accept`)).status()).toBe(
+      200,
+    );
+    const after = await ctx.post(`/api/tech/jobs/${a.id}/status`, {
+      data: { status: 'DISPATCHED' },
+    });
     expect(after.status()).toBe(200);
     expect(await requestStatus(req.id)).toBe('DISPATCHED');
     await ctx.dispose();
   });
 
-  test('잘못된 JSON·상태값은 400 (status/route.ts:24-30)', async ({ playwright }) => {
+  test('잘못된 JSON·상태값은 400 (status/route.ts:24-30)', async ({
+    playwright,
+  }) => {
     const me = await f.createTechFixture();
     const req = await f.createRequestFixture({ status: 'ACCEPTED' });
     const a = await makeAssignment(me.technicianId, req.id, 'ACCEPTED');
@@ -353,21 +450,29 @@ test.describe('POST /api/tech/jobs/[id]/status', () => {
     await ctx.dispose();
   });
 
-  test('출동 → 완료 순서를 지켜야 하며, 어긋난 전이는 전부 409', async ({ playwright }) => {
+  test('출동 → 완료 순서를 지켜야 하며, 어긋난 전이는 전부 409', async ({
+    playwright,
+  }) => {
     const me = await f.createTechFixture();
     const req = await f.createRequestFixture({ status: 'ACCEPTED' });
     const a = await makeAssignment(me.technicianId, req.id, 'ACCEPTED');
     const ctx = await techCtx(playwright, me, 'status-order');
 
     // ① 출동 전 완료 → 409 (:56-61)
-    const early = await ctx.post(`/api/tech/jobs/${a.id}/status`, { data: { status: 'COMPLETED' } });
+    const early = await ctx.post(`/api/tech/jobs/${a.id}/status`, {
+      data: { status: 'COMPLETED' },
+    });
     expect(early.status()).toBe(409);
     expect((await early.json()).error).toContain('출동 시작을 먼저');
     expect(await requestStatus(req.id)).toBe('ACCEPTED');
 
     // ② 출동 → 200 (:43-50)
     expect(
-      (await ctx.post(`/api/tech/jobs/${a.id}/status`, { data: { status: 'DISPATCHED' } })).status(),
+      (
+        await ctx.post(`/api/tech/jobs/${a.id}/status`, {
+          data: { status: 'DISPATCHED' },
+        })
+      ).status(),
     ).toBe(200);
     expect(await requestStatus(req.id)).toBe('DISPATCHED');
 
@@ -380,7 +485,11 @@ test.describe('POST /api/tech/jobs/[id]/status', () => {
 
     // ④ 완료 → 200 (:51-61)
     expect(
-      (await ctx.post(`/api/tech/jobs/${a.id}/status`, { data: { status: 'COMPLETED' } })).status(),
+      (
+        await ctx.post(`/api/tech/jobs/${a.id}/status`, {
+          data: { status: 'COMPLETED' },
+        })
+      ).status(),
     ).toBe(200);
     const done = await prisma.serviceRequest.findUnique({
       where: { id: req.id },
@@ -391,7 +500,11 @@ test.describe('POST /api/tech/jobs/[id]/status', () => {
 
     // ⑤ 재완료 → 409
     expect(
-      (await ctx.post(`/api/tech/jobs/${a.id}/status`, { data: { status: 'COMPLETED' } })).status(),
+      (
+        await ctx.post(`/api/tech/jobs/${a.id}/status`, {
+          data: { status: 'COMPLETED' },
+        })
+      ).status(),
     ).toBe(409);
     await ctx.dispose();
   });
@@ -405,17 +518,24 @@ test.describe('POST /api/tech/jobs/[id]/status', () => {
     const ctx = await techCtx(playwright, me, 'status-survey');
 
     expect(
-      (await ctx.post(`/api/tech/jobs/${a.id}/status`, { data: { status: 'COMPLETED' } })).status(),
+      (
+        await ctx.post(`/api/tech/jobs/${a.id}/status`, {
+          data: { status: 'COMPLETED' },
+        })
+      ).status(),
     ).toBe(200);
 
     // ① 설문 행 — status/route.ts:64 가 응답 **이후** 만든다.
     await expect
       .poll(
-        async () => prisma.satisfactionSurvey.count({ where: { requestId: req.id } }),
+        async () =>
+          prisma.satisfactionSurvey.count({ where: { requestId: req.id } }),
         { timeout: 15_000, message: 'SatisfactionSurvey 행이 생성되지 않았다' },
       )
       .toBe(1);
-    const survey = await prisma.satisfactionSurvey.findUnique({ where: { requestId: req.id } });
+    const survey = await prisma.satisfactionSurvey.findUnique({
+      where: { requestId: req.id },
+    });
     expect(survey?.technicianId).toBe(me.technicianId);
     expect(survey?.providerId).toBeNull();
     expect(survey?.submittedAt).toBeNull();
@@ -427,7 +547,10 @@ test.describe('POST /api/tech/jobs/[id]/status', () => {
       .poll(
         async () =>
           prisma.smsLog.count({
-            where: { requestId: req.id, body: { contains: '만족도 조사 참여' } },
+            where: {
+              requestId: req.id,
+              body: { contains: '만족도 조사 참여' },
+            },
           }),
         { timeout: 15_000, message: '설문 안내 SmsLog 가 기록되지 않았다' },
       )
@@ -464,7 +587,9 @@ test.describe('POST /api/tech/jobs/[id]/status', () => {
     // ② 가려짐(shadowing) 실증: 같은 남의 배정에 **잘못된 바디**를 보내면 zod(:27-30)가
     //    먼저 400 을 내고 소유권 검사(:36-38)는 **실행조차 되지 않는다**.
     //    "404 가 아니다"로 느슨하게 단언했다면 이 요청도 통과해 소유권을 검증한 척했을 것이다.
-    const shadowed = await foreign.post(`/api/tech/jobs/${a.id}/status`, { data: {} });
+    const shadowed = await foreign.post(`/api/tech/jobs/${a.id}/status`, {
+      data: {},
+    });
     expect(shadowed.status()).toBe(400);
     expect((await shadowed.json()).error).toContain('상태값');
     await foreign.dispose();
@@ -472,7 +597,9 @@ test.describe('POST /api/tech/jobs/[id]/status', () => {
     // ③ 양성 대조 — 같은 호출이 **주인**에게는 성공한다.
     //    이게 없으면 위 404 는 "이 라우트가 늘 404" 인 하네스 결함과 구분되지 않는다.
     const owner = await techCtx(playwright, other, 'status-owner');
-    const ok = await owner.post(`/api/tech/jobs/${a.id}/status`, { data: { status: 'DISPATCHED' } });
+    const ok = await owner.post(`/api/tech/jobs/${a.id}/status`, {
+      data: { status: 'DISPATCHED' },
+    });
     expect(ok.status()).toBe(200);
     expect(await requestStatus(req.id)).toBe('DISPATCHED');
     await owner.dispose();

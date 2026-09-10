@@ -1,28 +1,20 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import Link from 'next/link';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
-import AdminMetricStrip, { type Metric } from '@/components/AdminMetricStrip';
-import AdminDataTable, { type Column } from '@/components/AdminDataTable';
 import SelectedRequestPanel from '@/components/SelectedRequestPanel';
 import { AdminStatusTag, AdminUrgencyTag } from '@/components/AdminStatusTag';
-import { AlertIcon } from '@/components/icons';
-import { EggIcon } from '@/components/EggIcon';
+import { RefreshIcon, SearchIcon } from '@/components/icons';
+import styles from '@/components/admin-queue.module.css';
 
 export type AdminWorkQueueRequest = {
-  id: string;
-  lookupCode: string;
-  customerName: string;
-  customerPhone: string;
-  description: string;
-  urgency: string;
-  status: string;
-  needsAttention: boolean;
-  createdAt: string;
-  assigneeName: string | null;
+  id: string; lookupCode: string; customerName: string; customerPhone: string;
+  description: string; urgency: string; status: string; address?: string | null;
+  needsAttention: boolean; createdAt: string; assigneeName: string | null;
   survey: { submitted: boolean; rating: number | null } | null;
 };
-
+export type AdminQueueSummary = { received: number | null; needsAttention: number | null; urgentOpen: number | null };
 const TABS = [
   { key: 'ALL', label: '전체', statuses: null },
   { key: 'RECEIVED', label: '배정대기', statuses: ['RECEIVED'] },
@@ -30,67 +22,133 @@ const TABS = [
   { key: 'ACTIVE', label: '진행중', statuses: ['ACCEPTED', 'DISPATCHED'] },
   { key: 'DONE', label: '완료/취소', statuses: ['COMPLETED', 'CANCELED'] },
 ] as const;
-type ColKey = 'status' | 'code' | 'urgency' | 'desc' | 'who' | 'time' | 'assignee' | 'survey';
+const PAGE_SIZE = 25;
+const number = (value: number | null) => value == null ? '—' : value.toLocaleString('ko-KR');
 
-export default function AdminWorkQueue({ requests, refresh, extraMetrics = [], summary }: { requests: AdminWorkQueueRequest[]; refresh: () => void | Promise<void>; extraMetrics?: Metric[]; summary?: { received: number | null; needsAttention: number | null } }) {
+function RequestContent({ request, selected, expanded, onSelect, onExpand }: {
+  request: AdminWorkQueueRequest; selected: boolean; expanded: boolean; onSelect: () => void; onExpand: () => void;
+}) {
+  const description = useRef<HTMLSpanElement>(null);
+  const address = useRef<HTMLSpanElement>(null);
+  const [canExpand, setCanExpand] = useState(false);
+  useEffect(() => {
+    if (expanded) return;
+    const check = () => setCanExpand([description.current, address.current].some(node => node && node.clientHeight > 0 && node.scrollHeight > node.clientHeight + 1));
+    const observer = new ResizeObserver(check);
+    if (description.current) observer.observe(description.current);
+    if (address.current) observer.observe(address.current);
+    check();
+    return () => observer.disconnect();
+  }, [request.description, request.address, expanded]);
+  return <div className={styles.requestContent} data-expanded={expanded}>
+    <button type="button" className={styles.contentButton} onClick={onSelect} aria-pressed={selected} aria-label={`접수 ${request.lookupCode} 선택`} data-request-id={request.id}>
+      <span className={styles.meta}><span className={styles.code}>#{request.lookupCode}</span><AdminUrgencyTag urgency={request.urgency} />{request.needsAttention && <span className={styles.attention}>확인 필요</span>}</span>
+      <span ref={description} className={styles.description}>{request.description}</span>
+    </button>
+    <div className={styles.contentFoot}>
+      {request.address && <span ref={address} className={styles.address}>{request.address}</span>}
+      {(canExpand || expanded) && <button type="button" onClick={onExpand} className={styles.expand} aria-expanded={expanded} aria-label={`접수 ${request.lookupCode} 내용 ${expanded ? '접기' : '펼치기'}`}>{expanded ? '접기' : '내용 펼치기'}</button>}
+    </div>
+  </div>;
+}
+function Progress({ request }: { request: AdminWorkQueueRequest }) {
+  return <><AdminStatusTag status={request.status} />{request.assigneeName && <span className={styles.secondary}>{request.assigneeName}</span>}{request.status === 'COMPLETED' && <span className={styles.secondary}>설문 {request.survey?.submitted ? request.survey.rating != null ? `${request.survey.rating} / 5점` : '응답 완료' : request.survey ? '미응답' : '미생성'}</span>}</>;
+}
+function RequestTime({ value }: { value: string }) {
+  const date = new Date(value);
+  return <time dateTime={value} className={styles.time}><span>{date.toLocaleDateString('ko-KR', { month: '2-digit', day: '2-digit', timeZone: 'Asia/Seoul' })}</span><span>{date.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'Asia/Seoul' })}</span></time>;
+}
+
+export default function AdminWorkQueue({ requests, refresh, summary, lastUpdatedAt }: {
+  requests: AdminWorkQueueRequest[]; refresh: () => void | Promise<void>; summary?: AdminQueueSummary; lastUpdatedAt?: number | null;
+}) {
   const searchParams = useSearchParams();
   const [tab, setTab] = useState('ALL');
+  const [attentionOnly, setAttentionOnly] = useState(false);
   const [query, setQuery] = useState('');
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
+  const [page, setPage] = useState(1);
+  const [order, setOrder] = useState<'priority' | 'oldest' | 'newest'>('priority');
+  const [refreshing, setRefreshing] = useState(false);
+  const root = useRef<HTMLElement>(null);
+  const list = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const requestedTab = searchParams.get('tab');
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    if (TABS.some((item) => item.key === requestedTab)) setTab(requestedTab!);
+    if (TABS.some(item => item.key === requestedTab)) { setTab(requestedTab!); setPage(1); setSelectedId(null); }
   }, [searchParams]);
-  const received = requests.filter((request) => request.status === 'RECEIVED').length;
-  const active = requests.filter((request) => ['ACCEPTED', 'DISPATCHED'].includes(request.status)).length;
-  const done = requests.filter((request) => ['COMPLETED', 'CANCELED'].includes(request.status)).length;
-  const needsAttention = requests.filter((request) => request.needsAttention).length;
-  const displayedReceived = summary ? (summary.received ?? '—') : received;
-  const displayedNeedsAttention = summary ? (summary.needsAttention ?? null) : needsAttention;
-  // 오늘 접수의 시간대별 실측 추이(최근 12시간) — 목록이 오늘분이므로 시간 버킷만으로 충분.
-  // 스파크라인은 반드시 실데이터에서 계산한다(가공 수치 금지 — AdminMetricStrip 주석 참조).
-  const spark = useMemo(() => {
-    const counts = Array.from({ length: 24 }, () => 0);
-    for (const request of requests) counts[new Date(request.createdAt).getHours()] += 1;
-    const nowHour = new Date().getHours();
-    // 자정 직후에도 항상 12버킷 — 전날 시간대로 랩어라운드(길이 1이 되면 스파크가 사라진다).
-    return Array.from({ length: 12 }, (_, i) => counts[(nowHour - 11 + i + 24) % 24]);
-  }, [requests]);
-  const rows = useMemo(() => {
-    const statuses = TABS.find((item) => item.key === tab)?.statuses;
-    const q = query.trim().toLowerCase();
-    const filtered = requests.filter((request) => (!statuses || statuses.includes(request.status as never)) && (!q || request.lookupCode.toLowerCase().includes(q) || request.customerName.toLowerCase().includes(q) || request.customerPhone.includes(query.trim()) || request.description.toLowerCase().includes(q)));
-    return [...filtered].sort((a, b) => {
-      const priority = (request: AdminWorkQueueRequest) => request.needsAttention ? 0 : request.status === 'RECEIVED' ? 1 : 2;
-      return priority(a) - priority(b);
-    });
-  }, [query, requests, tab]);
-  const selected = rows.find((request) => request.id === selectedId) ?? null;
-  const columns: Column<AdminWorkQueueRequest, ColKey>[] = [
-    { key: 'status', label: '상태', width: '112px', render: (request) => <AdminStatusTag status={request.status} /> },
-    { key: 'code', label: '접수번호', width: '104px', render: (request) => <span className="font-mono font-semibold text-admin-cyan-ink">{request.lookupCode}</span> },
-    { key: 'urgency', label: '긴급도', width: '76px', render: (request) => <AdminUrgencyTag urgency={request.urgency} /> },
-    { key: 'desc', label: '내용', render: (request) => <span className="line-clamp-1">{request.description}{request.needsAttention && <span className="ml-2 inline-flex items-center gap-1 font-mono text-xs text-red-600 md:text-sm"><AlertIcon className="h-3 w-3 shrink-0" />확인요망</span>}</span> },
-    { key: 'who', label: '고객', width: '190px', render: (request) => <span className="text-neutral-600">{request.customerName} · {request.customerPhone}</span> },
-    { key: 'time', label: '시각', width: '96px', align: 'right', sortable: true, sortValue: (request) => new Date(request.createdAt).getTime(), render: (request) => <span className="font-mono text-neutral-600">{new Date(request.createdAt).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })}</span> },
-    // 배정자는 "텍스트"가 아니라 "사람"으로 읽히도록 이니셜 칩을 붙인다(브랜드 인디고 고정).
-    { key: 'assignee', label: '배정', width: '140px', align: 'right', render: (request) => request.assigneeName ? <span className="inline-flex items-center gap-1.5"><span aria-hidden className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-brand-100 text-[10px] font-bold text-brand-700">{request.assigneeName[0]}</span><span className="font-semibold text-admin-cyan-ink">{request.assigneeName}</span></span> : <span className="text-muted">—</span> },
-    { key: 'survey', label: '조사', width: '84px', align: 'right', render: (request) => request.status !== 'COMPLETED' ? <span className="text-muted">-</span> : !request.survey ? <span className="text-neutral-600">미발송</span> : !request.survey.submitted ? <span className="text-neutral-600">미참여</span> : <span className="font-mono font-semibold text-admin-cyan-ink">{request.survey.rating != null ? `★${request.survey.rating}` : '참여'}</span> },
-  ];
-  const panel = selected && <SelectedRequestPanel key={selected.id} requestId={selected.id} onAssigned={refresh} />;
 
-  // Stripe 뼈대: 페이지 배경(surface)과 흰 패널을 분리해 표면 한 겹의 깊이를 만든다 —
-  // 미소비 상태였던 --shadow-surface-sm을 관리자에서 처음 소비. 뉴트럴·라디우스 체계 불변.
-  return <section className="min-h-full bg-surface p-4">
-    <div className="overflow-hidden rounded-admin-lg border border-border bg-white text-fg shadow-surface-sm">
-      <AdminMetricStrip metrics={[{ label: '오늘 접수', value: requests.length, spark }, { label: '배정 대기', value: displayedReceived, delta: displayedNeedsAttention != null && displayedNeedsAttention > 0 ? { label: `확인 ${displayedNeedsAttention}`, tone: 'warn' } : undefined, onClick: () => setTab('RECEIVED'), ariaLabel: '배정 대기 탭으로 이동' }, { label: '진행중', value: active, tone: 'accent' }, { label: '완료 · 취소', value: done }, ...extraMetrics]} />
-      <div className="flex flex-wrap items-center gap-3 border-y border-border px-4 py-2.5">
-        <div className="flex gap-1">{TABS.map((item) => { const count = item.statuses ? requests.filter((request) => item.statuses.includes(request.status as never)).length : requests.length; return <button key={item.key} type="button" onClick={() => setTab(item.key)} aria-pressed={tab === item.key} className={`rounded-admin-md border px-3 py-1.5 text-sm font-semibold transition-colors duration-brand-fast ease-portal ${tab === item.key ? 'border-admin-cyan-ink bg-neutral-100 text-fg' : 'border-transparent text-neutral-600 hover:bg-neutral-100'}`}>{item.label} {count > 0 && <span className="font-mono">{count}</span>}</button>; })}</div>
-        <input type="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="접수번호 · 이름 · 전화 · 내용 검색" aria-label="접수 검색" className="ml-auto w-full rounded-admin-md border border-border bg-white px-3 py-1.5 text-sm focus:border-admin-cyan-ink focus:outline-none xl:w-80" />
+  const active = requests.filter(r => ['ACCEPTED', 'DISPATCHED'].includes(r.status)).length;
+  const attention = summary ? summary.needsAttention : requests.filter(r => r.needsAttention).length;
+  const received = summary ? summary.received : requests.filter(r => r.status === 'RECEIVED').length;
+  const urgent = summary ? summary.urgentOpen : requests.filter(r => ['CRITICAL', 'URGENT'].includes(r.urgency) && !['COMPLETED', 'CANCELED'].includes(r.status)).length;
+  const scope = summary ? '전체 접수 기준' : '조회된 접수 기준';
+  const rows = useMemo(() => {
+    const statuses = TABS.find(item => item.key === tab)?.statuses;
+    const q = query.trim().toLowerCase();
+    const phoneQuery = q.replace(/[ -]/g, '');
+    return requests.filter(r => (!statuses || statuses.includes(r.status as never)) && (!attentionOnly || r.needsAttention) && (!q || r.lookupCode.toLowerCase().includes(q) || r.customerName.toLowerCase().includes(q) || r.description.toLowerCase().includes(q) || r.address?.toLowerCase().includes(q) || (/^\d+$/.test(phoneQuery) && r.customerPhone.replace(/[ -]/g, '').includes(phoneQuery))))
+      .sort((a, b) => {
+        const priority = (r: AdminWorkQueueRequest) => r.needsAttention ? 0 : r.status === 'RECEIVED' ? 1 : 2;
+        if (order === 'priority' && priority(a) !== priority(b)) return priority(a) - priority(b);
+        return (Date.parse(a.createdAt) - Date.parse(b.createdAt)) * (order === 'oldest' ? 1 : -1);
+      });
+  }, [requests, tab, query, attentionOnly, order]);
+  const pageCount = Math.max(1, Math.ceil(rows.length / PAGE_SIZE));
+  const currentPage = Math.min(page, pageCount);
+  const visible = rows.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+  const selected = rows.find(r => r.id === selectedId);
+  function resetList() { setPage(1); setSelectedId(null); list.current?.scrollTo({ top: 0 }); }
+  function changeTab(value: string) { setTab(value); setAttentionOnly(false); resetList(); }
+  function closePanel() {
+    const id = selectedId;
+    setSelectedId(null);
+    requestAnimationFrame(() => {
+      const buttons = root.current?.querySelectorAll<HTMLButtonElement>('[data-request-id]');
+      Array.from(buttons ?? []).find(el => el.dataset.requestId === id && el.getClientRects().length)?.focus({ preventScroll: true });
+    });
+  }
+  function changePage(value: number) {
+    setPage(value); setSelectedId(null); list.current?.scrollTo({ top: 0 });
+    if (window.innerWidth < 1440) root.current?.querySelector('#request-list-title')?.scrollIntoView({ block: 'start' });
+  }
+  function expand(id: string) { setExpandedIds(prev => { const next = new Set(prev); if (next.has(id)) next.delete(id); else next.add(id); return next; }); }
+  async function reload() { setRefreshing(true); try { await refresh(); } finally { setRefreshing(false); } }
+  const requestContent = (request: AdminWorkQueueRequest) => <RequestContent request={request} selected={selectedId === request.id} expanded={expandedIds.has(request.id)} onSelect={() => setSelectedId(request.id)} onExpand={() => expand(request.id)} />;
+
+  return <section ref={root} className={styles.page} aria-label="관리자 접수 관리">
+    <header className={styles.header}>
+      <div className={styles.heading}><h1>접수 관리</h1><span>대시보드</span></div>
+      <div className={styles.headerActions}>{lastUpdatedAt && <time className={styles.updated} dateTime={new Date(lastUpdatedAt).toISOString()}>{new Date(lastUpdatedAt).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'Asia/Seoul' })} 갱신</time>}<Link href="/admin/analytics/dashboard">분석 보기</Link><button type="button" className={styles.button} onClick={reload} disabled={refreshing}><RefreshIcon className={refreshing ? styles.spinning : ''} />{refreshing ? '갱신 중…' : '새로고침'}</button></div>
+    </header>
+    <div className={styles.metrics} aria-label="접수 요약">
+      <button type="button" className={styles.metric} data-attention={!!attention} onClick={() => { setTab('ALL'); setAttentionOnly(true); resetList(); }} aria-label="관리자 확인 접수 보기"><span className={styles.metricLabel}>관리자 확인</span><span className={styles.metricMain}><strong>{number(attention)}</strong><span>{scope}</span></span></button>
+      <button type="button" className={styles.metric} onClick={() => changeTab('RECEIVED')} aria-label="배정 대기 탭으로 이동"><span className={styles.metricLabel}>배정 대기</span><span className={styles.metricMain}><strong>{number(received)}</strong><span>{scope}</span></span></button>
+      <button type="button" className={styles.metric} onClick={() => changeTab('ACTIVE')} aria-label="진행 중 접수 보기"><span className={styles.metricLabel}>진행 중</span><span className={styles.metricMain}><strong>{number(active)}</strong><span>조회된 접수 기준</span></span></button>
+      <Link className={styles.metric} href="/admin/analytics/dashboard#operational" data-urgent={!!urgent}><span className={styles.metricLabel}>긴급 미완료</span><span className={styles.metricMain}><strong>{number(urgent)}</strong><span>{scope}</span></span></Link>
+    </div>
+    <div className={styles.workspace} data-selected={!!selected}>
+      <div className={styles.queue}>
+        <div className={styles.toolbar}>
+          <div className={styles.toolbarTop}><div className={styles.listTitle}><h2 id="request-list-title">접수 목록 <span>{number(rows.length)}</span></h2><span>최근 최대 200건</span></div><div className={styles.searchField}><SearchIcon /><input type="search" value={query} onChange={e => { setQuery(e.target.value); resetList(); }} placeholder="접수번호 · 고객 · 주소 · 내용" aria-label="접수 검색" className={styles.search} /></div></div>
+          <div className={styles.filters}><div className={styles.tabs} role="group" aria-label="접수 상태 필터">{TABS.map(item => {
+            const count = item.statuses ? requests.filter(r => item.statuses.includes(r.status as never)).length : requests.length;
+            return <button key={item.key} type="button" onClick={() => changeTab(item.key)} aria-pressed={tab === item.key && !attentionOnly}>{item.label}<span>{number(count)}</span></button>;
+          })}</div><select className={styles.sort} aria-label="접수 정렬" value={order} onChange={e => { setOrder(e.target.value as typeof order); resetList(); }}><option value="priority">처리 우선순</option><option value="oldest">오래된 순</option><option value="newest">최근 순</option></select></div>
+          {attentionOnly && <p className={styles.filterNote}>관리자 확인이 필요한 접수 <button type="button" onClick={() => { setAttentionOnly(false); resetList(); }}>필터 해제 ×</button></p>}
+        </div>
+        <div ref={list} className={styles.listScroll} role="region" aria-label="접수 목록 스크롤" tabIndex={0}>
+          {!rows.length ? <div className={styles.empty}><strong>{query.trim() || tab !== 'ALL' || attentionOnly ? '조건에 해당하는 접수가 없습니다.' : '아직 접수된 요청이 없습니다.'}</strong><p>새 접수가 들어오면 이곳에서 확인할 수 있습니다.</p></div> : <>
+            <div className={styles.tableViewport}><table className={styles.table}><caption className="sr-only">접수 내용과 고객, 진행 상태 목록</caption><thead><tr><th scope="col">접수 내용</th><th scope="col">고객</th><th scope="col">진행 상태</th><th scope="col" aria-sort={order === 'priority' ? 'none' : order === 'oldest' ? 'ascending' : 'descending'}><button type="button" onClick={() => { setOrder(order === 'oldest' ? 'newest' : 'oldest'); resetList(); }}>접수 시각 <span aria-hidden="true">{order === 'oldest' ? '↑' : order === 'newest' ? '↓' : '↕'}</span></button></th></tr></thead><tbody>{visible.map(request => <tr key={request.id} className={styles.row} data-selected={selectedId === request.id} onClick={e => { if (!(e.target as HTMLElement).closest('button, a')) setSelectedId(request.id); }}>
+              <td>{requestContent(request)}</td><td><p className={styles.customer}>{request.customerName}</p><a href={`tel:${request.customerPhone}`} className={styles.phone}>{request.customerPhone}</a></td><td><Progress request={request} /></td><td><RequestTime value={request.createdAt} /></td>
+            </tr>)}</tbody></table></div>
+            <ul className={styles.mobileList}>{visible.map(request => <li key={request.id} className={styles.mobileItem} data-selected={selectedId === request.id}>{requestContent(request)}<div className={styles.mobileBottom}><div><p className={styles.customer}>{request.customerName}</p><a className={styles.phone} href={`tel:${request.customerPhone}`}>{request.customerPhone}</a></div><div><Progress request={request} /></div><RequestTime value={request.createdAt} /></div></li>)}</ul>
+          </>}
+        </div>
+        {!!rows.length && <nav className={styles.pagination} aria-label="접수 목록 페이지"><p>{number((currentPage - 1) * PAGE_SIZE + 1)}–{number(Math.min(currentPage * PAGE_SIZE, rows.length))} / {number(rows.length)}건</p><div><button type="button" className={styles.button} disabled={currentPage === 1} onClick={() => changePage(currentPage - 1)}>이전</button><span>{currentPage} / {pageCount}</span><button type="button" className={styles.button} disabled={currentPage === pageCount} onClick={() => changePage(currentPage + 1)}>다음</button></div></nav>}
       </div>
-      {rows.length === 0 ? <div className="flex flex-col items-center gap-2 p-10 text-center"><EggIcon size={22} className="opacity-60" />{/* 빈 목록은 두 가지 — 진짜 조용한 것과 필터/검색 미일치. 후자에 "조용합니다"는 배차 콘솔에서 오정보다. */}
-        <p className="text-sm text-muted">{query.trim() || tab !== 'ALL' ? '조건에 해당하는 접수가 없습니다.' : '지금은 조용합니다 — 새 접수가 들어오면 바로 표시됩니다.'}</p></div> : <div className="xl:grid xl:grid-cols-[minmax(0,1fr)_26rem] xl:items-start"><div className="min-w-0"><AdminDataTable columns={columns} rows={rows} rowKey={(request) => request.id} selectedKey={selectedId} onRowClick={(request) => setSelectedId(request.id)} rowClassName={(request) => request.needsAttention ? 'bg-red-50' : ''} /></div>{/* 단일 마운트 — md/lg에서는 표 아래, xl에서는 우측 열로 CSS 배치만 이동(이중 마운트 시 폴링이 2배가 된다) */}<div className={selected ? 'border-t border-border p-4 xl:border-t-0 xl:border-l' : 'hidden xl:block xl:border-l xl:border-border xl:p-4'}>{panel ?? <p className="text-sm text-muted">행을 선택하면 배정 정보를 표시합니다.</p>}</div></div>}
+      {selected && <div id="request-inspector" className={styles.inspector}><SelectedRequestPanel key={selected.id} requestId={selected.id} onAssigned={refresh} onClose={closePanel} /></div>}
     </div>
   </section>;
 }

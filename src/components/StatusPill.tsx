@@ -16,7 +16,44 @@ type StatusVisual = {
   strike?: boolean;
 };
 
+export function portalJobStatus(
+  assignmentStatus: string,
+  requestStatus: string,
+) {
+  if (assignmentStatus === 'CANCELED') return 'ASSIGNMENT_CANCELED';
+  if (['REQUESTED', 'REJECTED', 'EXPIRED'].includes(assignmentStatus))
+    return assignmentStatus;
+  return requestStatus;
+}
 const STATUS: Record<string, StatusVisual> = {
+  REQUESTED: {
+    label: '응답 대기',
+    dot: 'bg-brand-600',
+    border: 'border-brand-600',
+    bg: 'bg-brand-50',
+    text: 'text-brand-700',
+  },
+  REJECTED: {
+    label: '거절한 배정',
+    dot: 'bg-neutral-500',
+    border: 'border-neutral-300',
+    bg: 'bg-neutral-100',
+    text: 'text-neutral-700',
+  },
+  EXPIRED: {
+    label: '응답 기한 만료',
+    dot: 'bg-amber-600',
+    border: 'border-amber-300',
+    bg: 'bg-amber-50',
+    text: 'text-amber-800',
+  },
+  ASSIGNMENT_CANCELED: {
+    label: '배정 취소',
+    dot: 'bg-neutral-500',
+    border: 'border-neutral-300',
+    bg: 'bg-neutral-100',
+    text: 'text-neutral-700',
+  },
   RECEIVED: {
     label: '배정대기',
     dot: 'bg-neutral-400',
@@ -95,9 +132,15 @@ const URGENCY: Record<string, { label: string; dot: string; text: string }> = {
 };
 
 export function UrgencyPill({ urgency }: { urgency: string }) {
-  const u = URGENCY[urgency] ?? { label: urgency, dot: 'bg-neutral-400', text: 'text-muted' };
+  const u = URGENCY[urgency] ?? {
+    label: urgency,
+    dot: 'bg-neutral-400',
+    text: 'text-muted',
+  };
   return (
-    <span className={`inline-flex items-center gap-1.5 text-xs font-semibold ${u.text}`}>
+    <span
+      className={`inline-flex items-center gap-1.5 text-xs font-semibold ${u.text}`}
+    >
       <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${u.dot}`} />
       {u.label}
     </span>

@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
 import { loginAsAdmin } from './helpers/auth';
+import { mockQueue } from './helpers/admin-queue';
 
 const REQUEST_CODE = '900011';
 const CANDIDATE = {
@@ -16,7 +17,7 @@ const CANDIDATE = {
   rejectedThisRequest: false,
   assigned30d: 0,
   avgRating: 5,
-  reviewCount: 1,
+  reviewCount: 1, eggBalance: 30, sameDistrict: true,
 };
 
 
@@ -27,7 +28,7 @@ function requestRow(page: Page) {
 async function selectRequest(page: Page) {
   const row = requestRow(page);
   await expect(row).toHaveCount(1);
-  await row.click();
+  await row.getByRole('button', { name: /선택$/ }).click();
 }
 
 async function mockCandidates(page: Page) {
@@ -39,12 +40,14 @@ async function mockCandidates(page: Page) {
 async function openAssignConfirm(page: Page) {
   await selectRequest(page);
   await page.getByRole('button', { name: '배정', exact: true }).first().click();
-  await expect(page.getByRole('dialog')).toBeVisible();
+  await expect(page.getByRole('dialog', { name: '배정 확인', exact: true })).toBeVisible();
 }
 
-// AdminWorkQueue is implemented in a parallel lane. Keep these selectors limited to its
-// public table/button/dialog contract; adjust only when that implementation changes it.
 test.describe('관리자 작업 큐 배정', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 1000 });
+    await mockQueue(page);
+  });
   test('① 선택 전에는 후보 API를 호출하지 않는다', async ({ page }) => {
     let candidateCalls = 0;
     page.on('request', (request) => {
@@ -85,7 +88,7 @@ test.describe('관리자 작업 큐 배정', () => {
     await selectRequest(page);
     const otherRow = page.locator('table tbody tr').filter({ hasNotText: REQUEST_CODE }).first();
     await expect(otherRow).toBeVisible();
-    await otherRow.click();
+    await otherRow.getByRole('button', { name: /선택$/ }).click();
     await expect(page.getByText('이전 후보', { exact: true })).toHaveCount(0);
   });
 
@@ -99,7 +102,7 @@ test.describe('관리자 작업 큐 배정', () => {
 
     await loginAsAdmin(page);
     await openAssignConfirm(page);
-    await page.getByRole('dialog').getByRole('button', { name: '배정', exact: true }).click();
+    await page.getByRole('dialog', { name: '배정 확인', exact: true }).getByRole('button', { name: '배정', exact: true }).click();
     await expect.poll(() => assignBody).toEqual({ assigneeKind: CANDIDATE.kind, assigneeId: CANDIDATE.id });
   });
 
@@ -113,8 +116,8 @@ test.describe('관리자 작업 큐 배정', () => {
 
     await loginAsAdmin(page);
     await openAssignConfirm(page);
-    await page.getByRole('dialog').getByRole('button', { name: '취소', exact: true }).click();
-    await expect(page.getByRole('dialog')).toHaveCount(0);
+    await page.getByRole('dialog', { name: '배정 확인', exact: true }).getByRole('button', { name: '취소', exact: true }).click();
+    await expect(page.getByRole('dialog', { name: '배정 확인', exact: true })).toHaveCount(0);
     expect(assignCalls).toBe(0);
   });
 
@@ -129,7 +132,7 @@ test.describe('관리자 작업 큐 배정', () => {
 
     await loginAsAdmin(page);
     await openAssignConfirm(page);
-    const confirm = page.getByRole('dialog').getByRole('button', { name: '배정', exact: true });
+    const confirm = page.getByRole('dialog', { name: '배정 확인', exact: true }).getByRole('button', { name: '배정', exact: true });
     await confirm.dblclick();
     await expect.poll(() => assignCalls).toBe(1);
   });
@@ -142,7 +145,7 @@ test.describe('관리자 작업 큐 배정', () => {
 
     await loginAsAdmin(page);
     await openAssignConfirm(page);
-    await page.getByRole('dialog').getByRole('button', { name: '배정', exact: true }).click();
+    await page.getByRole('dialog', { name: '배정 확인', exact: true }).getByRole('button', { name: '배정', exact: true }).click();
     await expect(page.getByText('이미 배정되었습니다', { exact: true })).toBeVisible();
   });
 
@@ -157,7 +160,7 @@ test.describe('관리자 작업 큐 배정', () => {
     await loginAsAdmin(page);
     await openAssignConfirm(page);
     const beforeAssign = queueRefreshes;
-    await page.getByRole('dialog').getByRole('button', { name: '배정', exact: true }).click();
+    await page.getByRole('dialog', { name: '배정 확인', exact: true }).getByRole('button', { name: '배정', exact: true }).click();
     await expect.poll(() => queueRefreshes).toBeGreaterThan(beforeAssign);
   });
 });

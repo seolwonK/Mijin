@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 
 // 캔버스 손글씨 서명 패드. 획이 끝날 때마다 PNG data URL 을 onChange 로 전달하고,
 // 지우면 null 을 전달한다. 터치·마우스 모두 pointer 이벤트로 처리한다.
@@ -11,6 +11,10 @@ export default function SignaturePad({
   onChange: (dataUrl: string | null) => void;
   disabled?: boolean;
 }) {
+  const inputId = useId();
+  const [mode, setMode] = useState<'draw' | 'type'>('draw');
+  const [name, setName] = useState('');
+  const [consent, setConsent] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const drawing = useRef(false);
   const hasDrawn = useRef(false);
@@ -31,15 +35,12 @@ export default function SignaturePad({
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const ratio = Math.max(window.devicePixelRatio || 1, 1);
-    const rect = canvas.getBoundingClientRect();
-    canvas.width = rect.width * ratio;
-    canvas.height = rect.height * ratio;
+    canvas.width = 1000;
+    canvas.height = 400;
     paintBackground(canvas);
     const ctx = canvas.getContext('2d');
     if (ctx) {
-      ctx.scale(ratio, ratio);
-      ctx.lineWidth = 2.2;
+      ctx.lineWidth = 5;
       ctx.lineCap = 'round';
       ctx.lineJoin = 'round';
       ctx.strokeStyle = '#111827';
@@ -48,11 +49,14 @@ export default function SignaturePad({
 
   function pointFrom(e: React.PointerEvent<HTMLCanvasElement>) {
     const rect = canvasRef.current!.getBoundingClientRect();
-    return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+    return {
+      x: ((e.clientX - rect.left) * canvasRef.current!.width) / rect.width,
+      y: ((e.clientY - rect.top) * canvasRef.current!.height) / rect.height,
+    };
   }
 
   function start(e: React.PointerEvent<HTMLCanvasElement>) {
-    if (disabled) return;
+    if (disabled || mode !== 'draw') return;
     drawing.current = true;
     const ctx = canvasRef.current!.getContext('2d')!;
     const p = pointFrom(e);
@@ -89,25 +93,116 @@ export default function SignaturePad({
 
   return (
     <div className="space-y-2">
+      <fieldset disabled={disabled} className="flex flex-wrap gap-2">
+        <legend className="mb-2 text-sm font-medium">서명 방법</legend>
+        {[
+          ['draw', '직접 그리기'],
+          ['type', '이름 입력하기'],
+        ].map(([value, label]) => (
+          <label
+            key={value}
+            className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-border px-3 text-sm"
+          >
+            <input
+              type="radio"
+              name={`${inputId}-mode`}
+              checked={mode === value}
+              onChange={() => {
+                setMode(value as 'draw' | 'type');
+                setConsent(false);
+                clear();
+              }}
+            />
+            {label}
+          </label>
+        ))}
+      </fieldset>
+      {mode === 'type' && (
+        <div className="space-y-2">
+          <label htmlFor={inputId} className="block text-sm font-medium">
+            서명에 사용할 성명
+          </label>
+          <input
+            id={inputId}
+            value={name}
+            maxLength={50}
+            disabled={disabled}
+            onChange={(e) => {
+              setName(e.target.value);
+              clear();
+            }}
+            className="min-h-12 w-full rounded-lg border border-border px-3"
+          />
+          <label className="flex min-h-11 items-center gap-2 text-sm">
+            <input
+              type="checkbox"
+              checked={consent}
+              disabled={disabled}
+              onChange={(e) => {
+                setConsent(e.target.checked);
+                clear();
+              }}
+            />
+            입력한 이름을 내 서명으로 사용합니다.
+          </label>
+          <button
+            type="button"
+            disabled={disabled || !name.trim() || !consent}
+            onClick={() => {
+              const canvas = canvasRef.current!;
+              paintBackground(canvas);
+              const ctx = canvas.getContext('2d')!;
+              ctx.fillStyle = '#111827';
+              ctx.font = '64px sans-serif';
+              ctx.textAlign = 'center';
+              ctx.textBaseline = 'middle';
+              ctx.fillText(
+                name.trim(),
+                canvas.width / 2,
+                canvas.height / 2,
+                canvas.width - 80,
+              );
+              hasDrawn.current = true;
+              setEmpty(false);
+              onChange(canvas.toDataURL('image/png'));
+            }}
+            className="min-h-11 rounded-lg bg-brand-700 px-4 text-sm font-semibold text-white disabled:opacity-50"
+          >
+            이름으로 서명 적용
+          </button>
+        </div>
+      )}
+
       <canvas
         ref={canvasRef}
+        role="img"
+        aria-label={
+          empty
+            ? '서명 영역 · 직접 그리거나 이름 입력하기를 선택해 주세요'
+            : '작성한 서명'
+        }
         onPointerDown={start}
         onPointerMove={move}
         onPointerUp={end}
         onPointerLeave={end}
+        onPointerCancel={end}
         className="h-40 w-full touch-none rounded-xl border border-border bg-white"
         // 강제 다크 모드(안드로이드 자동 다크 등)에서도 서명면은 항상 흰 종이 + 짙은 획 유지
         style={{ colorScheme: 'only light', backgroundColor: '#ffffff' }}
       />
       <div className="flex items-center justify-between">
-        <span className="text-xs text-neutral-400">
-          {empty ? '위 칸에 손가락 또는 마우스로 서명해 주세요' : '서명됨'}
+        <span role="status" className="text-sm text-muted">
+          {empty
+            ? mode === 'draw'
+              ? '위 칸에 손가락 또는 마우스로 서명해 주세요'
+              : '이름 입력 후 서명 적용을 눌러 주세요'
+            : '서명됨'}
         </span>
         <button
           type="button"
           onClick={clear}
           disabled={disabled}
-          className="text-sm font-medium text-brand-600 underline disabled:opacity-50"
+          className="min-h-11 px-3 text-sm font-medium text-brand-600 underline disabled:opacity-50"
         >
           지우기
         </button>

@@ -1,7 +1,8 @@
 'use client';
 
 import { usePolling } from '@/components/usePolling';
-import Surface from '@/components/Surface';
+import PortalLoadState from '@/components/PortalLoadState';
+import styles from '@/components/portal-dashboard.module.css';
 
 type ReferralOverviewReferee = {
   id: string;
@@ -28,35 +29,47 @@ const KIND_LABEL: Record<ReferralOverviewReferee['kind'], string> = {
   TECHNICIAN: '전기기사',
 };
 
-const APPROVAL_BADGE: Record<
-  ReferralOverviewReferee['approvalStatus'],
-  { label: string; className: string }
-> = {
-  PENDING: { label: '승인 대기', className: 'bg-amber-50 text-amber-700' },
-  APPROVED: { label: '승인됨', className: 'bg-emerald-50 text-emerald-700' },
-  REJECTED: { label: '거절됨', className: 'bg-neutral-100 text-neutral-500' },
+const APPROVAL_LABEL = {
+  PENDING: '승인 대기', APPROVED: '승인 완료', REJECTED: '가입 반려',
 };
 
-// "결"(C) 카드 관례의 내 추천 현황 섹션 — partner·tech 대시보드 공용(url만 다르게 넘긴다,
-// CommissionSummary.tsx·PortalReviewSection.tsx와 동일한 usePolling 관례). 가입 시
-// referredByUserId로 지정된 업체·전기기사만 대상 — 소급 지정은 관리자 전용이라 여기 나타나지
-// 않는다. CommissionSummary와 달리 0건이어도 섹션을 숨기지 않고 안내 문구를 보여준다
-// (추천은 가입 시 1회만 결정되는 관계라, 있으면 알려줘야 하는 CommissionSummary의 "평생
-// 무적립" 숨김과는 성격이 다르다). 설문 대기 건수는 금액을 절대 추정하지 않는다 — API 계약
-// (getReferralOverview)이 건수만 내려주므로 이 컴포넌트는 그걸 그대로 표시할 뿐이다.
 export default function PortalReferralSection({ url }: { url: string }) {
-  const { data } = usePolling<ReferralOverviewResponse>(url, 30_000);
+  const { data, error, refresh } = usePolling<ReferralOverviewResponse>(
+    url,
+    30_000,
+  );
 
-  if (!data || data.referees.length === 0) {
+  if (!data)
     return (
       <section>
         <h2 className="mb-2 font-semibold">내 추천 현황</h2>
-        <Surface as="section" className="rounded-2xl p-4 text-center">
-          <p className="text-sm text-muted">아직 추천한 업체·전기기사가 없습니다</p>
+        <PortalLoadState
+          label="내 추천 현황"
+          error={error}
+          loading={!error}
+          retry={refresh}
+        />
+      </section>
+    );
+
+  if (data.referees.length === 0) {
+    return (
+      <section>
+        <h2 className="mb-2 font-semibold">내 추천 현황</h2>
+        <PortalLoadState
+          label="내 추천 현황"
+          error={error}
+          retry={refresh}
+          stale
+        />
+        <div className={styles.chargePanel}>
+          <p className="text-sm text-muted">
+            아직 추천한 업체·전기기사가 없습니다
+          </p>
           <p className="mt-1 text-xs text-muted">
             추천인은 가입 시에만 지정할 수 있어요 — 나중에 추가할 수 없습니다
           </p>
-        </Surface>
+        </div>
       </section>
     );
   }
@@ -66,66 +79,36 @@ export default function PortalReferralSection({ url }: { url: string }) {
   return (
     <section>
       <h2 className="mb-2 font-semibold">내 추천 현황</h2>
-      <Surface as="section" className="rounded-2xl p-4">
-        <div className="flex gap-6">
-          <div>
-            <p className="text-xs text-muted">추천 인원</p>
-            <p className="text-lg font-bold text-fg">총 {totals.refereeCount}명</p>
-          </div>
-          {totals.pendingSurveyCount > 0 && (
-            <div>
-              <p className="text-xs text-muted">설문 대기</p>
-              <p className="text-lg font-bold text-amber-700">{totals.pendingSurveyCount}건</p>
-            </div>
-          )}
+      <PortalLoadState
+        label="내 추천 현황"
+        error={error}
+        retry={refresh}
+        stale
+      />
+      <div className={styles.referralPanel}>
+        <div className="flex flex-wrap items-baseline justify-between gap-2 border-b border-border pb-4">
+          <p className="text-sm text-muted">추천 인원 <strong className="ml-2 font-semibold text-fg">총 {totals.refereeCount}명</strong></p>
+          {totals.pendingSurveyCount > 0 && <p className="text-xs text-muted">설문 미응답 {totals.pendingSurveyCount}건</p>}
         </div>
-
-        <ul className="mt-3 space-y-2 border-t border-border pt-3">
-          {referees.map((r) => {
-            const badge = APPROVAL_BADGE[r.approvalStatus];
-            return (
-              <li key={r.id} className="rounded-xl bg-neutral-50 p-3">
-                <div className="flex flex-wrap items-center gap-1.5">
-                  <span className="font-semibold text-fg">{r.name}</span>
-                  <span className="rounded-full bg-neutral-200 px-2 py-0.5 text-xs font-bold text-neutral-600">
-                    {KIND_LABEL[r.kind]}
-                  </span>
-                  <span
-                    className={`rounded-full px-2 py-0.5 text-xs font-bold ${badge.className}`}
-                  >
-                    {badge.label}
-                  </span>
-                </div>
-                <p className="mt-1 text-xs text-muted">
-                  가입 {new Date(r.joinedAt).toLocaleDateString('ko-KR')}
+        <ul className="divide-y divide-border">
+          {referees.map(r => (
+            <li key={r.id} className="py-4 last:pb-0">
+              <p className="text-sm font-semibold text-fg">{r.name}</p>
+              <p className="mt-1 text-xs text-muted">{KIND_LABEL[r.kind]} · {APPROVAL_LABEL[r.approvalStatus]}</p>
+              <p className="mt-1 text-xs text-muted">가입 {new Date(r.joinedAt).toLocaleDateString('ko-KR')}</p>
+              <p className="mt-3 flex flex-wrap items-baseline justify-between gap-2 text-sm">
+                <span className="text-muted">누적 소개 수수료</span>
+                <strong className="font-semibold tabular-nums text-fg">{won(r.accruedPending + r.accruedPaid)}</strong>
+              </p>
+              {r.pendingSurveyCount > 0 && (
+                <p className="mt-2 text-xs leading-relaxed text-muted">
+                  작업 {r.pendingSurveyCount}건의 설문 응답을 기다리고 있습니다. 고객이 설문에 지불 금액을 입력하면 수수료가 적립됩니다.
                 </p>
-                <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
-                  <span className="text-muted">
-                    적립 대기{' '}
-                    <span className="font-semibold tabular-nums text-amber-700">{won(r.accruedPending)}</span>
-                  </span>
-                  <span className="text-muted">
-                    지급 완료 <span className="font-semibold tabular-nums text-fg">{won(r.accruedPaid)}</span>
-                  </span>
-                </div>
-                {r.pendingSurveyCount > 0 && (
-                  <div className="mt-2 border-t border-neutral-200 pt-2">
-                    <span
-                      className="inline-block rounded-full bg-amber-100 px-2 py-0.5 text-xs font-bold text-amber-800"
-                      title="완료된 작업의 만족도 조사가 제출되면 수수료가 적립됩니다"
-                    >
-                      설문 대기 {r.pendingSurveyCount}건
-                    </span>
-                    <p className="mt-1 text-xs text-muted">
-                      완료된 작업의 만족도 조사가 제출되면 수수료가 적립됩니다
-                    </p>
-                  </div>
-                )}
-              </li>
-            );
-          })}
+              )}
+            </li>
+          ))}
         </ul>
-      </Surface>
+      </div>
     </section>
   );
 }

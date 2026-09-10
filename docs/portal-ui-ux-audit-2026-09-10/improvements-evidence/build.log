@@ -1,0 +1,163 @@
+
+> mijinapp@0.1.0 build
+> next build
+
+▲ Next.js 16.2.10 (Turbopack)
+- Environments: .env
+
+⚠ The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+  Creating an optimized production build ...
+Turbopack build encountered 1 warnings:
+./next.config.ts
+Encountered unexpected file in NFT list
+A file was traced that indicates that the whole project was traced unintentionally. Somewhere in the import trace below, there are:
+- filesystem operations (like path.join, path.resolve or fs.readFile), or
+- very dynamic requires (like require('./' + foo)).
+To resolve this, you can
+- remove them if possible, or
+- only use them in development, or
+- make sure they are statically scoped to some subfolder: path.join(process.cwd(), 'data', bar), or
+- add ignore comments: path.join(/*turbopackIgnore: true*/ process.cwd(), bar)
+
+Import trace:
+  App Route:
+    ./next.config.ts
+    ./src/lib/uploads.ts
+    ./src/app/api/admin/requests/[id]/voice/route.ts
+
+
+✓ Compiled successfully in 4.8s
+  Running TypeScript ...
+  Finished TypeScript in 7.4s ...
+  Collecting page data using 14 workers ...
+  Generating static pages using 14 workers (0/80) ...
+  Generating static pages using 14 workers (20/80) 
+  Generating static pages using 14 workers (40/80) 
+  Generating static pages using 14 workers (60/80) 
+✓ Generating static pages using 14 workers (80/80) in 277ms
+  Finalizing page optimization ...
+
+Route (app)                                 Revalidate  Expire
+┌ ○ /                                               1h      1y
+├ ○ /_not-found
+├ ○ /about
+├ ○ /admin
+├ ○ /admin/analytics/dashboard
+├ ○ /admin/analytics/map
+├ ○ /admin/analytics/ratings
+├ ○ /admin/analytics/surveys
+├ ○ /admin/commissions
+├ ○ /admin/login
+├ ○ /admin/providers
+├ ƒ /admin/providers/[id]
+├ ○ /admin/providers/new
+├ ƒ /admin/requests/[id]
+├ ○ /admin/rotation
+├ ○ /admin/settings
+├ ○ /admin/settlements
+├ ○ /admin/technicians
+├ ƒ /admin/technicians/[id]
+├ ƒ /admin/technicians/[id]/contract
+├ ƒ /admin/technicians/[id]/contract/print
+├ ○ /admin/technicians/new
+├ ƒ /api/admin/analytics/dashboard
+├ ƒ /api/admin/analytics/map/dispatch
+├ ƒ /api/admin/analytics/map/regions
+├ ƒ /api/admin/analytics/ratings
+├ ƒ /api/admin/analytics/ratings/[subject]
+├ ƒ /api/admin/analytics/summary
+├ ƒ /api/admin/analytics/surveys
+├ ƒ /api/admin/commissions
+├ ƒ /api/admin/commissions/pay
+├ ƒ /api/admin/eggs
+├ ƒ /api/admin/geocode
+├ ƒ /api/admin/providers
+├ ƒ /api/admin/providers/[id]
+├ ƒ /api/admin/providers/[id]/approve
+├ ƒ /api/admin/providers/[id]/cert
+├ ƒ /api/admin/providers/[id]/elec-cert
+├ ƒ /api/admin/providers/[id]/reject
+├ ƒ /api/admin/requests
+├ ƒ /api/admin/requests/[id]
+├ ƒ /api/admin/requests/[id]/assign
+├ ƒ /api/admin/requests/[id]/cancel
+├ ƒ /api/admin/requests/[id]/candidates
+├ ƒ /api/admin/requests/[id]/unassign
+├ ƒ /api/admin/requests/[id]/voice
+├ ƒ /api/admin/rotation
+├ ƒ /api/admin/settings
+├ ƒ /api/admin/settlements
+├ ƒ /api/admin/technicians
+├ ƒ /api/admin/technicians/[id]
+├ ƒ /api/admin/technicians/[id]/approve
+├ ƒ /api/admin/technicians/[id]/contract
+├ ƒ /api/admin/technicians/[id]/reject
+├ ƒ /api/auth/check-login-id
+├ ƒ /api/auth/login
+├ ƒ /api/auth/logout
+├ ƒ /api/geo/reverse
+├ ƒ /api/identity/config
+├ ƒ /api/identity/kcp/return
+├ ƒ /api/identity/kcp/start
+├ ƒ /api/identity/verify
+├ ƒ /api/internal/auto-assign
+├ ƒ /api/partner/commissions
+├ ƒ /api/partner/eggs
+├ ƒ /api/partner/jobs
+├ ƒ /api/partner/jobs/[id]
+├ ƒ /api/partner/jobs/[id]/accept
+├ ƒ /api/partner/jobs/[id]/reject
+├ ƒ /api/partner/jobs/[id]/status
+├ ƒ /api/partner/profile
+├ ƒ /api/partner/referrals
+├ ƒ /api/partner/reviews
+├ ƒ /api/partner/signup
+├ ƒ /api/partner/stats
+├ ƒ /api/referrer/lookup
+├ ƒ /api/requests
+├ ƒ /api/requests/[id]/photos/[photoId]
+├ ƒ /api/requests/lookup
+├ ƒ /api/survey/[token]
+├ ƒ /api/tech/commissions
+├ ƒ /api/tech/contract
+├ ƒ /api/tech/eggs
+├ ƒ /api/tech/jobs
+├ ƒ /api/tech/jobs/[id]
+├ ƒ /api/tech/jobs/[id]/accept
+├ ƒ /api/tech/jobs/[id]/reject
+├ ƒ /api/tech/jobs/[id]/status
+├ ƒ /api/tech/profile
+├ ƒ /api/tech/referrals
+├ ƒ /api/tech/reviews
+├ ƒ /api/tech/signup
+├ ƒ /api/tech/stats
+├ ○ /login
+├ ○ /lookup
+├ ○ /partner
+├ ○ /partner/commissions
+├ ƒ /partner/history
+├ ƒ /partner/jobs/[id]
+├ ○ /partner/login
+├ ○ /partner/profile
+├ ○ /partner/signup
+├ ○ /privacy
+├ ƒ /request/complete/[id]
+├ ○ /request/new
+├ ○ /support
+├ ƒ /survey/[token]
+├ ○ /tech
+├ ○ /tech/commissions
+├ ○ /tech/contract
+├ ƒ /tech/history
+├ ƒ /tech/jobs/[id]
+├ ○ /tech/login
+├ ○ /tech/profile
+├ ○ /tech/signup
+└ ○ /terms
+
+
+ƒ Proxy (Middleware)
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+

@@ -32,6 +32,8 @@ export function usePolling<T>(url: string | null, intervalMs: number) {
     lastUpdatedAt: null,
   });
   const generationRef = useRef(0);
+  const requestSequence = useRef(0);
+  const appliedSequence = useRef(0);
 
   useEffect(() => {
     // url 변경 = 다른 대상(identity) — 지연 도착한 이전 URL 응답의 상태 갱신을 차단한다.
@@ -41,8 +43,17 @@ export function usePolling<T>(url: string | null, intervalMs: number) {
   const refresh = useCallback(async () => {
     if (!url) return;
     const generation = generationRef.current;
+    const sequence = ++requestSequence.current;
     try {
-      const res = await fetch(url, { cache: 'no-store' });
+      const res = await fetch(url, {
+        cache: 'no-store',
+        signal: AbortSignal.timeout(15_000),
+      });
+      if (
+        generation !== generationRef.current ||
+        sequence < appliedSequence.current
+      )
+        return;
       if (!res.ok) {
         if (res.status === 401) {
           // 세션 만료 — 하드 리로드(깜빡임) 대신 현재 위치를 기억해 로그인으로 부드럽게 이동
@@ -55,20 +66,46 @@ export function usePolling<T>(url: string | null, intervalMs: number) {
           }
           return;
         }
-        throw new Error(`요청 실패 (${res.status})`);
+        const body = await res.json().catch(() => null);
+        throw new Error(
+          res.status === 404
+            ? '대상을 찾을 수 없습니다. 목록에서 다시 확인해 주세요.'
+            : res.status >= 500
+              ? '서버 연결이 원활하지 않습니다. 잠시 후 다시 시도해 주세요.'
+              : (body?.error ??
+                '내용을 가져오지 못했습니다. 다시 시도해 주세요.'),
+        );
       }
       const body = (await res.json()) as T;
-      if (generation !== generationRef.current) return; // 이전 URL 응답 — 폐기
+      if (
+        generation !== generationRef.current ||
+        sequence < appliedSequence.current
+      )
+        return; // 이전 URL 응답 — 폐기
+      appliedSequence.current = sequence;
       setState({ url, data: body, error: null, lastUpdatedAt: Date.now() });
+      return;
     } catch (e) {
-      if (generation !== generationRef.current) return; // 이전 URL 응답 — 폐기
-      const message = e instanceof Error ? e.message : String(e);
+      if (
+        generation !== generationRef.current ||
+        sequence < appliedSequence.current
+      )
+        return; // 이전 URL 응답 — 폐기
+      const message =
+        e instanceof TypeError ||
+        (e instanceof Error && ['TimeoutError', 'AbortError'].includes(e.name))
+          ? '인터넷 연결을 확인한 뒤 다시 시도해 주세요.'
+          : e instanceof Error
+            ? e.message
+            : '내용을 가져오지 못했습니다.';
+      appliedSequence.current = sequence;
       setState((prev) => ({
         url,
         data: prev.url === url ? prev.data : null,
         error: message,
         lastUpdatedAt: prev.url === url ? prev.lastUpdatedAt : null,
       }));
+      return;
     }
   }, [url, router]);
 
@@ -83,9 +120,15 @@ export function usePolling<T>(url: string | null, intervalMs: number) {
     const onVisible = () => {
       if (!document.hidden) refresh();
     };
+    const onRefresh = (event: Event) => {
+      (event as CustomEvent<Promise<unknown>[]>).detail.push(refresh());
+    };
     document.addEventListener('visibilitychange', onVisible);
+    window.addEventListener('portal:refresh', onRefresh);
     return () => {
+      generationRef.current += 1;
       clearInterval(timer);
+      window.removeEventListener('portal:refresh', onRefresh);
       document.removeEventListener('visibilitychange', onVisible);
     };
   }, [refresh, intervalMs]);
@@ -98,4 +141,10 @@ export function usePolling<T>(url: string | null, intervalMs: number) {
     refresh,
     lastUpdatedAt: current ? state.lastUpdatedAt : null,
   };
+}
+
+export async function refreshPortal() {
+  const pending: Promise<unknown>[] = [];
+  window.dispatchEvent(new CustomEvent('portal:refresh', { detail: pending }));
+  await Promise.allSettled(pending);
 }

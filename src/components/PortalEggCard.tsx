@@ -4,50 +4,76 @@
 // 타인의 잔액·순위는 API가 반환하지 않는다(가시성 정책). 폴링 60초.
 // 금액(원화) 비노출 정책: 일반 웹 표면은 알 "개수"만 표기한다 — 환산액은 결제(충전)
 // 컨텍스트(AdminEggManager 충전 폼)에만 존재. 여기서 ₩·만원 표기를 되살리지 말 것.
+import Link from 'next/link';
+import PortalLoadState from '@/components/PortalLoadState';
+import PortalSupportLink from '@/components/PortalSupportLink';
 import { EggIcon } from '@/components/EggIcon';
 import { usePolling } from '@/components/usePolling';
+import styles from '@/components/portal-dashboard.module.css';
 
-type EggRank = { balance: number; rank: number; poolSize: number };
+type EggRank = {
+  balance: number;
+  rank: number | null;
+  poolSize: number;
+  eligible: boolean;
+};
 
 export default function PortalEggCard({ role }: { role: 'tech' | 'partner' }) {
-  const { data } = usePolling<EggRank>(`/api/${role}/eggs`, 60_000);
+  const { data, error, refresh } = usePolling<EggRank>(
+    `/api/${role}/eggs`,
+    60_000,
+  );
   const kindLabel = role === 'partner' ? '업체' : '기사';
   const unit = role === 'partner' ? '곳' : '명';
 
   return (
-    <section className="overflow-hidden rounded-2xl bg-white shadow-surface-sm">
-      <div className="flex items-center gap-4 p-5">
-        <div className="grid h-16 w-16 shrink-0 place-items-center rounded-2xl bg-brand-50">
-          <EggIcon variant="face" size={46} />
-        </div>
-        <div className="min-w-0 flex-1">
-          <p className="text-xs font-bold text-muted">내 알</p>
-          <p className="mt-0.5 font-mono text-3xl font-bold leading-none text-brand-700">
-            {data ? data.balance : '–'}
-            <span className="ml-0.5 text-base">알</span>
+    <section className={styles.egg} aria-label="알 잔액과 배정 순위">
+      <PortalLoadState
+        label="내 알"
+        error={error}
+        loading={!data && !error}
+        retry={refresh}
+        stale={!!data}
+      />
+      <div className={styles.eggMain}>
+        <div className="min-w-0">
+          <p className={styles.label}><EggIcon size={20} /> 내 알</p>
+          <p className={styles.value}>
+            {data ? data.balance.toLocaleString('ko-KR') : '–'}
+            <small>알</small>
           </p>
         </div>
-        <div className="shrink-0 text-right">
-          <p className="text-xs text-muted">배정 노출 순위</p>
-          <p className="mt-0.5 font-mono text-sm font-bold text-fg">
-            {data ? (
+        <div className={styles.rank}>
+          <p>배정 노출 순위</p>
+          <p>
+            {data?.eligible ? (
               <>
-                <span className="text-lg text-brand-700">{data.rank}위</span>
-                <span className="ml-1 text-xs font-medium text-muted">
-                  / {kindLabel} {data.poolSize}
+                <strong>{data.rank}위</strong>
+                <span>
+                  {' '}/ {kindLabel} {data.poolSize}
                   {unit}
                 </span>
               </>
+            ) : data ? (
+              '배정 대상 아님'
             ) : (
               '–'
             )}
           </p>
         </div>
       </div>
-      <p className="border-t border-brand-50 bg-brand-50/50 px-5 py-3 text-xs leading-relaxed text-muted">
-        알이 많을수록 배정 순위에서 우선 노출되고, 배정을 수락하면 알 1개가 차감됩니다.
-        충전은 관리자에게 문의해 주세요 (최소 3알).
-      </p>
+      <div className={styles.eggControls}>
+      <Link href={`/${role}/eggs/charge`} className={styles.chargeLink}>알 충전하기</Link>
+      <details className={styles.eggHelp}>
+        <summary>알 이용 안내</summary>
+        <p>
+          알이 많을수록 배정 순위에서 우선 노출되고, 배정을 수락하면 알 1개가
+          차감됩니다. 배정 중지·승인 대기·근로확인서 미서명 상태에서는 순위가
+          표시되지 않습니다. 충전은 최소 1판(30알)부터, 30알 단위로 가능합니다.
+        </p>
+        <PortalSupportLink />
+      </details>
+      </div>
     </section>
   );
 }

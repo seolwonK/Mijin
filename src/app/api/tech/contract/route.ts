@@ -44,8 +44,13 @@ async function loadOrCreate(technicianId: string) {
       // 거의 동시에 create를 시도하면 @unique 제약(P2002)에 걸린다. 이 경우 진짜
       // 오류가 아니라 다른 요청이 먼저 만든 행이 이미 존재한다는 뜻이므로,
       // 그 행을 읽어 계속 진행한다(그대로 500을 던지지 않는다).
-      if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2002') {
-        contract = await prisma.employmentContract.findUnique({ where: { technicianId } });
+      if (
+        err instanceof Prisma.PrismaClientKnownRequestError &&
+        err.code === 'P2002'
+      ) {
+        contract = await prisma.employmentContract.findUnique({
+          where: { technicianId },
+        });
       } else {
         throw err;
       }
@@ -67,10 +72,28 @@ async function loadOrCreate(technicianId: string) {
       ...(contract.workLocation ? {} : { workLocation: '고객 현장 (출동)' }),
       ...(contract.contractStartDate ? {} : { contractStartDate: new Date() }),
     };
-    contract = await prisma.employmentContract.update({
-      where: { technicianId },
-      data: { employmentType: tech.employmentType, ...d, ...wage, ...prefill },
-    });
+    const defaults = {
+      employmentType: tech.employmentType,
+      ...d,
+      ...wage,
+      ...prefill,
+    };
+    if (
+      Object.entries(defaults).some(
+        ([key, value]) =>
+          JSON.stringify(contract![key as keyof EmploymentContract]) !==
+          JSON.stringify(value),
+      )
+    ) {
+      // A concurrent signature or administrator edit must not be overwritten by GET defaults.
+      await prisma.employmentContract.updateMany({
+        where: { technicianId, status: 'DRAFT', updatedAt: contract.updatedAt },
+        data: defaults,
+      });
+      contract = await prisma.employmentContract.findUnique({
+        where: { technicianId },
+      });
+    }
   }
   // P2002 폴백 재조회조차 실패하는 극단적인 경우(이론상 레이스 승자의 트랜잭션이
   // 롤백된 경우 등)에만 도달 — 존재하지 않는 것과 동일하게 처리.
@@ -81,6 +104,18 @@ async function loadOrCreate(technicianId: string) {
 function serialize(contract: EmploymentContract) {
   return {
     status: contract.status,
+    updatedAt: contract.updatedAt,
+    confirmedAt: contract.confirmedAt,
+    bonusExists: contract.bonusExists,
+    bonusAmount: contract.bonusAmount,
+    otherPayExists: contract.otherPayExists,
+    otherPayDesc: contract.otherPayDesc,
+    otherPayAmount: contract.otherPayAmount,
+    insuranceEmployment: contract.insuranceEmployment,
+    insuranceAccident: contract.insuranceAccident,
+    insurancePension: contract.insurancePension,
+    insuranceHealth: contract.insuranceHealth,
+    annualLeaveNote: contract.annualLeaveNote,
     employmentType: contract.employmentType,
     contractStartDate: contract.contractStartDate
       ? contract.contractStartDate.toISOString().slice(0, 10)
@@ -116,7 +151,10 @@ export async function GET() {
   }
   const loaded = await loadOrCreate(session.technicianId);
   if (!loaded) {
-    return NextResponse.json({ error: '전기기사 정보를 찾을 수 없습니다' }, { status: 404 });
+    return NextResponse.json(
+      { error: '전기기사 정보를 찾을 수 없습니다' },
+      { status: 404 },
+    );
   }
   return NextResponse.json({ contract: serialize(loaded.contract) });
 }
@@ -144,19 +182,37 @@ export async function PUT(req: NextRequest) {
 
   const loaded = await loadOrCreate(session.technicianId);
   if (!loaded) {
-    return NextResponse.json({ error: '전기기사 정보를 찾을 수 없습니다' }, { status: 404 });
+    return NextResponse.json(
+      { error: '전기기사 정보를 찾을 수 없습니다' },
+      { status: 404 },
+    );
   }
   if (loaded.contract.status === 'CONFIRMED') {
     return NextResponse.json(
-      { error: '이미 확정된 근로확인서는 수정할 수 없습니다. 관리자에게 문의해 주세요.' },
+      {
+        error:
+          '이미 확정된 근로확인서는 수정할 수 없습니다. 관리자에게 문의해 주세요.',
+      },
       { status: 409 },
     );
   }
 
+  if (data.version && data.version !== loaded.contract.updatedAt.toISOString())
+    return NextResponse.json(
+      {
+        error:
+          '근무조건이 변경되었습니다. 내용을 다시 불러와 확인한 뒤 서명해 주세요.',
+      },
+      { status: 409 },
+    );
+
   // 임금은 근로기준법 제17조상 필수 명시사항 — 금액 없이 서명(확정)할 수 없다
   if (loaded.contract.wageAmount == null) {
     return NextResponse.json(
-      { error: '임금이 확정되지 않았습니다. 관리자가 임금을 입력한 뒤 서명할 수 있습니다.' },
+      {
+        error:
+          '임금이 확정되지 않았습니다. 관리자가 임금을 입력한 뒤 서명할 수 있습니다.',
+      },
       { status: 409 },
     );
   }
@@ -166,8 +222,12 @@ export async function PUT(req: NextRequest) {
   const d = contractDefaults(loaded.employmentType);
   const startDate = new Date(data.contractStartDate);
   const now = new Date();
-  const contract = await prisma.employmentContract.update({
-    where: { technicianId: session.technicianId },
+  const changed = await prisma.employmentContract.updateMany({
+    where: {
+      technicianId: session.technicianId,
+      status: { not: 'CONFIRMED' },
+      updatedAt: loaded.contract.updatedAt,
+    },
     data: {
       employmentType: loaded.employmentType,
       contractStartDate: startDate,
@@ -183,6 +243,14 @@ export async function PUT(req: NextRequest) {
       submittedAt: now,
       confirmedAt: now,
     },
+  });
+  if (!changed.count)
+    return NextResponse.json(
+      { error: '근로확인서 상태가 변경되었습니다. 다시 불러와 확인해 주세요.' },
+      { status: 409 },
+    );
+  const contract = await prisma.employmentContract.findUniqueOrThrow({
+    where: { technicianId: session.technicianId },
   });
   return NextResponse.json({ contract: serialize(contract) });
 }

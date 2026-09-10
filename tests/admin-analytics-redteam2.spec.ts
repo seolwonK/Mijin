@@ -26,15 +26,20 @@ function surveyFixture(itemCount = 1, total = itemCount) {
     responseRate: 0.5,
     submitted: 25,
     total: 50,
-    pending: {
+    surveys: {
       items: Array.from({ length: itemCount }, (_, index) => ({
         surveyId: `survey-${index}`,
+        requestId: `request-${index}`,
+        createdAt: '2026-07-01T00:00:00.000Z',
+        submittedAt: null,
+        rating: null,
+        paidAmount: null,
         requestCode: `900${String(index).padStart(3, '0')}`,
         customerName: `고객 ${index}`,
         customerPhone: '01012345678',
         elapsedDays: index + 1,
       })),
-      total,
+      total, page: 1, pageSize: 50, pageCount: Math.max(1, Math.ceil(total / 50)),
       hasNext: total > itemCount,
     },
     paidStats: { sum: 500000, count: 25, avg: 20000 },
@@ -86,8 +91,8 @@ test.describe('G002 설문·평점 레드팀', () => {
     const surveysResponse = await page.request.get('/api/admin/analytics/surveys');
     expect(surveysResponse.status()).toBe(200);
     const surveys = await surveysResponse.json();
-    expect(Object.keys(surveys).sort()).toEqual(['paidStats', 'pending', 'responseRate', 'submitted', 'total', 'updatedAt']);
-    expect(Object.keys(surveys.pending).sort()).toEqual(['hasNext', 'items', 'total']);
+    expect(Object.keys(surveys).sort()).toEqual(['paidStats', 'responseRate', 'submitted', 'surveys', 'total', 'updatedAt']);
+    expect(Object.keys(surveys.surveys).sort()).toEqual(['hasNext', 'items', 'page', 'pageCount', 'pageSize', 'total']);
     expect(Object.keys(surveys.paidStats).sort()).toEqual(['avg', 'count', 'sum']);
     expect(JSON.stringify(surveys)).not.toMatch(/resend|retry|재발송/i);
 
@@ -107,25 +112,26 @@ test.describe('G002 설문·평점 레드팀', () => {
   });
 
   test('surveys와 ratings 500은 오류를 보이고 다른 관리 화면으로 이동할 수 있다', async ({ page }) => {
-    await page.route('**/api/admin/analytics/surveys', (route) => route.fulfill({ status: 500, json: { error: 'survey redteam failure' } }));
+    await page.route('**/api/admin/analytics/surveys**', (route) => route.fulfill({ status: 500, json: { error: 'survey redteam failure' } }));
     await page.route('**/api/admin/analytics/ratings', (route) => route.fulfill({ status: 500, json: { error: 'ratings redteam failure' } }));
     await loginAsAdmin(page);
     await page.goto('/admin/analytics/surveys');
-    await expect(page.getByText('요청 실패 (500)')).toBeVisible();
+    await expect(page.getByText('서버 연결이 원활하지 않습니다. 잠시 후 다시 시도해 주세요.')).toBeVisible();
     await expect(page.getByRole('heading', { name: '설문 현황' })).toBeVisible();
     await page.goto('/admin/analytics/ratings');
-    await expect(page.getByText('요청 실패 (500)')).toBeVisible();
+    await expect(page.getByText('서버 연결이 원활하지 않습니다. 잠시 후 다시 시도해 주세요.')).toBeVisible();
     await expect(page.getByRole('heading', { name: '평점 현황' })).toBeVisible();
     await page.goto('/admin');
     await expect(page.locator('main')).toBeVisible();
   });
 
-  test('큰 미제출 목록은 50개만 렌더하고 나머지 건수를 표시한다', async ({ page }) => {
-    await page.route('**/api/admin/analytics/surveys', (route) => route.fulfill({ json: surveyFixture(50, 5000) }));
+  test('전체 설문 목록은 50개씩 표시하고 다음 페이지를 제공한다', async ({ page }) => {
+    await page.route('**/api/admin/analytics/surveys**', (route) => route.fulfill({ json: surveyFixture(50, 5000) }));
     await loginAsAdmin(page);
     await page.goto('/admin/analytics/surveys');
     await expect(page.locator('tbody tr')).toHaveCount(50);
-    await expect(page.getByText('외 4950건', { exact: true })).toBeVisible();
+    await expect(page.getByText('1–50 / 5,000건', { exact: true })).toBeVisible();
+    await expect(page.getByRole('button', { name: '다음', exact: true })).toBeEnabled();
   });
 
   test('순위표 A↔B 10회 전환 후 최종 B 상세만 남는다', async ({ page }) => {
@@ -149,9 +155,8 @@ test.describe('G002 설문·평점 레드팀', () => {
     await loginAsAdmin(page);
     await page.goto('/admin/analytics/surveys');
     await expect(page.getByRole('heading', { name: '설문 현황' })).toBeVisible();
-    await expect(page.getByRole('heading', { name: '응답률' })).toBeVisible();
-    await expect(page.getByRole('heading', { name: '미제출 목록' })).toBeVisible();
-    await expect(page.getByRole('heading', { name: '결제 통계' })).toBeVisible();
+    await expect(page.getByRole('region', { name: '전체 설문 요약' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: '설문 목록' })).toBeVisible();
     await page.screenshot({ path: `${artifactsDir}/surveys.png`, fullPage: true });
 
     await page.goto('/admin/analytics/ratings');

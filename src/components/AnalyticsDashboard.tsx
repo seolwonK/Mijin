@@ -1,187 +1,357 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import Link from 'next/link';
+import { useState } from 'react';
 import { usePolling } from '@/components/usePolling';
-import DesktopOnlyNotice from '@/components/DesktopOnlyNotice';
-import BarChart from '@/components/charts/BarChart';
-import LineChart from '@/components/charts/LineChart';
 import type { DashboardStats } from '@/lib/analyticsStats';
-import InfoTip from '@/components/InfoTip';
+import styles from '@/components/analytics-board.module.css';
 
-type Period = 'day' | 'week' | 'month';
+const periods = [
+  { key: 'day', label: '오늘' },
+  { key: 'week', label: '최근 7일' },
+  { key: 'month', label: '최근 30일' },
+] as const;
+type Period = (typeof periods)[number]['key'];
+const number = (value: number) => value.toLocaleString('ko-KR');
+const won = (value: number) => `${number(Math.round(value))}원`;
+const dayLabel = (value: string) =>
+  `${Number(value.slice(5, 7))}월 ${Number(value.slice(8, 10))}일`;
 
-const PERIODS: { key: Period; label: string }[] = [
-  { key: 'day', label: '일' },
-  { key: 'week', label: '주' },
-  { key: 'month', label: '월' },
-];
-function useLgViewport() {
-  const [isLg, setIsLg] = useState(false);
-
-  useEffect(() => {
-    const media = window.matchMedia('(min-width: 1024px)');
-    const update = () => setIsLg(media.matches);
-    update();
-    media.addEventListener('change', update);
-    return () => media.removeEventListener('change', update);
-  }, []);
-
-  return isLg;
-}
-
-
-const STATUS_LABEL: Record<string, string> = {
-  RECEIVED: '접수',
-  ASSIGNED: '배정',
-  ACCEPTED: '수락',
-  DISPATCHED: '출동',
-  COMPLETED: '완료',
-  CANCELED: '취소',
-};
-
-function refreshTime(updatedAt?: string) {
-  return updatedAt
-    ? `마지막 갱신 ${new Date(updatedAt).toLocaleTimeString('ko-KR', {
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
-      })}`
-    : '마지막 갱신 —';
-}
-
-function seconds(value: number | null) {
-  if (value == null) return '—';
-  if (value < 60) return `${Math.round(value)}초`;
-  return `${Math.floor(value / 60)}분 ${Math.round(value % 60)}초`;
-}
-
-function percent(value: number | null) {
-  return value == null ? '—' : `${(value * 100).toFixed(1)}%`;
-}
-
-function won(value: number | null) {
-  return value == null ? '—' : `${new Intl.NumberFormat('ko-KR').format(value)}원`;
-}
-
-function Section({ title, tip, updatedAt, children, id }: { title: string; tip: string; updatedAt?: string; children: React.ReactNode; id?: string }) {
+function Trend({ rows }: { rows: DashboardStats['trend'] }) {
+  const [selected, setSelected] = useState<string | null>(null);
+  const active = rows.find((row) => row.bucket === selected) ?? rows.at(-1);
+  const peak = Math.max(
+    1,
+    ...rows.flatMap((row) => [row.received, row.completed]),
+  );
   return (
-    <section id={id} className="rounded-admin-lg border border-border bg-white p-5 shadow-surface-sm">
-      <div className="mb-4 flex items-baseline justify-between gap-3">
-        <div className="flex items-center gap-2">
-          <h2 className="text-base font-bold text-fg">{title}</h2>
-          <InfoTip text={tip} />
+    <section className={styles.panel} aria-labelledby="trend-title">
+      <header className={styles.panelHead}>
+        <h2 id="trend-title">일별 접수와 완료</h2>
+        <div className={styles.legend}>
+          <span>
+            <i />새 접수
+          </span>
+          <span>
+            <i />
+            작업 완료
+          </span>
         </div>
-        <span className="font-mono text-xs text-muted">{refreshTime(updatedAt)}</span>
+      </header>
+      <div className={styles.panelBody}>
+        <p className={styles.muted}>
+          같은 날짜의 두 막대를 비교하세요. 완료 건에는 이전에 접수된 작업도
+          포함됩니다.
+        </p>
+        {!rows.length ? (
+          <p className={styles.state}>표시할 기간 데이터가 없습니다.</p>
+        ) : (
+          <>
+            <div className={styles.dayReadout}>
+              <span>
+                하루 최대{' '}
+                {number(
+                  peak === 1 &&
+                    rows.every((row) => !row.received && !row.completed)
+                    ? 0
+                    : peak,
+                )}
+                건
+              </span>
+              <span>날짜를 누르면 정확한 건수를 확인할 수 있습니다.</span>
+            </div>
+            <div className={styles.chartScroll}>
+              <div
+                className={styles.chart}
+                role="group"
+                aria-label="일별 접수·완료 비교"
+              >
+                {rows.map((row) => (
+                  <button
+                    type="button"
+                    key={row.bucket}
+                    className={styles.day}
+                    onClick={() => setSelected(row.bucket)}
+                    aria-pressed={active?.bucket === row.bucket}
+                    aria-label={`${dayLabel(row.bucket)} 새 접수 ${number(row.received)}건, 작업 완료 ${number(row.completed)}건`}
+                  >
+                    <span className={styles.bars} aria-hidden="true">
+                      <span
+                        className={styles.bar}
+                        style={{ height: `${(row.received / peak) * 100}%` }}
+                      />
+                      <span
+                        className={styles.bar}
+                        style={{ height: `${(row.completed / peak) * 100}%` }}
+                      />
+                    </span>
+                    <span className={styles.dayLabel}>
+                      {rows.length > 10
+                        ? row.bucket.slice(8)
+                        : row.bucket.slice(5).replace('-', '.')}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
+            {active && (
+              <p role="status" className={styles.dayReadout}>
+                <strong>{dayLabel(active.bucket)}</strong>
+                <span>
+                  새 접수 {number(active.received)}건 · 작업 완료{' '}
+                  {number(active.completed)}건
+                </span>
+              </p>
+            )}
+          </>
+        )}
       </div>
-      {children}
+      <details className={styles.details}>
+        <summary>날짜별 수치 보기</summary>
+        <table className={styles.dailyTable}>
+          <caption className="sr-only">날짜별 접수와 완료 건수</caption>
+          <thead>
+            <tr>
+              <th scope="col">날짜</th>
+              <th scope="col">새 접수</th>
+              <th scope="col">작업 완료</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((row) => (
+              <tr key={row.bucket}>
+                <td>{row.bucket}</td>
+                <td>{number(row.received)}건</td>
+                <td>{number(row.completed)}건</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </details>
     </section>
   );
 }
 
-function TimingStats({ title, description, tip, stats }: { title: string; description: string; tip: string; stats: { mean: number | null; median: number | null; p90: number | null } }) {
-  return (
-    <div className="rounded-admin-sm bg-neutral-50 p-4">
-      <div className="flex items-center gap-2">
-        <h3 className="text-sm font-bold text-fg">{title}</h3>
-        <InfoTip text={tip} />
-      </div>
-      <p className="mt-1 text-sm text-muted">{description}</p>
-      <dl className="mt-3 grid grid-cols-3 gap-2 text-sm">
-        <div><dt className="text-muted">평균</dt><dd className="mt-1 font-mono font-semibold">{seconds(stats.mean)}</dd></div>
-        <div><dt className="text-muted">중앙값</dt><dd className="mt-1 font-mono font-semibold">{seconds(stats.median)}</dd></div>
-        <div><dt className="text-muted">P90</dt><dd className="mt-1 font-mono font-semibold">{seconds(stats.p90)}</dd></div>
-      </dl>
-    </div>
-  );
-}
-
-function AnalyticsDashboardData({ period, setPeriod, isLg }: { period: Period; setPeriod: (period: Period) => void; isLg: boolean }) {
-  const { data, error } = usePolling<DashboardStats>(
-    isLg ? `/api/admin/analytics/dashboard?period=${period}` : null,
-    45_000,
-  );
-  const updatedAt = data?.updatedAt;
-
-  return (
-    <main className="min-h-screen bg-surface text-sm text-fg">
-      <div className="p-4 lg:hidden">
-        <DesktopOnlyNotice message="분석 대시보드는 데스크톱에서 이용할 수 있습니다." />
-      </div>
-      <div className="hidden lg:block">
-        <div className="mx-auto max-w-7xl p-6">
-          <div className="mb-6 flex items-center justify-between">
-            <div>
-              <h1 className="text-xl font-bold">분석 현황</h1>
-              <p className="mt-1 text-sm text-muted">운영 처리와 고객 경험 지표를 기간별로 확인합니다.</p>
-            </div>
-            <div className="flex rounded-admin-sm border border-border bg-white p-1" aria-label="분석 기간">
-              {PERIODS.map((item) => (
-                <button key={item.key} type="button" onClick={() => setPeriod(item.key)} aria-pressed={period === item.key} className={`rounded-admin-sm px-3 py-1.5 text-sm font-semibold ${period === item.key ? 'bg-brand-600 text-white' : 'text-muted hover:bg-neutral-50'}`}>
-                  {item.label}
-                </button>
-              ))}
-            </div>
-          </div>
-          {error && <p className="mb-4 text-sm text-red-600">{error}</p>}
-          {!data ? <p className="rounded-admin-lg border border-border bg-white p-6 text-sm text-muted shadow-surface-sm">분석 데이터를 불러오는 중…</p> : (
-            <div className="grid gap-5">
-              <Section id="operational" title="운영 상태" tip="현재 스냅샷입니다. 상태별 건수와 확인요망 건수, 미완료 건의 긴급도 분포를 표시합니다." updatedAt={updatedAt}>
-                <div className="grid gap-4 xl:grid-cols-2">
-                  <BarChart label="운영 상태 분포" data={Object.entries(data.operational.byStatus).map(([status, value]) => ({ label: STATUS_LABEL[status] ?? status, value }))} />
-                  <div className="grid gap-3 sm:grid-cols-2">
-                    <div className="rounded-admin-sm bg-neutral-50 p-4"><p className="text-sm text-muted">확인 요망</p><p className="mt-1 font-mono text-lg font-bold">{data.operational.needsAttention}건</p></div>
-                    <div className="rounded-admin-sm bg-neutral-50 p-4 sm:col-span-2">
-                      <p className="text-sm text-muted">긴급도 분포 (미완료)</p>
-                      <dl className="mt-3 grid grid-cols-3 gap-2 text-sm">
-                        <div><dt className="text-muted">초긴급</dt><dd className="mt-1 font-mono font-semibold">{data.operational.byUrgencyOpen.CRITICAL}건</dd></div>
-                        <div><dt className="text-muted">긴급</dt><dd className="mt-1 font-mono font-semibold">{data.operational.byUrgencyOpen.URGENT}건</dd></div>
-                        <div><dt className="text-muted">일반</dt><dd className="mt-1 font-mono font-semibold">{data.operational.byUrgencyOpen.NORMAL}건</dd></div>
-                      </dl>
-                    </div>
-                  </div>
-                </div>
-              </Section>
-              <Section title="접수 · 완료 추이" tip="선택 기간의 모든 KST 날짜를 포함하며, 접수 생성 시각과 완료 시각을 각각 KST 날짜로 집계합니다." updatedAt={updatedAt}>
-                <div className="grid gap-6 xl:grid-cols-2">
-                  <div><h3 className="mb-2 text-sm font-bold">접수</h3><LineChart label="접수 추이" data={data.trend.map((item) => ({ label: item.bucket, value: item.received }))} /></div>
-                  <div><h3 className="mb-2 text-sm font-bold">완료</h3><LineChart label="완료 추이" data={data.trend.map((item) => ({ label: item.bucket, value: item.completed }))} /></div>
-                </div>
-              </Section>
-              <Section title="처리 성능" tip="운영은 최초 제안 및 응답완료 제안, 고객은 접수 단위의 최종 수락을 기준으로 계산합니다." updatedAt={updatedAt}>
-                <div className="grid gap-4 xl:grid-cols-2">
-                  <div className="space-y-3">
-                    <TimingStats title="운영 관점" description="최초 제안까지 시간·응답완료 제안 수락률" tip="접수 생성→최초 제안 시간입니다. 기간은 접수 생성 시각 기준입니다." stats={data.performance.op.firstOfferSec} />
-                    <div className="rounded-admin-sm border border-border p-4">
-                      <div className="flex items-center gap-2"><p className="text-sm text-muted">응답완료 제안 수락률</p><InfoTip text="응답 완료 제안 중 수락 비율 = ACCEPTED/(ACCEPTED+REJECTED), 응답시각 기준" /></div><p className="mt-1 font-mono text-xl font-bold">{percent(data.performance.op.offerAcceptRate)}</p><p className="mt-1 text-sm text-muted">수락 {data.performance.op.accepted} · 거절 {data.performance.op.rejected}</p>
-                    </div>
-                  </div>
-                  <div className="space-y-3">
-                    <TimingStats title="고객 관점" description="최종 수락까지 시간·접수 단위 성공률" tip="접수 생성→최종 수락(respondedAt), 접수당 1건이며 최종 수락 응답시각 기준입니다." stats={data.performance.cust.acceptSec} />
-                    <div className="rounded-admin-sm border border-border p-4">
-                      <div className="flex items-center gap-2"><p className="text-sm text-muted">접수 단위 성공률</p><InfoTip text="기간 내 생성된 접수 중 수락된 제안이 하나 이상 있는 접수의 비율입니다. 접수당 1건으로 계산합니다." /></div><p className="mt-1 font-mono text-xl font-bold">{percent(data.performance.cust.requestSuccessRate)}</p><p className="mt-1 text-sm text-muted">성공 접수 {data.performance.cust.requestsWithAccepted} / 전체 {data.performance.cust.totalRequests}</p>
-                    </div>
-                  </div>
-                </div>
-              </Section>
-              <Section id="money" title="돈 흐름" tip="설문 결제는 제출된 설문만 제출 시각 KST에 귀속하며, 수수료는 적립 시각 KST에 귀속하고 PENDING과 PAID를 별도로 집계합니다." updatedAt={updatedAt}>
-                <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
-                  <div className="rounded-admin-sm bg-neutral-50 p-4"><p className="text-sm text-muted">설문 결제 합계</p><p className="mt-1 font-mono text-lg font-bold">{won(data.money.surveyPaid.sum)}</p></div>
-                  <div className="rounded-admin-sm bg-neutral-50 p-4"><p className="text-sm text-muted">설문 결제 건수</p><p className="mt-1 font-mono text-lg font-bold">{data.money.surveyPaid.count}건</p></div>
-                  <div className="rounded-admin-sm bg-neutral-50 p-4"><p className="text-sm text-muted">설문 결제 평균</p><p className="mt-1 font-mono text-lg font-bold">{won(data.money.surveyPaid.avg)}</p></div>
-                  <div className="rounded-admin-sm border border-border p-4"><p className="text-sm text-muted">수수료 PENDING</p><p className="mt-1 font-mono text-lg font-bold">{won(data.money.commission.PENDING)}</p></div>
-                  <div className="rounded-admin-sm border border-border p-4"><p className="text-sm text-muted">수수료 PAID</p><p className="mt-1 font-mono text-lg font-bold">{won(data.money.commission.PAID)}</p></div>
-                </div>
-              </Section>
-            </div>
-          )}
-        </div>
-      </div>
-    </main>
-  );
-}
 export default function AnalyticsDashboard() {
   const [period, setPeriod] = useState<Period>('week');
-  const isLg = useLgViewport();
-
-  return <AnalyticsDashboardData key={period} period={period} setPeriod={setPeriod} isLg={isLg} />;
+  const [refreshing, setRefreshing] = useState(false);
+  const { data, error, refresh } = usePolling<DashboardStats>(
+    `/api/admin/analytics/dashboard?period=${period}`,
+    45_000,
+  );
+  const received = data?.trend.reduce((sum, row) => sum + row.received, 0) ?? 0;
+  const completed =
+    data?.trend.reduce((sum, row) => sum + row.completed, 0) ?? 0;
+  const statuses = data?.operational.byStatus;
+  const awaiting = statuses?.RECEIVED ?? 0,
+    assigned = statuses?.ASSIGNED ?? 0,
+    active = (statuses?.ACCEPTED ?? 0) + (statuses?.DISPATCHED ?? 0);
+  const first = data?.trend[0]?.bucket,
+    last = data?.trend.at(-1)?.bucket;
+  const range =
+    first && last
+      ? first === last
+        ? `${first} · 한국 시간`
+        : `${first} — ${last} · 오늘 포함`
+      : '기간을 확인하는 중';
+  async function reload() {
+    setRefreshing(true);
+    try {
+      await refresh();
+    } finally {
+      setRefreshing(false);
+    }
+  }
+  return (
+    <main className={styles.page}>
+      <header className={styles.header}>
+        <div>
+          <h1>분석 현황</h1>
+          <p>
+            접수가 얼마나 들어오고, 작업이 얼마나 처리되고 있는지 확인합니다.
+          </p>
+        </div>
+        <div className={styles.tools}>
+          <span className={styles.updated}>
+            {data
+              ? `${new Date(data.updatedAt).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Seoul' })} 기준`
+              : ''}
+          </span>
+          <button
+            type="button"
+            className={styles.button}
+            disabled={refreshing}
+            onClick={reload}
+          >
+            {refreshing ? '갱신 중…' : '새로고침'}
+          </button>
+        </div>
+      </header>
+      {error && (
+        <div className={styles.error} role="alert">
+          <p>
+            {data
+              ? '최신 수치를 불러오지 못했습니다. 마지막 조회 결과입니다.'
+              : '분석 데이터를 불러오지 못했습니다.'}
+          </p>
+          <button
+            className={styles.button}
+            onClick={reload}
+            disabled={refreshing}
+          >
+            다시 시도
+          </button>
+        </div>
+      )}
+      <section
+        id="operational"
+        className={styles.live}
+        aria-label="현재 남은 업무"
+      >
+        <div className={styles.liveTitle}>
+          <span>
+            지금 남은 업무 · 전체 기간
+            {data && (
+              <small className={styles.urgentNote}>
+                이 중 초긴급{' '}
+                {number(data.operational.byUrgencyOpen.CRITICAL ?? 0)}건 · 긴급{' '}
+                {number(data.operational.byUrgencyOpen.URGENT ?? 0)}건
+              </small>
+            )}
+          </span>
+          <strong>
+            {data ? `${number(awaiting + assigned + active)}건` : '—'}
+          </strong>
+        </div>
+        <div className={styles.liveCounts}>
+          <Link href="/admin?tab=RECEIVED">
+            배정 대기 <b>{data ? number(awaiting) : '—'}</b>
+          </Link>
+          <Link href="/admin?tab=ASSIGNED">
+            수락 대기 <b>{data ? number(assigned) : '—'}</b>
+          </Link>
+          <Link href="/admin?tab=ACTIVE">
+            출동·작업 중 <b>{data ? number(active) : '—'}</b>
+          </Link>
+        </div>
+      </section>
+      <div className={styles.periodBar}>
+        <div>
+          <h2>기간별 운영 실적</h2>
+          <p>{range}</p>
+        </div>
+        <div className={styles.segment} role="group" aria-label="분석 기간">
+          {periods.map((item) => (
+            <button
+              type="button"
+              key={item.key}
+              aria-pressed={period === item.key}
+              onClick={() => setPeriod(item.key)}
+            >
+              {item.label}
+            </button>
+          ))}
+        </div>
+      </div>
+      {!data && !error && (
+        <p role="status" className={styles.state}>
+          분석 데이터를 불러오는 중…
+        </p>
+      )}
+      {data && (
+        <>
+          <dl className={styles.metrics} aria-label="선택 기간 요약">
+            <div className={styles.metric}>
+              <dt>새 접수</dt>
+              <dd className={styles.value}>
+                {number(received)}
+                <small>건</small>
+              </dd>
+              <dd className={styles.note}>선택 기간에 들어온 모든 접수</dd>
+            </div>
+            <div className={styles.metric}>
+              <dt>작업 완료</dt>
+              <dd className={styles.value}>
+                {number(completed)}
+                <small>건</small>
+              </dd>
+              <dd className={styles.note}>선택 기간에 완료 처리된 작업</dd>
+            </div>
+            <div className={styles.metric}>
+              <dt>담당자 수락 비율</dt>
+              <dd className={styles.value}>
+                {data.performance.cust.requestSuccessRate === null
+                  ? '집계 없음'
+                  : `${Math.round(data.performance.cust.requestSuccessRate * 100)}%`}
+              </dd>
+              <dd className={styles.note}>
+                새 접수 {number(data.performance.cust.totalRequests)}건 중{' '}
+                {number(data.performance.cust.requestsWithAccepted)}건 수락
+              </dd>
+            </div>
+          </dl>
+          <div className={styles.bodyGrid}>
+            <Trend key={period} rows={data.trend} />
+            <section className={styles.panel} aria-labelledby="paid-title">
+              <header className={styles.panelHead}>
+                <h2 id="paid-title">고객이 신고한 작업 금액</h2>
+              </header>
+              <div className={styles.panelBody}>
+                <p className={styles.muted}>선택 기간에 제출된 설문 기준</p>
+                <p className={styles.amount}>
+                  {won(data.money.surveyPaid.sum)}
+                </p>
+                <dl>
+                  <div className={styles.fact}>
+                    <dt>금액 입력 설문</dt>
+                    <dd>{number(data.money.surveyPaid.count)}건</dd>
+                  </div>
+                  <div className={styles.fact}>
+                    <dt>건당 평균</dt>
+                    <dd>
+                      {data.money.surveyPaid.avg === null
+                        ? '집계 없음'
+                        : won(data.money.surveyPaid.avg)}
+                    </dd>
+                  </div>
+                </dl>
+                <p className={styles.muted} style={{ marginTop: 15 }}>
+                  고객이 설문에 직접 입력한 금액입니다. 실제 입금·회계 확정액을
+                  뜻하지 않습니다.
+                </p>
+                <Link className={styles.link} href="/admin/settlements">
+                  월별 금액과 신고 원본 보기 ↗
+                </Link>
+              </div>
+            </section>
+          </div>
+          <details className={styles.basis}>
+            <summary>숫자는 어떤 기준으로 집계하나요?</summary>
+            <ul>
+              <li>
+                지금 남은 업무는 기간 선택과 관계없이 현재 완료·취소되지 않은
+                접수입니다.
+              </li>
+              <li>
+                새 접수에는 이후 취소된 건도 포함합니다. 완료는 완료일
+                기준이므로 새 접수 수와 직접 비교한 완료율은 표시하지 않습니다.
+              </li>
+              <li>
+                담당자 수락 비율은 선택 기간에 들어온 접수 중 조회 시점까지
+                수락된 배정이 있는 접수의 비율입니다.
+              </li>
+              <li>
+                고객 신고 금액은 설문 응답일 기준이며, 0원은 포함하고 금액
+                미입력 설문은 제외합니다.
+              </li>
+              <li>
+                모든 날짜는 한국 시간 기준입니다. ‘최근 7일’과 ‘최근 30일’에는
+                오늘이 포함됩니다.
+              </li>
+            </ul>
+          </details>
+        </>
+      )}
+    </main>
+  );
 }

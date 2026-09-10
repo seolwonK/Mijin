@@ -23,6 +23,7 @@ export default function AdminDataTable<T, K extends string>({
   onRowClick,
   selectedKey,
   rowClassName,
+  minWidth = 880,
 }: {
   columns: Column<T, K>[];
   rows: T[];
@@ -31,6 +32,7 @@ export default function AdminDataTable<T, K extends string>({
   onRowClick?: (row: T) => void;
   selectedKey?: string | null;
   rowClassName?: (row: T) => string;
+  minWidth?: number;
 }) {
   const [sort, setSort] = useState<SortState<K> | null>(defaultSort ?? null);
 
@@ -54,7 +56,7 @@ export default function AdminDataTable<T, K extends string>({
 
   return (
     <div className="overflow-x-auto">
-      <table className="w-full min-w-[880px] border-collapse text-sm">
+      <table className="w-full border-collapse text-sm" style={{ minWidth }}>
         <thead>
           <tr>
             {columns.map((col) => (
@@ -104,7 +106,7 @@ export default function AdminDataTable<T, K extends string>({
                     ? (e) => {
                         // 행의 동작은 선택(인스펙터 갱신)이지 페이지 이동이 아니므로 Enter·Space
                         // 둘 다 선택으로 취급한다 — Space는 기본 스크롤 동작을 막아야 한다.
-                        if (e.key === 'Enter' || e.key === ' ') {
+                        if (e.target === e.currentTarget && (e.key === 'Enter' || e.key === ' ')) {
                           e.preventDefault();
                           onRowClick(row);
                         }

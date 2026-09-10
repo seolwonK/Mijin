@@ -50,7 +50,7 @@ test('multipart 이 아니면 400 — JSON 본문은 formData() 에서 거부된
   playwright,
 }) => {
   const ctx = await anonSignupCtx(playwright, 'partner-signup-json');
-  const gate = expectGate(SIGNUP, 64);
+  const gate = expectGate(SIGNUP, 65);
   const res = await ctx.post('/api/partner/signup', { data: signupFields() });
   expect(res.status()).toBe(gate.status);
   expect((await res.json()).error).toBe(gate.message);
@@ -83,9 +83,11 @@ test('필수 필드 zod 400 5종 (:76-81)', async ({ playwright }) => {
   await ctx.dispose();
 });
 
-test('사업자등록번호 체크섬 불일치 400 (:84-86, lib/bizRegNo.ts:9-13)', async ({ playwright }) => {
+test('사업자등록번호 체크섬 불일치 400 (:84-86, lib/bizRegNo.ts:9-13)', async ({
+  playwright,
+}) => {
   const ctx = await anonSignupCtx(playwright, 'partner-signup-checksum');
-  const gate = expectGate(SIGNUP, 88);
+  const gate = expectGate(SIGNUP, 89);
   const bad = invalidBizRegNo();
   const res = await ctx.post('/api/partner/signup', {
     multipart: signupMultipart(signupFields({ bizRegNo: bad })),
@@ -95,7 +97,9 @@ test('사업자등록번호 체크섬 불일치 400 (:84-86, lib/bizRegNo.ts:9-1
   // 양성대조 — 같은 앞 9자리에 올바른 검증번호면 통과한다. 체크섬 자체가 원인임을
   // 확인하지 않으면 "무조건 400" 하네스 결함과 구분되지 않는다.
   const fields = signupFields({ bizRegNo: validBizRegNo() });
-  const ok = await ctx.post('/api/partner/signup', { multipart: signupMultipart(fields) });
+  const ok = await ctx.post('/api/partner/signup', {
+    multipart: signupMultipart(fields),
+  });
   expect(ok.status()).toBe(200);
   await trackSignedUpPartner(prisma, f, fields.loginId);
   // 형식 자체가 틀린 경우(10자리 아님)도 같은 분기다.
@@ -109,34 +113,44 @@ test('사업자등록번호 체크섬 불일치 400 (:84-86, lib/bizRegNo.ts:9-1
   await ctx.dispose();
 });
 
-test('bizCert 미첨부·초과크기·허용외 MIME 400 (:93, :99, :105)', async ({ playwright }) => {
+test('bizCert 미첨부·초과크기·허용외 MIME 400 (:93, :99, :105)', async ({
+  playwright,
+}) => {
   // ⚠️ 이 3개 게이트는 전부 체크섬(:88) **뒤**에 있다. signupFields() 가 매번
   // 검증번호까지 유효한 번호를 만들기 때문에 여기까지 도달한다. 상수 번호를 쓰거나
   // 체크섬이 깨지면 세 단언 모두 체크섬 400 을 맞고 **파일 게이트를 한 번도 실행하지
   // 않은 채** 초록이 된다 — 문구까지 대조하는 이유가 이것이다.
   const ctx = await anonSignupCtx(playwright, 'partner-signup-file');
 
-  const missingGate = expectGate(SIGNUP, 96);
+  const missingGate = expectGate(SIGNUP, 97);
   const missing = await ctx.post('/api/partner/signup', {
     multipart: signupMultipart(signupFields(), { cert: null }),
   });
   expect(missing.status()).toBe(missingGate.status);
   expect((await missing.json()).error).toBe(missingGate.message);
 
-  const tooBigGate = expectGate(SIGNUP, 102);
+  const tooBigGate = expectGate(SIGNUP, 103);
   const tooBig = await ctx.post('/api/partner/signup', {
     multipart: signupMultipart(signupFields(), {
-      cert: { name: 'big.png', mimeType: 'image/png', buffer: Buffer.alloc(8 * 1024 * 1024 + 1) },
+      cert: {
+        name: 'big.png',
+        mimeType: 'image/png',
+        buffer: Buffer.alloc(8 * 1024 * 1024 + 1),
+      },
     }),
   });
   expect(tooBig.status()).toBe(tooBigGate.status);
   expect((await tooBig.json()).error).toBe(tooBigGate.message);
 
   // 8MB 이하여야 MIME 게이트까지 온다 (:102 가 :108 을 가린다).
-  const badMimeGate = expectGate(SIGNUP, 108);
+  const badMimeGate = expectGate(SIGNUP, 109);
   const badMime = await ctx.post('/api/partner/signup', {
     multipart: signupMultipart(signupFields(), {
-      cert: { name: 'cert.txt', mimeType: 'text/plain', buffer: Buffer.from('not an image') },
+      cert: {
+        name: 'cert.txt',
+        mimeType: 'text/plain',
+        buffer: Buffer.from('not an image'),
+      },
     }),
   });
   expect(badMime.status()).toBe(badMimeGate.status);
@@ -145,19 +159,25 @@ test('bizCert 미첨부·초과크기·허용외 MIME 400 (:93, :99, :105)', asy
   await ctx.dispose();
 });
 
-test('중복 bizRegNo 409 (:119-123) · 중복 loginId 409 (:116-118)', async ({ playwright }) => {
+test('중복 bizRegNo 409 (:119-123) · 중복 loginId 409 (:116-118)', async ({
+  playwright,
+}) => {
   const ctx = await anonSignupCtx(playwright, 'partner-signup-dup');
   const first = signupFields();
-  expect((await ctx.post('/api/partner/signup', { multipart: signupMultipart(first) })).status()).toBe(
-    200,
-  );
+  expect(
+    (
+      await ctx.post('/api/partner/signup', {
+        multipart: signupMultipart(first),
+      })
+    ).status(),
+  ).toBe(200);
   await trackSignedUpPartner(prisma, f, first.loginId);
 
   // 두 409 는 문구로만 구분된다 — 상태코드만 보면 어느 쪽이 걸렸는지 알 수 없다.
   // 둘 다 **유효한 파일 첨부**가 있어야 도달한다(:96-108 이 앞에 있다).
   //
   // 같은 사업자번호 + 다른 아이디 → bizRegNo 충돌. loginId 까지 겹치면 :117 이 먼저다.
-  const bizGate = expectGate(SIGNUP, 122);
+  const bizGate = expectGate(SIGNUP, 143);
   const sameBiz = await ctx.post('/api/partner/signup', {
     multipart: signupMultipart(signupFields({ bizRegNo: first.bizRegNo })),
   });
@@ -165,7 +185,7 @@ test('중복 bizRegNo 409 (:119-123) · 중복 loginId 409 (:116-118)', async ({
   expect((await sameBiz.json()).error).toBe(bizGate.message);
 
   // 같은 아이디 + 다른 사업자번호 → loginId 충돌
-  const loginGate = expectGate(SIGNUP, 117);
+  const loginGate = expectGate(SIGNUP, 138);
   const sameLogin = await ctx.post('/api/partner/signup', {
     multipart: signupMultipart(signupFields({ loginId: first.loginId })),
   });
@@ -173,27 +193,40 @@ test('중복 bizRegNo 409 (:119-123) · 중복 loginId 409 (:116-118)', async ({
   expect((await sameLogin.json()).error).toBe(loginGate.message);
 
   // 어느 쪽도 새 행을 만들지 않았다 — 409 가 "조용한 성공"이 아님을 DB 로 확인.
-  expect(await prisma.provider.count({ where: { bizRegNo: first.bizRegNo } })).toBe(1);
+  expect(
+    await prisma.provider.count({ where: { bizRegNo: first.bizRegNo } }),
+  ).toBe(1);
   await ctx.dispose();
 });
 
-test('추천인 검증 400 — 미승인 추천인(:146) · 자기 자신(:149)', async ({ playwright }) => {
+test('추천인 검증 400 — 미승인 추천인(:146) · 자기 자신(:149)', async ({
+  playwright,
+}) => {
   const ctx = await anonSignupCtx(playwright, 'partner-signup-referrer');
 
-  const notApprovedGate = expectGate(SIGNUP, 147);
-  const pendingReferrer = await f.createPartnerFixture({ approvalStatus: 'PENDING' });
+  const notApprovedGate = expectGate(SIGNUP, 168);
+  const pendingReferrer = await f.createPartnerFixture({
+    approvalStatus: 'PENDING',
+  });
   const notApproved = await ctx.post('/api/partner/signup', {
-    multipart: signupMultipart(signupFields({ referrerUserId: pendingReferrer.userId })),
+    multipart: signupMultipart(
+      signupFields({ referrerUserId: pendingReferrer.userId }),
+    ),
   });
   expect(notApproved.status()).toBe(notApprovedGate.status);
   expect((await notApproved.json()).error).toBe(notApprovedGate.message);
 
   // 자기추천 — 라우트는 User.id 가 아니라 **전화번호 동일성**으로 판정한다.
-  const selfGate = expectGate(SIGNUP, 152);
-  const approvedReferrer = await f.createPartnerFixture({ approvalStatus: 'APPROVED' });
+  const selfGate = expectGate(SIGNUP, 173);
+  const approvedReferrer = await f.createPartnerFixture({
+    approvalStatus: 'APPROVED',
+  });
   const selfRef = await ctx.post('/api/partner/signup', {
     multipart: signupMultipart(
-      signupFields({ referrerUserId: approvedReferrer.userId, phone: approvedReferrer.phone }),
+      signupFields({
+        referrerUserId: approvedReferrer.userId,
+        phone: approvedReferrer.phone,
+      }),
     ),
   });
   expect(selfRef.status()).toBe(selfGate.status);
@@ -201,12 +234,17 @@ test('추천인 검증 400 — 미승인 추천인(:146) · 자기 자신(:149)'
 
   // 양성대조 — 승인된 타인 추천인은 통과하고 referredByUserId 가 실제로 박힌다(:155, :185).
   const fields = signupFields({ referrerUserId: approvedReferrer.userId });
-  expect((await ctx.post('/api/partner/signup', { multipart: signupMultipart(fields) })).status()).toBe(
-    200,
-  );
+  expect(
+    (
+      await ctx.post('/api/partner/signup', {
+        multipart: signupMultipart(fields),
+      })
+    ).status(),
+  ).toBe(200);
   const { providerId } = await trackSignedUpPartner(prisma, f, fields.loginId);
   expect(
-    (await prisma.provider.findUnique({ where: { id: providerId } }))?.referredByUserId,
+    (await prisma.provider.findUnique({ where: { id: providerId } }))
+      ?.referredByUserId,
   ).toBe(approvedReferrer.userId);
 
   await ctx.dispose();
@@ -217,13 +255,20 @@ test('가입 성공은 PENDING 으로 만들고 (:184) 승인 전 로그인을 �
 }) => {
   const ctx = await anonSignupCtx(playwright, 'partner-signup-pending');
   const fields = signupFields();
-  const res = await ctx.post('/api/partner/signup', { multipart: signupMultipart(fields) });
+  const res = await ctx.post('/api/partner/signup', {
+    multipart: signupMultipart(fields),
+  });
   expect(res.status()).toBe(200);
   expect(await res.json()).toEqual({ ok: true });
 
   const { providerId } = await trackSignedUpPartner(prisma, f, fields.loginId);
-  const provider = await prisma.provider.findUnique({ where: { id: providerId } });
-  expect(provider?.approvalStatus, '업체는 전기기사와 달리 PENDING 으로 생성된다').toBe('PENDING');
+  const provider = await prisma.provider.findUnique({
+    where: { id: providerId },
+  });
+  expect(
+    provider?.approvalStatus,
+    '업체는 전기기사와 달리 PENDING 으로 생성된다',
+  ).toBe('PENDING');
   expect(provider?.approvedAt).toBeNull();
   expect(provider?.bizRegNo).toBe(fields.bizRegNo);
   // 증빙은 파일시스템이 아니라 DB(StoredFile)에 들어간다(:195-202).
@@ -254,26 +299,22 @@ test('가입 성공은 PENDING 으로 만들고 (:184) 승인 전 로그인을 �
   await login.dispose();
 });
 
-test('⚠️ 현행 동작 기록 — partner/* 라우트는 approvalStatus 를 재확인하지 않는다', async ({
+test('승인 대기 업체는 세션이 있어도 포털 접근을 차단한다', async ({
   playwright,
 }) => {
-  // 승인 게이트는 auth/login/route.ts:48-53 **한 곳에만** 있다. partner/jobs·profile·
-  // stats 등은 requireSession('PROVIDER') + session.providerId 만 본다(예: jobs/route.ts:6-9).
-  // 즉 세션을 다른 경로로 얻을 수 있다면 PENDING 업체도 API 를 탄다 —
-  // 계층 방어가 없다는 뜻이며 팀리드에 보고 대상이다.
-  //
-  // 이 단언은 **현행 동작을 고정**하기 위한 것이다. 제품이 라우트단 승인 검사를
-  // 추가하면 여기가 빨개진다 — 그때는 결함이 아니라 수정이므로 기대값을 401/403 으로 바꿀 것.
+  // 로그인 외 경로에서 얻은 세션도 requireSession의 승인 상태 검사를 통과해야 한다.
   const pending = await f.createPartnerFixture({ approvalStatus: 'PENDING' });
   const ctx = await partnerCtx(playwright, pending, 'partner-pending-session');
   expect(
     (await ctx.get('/api/partner/jobs')).status(),
-    'PENDING 업체 세션이 통과한다 = 라우트단 승인 검사 부재 (보고 대상)',
-  ).toBe(200);
+    '현재 requireSession은 PENDING 업체 세션을 차단한다',
+  ).toBe(401);
   await ctx.dispose();
 });
 
-test('레이트리밋 429 — 전용 IP 에서 6회째가 막힌다 (:37-48, :53-58)', async ({ playwright }) => {
+test('레이트리밋 429 — 전용 IP 에서 6회째가 막힌다 (:37-48, :53-58)', async ({
+  playwright,
+}) => {
   // 고정 IP 를 쓰는 유일한 테스트. nonce 가 실행마다 바뀌므로(helpers/ip.ts:28-35)
   // 1회차가 태운 버킷이 2회차에 살아남지 않는다 = "연속 2회 그린"이 유지된다.
   const ctx = await fixedIpCtx(playwright, 'partner-signup-429');
@@ -284,7 +325,7 @@ test('레이트리밋 429 — 전용 IP 에서 6회째가 막힌다 (:37-48, :53
     });
     expect(res.status(), `${i + 1}회째는 아직 레이트리밋 전`).toBe(400);
   }
-  const gate = expectGate(SIGNUP, 56);
+  const gate = expectGate(SIGNUP, 57);
   const limited = await ctx.post('/api/partner/signup', {
     multipart: signupMultipart(signupFields()),
   });

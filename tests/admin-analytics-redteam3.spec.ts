@@ -96,74 +96,71 @@ test.describe('G003 지도 API/UI 레드팀', () => {
     }
   });
 
-  test('regions 500이어도 출동 패널은 독립적으로 렌더된다', async ({ page }) => {
-    await page.route(`**${REGIONS_URL}`, (route) => route.fulfill({ status: 500, json: { error: 'regions failed' } }));
-    await page.route(`**${DISPATCH_URL}`, (route) => route.fulfill({ json: dispatchPayload }));
+  test('지역 API 실패를 빈 목록과 구분한다', async ({ page }) => {
+    await page.route(`**${REGIONS_URL}`, route=>route.fulfill({status:500,json:{error:'regions failed'}}));
     await loginAsAdmin(page);
     await page.goto('/admin/analytics/map');
-    await expect(page.getByText('요청 실패 (500)', { exact: true })).toBeVisible();
-    await expect(page.getByRole('heading', { name: '출동 현황' })).toBeVisible();
-    await expect(page.getByText('900001', { exact: true })).toBeVisible();
+    await expect(page.locator('main [role=alert]')).toContainText('지역 데이터를 불러오지 못했습니다.');
+    await expect(page.getByRole('button',{name:'다시 시도'})).toBeVisible();
+    await expect(page.getByLabel('지역별 접수 목록')).toHaveCount(0);
   });
 
-  test('dispatch 500이어도 지역 표는 독립적으로 렌더된다', async ({ page }) => {
-    await page.route(`**${REGIONS_URL}`, (route) => route.fulfill({ json: regionsPayload() }));
-    await page.route(`**${DISPATCH_URL}`, (route) => route.fulfill({ status: 500, json: { error: 'dispatch failed' } }));
+  test('출동 API 상태와 무관하게 지역을 조회한다', async ({ page }) => {
+    await page.route(`**${REGIONS_URL}`, route=>route.fulfill({json:regionsPayload()}));
+    await page.route(`**${DISPATCH_URL}`, route=>route.fulfill({status:500,json:{error:'dispatch failed'}}));
     await loginAsAdmin(page);
     await page.goto('/admin/analytics/map');
-    await expect(page.getByText('요청 실패 (500)', { exact: true })).toBeVisible();
-    await expect(page.getByRole('heading', { name: '수급 압력 순위표' })).toBeVisible();
-    await expect(page.getByRole('cell', { name: '서울특별시', exact: true })).toBeVisible();
+    await expect(page.getByRole('heading', {name:'지역별 접수',exact:true})).toBeVisible();
+    await expect(page.getByRole('list', {name:'지역별 접수 목록'})).toContainText('서울특별시');
+    await expect(page.getByText('dispatch failed')).toHaveCount(0);
   });
 
-  test('17시도와 10개 갭 경보를 렌더하며 경보 수요 내림차순을 유지한다', async ({ page }) => {
-    const regions = Array.from({ length: 17 }, (_, index) => region(`지역${index + 1}`, 17 - index));
-    const gapAlerts = Array.from({ length: 10 }, (_, index) => ({ key: `경보${index + 1}`, name: `경보${index + 1}`, demand: 10 - index }));
-    await page.route(`**${REGIONS_URL}`, (route) => route.fulfill({ json: regionsPayload(regions, gapAlerts) }));
-    await page.route(`**${DISPATCH_URL}`, (route) => route.fulfill({ json: dispatchPayload }));
+  test('17개 지역과 담당 등록 없는 10개 지역을 중복 없이 필터링하고 접수순을 유지한다', async ({ page }) => {
+    const regions=Array.from({length:17},(_,index)=>region(`지역${index+1}`,17-index,index<10?0:1));
+    await page.route(`**${REGIONS_URL}`, route=>route.fulfill({json:regionsPayload(regions)}));
     await loginAsAdmin(page);
     await page.goto('/admin/analytics/map');
-    await expect(page.locator('tbody tr')).toHaveCount(18);
-    const alertText = await page.locator('[aria-labelledby="gap-alerts-heading"] li').allTextContents();
-    expect(alertText).toHaveLength(10);
-    expect(alertText.map((text) => Number(text.match(/수요\s(\d+)건/)?.[1]))).toEqual([10, 9, 8, 7, 6, 5, 4, 3, 2, 1]);
+    const list=page.getByRole('list',{name:'지역별 접수 목록'});
+    await expect(list.getByRole('listitem')).toHaveCount(17);
+    await page.getByRole('button',{name:'담당 등록 없음 10',exact:true}).click();
+    await expect(list.getByRole('listitem')).toHaveCount(10);
+    const values=await list.locator('[aria-label^="접수 "]').evaluateAll(nodes=>nodes.map(node=>Number(node.textContent?.replace(/\D/g,''))));
+    expect(values).toEqual([17,16,15,14,13,12,11,10,9,8]);
+    await page.getByRole('searchbox',{name:'지역 이름 검색'}).fill('지역3');
+    await expect(list.getByRole('listitem')).toHaveCount(1);
+    await expect(list).toContainText('지역3');
+    await page.getByRole('searchbox',{name:'지역 이름 검색'}).fill('없는 지역');
+    await expect(page.getByText('검색한 지역이 없습니다.')).toBeVisible();
   });
 
-  test('경계 미확보 시 안내 배너, 확보 시 코로플레스와 차량 추적 아님 라벨을 표시한다', async ({ page }) => {
-    // 미확보(unavailable) 경로 — manifest 404
-    await page.route('**/geo/manifest.json', (route) => route.fulfill({ status: 404 }));
+  test('경계 미확보 시 목록을 유지하고 복구되면 지도를 표시한다', async ({ page }) => {
+    await page.route('**/geo/manifest.json', route=>route.fulfill({status:404}));
     await loginAsAdmin(page);
     await page.goto('/admin/analytics/map');
-    await expect(page.getByLabel('지도 안내')).toContainText('제공 예정');
-    await expect(page.getByText('차량 추적 아님 — 고객 목적지 기준').first()).toBeVisible();
+    await expect(page.getByLabel('지도 안내')).toContainText('지도를 준비하지 못했습니다.');
     await page.unroute('**/geo/manifest.json');
-
-    // 확보(loaded) 경로 — 실제 게시 manifest 사용, 배너 없음 + 코로플레스 렌더
-    await page.reload();
-    await expect(page.getByRole('img', { name: '시도별 수급 압력 지도' }).locator('path')).toHaveCount(17, { timeout: 20_000 });
+    await page.getByRole('button',{name:'새로고침',exact:true}).click();
+    await expect(page.getByRole('group',{name:'시도별 접수 지도'}).locator('path')).toHaveCount(17,{timeout:20000});
     await expect(page.getByLabel('지도 안내')).toHaveCount(0);
-    await page.screenshot({ path: 'artifacts/g003-qa/map.jpg', type: 'jpeg', quality: 92, fullPage: true });
+    await page.screenshot({path:'artifacts/g003-qa/map.jpg',type:'jpeg',quality:92,fullPage:true});
   });
 
-  test('출동은 8초 폴링하고 지역 집계는 그보다 느린 45초 경계를 지킨다', async ({ page }) => {
-    let regionsCalls = 0;
-    let dispatchCalls = 0;
-    await page.route(`**${REGIONS_URL}`, (route) => {
-      regionsCalls += 1;
-      return route.fulfill({ json: regionsPayload() });
-    });
-    await page.route(`**${DISPATCH_URL}`, (route) => {
-      dispatchCalls += 1;
-      return route.fulfill({ json: dispatchPayload });
-    });
+  test('지역 집계는 45초에 갱신하고 출동 API는 조회하지 않는다', async ({ page }) => {
+    let regionsCalls=0, dispatchCalls=0;
+    await page.route(`**${REGIONS_URL}`, route=>{regionsCalls++;return route.fulfill({json:regionsPayload()});});
+    await page.route(`**${DISPATCH_URL}`, route=>{dispatchCalls++;return route.fulfill({json:dispatchPayload});});
     await loginAsAdmin(page);
+    await page.clock.install();
     await page.goto('/admin/analytics/map');
-    await expect.poll(() => dispatchCalls).toBeGreaterThanOrEqual(1);
-    await page.waitForTimeout(8_500);
-    expect(dispatchCalls).toBeGreaterThanOrEqual(2);
+    await expect(page.getByRole('list',{name:'지역별 접수 목록'})).toBeVisible();
     expect(regionsCalls).toBe(1);
+    await page.clock.fastForward(44000);
+    expect(regionsCalls).toBe(1);
+    await page.clock.fastForward(2000);
+    await expect.poll(()=>regionsCalls).toBe(2);
+    expect(dispatchCalls).toBe(0);
   });
-  test('1023px에서는 지도 API 요청이 없고 1024px에서는 정상 렌더된다', async ({ browser }) => {
+  test('1023px와 1024px 모두 지도 정보를 조회한다', async ({ browser }) => {
     const narrow = await browser.newContext({ viewport: { width: 1023, height: 800 } });
     const narrowPage = await narrow.newPage();
     let mapCalls = 0;
@@ -172,9 +169,9 @@ test.describe('G003 지도 API/UI 레드팀', () => {
     });
     await loginAsAdmin(narrowPage);
     await narrowPage.goto('/admin/analytics/map');
-    await expect(narrowPage.getByText('지도 현황은 데스크톱에서 이용할 수 있습니다.')).toBeVisible();
+    await expect(narrowPage.getByRole('heading', { name:'지역별 접수' })).toBeVisible();
     await narrowPage.waitForTimeout(300);
-    expect(mapCalls).toBe(0);
+    expect(mapCalls).toBeGreaterThan(0);
     await narrow.close();
 
     const wide = await browser.newContext({ viewport: { width: 1024, height: 800 } });
@@ -183,7 +180,7 @@ test.describe('G003 지도 API/UI 레드팀', () => {
     await widePage.route(`**${DISPATCH_URL}`, (route) => route.fulfill({ json: dispatchPayload }));
     await loginAsAdmin(widePage);
     await widePage.goto('/admin/analytics/map');
-    await expect(widePage.getByRole('heading', { name: '수급 압력 순위표' })).toBeVisible();
+    await expect(widePage.getByRole('heading', { name: '지역별 접수' })).toBeVisible();
     await wide.close();
   });
 });

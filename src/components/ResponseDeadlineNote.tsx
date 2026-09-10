@@ -18,9 +18,11 @@ const TARGET: Record<string, { label: string; targetMin: number | null }> = {
 export default function ResponseDeadlineNote({
   assignedAt,
   urgency,
+  compact = false,
 }: {
   assignedAt: string;
   urgency: string;
+  compact?: boolean;
 }) {
   // 렌더 순수성 규칙상 Date.now()는 렌더 밖에서 — 지연 초기화 + 30초 틱으로 경과분을 갱신한다.
   const [now, setNow] = useState(() => Date.now());
@@ -31,22 +33,38 @@ export default function ResponseDeadlineNote({
 
   const t = TARGET[urgency] ?? TARGET.NORMAL;
   const recallMin =
-    RESPONSE_TIMEOUT_MINUTES[urgency as keyof typeof RESPONSE_TIMEOUT_MINUTES] ??
-    RESPONSE_TIMEOUT_MINUTES.NORMAL;
-  const elapsedMin = Math.max(0, Math.floor((now - new Date(assignedAt).getTime()) / 60_000));
+    RESPONSE_TIMEOUT_MINUTES[
+      urgency as keyof typeof RESPONSE_TIMEOUT_MINUTES
+    ] ?? RESPONSE_TIMEOUT_MINUTES.NORMAL;
+  const elapsedMin = Math.max(
+    0,
+    Math.floor((now - new Date(assignedAt).getTime()) / 60_000),
+  );
   const leftMin = recallMin - elapsedMin;
   // 회수가 임박했거나 응대 목표를 넘겼으면 붉게. 회수 시한이 훨씬 짧아 사실상 이쪽이 먼저 걸린다.
-  const urgent = leftMin <= 3 || (t.targetMin != null && elapsedMin >= t.targetMin);
+  const urgent =
+    leftMin <= 3 || (t.targetMin != null && elapsedMin >= t.targetMin);
   return (
     <p
-      className={`rounded-xl p-3 text-sm font-medium md:col-span-2 ${
-        urgent ? 'bg-red-50 text-red-600' : 'bg-amber-50 text-amber-700'
-      }`}
+      className={compact
+        ? `text-sm font-medium ${urgent ? 'text-red-700' : 'text-amber-800'}`
+        : `rounded-xl p-3 text-sm font-medium md:col-span-2 ${urgent ? 'bg-red-50 text-red-700' : 'bg-amber-50 text-amber-800'}`}
     >
-      {elapsedMin < 1 ? '방금 배정됨' : `배정 후 ${elapsedMin}분 경과`} · {t.label} ·{' '}
-      {leftMin > 0
-        ? `${leftMin}분 안에 수락 또는 거절하지 않으면 자동으로 회수되어 다음 순서로 넘어갑니다.`
-        : '응답이 없어 곧 회수되어 다음 순서로 넘어갑니다.'}
+      {compact ? (
+        leftMin > 0 ? (
+          `응답 시간 ${leftMin}분 남음`
+        ) : (
+          '응답 기한 경과 · 회수 여부를 확인해 주세요'
+        )
+      ) : (
+        <>
+          {elapsedMin < 1 ? '방금 배정됨' : `배정 후 ${elapsedMin}분 경과`} ·{' '}
+          {t.label} ·{' '}
+          {leftMin > 0
+            ? `${leftMin}분 안에 수락 또는 거절하지 않으면 자동으로 회수되어 다음 순서로 넘어갑니다.`
+            : '응답이 없어 곧 회수되어 다음 순서로 넘어갑니다.'}
+        </>
+      )}
     </p>
   );
 }

@@ -1,4 +1,3 @@
-import Surface from '@/components/Surface';
 import { StarIcon } from '@/components/icons';
 import { getLandingReviewStats } from '@/lib/landingReviews';
 
@@ -29,12 +28,12 @@ export default async function ReviewSection() {
   const { avgRating, reviewCount, distribution } = stats;
 
   return (
-    <section className="mt-3 md:mt-4 md:w-full md:max-w-2xl">
-      <h2 className="text-2xl font-extrabold text-fg md:text-3xl">고객이 남긴 후기</h2>
-      <p className="mt-1.5 text-[15px] leading-relaxed text-muted">
+    <section className="border-t border-border py-10 md:py-12" aria-labelledby="reviews-title">
+      <h2 id="reviews-title" className="text-2xl font-bold text-fg">고객이 남긴 후기</h2>
+      <p className="mt-2 text-sm leading-relaxed text-muted">
         실제 서비스를 이용한 고객의 만족도 조사 결과입니다.
       </p>
-      <Surface className="mt-4 rounded-3xl p-6 md:p-7">
+      <div className="mt-6 grid gap-6 md:grid-cols-[1fr_1.6fr] md:gap-10">
         <div className="flex items-center gap-4">
           <span className="text-4xl font-extrabold text-fg">{avgRating.toFixed(1)}</span>
           <div>
@@ -42,7 +41,7 @@ export default async function ReviewSection() {
             <p className="mt-1 text-sm text-muted">{reviewCount.toLocaleString('ko-KR')}건 참여</p>
           </div>
         </div>
-        <div className="mt-5 space-y-2">
+        <div className="space-y-2">
           {([5, 4, 3, 2, 1] as const).map((n) => {
             const count = distribution[n];
             const pct = reviewCount > 0 ? Math.round((count / reviewCount) * 100) : 0;
@@ -57,7 +56,7 @@ export default async function ReviewSection() {
             );
           })}
         </div>
-      </Surface>
+      </div>
     </section>
   );
 }

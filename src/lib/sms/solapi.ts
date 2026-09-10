@@ -20,6 +20,7 @@ export const solapiProvider: SmsProvider = {
 
     const res = await fetch('https://api.solapi.com/messages/v4/send', {
       method: 'POST',
+      signal: AbortSignal.timeout(20_000),
       headers: {
         'Content-Type': 'application/json',
         Authorization: `HMAC-SHA256 apiKey=${apiKey}, date=${date}, salt=${salt}, signature=${signature}`,

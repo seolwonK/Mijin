@@ -1,0 +1,84 @@
+[
+  {
+    "scope": "partner",
+    "login": true,
+    "reviewsExpandCollapse": true,
+    "eggHelp": true,
+    "jumpToQueue": true,
+    "layouts": [
+      {
+        "width": 320,
+        "overflow": false,
+        "dashboardFirst": true
+      },
+      {
+        "width": 360,
+        "overflow": false,
+        "dashboardFirst": true
+      },
+      {
+        "width": 390,
+        "overflow": false,
+        "dashboardFirst": true
+      },
+      {
+        "width": 768,
+        "overflow": false,
+        "dashboardFirst": true
+      },
+      {
+        "width": 1280,
+        "overflow": false,
+        "dashboardFirst": true
+      },
+      {
+        "width": 1440,
+        "overflow": false,
+        "dashboardFirst": true
+      }
+    ],
+    "violations": [],
+    "errors": []
+  },
+  {
+    "scope": "tech",
+    "login": true,
+    "reviewsExpandCollapse": true,
+    "eggHelp": true,
+    "jumpToQueue": true,
+    "layouts": [
+      {
+        "width": 320,
+        "overflow": false,
+        "dashboardFirst": true
+      },
+      {
+        "width": 360,
+        "overflow": false,
+        "dashboardFirst": true
+      },
+      {
+        "width": 390,
+        "overflow": false,
+        "dashboardFirst": true
+      },
+      {
+        "width": 768,
+        "overflow": false,
+        "dashboardFirst": true
+      },
+      {
+        "width": 1280,
+        "overflow": false,
+        "dashboardFirst": true
+      },
+      {
+        "width": 1440,
+        "overflow": false,
+        "dashboardFirst": true
+      }
+    ],
+    "violations": [],
+    "errors": []
+  }
+]

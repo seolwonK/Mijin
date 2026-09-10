@@ -1,0 +1,32 @@
+
+Running 25 tests using 1 worker
+
+(node:8590) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   1 [chromium] › tests/portal/improvements-ui.spec.ts:97:9 › partner › 모바일 우선순위·9자리 금액·상태와 접근성 (739ms)
+  ✓   2 [chromium] › tests/portal/improvements-ui.spec.ts:153:9 › partner › 조회 실패는 빈 내역으로 표시하지 않고 전체 새로고침으로 복구 (272ms)
+  ✓   3 [chromium] › tests/portal/improvements-ui.spec.ts:185:9 › partner › 상세 통신 실패에도 연락처 유지·처리 버튼 잠금·복구 (309ms)
+  ✓   4 [chromium] › tests/portal/improvements-ui.spec.ts:218:9 › partner › 사진 대화상자 키보드 이동·초점 복귀·이미지 재시도 (309ms)
+  ✓   5 [chromium] › tests/portal/improvements-ui.spec.ts:272:9 › partner › 내 정보 재시도·미저장 상태·저장 실패 후 입력 유지 (390ms)
+  ✓   6 [chromium] › tests/portal/improvements-ui.spec.ts:327:9 › partner › 지난 내역 검색과 페이지 이동 (330ms)
+  ✓   7 [chromium] › tests/portal/improvements-ui.spec.ts:97:9 › tech › 모바일 우선순위·9자리 금액·상태와 접근성 (519ms)
+  ✓   8 [chromium] › tests/portal/improvements-ui.spec.ts:153:9 › tech › 조회 실패는 빈 내역으로 표시하지 않고 전체 새로고침으로 복구 (269ms)
+  ✓   9 [chromium] › tests/portal/improvements-ui.spec.ts:185:9 › tech › 상세 통신 실패에도 연락처 유지·처리 버튼 잠금·복구 (286ms)
+  ✓  10 [chromium] › tests/portal/improvements-ui.spec.ts:218:9 › tech › 사진 대화상자 키보드 이동·초점 복귀·이미지 재시도 (318ms)
+  ✓  11 [chromium] › tests/portal/improvements-ui.spec.ts:272:9 › tech › 내 정보 재시도·미저장 상태·저장 실패 후 입력 유지 (383ms)
+  ✓  12 [chromium] › tests/portal/improvements-ui.spec.ts:327:9 › tech › 지난 내역 검색과 페이지 이동 (343ms)
+  ✓  13 [chromium] › tests/portal/improvements-ui.spec.ts:363:5 › 아이디 확인 요청 중 수정하면 이전 성공 응답은 무효 (257ms)
+  ✓  14 [chromium] › tests/portal/improvements-ui.spec.ts:385:5 › 가입 필드 라벨·첨부 키보드 포커스·고용 선택 상태 (311ms)
+  ✓  15 [chromium] › tests/portal/improvements-ui.spec.ts:400:5 › 근로확인서 전체 조건·키보드 서명·완료본 인쇄 (434ms)
+  ✓  16 [chromium] › tests/portal/improvements-ui.spec.ts:499:7 › partner: 모든 조회 실패와 계약 오류는 빈 상태로 오인하지 않는다 (228ms)
+  ✓  17 [chromium] › tests/portal/improvements-ui.spec.ts:533:7 › partner: 종료된 배정은 사유와 시간을 표시하고 처리 버튼을 숨긴다 (311ms)
+  ✓  18 [chromium] › tests/portal/improvements-ui.spec.ts:565:7 › partner: 로그아웃 실패는 현재 화면에서 재시도 (315ms)
+  ✓  19 [chromium] › tests/portal/improvements-ui.spec.ts:499:7 › tech: 모든 조회 실패와 계약 오류는 빈 상태로 오인하지 않는다 (235ms)
+  ✓  20 [chromium] › tests/portal/improvements-ui.spec.ts:533:7 › tech: 종료된 배정은 사유와 시간을 표시하고 처리 버튼을 숨긴다 (327ms)
+  ✓  21 [chromium] › tests/portal/improvements-ui.spec.ts:565:7 › tech: 로그아웃 실패는 현재 화면에서 재시도 (330ms)
+  ✓  22 [chromium] › tests/portal/improvements-ui.spec.ts:596:7 › partner: 내 정보 세션 만료 시 돌아올 주소를 유지 (187ms)
+  ✓  23 [chromium] › tests/portal/improvements-ui.spec.ts:620:7 › partner: 주소 이력 링크의 검색어가 검색 화면에 유지 (165ms)
+  ✓  24 [chromium] › tests/portal/improvements-ui.spec.ts:596:7 › tech: 내 정보 세션 만료 시 돌아올 주소를 유지 (184ms)
+  ✓  25 [chromium] › tests/portal/improvements-ui.spec.ts:620:7 › tech: 주소 이력 링크의 검색어가 검색 화면에 유지 (181ms)
+
+  25 passed (8.6s)

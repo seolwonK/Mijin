@@ -1,0 +1,110 @@
+{
+  "results": [
+    {
+      "path": "/admin/settlements",
+      "width": 390,
+      "violations": []
+    },
+    {
+      "path": "/admin/settlements",
+      "width": 768,
+      "violations": []
+    },
+    {
+      "path": "/admin/settlements",
+      "width": 1440,
+      "violations": []
+    },
+    {
+      "path": "/admin/analytics/surveys",
+      "width": 390,
+      "violations": []
+    },
+    {
+      "path": "/admin/analytics/surveys",
+      "width": 768,
+      "violations": []
+    },
+    {
+      "path": "/admin/analytics/surveys",
+      "width": 1440,
+      "violations": []
+    },
+    {
+      "path": "/admin/analytics/ratings",
+      "width": 390,
+      "violations": []
+    },
+    {
+      "path": "/admin/analytics/ratings",
+      "width": 768,
+      "violations": []
+    },
+    {
+      "path": "/admin/analytics/ratings",
+      "width": 1440,
+      "violations": []
+    },
+    {
+      "path": "/admin/analytics/dashboard",
+      "width": 390,
+      "violations": []
+    },
+    {
+      "path": "/admin/analytics/dashboard",
+      "width": 768,
+      "violations": []
+    },
+    {
+      "path": "/admin/analytics/dashboard",
+      "width": 1440,
+      "violations": []
+    },
+    {
+      "path": "/admin/analytics/map",
+      "width": 390,
+      "violations": []
+    },
+    {
+      "path": "/admin/analytics/map",
+      "width": 768,
+      "violations": []
+    },
+    {
+      "path": "/admin/analytics/map",
+      "width": 1440,
+      "violations": []
+    },
+    {
+      "path": "/admin/settings",
+      "width": 390,
+      "violations": []
+    },
+    {
+      "path": "/admin/settings",
+      "width": 768,
+      "violations": []
+    },
+    {
+      "path": "/admin/settings",
+      "width": 1440,
+      "violations": []
+    },
+    {
+      "path": "settlement-detail",
+      "width": 1440,
+      "violations": []
+    },
+    {
+      "path": "settlement-detail",
+      "width": 390,
+      "violations": []
+    },
+    {
+      "path": "survey-confirm",
+      "width": 390,
+      "violations": []
+    }
+  ],
+  "errors": []
+}
