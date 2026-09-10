@@ -120,7 +120,7 @@ test('사진 2장 첨부: RequestPhoto 2행 + 첨부 순서(sort) 보존 + DB �
   expect(photos[0].storageKey).toBeNull();
   expect(photos[0].fileId).not.toBeNull();
   const stored = await prisma.storedFile.findUnique({ where: { id: photos[0].fileId! } });
-  expect(Buffer.from(stored!.data)).toEqual(jpegBytes(0xaa));
+  expect(Buffer.from(stored!.data!)).toEqual(jpegBytes(0xaa));
 });
 
 test('사진 없이 접수해도 그대로 200 — 사진은 선택 항목이다', async () => {

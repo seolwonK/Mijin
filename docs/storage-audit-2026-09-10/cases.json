@@ -1,0 +1,1472 @@
+[
+  {
+    "group": "unit",
+    "name": "정산 상세는 업체·기사 분리, KST 경계, 0원·미입력, 25건 이후 원본과 합계가 일치한다",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "동시 재발송은 1건만 발송·기록하고 기존 토큰을 재사용한다",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "응답 완료·없는 설문은 발송하지 않는다",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "Solapi 잔액 부족은 502와 실패 기록을 남기며, 재시도에서도 링크·신고 금액을 바꾸지 않는다",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "관리자 API 입력 검증·권한·Retry-After를 적용한다",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "notifyAdminAttention 수신처 환경변수가 없으면 관리자 계정 전화번호로 보낸다",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "notifyAdminAttention 수신처 환경변수가 있으면 그 번호로만 보내고 DB를 조회하지 않는다",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "notifyAdminAttention 수신처 환경변수에 쓸모없는 값만 있으면 관리자 계정으로 되돌아간다",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "notifyAdminAttention 수신처 보낼 번호가 하나도 없으면 발송하지 않는다",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "F8 customer-accept dedupe (real PostgreSQL) 접수당 표본 1건 — 최종 respondedAt 기준 200초",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "analytics calculations returns null for an undefined rate",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "analytics calculations builds acceptance, request-success, and paid-survey averages from injected Prisma results",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "analytics calculations preserves null aggregate percentiles and returns null paid averages for no submitted payments",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "chargeEggs (실 DB) 최소 충전 단위 30알 미만은 거부한다",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "chargeEggs (실 DB) 30알 단위가 아닌 31알은 잔액·장부 변경 없이 거부한다",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "chargeEggs (실 DB) 30알 단위가 아닌 59알은 잔액·장부 변경 없이 거부한다",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "chargeEggs (실 DB) 30알 단위가 아닌 61알은 잔액·장부 변경 없이 거부한다",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "chargeEggs (실 DB) 30알 단위가 아닌 30.5알은 잔액·장부 변경 없이 거부한다",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "chargeEggs (실 DB) 두 판 충전은 60알을 지급한다",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "chargeEggs (실 DB) 정상 충전은 잔액과 장부를 함께 갱신한다",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "chargeEggs (실 DB) 같은 chargeKey 재제출은 멱등 no-op이다 (더블서브밋 방어)",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "spendEggOnAccept (실 DB) 잔액이 있으면 1알 차감 + 장부 1행 (SPENT)",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "spendEggOnAccept (실 DB) 잔액 0이면 무차감 수락 (ZERO_BALANCE) — 장부 행도 남지 않는다(롤백)",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "spendEggOnAccept (실 DB) 같은 assignmentId 2회 호출 → 장부 1행·잔액 -1 (멱등성 — 이중차감의 1차 증거)",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "spendEggOnAccept (실 DB) 오버스펜드 레이스: 잔액 1·서로 다른 배정 2건 동시 → 정확히 SPENT 1 + ZERO_BALANCE 1",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "adjustEggs (실 DB) 감액 결과가 음수가 되면 거부하고 장부도 남기지 않는다(롤백)",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "adjustEggs (실 DB) 정상 정정은 잔액·장부 동시 갱신",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "loadGeoProvider uses manifest-selected files for multipolygons, holes, interior points, and boundary-adjacent points",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "loadGeoProvider retries a failed sigungu partition after the TTL instead of caching null forever",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "identityProviderName IDENTITY_PROVIDER=kcp 이면 kcp (운영 기본 — 포트원 없는 KCP 직접 연동)",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "identityProviderName IDENTITY_PROVIDER=portone 이면 portone",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "identityProviderName 개발 환경에서 미설정이면 mock 으로 떨어진다",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "identityProviderName 프로덕션에서 미설정이면 mock 으로 떨어지지 않고 던진다 (fail-closed)",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "identityProviderName 프로덕션에서 오타 난 값도 mock 으로 통과시키지 않는다",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "identityProviderName ALLOW_MOCK_IDENTITY=1 은 의도적 탈출구로 열어 준다",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "getIdentityPublicConfig kcp 는 provider 이름만 내려준다 — 사이트코드·ENC_KEY 는 서버 비밀이라 절대 실리지 않는다",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "getIdentityPublicConfig portone 설정을 storeId·channelKey 만 담아 내려준다 (API Secret 은 절대 포함하지 않는다)",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "getIdentityPublicConfig storeId·channelKey 가 비면 mock 으로 폴백하지 않고 던진다",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "hashIdentityKey 원본이 결과에 남지 않는 64자 16진 해시를 만든다",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "hashIdentityKey 같은 값·같은 키는 같은 해시 — 중복가입 비교가 성립한다",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "hashIdentityKey 다른 값은 다른 해시",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "hashIdentityKey 키가 다르면 해시도 다르다 — 유출된 DB 만으로는 대조할 수 없다",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "hashIdentityKey 값이 없으면(대행사 미제공 채널) null 을 돌려준다",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "hashIdentityKey IDENTITY_HASH_SECRET 이 없으면 AUTH_SECRET 으로 떨어진다",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "hashIdentityKey 키가 하나도 없으면 조용히 평문을 남기지 않고 던진다",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "portoneProvider.verify VERIFIED 응답을 정규화해 돌려준다 (전화번호는 숫자만)",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "portoneProvider.verify API Secret 은 Authorization 헤더로만 나가고 URL 에 실리지 않는다",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "portoneProvider.verify 클라이언트가 보낸 값이 아니라 대행사 응답의 이름·번호를 쓴다",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "portoneProvider.verify identityVerificationId 가 없으면 거부한다",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "portoneProvider.verify PORTONE_API_SECRET 이 없으면 거부한다 (조용히 통과시키지 않는다)",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "portoneProvider.verify status 가 VERIFIED 가 아니면 거부한다",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "portoneProvider.verify 응답의 id 가 요청한 id 와 다르면 거부한다 (남의 인증건 혼입 차단)",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "portoneProvider.verify 인증 완료 시각이 TTL 보다 오래됐으면 거부한다 (과거 인증정보 재사용 차단)",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "portoneProvider.verify TTL 안쪽의 인증 완료 시각은 통과한다",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "portoneProvider.verify 미래 시각(서버·대행사 시계 오차)은 막지 않는다",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "portoneProvider.verify 파싱 불가능한 verifiedAt 은 통과시키지 않는다",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "portoneProvider.verify HTTP 오류 응답은 삼키지 않고 던진다",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "confirmIdentity — 대행사 인증 1건 = 토큰 1건 처음 제출한 인증건은 토큰을 발급한다",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "confirmIdentity — 대행사 인증 1건 = 토큰 1건 같은 identityVerificationId 를 다시 제출하면 두 번째 토큰은 발급되지 않는다",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "confirmIdentity — 대행사 인증 1건 = 토큰 1건 동시에 같은 인증건을 제출해도 토큰은 하나만 남는다 (레이스)",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "confirmIdentity — 대행사 인증 1건 = 토큰 1건 서로 다른 인증건은 각각 토큰을 받는다 (제약이 정상 가입을 막지 않는다)",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "confirmIdentity — 대행사 인증 1건 = 토큰 1건 오래된 인증건은 토큰 발급 전에 거부되어 행 자체가 생기지 않는다",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "purgeAbandonedVerifications — 보유기간 가입까지 가지 못한 채 30일이 지난 인증건은 파기된다",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "purgeAbandonedVerifications — 보유기간 가입에 실제로 쓰인 인증건은 오래돼도 남긴다 (본인확인 이력)",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "purgeAbandonedVerifications — 보유기간 보유기간 안쪽의 미소비 인증건은 건드리지 않는다",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "kcp crypto KCP 샘플 라이브러리가 만든 전문을 그대로 복호화한다 (고정 벡터)",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "kcp crypto encryptJson → decryptJson 라운드트립 (한글·패딩 경계 포함)",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "kcp crypto 객체를 넘기면 JSON 문자열로 직렬화해 암호화한다",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "kcp crypto rv 는 호출마다 달라 같은 평문도 다른 암호문이 된다",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "kcp crypto ENC_KEY 나 site_cd 가 다르면 조용히 쓰레기를 돌려주지 않고 던진다",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "kcp crypto rv 길이가 16바이트가 아니면 거부한다",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "kcpProvider.verify AUTHED 세션이면 KCP 결과조회를 복호화해 정규화된 신원을 돌려준다",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "kcpProvider.verify 클라이언트가 이름·번호를 함께 보내도 KCP 응답만 쓴다 (파라미터 변조 방어)",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "kcpProvider.verify identityVerificationId 가 없거나 규격 밖이면 KCP 를 부르지 않고 거부한다",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "kcpProvider.verify 모르는 거래는 거부한다 (남의 ordr_idxx 추측)",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "kcpProvider.verify 이미 소비된 거래는 거부한다 (한 거래 = 토큰 한 건)",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "kcpProvider.verify 만료된 거래는 거부한다 (과거 인증정보 재사용 차단)",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "kcpProvider.verify KCP 콜백이 성공으로 끝나지 않은 거래(REGISTERED/FAILED)는 거부한다",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "kcpProvider.verify 거래를 시작한 브라우저의 쿠키가 없거나 다르면 KCP 를 부르지 않고 거부한다 (남이 만든 거래 가로채기 차단)",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "kcpProvider.verify 세션에 bindHash 가 없으면(구버전 행) 거부한다",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "kcpProvider.verify 인증창이 끝난 지 10분이 넘은 거래는 세션이 살아 있어도 거부한다 (portone 의 verifiedAt 기준과 동일)",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "kcpProvider.verify 동시 요청은 CAS 로 하나만 KCP 에 간다 — 두 번째는 결과조회 전에 거부",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "kcpProvider.verify KCP 결과조회가 0000 이 아니면 거부한다 (콜백 위조로는 통과 못 한다)",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "kcpProvider.verify 복호화 전문의 res_cd 가 0000 이 아니면 거부한다",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "kcpProvider.verify HTTP 오류 응답은 삼키지 않고 던진다",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "kcpProvider.verify KCP 설정이 없으면 거부한다 (조용히 통과시키지 않는다)",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "toIdentityResult CI_URL/DI_URL 이 없으면 원본 CI/DI 를 쓰고, 생년월일·성별 형식 밖은 비운다",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "toIdentityResult URL 인코딩본이 깨져 있으면 원본으로 물러난다",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "session helpers newOrdrIdxx 는 KCP 규격(영숫자 50자 이하)이고 매번 다르다",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "session helpers sanitizeReturnPath 는 앱 내부 경로만 통과시킨다 (오픈 리다이렉트 차단)",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "recordKcpReturn 모르는 reg_cert_key 는 null",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "recordKcpReturn REGISTERED + 0000 → AUTHED, authedAt 기록",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "recordKcpReturn REGISTERED + 실패 코드 → FAILED, 코드·문구를 그대로 돌려준다(길이 제한)",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "recordKcpReturn AUTHED 뒤에 온 실패 콜백은 상태를 되돌리지 못한다 (공개값 reg_cert_key 로 방해 불가)",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "recordKcpReturn FAILED 뒤에 온 0000 콜백도 성공으로 바꾸지 못한다",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "recordKcpReturn 소비된 거래·만료된 거래는 기록하지 않고 거부 사유만 돌려준다",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "startKcpSession 거래등록 후 세션을 만들고, 바인딩 비밀은 해시로만 저장한다",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "startKcpSession KCP 거래등록이 실패하면 세션 행을 만들지 않는다",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "return-view jsonForScript 는 </script>·<!--·U+2028 을 스크립트 밖으로 새지 않게 이스케이프한다",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "return-view redirectTargetOf 는 성공이면 identityVerificationId, 실패면 code/message 를 퍼센트 인코딩해 붙인다",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "return-view withParams 는 빈 값을 생략한다",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "return-view popupHtml 은 우리 출처로만 postMessage 하고, 위험 문자를 담은 결과도 스크립트를 깨지 않는다",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "resolveOrigin APP_BASE_URL 이 있으면 그것만 쓴다(끝 슬래시 제거)",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "resolveOrigin 프로덕션에서 APP_BASE_URL 이 없으면 요청 헤더로 만들지 않고 던진다 (fail-closed)",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "resolveOrigin 개발 환경은 x-forwarded-* → host → nextUrl 순으로 계산한다",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "KST calendar helpers assigns UTC instants immediately before and after KST midnight to different days",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "KST calendar helpers uses a half-open KST day window",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "KST calendar helpers creates a day window with 1 KST days",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "KST calendar helpers creates a week window with 7 KST days",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "KST calendar helpers creates a month window with 30 KST days",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "getRegionOverview returns all four supply-demand states and excludes canceled requests in the bounded query",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "getRegionOverview keeps unresolved requests out of demand and separates sido-only drilldown demand",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "getRegionOverview sorts gap alerts by demand descending",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "getRegionOverview uses an injected geo provider for coordinate-only demand and preserves sido-only drilldown handling",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "getDispatchPins returns only dispatched destination coordinates and counts missing coordinates",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "(a)(b) non-CRITICAL — 알 우선, 동률 시 순환 유지 (a) 알 보유량 desc가 순환·별점·거리보다 우선한다",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "(a)(b) non-CRITICAL — 알 우선, 동률 시 순환 유지 (b) 알 동률 그룹 안에서는 30일 배정수 asc(순환)가 그대로 작동한다",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "(a)(b) non-CRITICAL — 알 우선, 동률 시 순환 유지 거절이력·지역 커버는 여전히 알보다 상위 티어다",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "(c)(d) CRITICAL — 같은구 우선, 동급 내 알 (c) 같은구+알0이 옆구 1km+알9를 이긴다 (속도·지역 원칙 유지)",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "(c)(d) CRITICAL — 같은구 우선, 동급 내 알 (d) 같은구끼리는 알 desc, 그 다음 거리",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "(c)(d) CRITICAL — 같은구 우선, 동급 내 알 CRITICAL은 순환·별점을 여전히 건너뛴다 (알·같은구 외 개입 없음)",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "(e) isSameDistrict — 모호 주소 역전 차단 정확 일치만 true",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "(e) isSameDistrict — 모호 주소 역전 차단 접수지 판별 불가(null)·시/도만 판별(sigungu=\"\")이면 무조건 false",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "(e) isSameDistrict — 모호 주소 역전 차단 후보 주소가 판별 불가·시/도만이면 false — 모호한 주소가 정확한 주소를 이길 수 없다",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "(f) 알 전원 0이면 기존 사슬과 동일 (freeze 회귀 가드) non-CRITICAL: 순환→별점→거리→키 그대로",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "(f) 알 전원 0이면 기존 사슬과 동일 (freeze 회귀 가드) CRITICAL(전원 sameDistrict=false): 거리→키 그대로",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "(g) deriveRankingBadge parity — 배지가 comparator의 첫 차이 티어를 정확히 말한다 티어별 인접 쌍에서 배지 라벨이 정확하다",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "(g) deriveRankingBadge parity — 배지가 comparator의 첫 차이 티어를 정확히 말한다 CRITICAL에서 순환·별점 차이는 배지를 만들지 않는다 (comparator와 동일하게 건너뜀)",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "compareCandidates ① rejectedThisRequest: non-rejected always sorts before rejected, regardless of every other tier",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "compareCandidates ② coversRegion: covering candidates sort before non-covering ones, regardless of lower tiers",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "compareCandidates non-CRITICAL (NORMAL/URGENT) tier chain ③-1 assigned30d asc wins over avgRating/distance/key even when those favor the other side",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "compareCandidates non-CRITICAL (NORMAL/URGENT) tier chain ③-2 avgRating desc wins over distance/key when assigned30d is tied",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "compareCandidates non-CRITICAL (NORMAL/URGENT) tier chain ③-3 distance asc wins over stable key when assigned30d and avgRating are tied",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "compareCandidates non-CRITICAL (NORMAL/URGENT) tier chain ③-4 null distance always sorts after any numeric distance",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "compareCandidates non-CRITICAL (NORMAL/URGENT) tier chain ③-5 stable key (asc, non-locale) breaks ties when every prior tier is equal",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "compareCandidates CRITICAL tier chain ④ CRITICAL skips assigned30d/avgRating entirely — distance decides even against worse cycling/rating",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "compareCandidates CRITICAL tier chain CRITICAL still falls back to stable key when distance is tied",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "compareCandidates ⑤ both-null distance falls back to stable key, for both CRITICAL and non-CRITICAL",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "sniffPhotoMime JPEG·PNG·WEBP 매직바이트를 알아본다",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "sniffPhotoMime 그 외 포맷과 잘린 파일은 null",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "collectPhotoUploads 사진이 없으면 빈 목록 (사진은 선택 항목)",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "collectPhotoUploads 첨부 순서대로 모은다",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "collectPhotoUploads 선언된 MIME 이 아니라 실제 내용을 믿는다",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "collectPhotoUploads 지원하지 않는 형식은 거부한다",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "collectPhotoUploads 빈 파일은 첨부로 치지 않는다",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "collectPhotoUploads 5장을 넘기면 거부한다",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "collectPhotoUploads 장당 용량 상한을 넘기면 거부한다",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "r2Config 계정 ID 로 기본 엔드포인트를 만든다",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "r2Config R2_ENDPOINT 가 있으면 그쪽을 쓰고 끝 슬래시를 떼어낸다",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "r2Config 필수 값이 하나라도 비면 미설정으로 본다",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "r2Config 엔드포인트를 직접 주면 계정 ID 는 없어도 된다",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "signRequest 버킷과 키로 URL 을 만들고 경로 구분자는 살려둔다",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "signRequest 본문 해시를 x-amz-content-sha256 에 싣는다",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "signRequest 본문이 없으면 빈 문자열 해시를 쓴다",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "signRequest Authorization 에 자격증명 스코프와 서명 대상 헤더가 들어간다",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "signRequest 같은 입력·같은 시각이면 같은 서명이 나온다",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "signRequest 키·본문·시각·비밀키 중 무엇이 달라져도 서명이 달라진다",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "ratings analytics sorts tied ratings by subject key and places zero-review completed subjects last",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "ratings analytics passes the review cursor and returns a bounded page with the next cursor and KST monthly buckets",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "ratings analytics accepts only a prefixed, non-empty subject key",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "regionFromAddress resolves abbreviated sido names that customers actually type",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "regionFromAddress keeps resolving formal names (no regression for reverse-geocoded addresses)",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "regionFromAddress maps renamed provinces to their current formal names",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "regionFromAddress returns a sido-only result when no sigungu is present",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "regionFromAddress disambiguates 광주 — metropolitan city only when a 구 follows",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "regionFromAddress collapses irregular whitespace before matching",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "regionFromAddress still returns null for addresses that carry no region (null contract unchanged)",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "regionFromAddress only rewrites the leading sido, never a token further in",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "normalizeAddress expands the leading sido alias and leaves the rest untouched",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "normalizeAddress is idempotent — applying it twice changes nothing",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "normalizeAddress does not invent a region for unrecognized input",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "coversRegion (semantics unchanged by normalization) treats an empty coverage list as covering everything",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "coversRegion (semantics unchanged by normalization) treats an unresolvable region as covered so dispatch is never blocked",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "coversRegion (semantics unchanged by normalization) matches a sido-wide key and an exact sigungu key",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "coversRegion (semantics unchanged by normalization) does not match a sigungu key when only the sido resolved",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "resolveRequestRegion normalizes a Seoul abbreviation before resolving its district",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "resolveRequestRegion resolves formal names and a sido-only address",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "resolveRequestRegion uses the injected geometry provider for a sigungu result",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "resolveRequestRegion falls back from sigungu geometry to sido geometry",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "resolveRequestRegion reports unknown when coordinates cannot be resolved without the geometry module",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "resolveRequestRegion reports unknown when neither address nor geometry resolves a region",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "지역별 순환 현황 요약 전국·시도·여러 구 담당을 시도 합계에서 중복 집계하지 않는다",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "지역별 순환 현황 요약 후보가 가장 많은 시도와 그 안의 시군구를 최초 조회 지역으로 고른다",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "지역별 순환 현황 요약 세종과 후보 없는 지역을 포함해 17개 시도를 모두 반환한다",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "rotation API 조회 계약 전국 요약도 관리자 세션을 요구하고 인증 실패 시 데이터를 조회하지 않는다",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "rotation API 조회 계약 기존 매칭 대상 조회를 한 번만 재사용하며 요약에서 개인정보를 내려주지 않는다",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "rotation API 조회 계약 지역 조회의 서버 순서·커버 지역 필터와 안정적인 관리 링크 식별자를 유지한다",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "rotation API 조회 계약 기존 지역 입력 검증과 허용되지 않은 조회 방식의 오류를 유지한다",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "settlement report uses a half-open KST month boundary",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "settlement report keeps provider and technician totals separate and counts null amounts as missing",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "settlement report hides payees without an aggregated amount and sorts visible payees by total",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "settlement report returns every paid source survey without pagination and excludes null amounts",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "settlement report formats source rows as RFC4180 CSV using KST dates",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "settlement report neutralizes CSV formula-injection payee names",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "업로드 파일 저장소 voice 파일은 R2에 본문, DB에는 키만 저장",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "업로드 파일 저장소 biz-cert 파일은 R2에 본문, DB에는 키만 저장",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "업로드 파일 저장소 elec-cert 파일은 R2에 본문, DB에는 키만 저장",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "업로드 파일 저장소 같은 종류/본문도 고유 키로 저장",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "업로드 파일 저장소 미설정 개발 환경은 DB 저장",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "업로드 파일 저장소 R2 업로드 실패는 성공으로 숨기지 않고 DB 메타를 남기지 않는다",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "업로드 파일 저장소 DB 메타 저장 실패 시 업로드한 객체를 회수",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "업로드 파일 저장소 기존 DB 파일은 R2 호출 없이 동일 본문을 읽는다",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "업로드 파일 저장소 R2 파일은 DB에 기록된 MIME으로 읽는다",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "업로드 파일 저장소 DB 행이 없으면 null",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "업로드 파일 저장소 R2 객체가 없으면 null",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "업로드 파일 저장소 R2 조회 오류는 빈 파일로 반환하지 않는다",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "업로드 파일 저장소 R2 삭제 후 DB 메타 삭제",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "업로드 파일 저장소 R2 삭제 실패 시 재시도할 메타데이터 유지",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "업로드 파일 저장소 DB 전용 파일 삭제",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "업로드 파일 저장소 없는 파일 삭제는 성공",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "음성 파일 조회 R2 본문 조회 + 비공개 캐시 + MIME 보호",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "음성 파일 조회 관리자 인증 실패 시 저장소 호출 전 차단",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "음성 파일 조회 R2 객체 누락은 404",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "음성 파일 조회 R2 연결 장애는 502",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "음성 파일 조회 기존 DB 파일 조회 유지",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "사업자등록증 파일 조회 R2 본문 조회 + 비공개 캐시 + MIME 보호",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "사업자등록증 파일 조회 관리자 인증 실패 시 저장소 호출 전 차단",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "사업자등록증 파일 조회 R2 객체 누락은 404",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "사업자등록증 파일 조회 R2 연결 장애는 502",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "사업자등록증 파일 조회 기존 DB 파일 조회 유지",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "전기공사업등록증 파일 조회 R2 본문 조회 + 비공개 캐시 + MIME 보호",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "전기공사업등록증 파일 조회 관리자 인증 실패 시 저장소 호출 전 차단",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "전기공사업등록증 파일 조회 R2 객체 누락은 404",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "전기공사업등록증 파일 조회 R2 연결 장애는 502",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "전기공사업등록증 파일 조회 기존 DB 파일 조회 유지",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "R2 음성 Range 재생 bytes=0-2 → 206 정확한 바이트",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "R2 음성 Range 재생 bytes=3- → 206 정확한 바이트",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "R2 음성 Range 재생 bytes=-3 → 206 정확한 바이트",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "R2 음성 Range 재생 bytes=0-999 → 206 정확한 바이트",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "R2 음성 Range 재생 bytes=-999 → 206 정확한 바이트",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "R2 음성 Range 재생 bytes=8- → 416",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "R2 음성 Range 재생 bytes=4-2 → 416",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "R2 음성 Range 재생 bytes=-0 → 416",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "coversForDenominator does not treat an empty coverage list as nationwide for analytics",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "coversForDenominator matches any key in a sido at sido level",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "coversForDenominator matches only sido-wide or exact sigungu coverage at sigungu level",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "coversForDenominator accepts coverage when one of multiple keys matches",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "classifyPressure freezes the 2 supply / 3 demand case",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "classifyPressure freezes the 0 supply / 3 demand case",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "classifyPressure freezes the 0 supply / 0 demand case",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "classifyPressure freezes the 2 supply / 0 demand case",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "aggregateSupplyDemand deduplicates an approved active subject with overlapping coverage keys",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "aggregateSupplyDemand overlays demand and supply onto every authoritative universe region",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "SOLAPI 잔액 부족을 모의하면 설문·완료 상태는 유지하고 실패 로그를 남긴다. 재시도는 같은 링크를 쓴다.",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "survey analytics 설문이 없으면 응답률·금액 평균은 null이고 빈 첫 페이지를 반환한다",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "survey analytics 필터된 목록 수와 전체 요약을 분리하고 입력된 금액만 평균에 포함한다",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "survey analytics 범위를 벗어난 페이지는 마지막 페이지로 보정한다",
+    "status": "passed"
+  },
+  {
+    "group": "unit",
+    "name": "survey analytics 0원과 미입력을 구분하고 설문 토큰을 반환하지 않는다",
+    "status": "passed"
+  },
+  {
+    "group": "API",
+    "name": "requests GET 200 — 항목 shape 와 내 픽스처 값이 일치한다",
+    "status": "passed"
+  },
+  {
+    "group": "API",
+    "name": "requests GET 200 — status/urgency 필터가 걸리고, 모르는 값은 무시된다 (:20-21)",
+    "status": "passed"
+  },
+  {
+    "group": "API",
+    "name": "requests GET 200 — 배정 대상이 있으면 assigneeName/Kind 가 채워진다 (:49-50)",
+    "status": "passed"
+  },
+  {
+    "group": "API",
+    "name": "requests/[id] GET 404 (:28) — 없는 id",
+    "status": "passed"
+  },
+  {
+    "group": "API",
+    "name": "requests/[id] GET 200 — 상세 shape · waitMinutes 가 긴급도별 설정과 맞는다",
+    "status": "passed"
+  },
+  {
+    "group": "API",
+    "name": "requests/[id] GET 200 — 배정 이력이 최신순으로 직렬화된다 (:60-69)",
+    "status": "passed"
+  },
+  {
+    "group": "API",
+    "name": "candidates GET 404 (:19) — 없는 id",
+    "status": "passed"
+  },
+  {
+    "group": "API",
+    "name": "candidates GET 200 — 계약·승인·활성 게이트가 멤버십으로 드러난다",
+    "status": "passed"
+  },
+  {
+    "group": "API",
+    "name": "candidates GET 200 — 좌표가 있으면 hasCoords 와 거리 계산이 켜진다",
+    "status": "passed"
+  },
+  {
+    "group": "API",
+    "name": "candidates GET 200 — 이 접수를 거절한 대상은 rejectedThisRequest 로 표시된다",
+    "status": "passed"
+  },
+  {
+    "group": "API",
+    "name": "voice GET 404 (:23) — 접수가 없거나 음성이 붙어 있지 않다",
+    "status": "passed"
+  },
+  {
+    "group": "API",
+    "name": "voice GET 404 (:33) — voiceFileId 는 있는데 StoredFile 이 없다",
+    "status": "passed"
+  },
+  {
+    "group": "API",
+    "name": "voice GET 400 (:41) — 레거시 경로가 업로드 루트를 벗어난다",
+    "status": "passed"
+  },
+  {
+    "group": "API",
+    "name": "voice GET 404 (:46) — 레거시 경로는 안전하지만 파일이 없다",
+    "status": "passed"
+  },
+  {
+    "group": "API",
+    "name": "voice GET 200 — 전체 본문과 캐시/Range 헤더",
+    "status": "passed"
+  },
+  {
+    "group": "API",
+    "name": "voice GET 206 — Range 부분 응답 (:58-74)",
+    "status": "passed"
+  },
+  {
+    "group": "API",
+    "name": "voice GET 416 (:61-66) — 범위가 본문 밖이다",
+    "status": "passed"
+  },
+  {
+    "group": "API",
+    "name": "접수 JSON: 200 + 6자리 lookupCode + 접수 SMS 본문이 템플릿과 일치",
+    "status": "passed"
+  },
+  {
+    "group": "API",
+    "name": "접수 multipart(음성 없음): 200 + lat/lng 문자열이 숫자로 파싱된다",
+    "status": "passed"
+  },
+  {
+    "group": "API",
+    "name": "접수 multipart(음성 첨부): StoredFile 저장 + 본문이 음성 자리표시자로 채워진다",
+    "status": "passed"
+  },
+  {
+    "group": "API",
+    "name": "400: 이름 누락 (:21)",
+    "status": "passed"
+  },
+  {
+    "group": "API",
+    "name": "400: 전화번호 형식 (:22-25)",
+    "status": "passed"
+  },
+  {
+    "group": "API",
+    "name": "400: urgency 열거값 위반 (:28)",
+    "status": "passed"
+  },
+  {
+    "group": "API",
+    "name": "400: 텍스트도 음성도 없음 (:93-98)",
+    "status": "passed"
+  },
+  {
+    "group": "API",
+    "name": "400: 0바이트 음성은 첨부로 세지 않아 \"내용 없음\" 분기가 탄다 (:66 → :93-98)",
+    "status": "passed"
+  },
+  {
+    "group": "API",
+    "name": "400: 잘못된 JSON 본문 (:77-81)",
+    "status": "passed"
+  },
+  {
+    "group": "API",
+    "name": "400: 지원하지 않는 음성 MIME (:106-111)",
+    "status": "passed"
+  },
+  {
+    "group": "API",
+    "name": "400: 음성 15MB 초과 (:112-117)",
+    "status": "passed"
+  },
+  {
+    "group": "API",
+    "name": "IP당 10분 10회를 넘으면 429 (route.ts:78) — 그 앞 10회는 정상 처리된다",
+    "status": "passed"
+  },
+  {
+    "group": "API",
+    "name": "사진 2장 첨부: RequestPhoto 2행 + 첨부 순서(sort) 보존 + DB 폴백 저장",
+    "status": "passed"
+  },
+  {
+    "group": "API",
+    "name": "사진 없이 접수해도 그대로 200 — 사진은 선택 항목이다",
+    "status": "passed"
+  },
+  {
+    "group": "API",
+    "name": "선언된 MIME 이 아니라 파일 내용으로 포맷을 정한다",
+    "status": "passed"
+  },
+  {
+    "group": "API",
+    "name": "400: 지원하지 않는 형식은 접수를 막는다",
+    "status": "passed"
+  },
+  {
+    "group": "API",
+    "name": "400: 6장째부터는 거부한다 (상한 5장)",
+    "status": "passed"
+  },
+  {
+    "group": "API",
+    "name": "사진 열람: 관리자만 통과하고, 배정된 기술자도 통과한다",
+    "status": "passed"
+  },
+  {
+    "group": "API",
+    "name": "사진 열람: 배정 없는 업체는 401, 다른 접수의 사진 id 는 404",
+    "status": "passed"
+  },
+  {
+    "group": "API",
+    "name": "앨범에서 고른 PNG 가 JPEG 으로 변환돼 첨부되고, 관리자가 그 본문을 받는다",
+    "status": "passed"
+  },
+  {
+    "group": "API",
+    "name": "multipart 이 아니면 400 — JSON 본문은 formData() 에서 거부된다 (:62-65)",
+    "status": "passed"
+  },
+  {
+    "group": "API",
+    "name": "필수 필드 zod 400 5종 (:76-81)",
+    "status": "passed"
+  },
+  {
+    "group": "API",
+    "name": "사업자등록번호 체크섬 불일치 400 (:84-86, lib/bizRegNo.ts:9-13)",
+    "status": "passed"
+  },
+  {
+    "group": "API",
+    "name": "bizCert 미첨부·초과크기·허용외 MIME 400 (:93, :99, :105)",
+    "status": "passed"
+  },
+  {
+    "group": "API",
+    "name": "중복 bizRegNo 409 (:119-123) · 중복 loginId 409 (:116-118)",
+    "status": "passed"
+  },
+  {
+    "group": "API",
+    "name": "추천인 검증 400 — 미승인 추천인(:146) · 자기 자신(:149)",
+    "status": "passed"
+  },
+  {
+    "group": "API",
+    "name": "가입 성공은 PENDING 으로 만들고 (:184) 승인 전 로그인을 막는다 (login:48-53)",
+    "status": "passed"
+  },
+  {
+    "group": "API",
+    "name": "승인 대기 업체는 세션이 있어도 포털 접근을 차단한다",
+    "status": "passed"
+  },
+  {
+    "group": "API",
+    "name": "레이트리밋 429 — 전용 IP 에서 6회째가 막힌다 (:37-48, :53-58)",
+    "status": "passed"
+  }
+]

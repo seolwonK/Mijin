@@ -1,0 +1,38 @@
+{
+  "finishedAt": "2026-09-10T05:21:02.872Z",
+  "databaseRemoved": true,
+  "sms": "console",
+  "r2": "disabled for regression",
+  "results": [
+    {
+      "label": "migrate",
+      "code": 0,
+      "durationMs": 1083
+    },
+    {
+      "label": "seed",
+      "code": 0,
+      "durationMs": 509
+    },
+    {
+      "label": "unit",
+      "code": 0,
+      "durationMs": 2165
+    },
+    {
+      "label": "api",
+      "code": 0,
+      "durationMs": 14758
+    },
+    {
+      "label": "types",
+      "code": 0,
+      "durationMs": 1801
+    },
+    {
+      "label": "build",
+      "code": 0,
+      "durationMs": 10762
+    }
+  ]
+}

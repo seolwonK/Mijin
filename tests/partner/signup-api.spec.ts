@@ -277,7 +277,7 @@ test('가입 성공은 PENDING 으로 만들고 (:184) 승인 전 로그인을 �
     where: { id: provider!.bizCertFileId! },
   });
   expect(stored?.mime).toBe('image/png');
-  expect(Buffer.from(stored!.data).equals(CERT_PNG)).toBe(true);
+  expect(Buffer.from(stored!.data!).equals(CERT_PNG)).toBe(true);
 
   // 가입 응답에 세션 쿠키가 붙지 않는다 (tech/signup:203-211 과의 결정적 차이).
   expect(res.headers()['set-cookie']).toBeUndefined();

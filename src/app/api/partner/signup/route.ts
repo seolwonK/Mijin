@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 import { z } from 'zod';
 import { prisma } from '@/lib/db';
+import { deleteStoredFile, saveStoredFile } from '@/lib/storage/files';
 import { geocode } from '@/lib/geo';
 import { isValidBizRegNo, normalizeBizRegNo } from '@/lib/bizRegNo';
 import { sanitizeRegionKeys } from '@/lib/regions';
@@ -213,16 +214,9 @@ export async function POST(req: NextRequest) {
 
   const storedFileIds: string[] = [];
   try {
-    // 컨테이너 파일시스템은 재배포 시 초기화되므로 DB(StoredFile)에 저장
-    const stored = await prisma.storedFile.create({
-      data: { mime: file.type, data: new Uint8Array(await file.arrayBuffer()) },
-      select: { id: true },
-    });
+    const stored = await saveStoredFile('biz-cert', file.type, new Uint8Array(await file.arrayBuffer()));
     storedFileIds.push(stored.id);
-    const elecStored = await prisma.storedFile.create({
-      data: { mime: elecFile.type, data: new Uint8Array(await elecFile.arrayBuffer()) },
-      select: { id: true },
-    });
+    const elecStored = await saveStoredFile('elec-cert', elecFile.type, new Uint8Array(await elecFile.arrayBuffer()));
     storedFileIds.push(elecStored.id);
     await prisma.provider.update({
       where: { id: providerId },
@@ -232,9 +226,9 @@ export async function POST(req: NextRequest) {
     // 파일 저장 실패 시 신청 자체를 롤백 (증빙 없는 신청 방지)
     await prisma.provider.delete({ where: { id: providerId } });
     await prisma.user.delete({ where: { id: user.id } });
-    await prisma.storedFile
-      .deleteMany({ where: { id: { in: storedFileIds } } })
-      .catch(() => {});
+    await Promise.all(storedFileIds.map(id =>
+      deleteStoredFile(id).catch(() => console.error('[signup] 증빙 롤백 실패', id)),
+    ));
     console.error('[signup] 증빙 파일 저장 실패', e);
     return NextResponse.json(
       { error: '파일 저장에 실패했습니다. 다시 시도해 주세요.' },

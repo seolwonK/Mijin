@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { randomInt } from 'crypto';
 import { z } from 'zod';
 import { prisma } from '@/lib/db';
+import { deleteStoredFile, saveStoredFile } from '@/lib/storage/files';
 import { sendSms } from '@/lib/sms';
 import { smsRequestReceived } from '@/lib/sms/templates';
 import { transcribeVoiceNote, VOICE_PLACEHOLDER } from '@/lib/stt';
@@ -167,7 +168,7 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  // 음성 검증 + 저장 — 컨테이너 파일시스템은 재배포 시 초기화되므로 DB(StoredFile)에 저장
+  // 음성 검증 + 저장 — R2 설정 시 본문은 R2, DB에는 파일 ID와 메타만 저장.
   let voiceFileId: string | null = null;
   let voiceMime: string | null = null;
   let voiceBytes: Uint8Array<ArrayBuffer> | null = null;
@@ -187,10 +188,7 @@ export async function POST(req: NextRequest) {
     }
     voiceBytes = new Uint8Array(await voice.arrayBuffer());
     try {
-      const stored = await prisma.storedFile.create({
-        data: { mime: voiceMime, data: voiceBytes },
-        select: { id: true },
-      });
+      const stored = await saveStoredFile('voice', voiceMime, voiceBytes);
       voiceFileId = stored.id;
     } catch (e) {
       console.error('[requests] 음성 저장 실패', e);
@@ -207,21 +205,27 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  const lookupCode = await generateLookupCode();
-  const request = await prisma.serviceRequest.create({
-    data: {
-      lookupCode,
-      customerName: data.customerName,
-      customerPhone: data.customerPhone,
-      description: data.description || VOICE_PLACEHOLDER,
-      urgency: data.urgency,
-      lat: data.lat ?? null,
-      lng: data.lng ?? null,
-      address: data.address || null,
-      voiceFileId,
-      voiceMime,
-    },
-  });
+  let request;
+  try {
+    const lookupCode = await generateLookupCode();
+    request = await prisma.serviceRequest.create({
+      data: {
+        lookupCode,
+        customerName: data.customerName,
+        customerPhone: data.customerPhone,
+        description: data.description || VOICE_PLACEHOLDER,
+        urgency: data.urgency,
+        lat: data.lat ?? null,
+        lng: data.lng ?? null,
+        address: data.address || null,
+        voiceFileId,
+        voiceMime,
+      },
+    });
+  } catch (error) {
+    if (voiceFileId) await deleteStoredFile(voiceFileId).catch(() => console.error('[requests] 음성 롤백 실패'));
+    throw error;
+  }
 
   // 현장 사진 저장 — 실패한 사진은 내부적으로 생략되고 접수는 그대로 진행된다(photos.ts).
   await saveRequestPhotos(request.id, photos);
@@ -246,5 +250,5 @@ export async function POST(req: NextRequest) {
     smsRequestReceived(request.customerName),
     request.id,
   );
-  return NextResponse.json({ id: request.id, lookupCode });
+  return NextResponse.json({ id: request.id, lookupCode: request.lookupCode });
 }

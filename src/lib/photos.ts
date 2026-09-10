@@ -1,7 +1,8 @@
 import { randomUUID } from 'crypto';
 import { prisma } from '@/lib/db';
 import type { Session } from '@/lib/auth';
-import { isR2Configured, r2Get, r2Put } from '@/lib/storage/r2';
+import { isR2Configured, r2Delete, r2Get, r2Put } from '@/lib/storage/r2';
+import { deleteStoredFile, readStoredFile } from '@/lib/storage/files';
 // 한계값은 접수 화면(클라이언트)도 봐야 하므로 서버 의존성이 없는 모듈에 두고 여기서 재수출한다.
 import { MAX_PHOTOS, MAX_PHOTO_BYTES, SUPPORTED_PHOTO_MIMES } from '@/lib/photoLimits';
 
@@ -133,6 +134,8 @@ export async function saveRequestPhotos(
         return true;
       } catch (e) {
         console.error('[photos] 사진 메타 저장 실패 — 이 사진은 생략', e);
+        if (storageKey) await r2Delete(storageKey).catch(() => console.error('[photos] R2 롤백 실패', storageKey));
+        if (fileId) await deleteStoredFile(fileId).catch(() => console.error('[photos] DB 롤백 실패', fileId));
         return null;
       }
     }),
@@ -162,8 +165,8 @@ export async function readPhotoBody(photo: {
     return obj ? { body: obj.body, mime: photo.mime } : null;
   }
   if (photo.fileId) {
-    const stored = await prisma.storedFile.findUnique({ where: { id: photo.fileId } });
-    return stored ? { body: stored.data, mime: photo.mime } : null;
+    const stored = await readStoredFile(photo.fileId);
+    return stored ? { body: stored.body, mime: photo.mime } : null;
   }
   return null;
 }

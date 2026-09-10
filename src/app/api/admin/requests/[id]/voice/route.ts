@@ -3,9 +3,10 @@ import { promises as fs } from 'fs';
 import { prisma } from '@/lib/db';
 import { requireSession } from '@/lib/auth';
 import { resolveUploadPath } from '@/lib/uploads';
+import { readStoredFile } from '@/lib/storage/files';
 
 // 고객 음성 녹음 재생 — 개인정보 포함이므로 관리자 전용.
-// 본문은 DB(StoredFile)에서 읽고, 구버전 파일시스템 저장분은 폴백으로 지원.
+// 본문은 R2 또는 기존 DB에서 읽고, 구버전 파일시스템 저장분도 지원.
 // Safari 의 <audio> 는 Range 요청을 보내므로 206 부분 응답을 지원한다.
 export async function GET(
   req: NextRequest,
@@ -26,13 +27,16 @@ export async function GET(
   let buf: Uint8Array;
   let mime = request.voiceMime ?? 'application/octet-stream';
   if (request.voiceFileId) {
-    const stored = await prisma.storedFile.findUnique({
-      where: { id: request.voiceFileId },
-    });
+    let stored;
+    try {
+      stored = await readStoredFile(request.voiceFileId);
+    } catch {
+      return NextResponse.json({ error: '파일 저장소에 연결할 수 없습니다' }, { status: 502 });
+    }
     if (!stored) {
       return NextResponse.json({ error: '파일을 찾을 수 없습니다' }, { status: 404 });
     }
-    buf = stored.data;
+    buf = stored.body;
     mime = request.voiceMime ?? stored.mime;
   } else {
     // 레거시: 파일시스템 저장분 (경로 조작 방지 포함)
@@ -51,6 +55,7 @@ export async function GET(
     'Content-Type': mime,
     'Cache-Control': 'private, no-store',
     'Accept-Ranges': 'bytes',
+    'X-Content-Type-Options': 'nosniff',
   };
 
   const range = req.headers.get('range');

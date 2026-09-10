@@ -4,6 +4,7 @@ import path from 'path';
 import { prisma } from '@/lib/db';
 import { requireSession } from '@/lib/auth';
 import { resolveUploadPath } from '@/lib/uploads';
+import { readStoredFile } from '@/lib/storage/files';
 
 const CONTENT_TYPES: Record<string, string> = {
   '.jpg': 'image/jpeg',
@@ -14,7 +15,7 @@ const CONTENT_TYPES: Record<string, string> = {
 };
 
 // 사업자등록증 열람 — 개인정보 포함 파일이므로 관리자 전용.
-// 본문은 DB(StoredFile)에서 읽고, 구버전 파일시스템 저장분은 폴백으로 지원.
+// 본문은 R2 또는 기존 DB에서 읽고, 구버전 파일시스템 저장분도 지원.
 export async function GET(
   _req: NextRequest,
   { params }: { params: Promise<{ id: string }> },
@@ -32,16 +33,20 @@ export async function GET(
   }
 
   if (provider.bizCertFileId) {
-    const stored = await prisma.storedFile.findUnique({
-      where: { id: provider.bizCertFileId },
-    });
+    let stored;
+    try {
+      stored = await readStoredFile(provider.bizCertFileId);
+    } catch {
+      return NextResponse.json({ error: '파일 저장소에 연결할 수 없습니다' }, { status: 502 });
+    }
     if (!stored) {
       return NextResponse.json({ error: '파일을 찾을 수 없습니다' }, { status: 404 });
     }
-    return new NextResponse(new Uint8Array(stored.data), {
+    return new NextResponse(new Uint8Array(stored.body), {
       headers: {
         'Content-Type': stored.mime,
         'Cache-Control': 'private, no-store',
+        'X-Content-Type-Options': 'nosniff',
       },
     });
   }

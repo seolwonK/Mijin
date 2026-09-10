@@ -25,9 +25,14 @@ Next.js 16 + Prisma(PostgreSQL) 앱을 CloudType에 **Dockerfile 기반**으로 
 
 마이그레이션은 배포 때 컨테이너가 자동으로 적용하므로(`migrate deploy`) 수동 작업이 없습니다.
 
-## 2. 업로드 파일 저장 (별도 설정 불필요)
+## 2. 업로드 파일 저장 (Cloudflare R2)
 
-업체 **사업자등록증**과 고객 **음성 녹음**은 **DB(PostgreSQL, StoredFile 테이블)에 저장**되므로 스토리지 볼륨 마운트가 필요 없습니다. 재배포·재시작에도 유지됩니다.
+현장 사진, 고객 음성 녹음, 사업자등록증, 전기공사업 등록증은 R2를 설정하면 **비공개 버킷**에 저장됩니다. DB에는 파일 ID와 MIME, R2 키 등 메타데이터만 기록합니다. 로컬 개발처럼 R2를 설정하지 않은 환경에서는 DB에 본문을 저장합니다.
+
+- R2에 `mijin-uploads` 버킷을 먼저 생성하고 아래 4개 환경변수를 CloudType에 입력합니다. 환경변수만 입력해도 버킷이 생기지는 않습니다.
+- 파일은 앱의 권한 검사를 거쳐 조회합니다. 음성·증빙은 관리자만, 현장 사진은 관리자와 해당 접수 배정자만 열 수 있습니다. 버킷을 공개하거나 공개 도메인을 연결하지 않습니다.
+- 기존 DB 파일은 계속 조회할 수 있으며 배포 시 자동 이동하지 않습니다. R2 장애 시 현장 사진은 DB로 긴급 저장합니다. 음성만 있는 접수와 증빙 업로드는 저장 실패를 반환합니다.
+- 연결 점검: `npx tsx scripts/check-r2.ts`. 합성 이미지·음성·PDF를 업로드/다운로드하고 바이트·MIME·비인증 차단을 검사한 뒤 테스트 객체를 삭제합니다.
 
 - 구버전(파일시스템 저장) 데이터가 있는 경우에만 `/app/uploads` 마운트 + `UPLOADS_DIR`가 의미 있습니다. 신규 배포는 무시해도 됩니다.
 
@@ -49,7 +54,7 @@ CloudType 서비스의 **환경변수**에 입력 (`.env.production.example` 참
 | `IDENTITY_PROVIDER` | ✅ | 휴대폰 본인인증 제공자. 프로덕션에서 비우면 전기기사 셀프 가입이 차단됨(fail-closed) |
 | `KCP_SITE_CD` / `KCP_ENC_KEY` / `KCP_WEB_SITEID` | KCP일 때 | NHN KCP 본인확인 V2 자격증명 |
 | `IDENTITY_HASH_SECRET` | ✅ | 본인인증 CI/DI 해시 키. 바꾸면 기존 중복가입 판정 이력과 대조가 끊김 |
-| `R2_ACCOUNT_ID` / `R2_ACCESS_KEY_ID` / `R2_SECRET_ACCESS_KEY` / `R2_BUCKET` | 권장 | 접수 사진 저장소(Cloudflare R2, **비공개 버킷**). 넷 중 하나라도 비면 사진이 DB에 저장됨 |
+| `R2_ACCOUNT_ID` / `R2_ACCESS_KEY_ID` / `R2_SECRET_ACCESS_KEY` / `R2_BUCKET` | 권장 | 사진·음성·증빙 저장소(Cloudflare R2, **비공개 버킷**). 넷 중 하나라도 비면 DB에 저장됨 |
 | `STT_PROVIDER` | 선택 | `gemini` 또는 `openai`. 없으면 음성 접수가 텍스트로 변환되지 않음 |
 | `GEMINI_API_KEY` | STT가 gemini일 때 | 음성 → 텍스트 변환 키 |
 
@@ -62,7 +67,7 @@ CloudType 서비스의 **환경변수**에 입력 (`.env.production.example` 참
 2. CloudType → **새 서비스 → GitHub 저장소 연결** → 이 리포 선택.
 3. 빌드 방식: **Dockerfile** 자동 인식(루트의 `Dockerfile` 사용).
 4. **포트: `3000`** (컨테이너가 `PORT`/`HOSTNAME=0.0.0.0`으로 리슨).
-5. 위 **환경변수** 입력, **스토리지 `/app/uploads`** 마운트.
+5. 위 **환경변수** 입력. 기존 파일시스템 파일이 있을 때만 **스토리지 `/app/uploads`** 마운트.
 6. 배포 실행. 시작 로그에 `Prisma 마이그레이션 적용` → `앱 시작`이 보이면 정상.
 7. CloudType가 HTTPS 도메인을 자동 발급 → 위치·음성 기능이 동작합니다(HTTPS 필수 기능).
 

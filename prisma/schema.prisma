@@ -389,12 +389,13 @@ model RequestPhoto {
   @@index([requestId, sort])
 }
 
-// 업로드 파일 본문 (음성 녹음·사업자등록증·R2 미설정 시 접수 사진) — 볼륨 마운트 없이도
-// 유지되도록 파일시스템 대신 DB(bytea)에 저장한다. 접근은 권한 검사 라우트로만.
+// 업로드 파일: R2 설정 시 storageKey만 저장, 미설정/기존 파일은 DB 본문을 사용한다.
+// 접근은 항상 권한 검사 라우트로만 허용한다.
 model StoredFile {
   id        String   @id @default(cuid())
   mime      String
-  data      Bytes
+  data      Bytes?
+  storageKey String? @unique
   createdAt DateTime @default(now())
 }
 
