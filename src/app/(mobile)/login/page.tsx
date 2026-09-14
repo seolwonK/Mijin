@@ -3,6 +3,12 @@ import Image from 'next/image';
 import PageHeader from '@/components/PageHeader';
 import Surface from '@/components/Surface';
 import { BuildingIcon, WrenchIcon } from '@/components/icons';
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: '업체·전기기사 로그인',
+  robots: { index: false, follow: false },
+};
 
 const ROLES: {
   href: string;

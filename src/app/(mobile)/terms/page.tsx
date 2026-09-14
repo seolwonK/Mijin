@@ -4,8 +4,9 @@ import { LegalDoc, Clause, NumberedList, BulletList, CompanyInfoBlock } from '@/
 import { COMPANY } from '@/lib/company';
 
 export const metadata: Metadata = {
-  title: `이용약관 — ${COMPANY.name}`,
+  title: '이용약관',
   description: `${COMPANY.name} 서비스 이용약관`,
+  alternates: { canonical: '/terms' },
 };
 
 // 이용약관 — PG(NHN KCP 본인인증) 심사 필수 항목. 서비스 실제 구조(중개, 앱 내 결제 없음,

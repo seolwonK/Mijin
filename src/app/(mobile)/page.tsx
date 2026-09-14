@@ -6,6 +6,12 @@ import { AlertIcon, CheckIcon } from '@/components/icons';
 import { SYMPTOM_ITEMS, LEAK_SYMPTOM } from '@/lib/symptoms';
 import HomeSymptomIcon from './home-symptom-icon';
 import styles from './home.module.css';
+import type { Metadata } from 'next';
+
+// title·description 은 루트 기본값을 그대로 쓴다. canonical 만 정식 도메인의 '/' 로 고정(CloudType 원본 호스트 대비).
+export const metadata: Metadata = {
+  alternates: { canonical: '/' },
+};
 
 const PROCESS_STEPS = [
   { title: '고장 내용 접수', desc: '글이나 음성으로 증상과 주소를 남겨 주세요.' },

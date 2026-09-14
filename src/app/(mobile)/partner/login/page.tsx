@@ -1,5 +1,11 @@
 import Link from 'next/link';
 import LoginForm from '@/components/LoginForm';
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: '업체 로그인',
+  robots: { index: false, follow: false },
+};
 
 export default function PartnerLoginPage() {
   return (

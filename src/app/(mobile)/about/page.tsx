@@ -9,8 +9,9 @@ import { BoltIcon, BuildingIcon, WrenchIcon, ShieldIcon, ClipboardIcon } from '@
 import { COMPANY } from '@/lib/company';
 
 export const metadata: Metadata = {
-  title: `서비스 소개 — ${COMPANY.name}`,
+  title: '서비스 소개',
   description: `${COMPANY.name}는 전기 고장 접수부터 가까운 출동 업체·전기기사 연결까지 돕는 전기 출동 중개 서비스입니다.`,
+  alternates: { canonical: '/about' },
 };
 
 // 서비스 소개 페이지 — PG(NHN KCP 본인인증) 심사 요건 "어떤 서비스를 운영하는지 확인할 수 있는

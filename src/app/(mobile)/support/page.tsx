@@ -2,6 +2,15 @@ import styles from '@/components/portal.module.css';
 import Link from 'next/link';
 import PageHeader from '@/components/PageHeader';
 import { COMPANY } from '@/lib/company';
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: '도움 및 문의 · 아이디 찾기, 배정·알림 문제 해결',
+  description:
+    '아이디·비밀번호 찾기, 업체 가입 승인·서류 보완, 배정이 오지 않을 때, 알림 차단 해제 안내와 관리자 문의 전화.',
+  alternates: { canonical: '/support' },
+};
+
 export default function SupportPage() {
   return (
     <main className={`${styles.frame} min-h-screen bg-surface`}>

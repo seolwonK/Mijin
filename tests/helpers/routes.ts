@@ -1,8 +1,8 @@
 // ───────────────────────────────────────────────────────────────────────────
 // API 라우트 매트릭스 — 단일 진실 원천.
 //
-// 75개 route.ts 파일이 88개 핸들러를 export 한다 (13개 라우트가 2개 메서드).
-// 그중 17개가 설계상 공개이고, 나머지 **71개가 가드 대상**이다.
+// 76개 route.ts 파일이 89개 핸들러를 export 한다 (13개 라우트가 2개 메서드).
+// 그중 18개가 설계상 공개이고, 나머지 **71개가 가드 대상**이다.
 //
 // 이 표를 손으로 유지하지 않는다: tests/cross/matrix-completeness.spec.ts 가
 // src/app/api/** 를 걸어 실제 export 와 대조하므로, 라우트가 추가·삭제되면
@@ -143,7 +143,7 @@ export const ROUTES: RouteEntry[] = [
     note: '관리자 + 해당 접수에 배정된 업체/기술자',
   },
 
-  // ── 공개 17 핸들러 — 401 단언에서 제외한다 ───────────────────────────
+  // ── 공개 18 핸들러 — 401 단언에서 제외한다 ───────────────────────────
   open('/api/auth/check-login-id', 'GET', '아이디 중복 확인 — 가입 폼에서 호출'),
   open('/api/auth/login', 'POST', '로그인 자체 — 세션을 만드는 입구'),
   open('/api/auth/logout', 'POST', '로그아웃 — 세션 없이 호출해도 무해'),
@@ -171,6 +171,11 @@ export const ROUTES: RouteEntry[] = [
   open('/api/referrer/lookup', 'POST', '추천인 조회 — 가입 폼에서 호출'),
   open('/api/requests', 'POST', '고객 접수 — 서비스의 공개 진입점'),
   open('/api/requests/lookup', 'POST', '고객 조회 — 전화번호만 사용(접수번호 불필요)'),
+  open(
+    '/api/site-config',
+    'GET',
+    '공개 사이트 설정(GA4 측정 ID) — 루트 레이아웃의 Analytics 가 런타임에 받아간다. 비밀값 없음',
+  ),
   open('/api/survey/[token]', 'GET', '만족도 조사 — 토큰이 곧 인증'),
   open('/api/survey/[token]', 'POST', '만족도 조사 제출 — 토큰이 곧 인증'),
   open('/api/tech/signup', 'POST', '전기기사 셀프 가입 — 즉시 APPROVED(signup:176)'),

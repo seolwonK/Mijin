@@ -1,10 +1,42 @@
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import NavDepthTracker from '@/components/useNavDepthTracker';
+import JsonLd from '@/components/JsonLd';
+import Analytics from '@/components/Analytics';
+import { COMPANY } from '@/lib/company';
+import { getSiteGraph } from '@/lib/schema';
+
+const SITE_TITLE = '전기아저씨 — 전기 출동 서비스';
+const SITE_DESCRIPTION =
+  '전기아저씨가 전기 고장 접수부터 가까운 출동 업체 연결까지 빠르게 도와드립니다.';
 
 export const metadata: Metadata = {
-  title: '전기아저씨 — 전기 출동 서비스',
-  description: '전기아저씨가 전기 고장 접수부터 가까운 출동 업체 연결까지 빠르게 도와드립니다.',
+  // canonical·og:image 같은 URL 필드를 상대경로로 쓰기 위한 기준. 어느 호스트(CloudType 원본 포함)에서
+  // 서빙되든 정식 도메인으로 고정돼, 각 페이지의 alternates.canonical 이 이중 도메인 노출을 해소한다.
+  metadataBase: new URL(COMPANY.siteUrl),
+  title: {
+    default: SITE_TITLE,
+    // 하위 페이지가 title 을 지정하면 "페이지명 — 전기아저씨" 로 붙는다. 페이지 쪽 title 에 브랜드명을 넣지 말 것.
+    template: `%s — ${COMPANY.name}`,
+  },
+  description: SITE_DESCRIPTION,
+  // og:title / og:description 은 일부러 비운다 — 비워 두면 Next 가 각 페이지의 title·description 을 채운다.
+  // 여기서 지정하면 하위 페이지 전부가 그 값을 상속해 카카오톡 미리보기가 모두 홈 제목이 된다.
+  // 하위 페이지가 openGraph 를 직접 지정하면 images 까지 통째로 대체되니 그때는 images 도 다시 넣을 것.
+  openGraph: {
+    type: 'website',
+    locale: 'ko_KR',
+    siteName: COMPANY.name,
+    images: [
+      {
+        url: '/brand/og-default.png',
+        width: 1200,
+        height: 630,
+        alt: '전기아저씨 — 전기가 고장나면, 아저씨가 갑니다',
+      },
+    ],
+  },
+  twitter: { card: 'summary_large_image' },
 };
 
 export const viewport: Viewport = {
@@ -30,8 +62,11 @@ export default function RootLayout({
   return (
     <html lang="ko" className="h-full antialiased">
       <body className="min-h-full bg-surface text-fg">
+        {/* 사이트 공통 구조화 데이터(Organization·WebSite·Service) — 모델링 원칙은 src/lib/schema.ts */}
+        <JsonLd data={getSiteGraph()} />
         {children}
         <NavDepthTracker />
+        <Analytics />
       </body>
     </html>
   );

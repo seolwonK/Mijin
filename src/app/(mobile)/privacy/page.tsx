@@ -3,8 +3,9 @@ import { LegalDoc, Clause, NumberedList, BulletList, InfoTable, CompanyInfoBlock
 import { COMPANY } from '@/lib/company';
 
 export const metadata: Metadata = {
-  title: `개인정보처리방침 — ${COMPANY.name}`,
+  title: '개인정보처리방침',
   description: `${COMPANY.name} 개인정보처리방침`,
+  alternates: { canonical: '/privacy' },
 };
 
 // 개인정보처리방침 — PG(NHN KCP 본인인증) 심사 필수 항목이자 개인정보보호법 제30조 법정 고지.
