@@ -1,10 +1,14 @@
 import type { Metadata } from 'next';
 import { LegalDoc, Clause, NumberedList, BulletList, InfoTable, CompanyInfoBlock } from '@/components/LegalDoc';
 import { COMPANY } from '@/lib/company';
+import JsonLd from '@/components/JsonLd';
+import { getWebPageGraph } from '@/lib/schema';
+import { PAGE_UPDATED } from '@/lib/pageDates';
 
 export const metadata: Metadata = {
   title: '개인정보처리방침',
-  description: `${COMPANY.name} 개인정보처리방침`,
+  description:
+    '전기아저씨 개인정보처리방침 — 접수·가입 시 수집하는 개인정보 항목, 이용 목적, 보유 기간, 처리 위탁, 이용자 권리 행사 방법을 안내합니다.',
   alternates: { canonical: '/privacy' },
 };
 
@@ -21,6 +25,8 @@ export const metadata: Metadata = {
 export default function PrivacyPage() {
   const c = COMPANY.name;
   return (
+    <>
+      <JsonLd data={getWebPageGraph({ path: '/privacy', name: '개인정보처리방침', description: String(metadata.description), dateModified: PAGE_UPDATED.privacy })} />
     <LegalDoc
       title="개인정보처리방침"
       effectiveDate={COMPANY.privacyEffectiveDate}
@@ -249,5 +255,6 @@ export default function PrivacyPage() {
         </div>
       </Clause>
     </LegalDoc>
+    </>
   );
 }

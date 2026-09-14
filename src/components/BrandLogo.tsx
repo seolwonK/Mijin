@@ -56,6 +56,8 @@ export default function BrandLogo({
       alt={variant === 'bust' ? '전기아저씨' : ''}
       width={BUST_INTRINSIC.width}
       height={BUST_INTRINSIC.height}
+      // 최대 h-12(48px) 로만 표시된다 — sizes 가 없으면 srcset 의 최대 폭(w=1920, 30KB) 을 받아온다.
+      sizes="48px"
       className={`w-auto shrink-0 ${BUST_HEIGHT_CLASS[size]}`}
     />
   );

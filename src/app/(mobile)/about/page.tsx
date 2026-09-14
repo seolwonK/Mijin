@@ -7,9 +7,12 @@ import { CompanyInfoBlock } from '@/components/LegalDoc';
 import { buttonClasses } from '@/components/Button';
 import { BoltIcon, BuildingIcon, WrenchIcon, ShieldIcon, ClipboardIcon } from '@/components/icons';
 import { COMPANY } from '@/lib/company';
+import JsonLd from '@/components/JsonLd';
+import { getWebPageGraph } from '@/lib/schema';
+import { PAGE_UPDATED, formatKoreanDate } from '@/lib/pageDates';
 
 export const metadata: Metadata = {
-  title: '서비스 소개',
+  title: '서비스 소개 · 전기 출동 중개 플랫폼',
   description: `${COMPANY.name}는 전기 고장 접수부터 가까운 출동 업체·전기기사 연결까지 돕는 전기 출동 중개 서비스입니다.`,
   alternates: { canonical: '/about' },
 };
@@ -46,6 +49,7 @@ const FLOW = [
 export default function AboutPage() {
   return (
     <main className="min-h-screen pb-28 md:pb-12">
+      <JsonLd data={getWebPageGraph({ path: '/about', name: '서비스 소개', description: String(metadata.description), dateModified: PAGE_UPDATED.about })} />
       <PageHeader title="서비스 소개" back="/" />
 
       <div className="mx-auto w-full max-w-2xl px-5">
@@ -69,6 +73,8 @@ export default function AboutPage() {
                 alt=""
                 width={563}
                 height={688}
+                // h-44(176px)/md:h-60(240px) 로 표시 — 폭은 비율상 144px/196px. sizes 가 없으면 w=1920 를 받아온다.
+                sizes="(min-width: 768px) 196px, 144px"
                 className="h-44 w-auto md:h-60"
               />
             </div>
@@ -189,6 +195,7 @@ export default function AboutPage() {
           </Link>
         </div>
       </div>
+      <p className="mx-auto mt-8 max-w-2xl px-5 text-xs text-muted">최종 수정일: {formatKoreanDate(PAGE_UPDATED.about)}</p>
     </main>
   );
 }

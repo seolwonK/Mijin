@@ -3,6 +3,9 @@ import Link from 'next/link';
 import PageHeader from '@/components/PageHeader';
 import { COMPANY } from '@/lib/company';
 import type { Metadata } from 'next';
+import JsonLd from '@/components/JsonLd';
+import { getWebPageGraph } from '@/lib/schema';
+import { PAGE_UPDATED, formatKoreanDate } from '@/lib/pageDates';
 
 export const metadata: Metadata = {
   title: '도움 및 문의 · 아이디 찾기, 배정·알림 문제 해결',
@@ -14,6 +17,7 @@ export const metadata: Metadata = {
 export default function SupportPage() {
   return (
     <main className={`${styles.frame} min-h-screen bg-surface`}>
+      <JsonLd data={getWebPageGraph({ path: '/support', name: '도움 및 문의', description: String(metadata.description), dateModified: PAGE_UPDATED.support })} />
       <PageHeader title="도움 및 문의" back="/login" />
       <div className="mx-auto max-w-2xl space-y-6 p-4 pb-10">
         <section className="rounded-xl border border-border bg-white p-5">
@@ -90,6 +94,7 @@ export default function SupportPage() {
             전기기사 포털
           </Link>
         </div>
+        <p className="text-xs text-muted">최종 수정일: {formatKoreanDate(PAGE_UPDATED.support)}</p>
       </div>
     </main>
   );

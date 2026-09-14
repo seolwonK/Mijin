@@ -1,4 +1,7 @@
 import type { Metadata } from 'next';
+import JsonLd from '@/components/JsonLd';
+import { getWebPageGraph } from '@/lib/schema';
+import { PAGE_UPDATED } from '@/lib/pageDates';
 
 // page.tsx 가 클라이언트 컴포넌트라 metadata 를 여기서 낸다.
 // canonical 을 쿼리 없는 경로로 고정 — 홈 증상 버튼의 ?symptom=* 7종은 같은 HTML 이므로 이 URL 로 합친다.
@@ -10,5 +13,10 @@ export const metadata: Metadata = {
 };
 
 export default function RequestNewLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  return children;
+  return (
+    <>
+      <JsonLd data={getWebPageGraph({ path: '/request/new', name: '전기 고장 접수', description: String(metadata.description), dateModified: PAGE_UPDATED.requestNew })} />
+      {children}
+    </>
+  );
 }

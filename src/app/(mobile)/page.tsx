@@ -7,6 +7,9 @@ import { SYMPTOM_ITEMS, LEAK_SYMPTOM } from '@/lib/symptoms';
 import HomeSymptomIcon from './home-symptom-icon';
 import styles from './home.module.css';
 import type { Metadata } from 'next';
+import JsonLd from '@/components/JsonLd';
+import { getFaqPageSchema, getProcessListSchema, getWebPageGraph } from '@/lib/schema';
+import { PAGE_UPDATED } from '@/lib/pageDates';
 
 // title·description 은 루트 기본값을 그대로 쓴다. canonical 만 정식 도메인의 '/' 로 고정(CloudType 원본 호스트 대비).
 export const metadata: Metadata = {
@@ -65,6 +68,10 @@ const FAQ_ITEMS = [
 export default function Home() {
   return (
     <main className={styles.page}>
+      {/* 구조화 데이터 — 화면의 절차 4단계·FAQ 8문답과 같은 배열을 넘긴다(보이지 않는 내용을 마크업하지 않는다) */}
+      <JsonLd data={getWebPageGraph({ path: '/', name: '전기아저씨 — 전기 고장 출동 접수', dateModified: PAGE_UPDATED.home })} />
+      <JsonLd data={getProcessListSchema('전기 고장 접수 처리 절차', PROCESS_STEPS)} />
+      <JsonLd data={getFaqPageSchema(FAQ_ITEMS)} />
       <div className={styles.container}>
         <header className={styles.header}>
           <Link href="/" aria-label="전기아저씨 홈"><BrandLogo size="md" /></Link>
@@ -87,7 +94,7 @@ export default function Home() {
               </div>
               <Image
                 src="/brand/ajeossi-hero.webp"
-                alt=""
+                alt="손을 흔드는 전기아저씨 마스코트 — 안전모를 쓰고 공구를 든 전기기사"
                 width={436}
                 height={689}
                 sizes="(min-width: 1024px) 148px, (min-width: 768px) 88px, (min-width: 448px) 180px, calc(44vw - 17.6px)"

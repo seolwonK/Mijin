@@ -6,9 +6,9 @@ import Analytics from '@/components/Analytics';
 import { COMPANY } from '@/lib/company';
 import { getSiteGraph } from '@/lib/schema';
 
-const SITE_TITLE = '전기아저씨 — 전기 출동 서비스';
+const SITE_TITLE = '전기아저씨 — 전기 고장 출동 접수, 정전·누전·콘센트 수리';
 const SITE_DESCRIPTION =
-  '전기아저씨가 전기 고장 접수부터 가까운 출동 업체 연결까지 빠르게 도와드립니다.';
+  '정전·누전·콘센트·조명·두꺼비집 고장을 무료로 접수하면 전기아저씨가 가까운 승인 출동 업체·전기기사를 연결합니다. 전국 시/군/구 접수, 수리비는 현장에서 안내.';
 
 export const metadata: Metadata = {
   // canonical·og:image 같은 URL 필드를 상대경로로 쓰기 위한 기준. 어느 호스트(CloudType 원본 포함)에서
@@ -37,6 +37,12 @@ export const metadata: Metadata = {
     ],
   },
   twitter: { card: 'summary_large_image' },
+  // 스니펫·이미지 미리보기 길이 제한을 풀어 둔다(AI Overviews·Discover 노출용). 로그인·관리자 화면은 각자 noindex 로 덮어쓴다.
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: { index: true, follow: true, 'max-image-preview': 'large', 'max-snippet': -1, 'max-video-preview': -1 },
+  },
 };
 
 export const viewport: Viewport = {

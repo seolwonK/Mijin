@@ -2,10 +2,14 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { LegalDoc, Clause, NumberedList, BulletList, CompanyInfoBlock } from '@/components/LegalDoc';
 import { COMPANY } from '@/lib/company';
+import JsonLd from '@/components/JsonLd';
+import { getWebPageGraph } from '@/lib/schema';
+import { PAGE_UPDATED } from '@/lib/pageDates';
 
 export const metadata: Metadata = {
   title: '이용약관',
-  description: `${COMPANY.name} 서비스 이용약관`,
+  description:
+    '전기아저씨 서비스 이용약관 — 전기 고장 접수 중개 서비스의 이용 조건, 고객·출동 업체·전기기사의 권리와 의무, 책임 범위를 안내합니다.',
   alternates: { canonical: '/terms' },
 };
 
@@ -15,6 +19,8 @@ export const metadata: Metadata = {
 export default function TermsPage() {
   const c = COMPANY.name;
   return (
+    <>
+      <JsonLd data={getWebPageGraph({ path: '/terms', name: '이용약관', description: String(metadata.description), dateModified: PAGE_UPDATED.terms })} />
     <LegalDoc
       title="이용약관"
       effectiveDate={COMPANY.termsEffectiveDate}
@@ -190,5 +196,6 @@ export default function TermsPage() {
         </div>
       </Clause>
     </LegalDoc>
+    </>
   );
 }

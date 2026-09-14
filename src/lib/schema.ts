@@ -98,6 +98,73 @@ export function getServiceSchema() {
   };
 }
 
+type Crumb = { name: string; path: string };
+
+// 페이지 단위 그래프 — WebPage(dateModified 는 신선도 신호, GEO 감사 권고) + BreadcrumbList.
+// 홈 한 단계뿐인 경로에는 BreadcrumbList 를 넣지 않는다(항목 1개짜리 목록은 의미가 없다).
+export function getWebPageGraph(opts: { path: string; name: string; description?: string; dateModified?: string }) {
+  // Next 가 내는 canonical(홈은 끝 슬래시 없음)과 글자 단위로 같게 맞춘다.
+  const url = opts.path === '/' ? SITE_URL : `${SITE_URL}${opts.path}`;
+  const crumbs: Crumb[] = [{ name: '홈', path: '/' }];
+  if (opts.path !== '/') crumbs.push({ name: opts.name, path: opts.path });
+  const webPage = {
+    '@type': 'WebPage',
+    '@id': `${url}#webpage`,
+    url,
+    name: opts.name,
+    ...(opts.description ? { description: opts.description } : {}),
+    inLanguage: 'ko-KR',
+    isPartOf: { '@id': WEBSITE_ID },
+    about: { '@id': ORG_ID },
+    ...(opts.dateModified ? { dateModified: opts.dateModified } : {}),
+  };
+  const graph: object[] = [webPage];
+  if (crumbs.length > 1) {
+    graph.push({
+      '@type': 'BreadcrumbList',
+      '@id': `${url}#breadcrumb`,
+      itemListElement: crumbs.map((c, i) => ({
+        '@type': 'ListItem',
+        position: i + 1,
+        name: c.name,
+        item: `${SITE_URL}${c.path === '/' ? '/' : c.path}`,
+      })),
+    });
+  }
+  return { '@context': 'https://schema.org', '@graph': graph };
+}
+
+// 홈 FAQ — Google 리치결과는 2026-05 부로 은퇴했고, AI 검색(ChatGPT·Perplexity·AI Overviews) 인용용으로 넣는다.
+// 화면에 보이는 문답(<details>)과 글자 하나 다르지 않게 같은 배열을 넘길 것.
+export function getFaqPageSchema(items: ReadonlyArray<{ q: string; a: string }>) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: items.map((item) => ({
+      '@type': 'Question',
+      name: item.q,
+      acceptedAnswer: { '@type': 'Answer', text: item.a },
+    })),
+  };
+}
+
+// 접수 처리 절차 — HowTo 는 폐기된 타입이라 순서 있는 ItemList 로 표현한다.
+export function getProcessListSchema(name: string, steps: ReadonlyArray<{ title: string; desc: string }>) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    name,
+    itemListOrder: 'https://schema.org/ItemListOrderAscending',
+    numberOfItems: steps.length,
+    itemListElement: steps.map((s, i) => ({
+      '@type': 'ListItem',
+      position: i + 1,
+      name: s.title,
+      description: s.desc,
+    })),
+  };
+}
+
 // 루트 레이아웃에 한 번 삽입하는 사이트 공통 그래프.
 export function getSiteGraph() {
   return {
