@@ -102,10 +102,17 @@ type Crumb = { name: string; path: string };
 
 // 페이지 단위 그래프 — WebPage(dateModified 는 신선도 신호, GEO 감사 권고) + BreadcrumbList.
 // 홈 한 단계뿐인 경로에는 BreadcrumbList 를 넣지 않는다(항목 1개짜리 목록은 의미가 없다).
-export function getWebPageGraph(opts: { path: string; name: string; description?: string; dateModified?: string }) {
+export function getWebPageGraph(opts: {
+  path: string;
+  name: string;
+  description?: string;
+  dateModified?: string;
+  /** 홈과 현재 페이지 사이의 상위 경로(예: 구 페이지의 시 페이지). 홈은 자동으로 앞에 붙는다. */
+  parents?: readonly Crumb[];
+}) {
   // Next 가 내는 canonical(홈은 끝 슬래시 없음)과 글자 단위로 같게 맞춘다.
   const url = opts.path === '/' ? SITE_URL : `${SITE_URL}${opts.path}`;
-  const crumbs: Crumb[] = [{ name: '홈', path: '/' }];
+  const crumbs: Crumb[] = [{ name: '홈', path: '/' }, ...(opts.parents ?? [])];
   if (opts.path !== '/') crumbs.push({ name: opts.name, path: opts.path });
   const webPage = {
     '@type': 'WebPage',
@@ -162,6 +169,97 @@ export function getProcessListSchema(name: string, steps: ReadonlyArray<{ title:
       name: s.title,
       description: s.desc,
     })),
+  };
+}
+
+// 가이드 글 — Article + WebPage + BreadcrumbList(홈 › 전기 상식 › 글). author/publisher 는 조직 엔티티를 가리킨다.
+export function getArticleGraph(opts: {
+  path: string;
+  headline: string;
+  description: string;
+  datePublished: string;
+  dateModified: string;
+  keywords?: readonly string[];
+}) {
+  const url = `${SITE_URL}${opts.path}`;
+  return {
+    '@context': 'https://schema.org',
+    '@graph': [
+      {
+        '@type': 'Article',
+        '@id': `${url}#article`,
+        headline: opts.headline,
+        description: opts.description,
+        inLanguage: 'ko-KR',
+        datePublished: opts.datePublished,
+        dateModified: opts.dateModified,
+        author: { '@id': ORG_ID },
+        publisher: { '@id': ORG_ID },
+        mainEntityOfPage: { '@id': `${url}#webpage` },
+        image: `${SITE_URL}/brand/og-default.png`,
+        articleSection: '전기 상식',
+        ...(opts.keywords?.length ? { keywords: opts.keywords.join(', ') } : {}),
+      },
+      {
+        '@type': 'WebPage',
+        '@id': `${url}#webpage`,
+        url,
+        name: opts.headline,
+        description: opts.description,
+        inLanguage: 'ko-KR',
+        isPartOf: { '@id': WEBSITE_ID },
+        about: { '@id': ORG_ID },
+        dateModified: opts.dateModified,
+      },
+      {
+        '@type': 'BreadcrumbList',
+        '@id': `${url}#breadcrumb`,
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: '홈', item: `${SITE_URL}/` },
+          { '@type': 'ListItem', position: 2, name: '전기 상식', item: `${SITE_URL}/guide` },
+          { '@type': 'ListItem', position: 3, name: opts.headline, item: url },
+        ],
+      },
+    ],
+  };
+}
+
+// 지역 출동 페이지 — 사이트 공통 Service 와 별개 @id 로, areaServed 를 해당 시/군/구로 한정한다.
+// LocalBusiness·물리 주소·geo 는 넣지 않는다(디스패치 중개 모델, local.md 기준 유지).
+export function getAreaServiceSchema(opts: {
+  path: string;
+  areaName: string;
+  sido: string;
+  name: string;
+  description: string;
+  /** 구 단위 페이지: areaServed 를 AdministrativeArea(구) → City(시) → 시/도 로 중첩한다. */
+  city?: string;
+}) {
+  const url = `${SITE_URL}${opts.path}`;
+  const sidoPlace = { '@type': 'AdministrativeArea', name: opts.sido };
+  const areaServed = opts.city
+    ? {
+        '@type': 'AdministrativeArea',
+        name: opts.areaName,
+        containedInPlace: { '@type': 'City', name: opts.city, containedInPlace: sidoPlace },
+      }
+    : { '@type': 'City', name: opts.areaName, containedInPlace: sidoPlace };
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'Service',
+    '@id': `${url}#service`,
+    name: opts.name,
+    serviceType: '전기 수리 출동',
+    description: opts.description,
+    provider: { '@id': ORG_ID },
+    isRelatedTo: { '@id': SERVICE_ID },
+    areaServed,
+    url,
+    availableChannel: {
+      '@type': 'ServiceChannel',
+      serviceUrl: `${SITE_URL}/request/new`,
+      servicePhone: { '@type': 'ContactPoint', telephone: TELEPHONE, contactType: 'customer service' },
+    },
   };
 }
 

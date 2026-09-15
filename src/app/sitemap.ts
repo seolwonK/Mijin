@@ -1,6 +1,8 @@
 import type { MetadataRoute } from 'next';
 import { COMPANY } from '@/lib/company';
 import { PAGE_UPDATED } from '@/lib/pageDates';
+import { GUIDES } from '@/lib/guides';
+import { SEONGNAM_GU } from '@/lib/seongnamDistricts';
 
 // lastmod 는 빌드 시각(new Date())이 아니라 페이지 카피의 실제 변경일(src/lib/pageDates.ts)을 쓴다 —
 // Google 은 lastmod 를 재크롤 우선순위 신호로 쓰는데 매 배포마다 바뀌는 값은 거짓 신호가 되어 오히려 무시당한다.
@@ -17,6 +19,10 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${base}/about`, lastModified: PAGE_UPDATED.about },
     { url: `${base}/support`, lastModified: PAGE_UPDATED.support },
     { url: `${base}/lookup`, lastModified: PAGE_UPDATED.lookup },
+    { url: `${base}/areas/seongnam`, lastModified: PAGE_UPDATED.areaSeongnam },
+    ...SEONGNAM_GU.map((g) => ({ url: `${base}/areas/seongnam/${g.slug}`, lastModified: g.updated })),
+    { url: `${base}/guide`, lastModified: PAGE_UPDATED.guideIndex },
+    ...GUIDES.map((g) => ({ url: `${base}/guide/${g.slug}`, lastModified: g.updated })),
     { url: `${base}/terms`, lastModified: PAGE_UPDATED.terms },
     { url: `${base}/privacy`, lastModified: PAGE_UPDATED.privacy },
   ];

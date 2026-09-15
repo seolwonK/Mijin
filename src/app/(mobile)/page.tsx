@@ -153,6 +153,7 @@ export default function Home() {
           </div>
           <div>
             <ul className={styles.leakSigns}>{LEAK_SIGNS.map((sign) => <li key={sign}>{sign}</li>)}</ul>
+            <Link href="/guide/gingeup-nujeon" className={styles.textLink}>누전 신호별 대처법 자세히 보기 <span aria-hidden="true">→</span></Link>
             <p className={styles.safetyNote}>위 증상이 있다면 두꺼비집을 내려 두시고, 젖은 손으로 콘센트·스위치를 만지지 마세요.</p>
             <Link href={`/request/new?symptom=${LEAK_SYMPTOM.key}`} className={styles.textLink}>누전 의심 접수하기 <span aria-hidden="true">→</span></Link>
           </div>

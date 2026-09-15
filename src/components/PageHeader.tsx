@@ -12,6 +12,7 @@ import BackButton from '@/components/BackButton';
 // 정리(Task #12, 리드 승인): 다크 사진 배경용 'overlay' variant는 로그인 허브 재구축으로
 // 마지막 소비처가 사라져 제거했다 — default 렌더 마크업·클래스는 전량 동일(하드코딩만 됨).
 type Crumb = { label: string; href: string };
+// headingAs: 본문에 SEO 용 <h1> 이 따로 있는 페이지(가이드·지역 안내)는 'p' 로 낮춰 h1 중복을 피한다. 기본 'h1'(기존과 동일).
 
 export default function PageHeader({
   title,
@@ -19,19 +20,21 @@ export default function PageHeader({
   right,
   width = 'max-w-2xl',
   crumbs,
+  headingAs: Heading = 'h1',
 }: {
   title: string;
   back?: string;
   right?: React.ReactNode;
   width?: string;
   crumbs?: Crumb[];
+  headingAs?: 'h1' | 'p';
 }) {
   if (!crumbs || crumbs.length === 0) {
     return (
       <header className="sticky top-0 z-20 border-b border-border bg-surface/85 backdrop-blur">
         <div className={`mx-auto flex w-full ${width} items-center gap-2 px-4 py-2.5 md:py-3`}>
           {back && <BackButton fallback={back} />}
-          <h1 className="min-w-0 break-words text-xl font-bold">{title}</h1>
+          <Heading className="min-w-0 break-words text-xl font-bold">{title}</Heading>
           {right && <div className="ml-auto flex shrink-0 items-center gap-2">{right}</div>}
         </div>
       </header>
@@ -69,7 +72,7 @@ export default function PageHeader({
         </nav>
         <div className="flex w-full items-center gap-2">
           {back && <BackButton fallback={back} />}
-          <h1 className="min-w-0 break-words text-xl font-bold">{title}</h1>
+          <Heading className="min-w-0 break-words text-xl font-bold">{title}</Heading>
           {right && <div className="ml-auto flex shrink-0 items-center gap-2">{right}</div>}
         </div>
       </div>

@@ -137,6 +137,22 @@ export default function AboutPage() {
         </section>
 
         <section className="mt-8">
+          <h2 className="text-xl font-extrabold text-fg">서비스 지역</h2>
+          <div className="mt-3 space-y-2 text-sm leading-relaxed text-neutral-700">
+            <p>
+              전국 시/도·시/군/구 단위로 접수할 수 있습니다. 다만 지역별 실제 배정은 등록된 업체·전기기사
+              현황에 따라 달라지며, 담당 파트너가 없는 지역은 관리자가 확인 후 안내합니다.
+            </p>
+            <p>
+              지역별 출동 안내:{' '}
+              <Link href="/areas/seongnam" className="font-bold text-brand-700 underline">
+                성남시(분당·수정·중원) 전기 수리 출동
+              </Link>
+            </p>
+          </div>
+        </section>
+
+        <section className="mt-8">
           <h2 className="text-xl font-extrabold text-fg">요금과 결제</h2>
           <ul className="mt-3 space-y-2 rounded-2xl bg-neutral-50 p-4 text-sm leading-relaxed text-neutral-700">
             <li className="flex gap-2">

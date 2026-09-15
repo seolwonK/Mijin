@@ -21,6 +21,8 @@ export const COMPANY = {
 } as const;
 
 export const LEGAL_LINKS = [
+  { href: '/guide', label: '전기 상식' },
+  { href: '/areas/seongnam', label: '성남 출동' },
   { href: '/about', label: '서비스 소개' },
   { href: '/terms', label: '이용약관' },
   { href: '/privacy', label: '개인정보처리방침', emphasis: true },
