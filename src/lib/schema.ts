@@ -234,10 +234,18 @@ export function getAreaServiceSchema(opts: {
   description: string;
   /** 구 단위 페이지: areaServed 를 AdministrativeArea(구) → City(시) → 시/도 로 중첩한다. */
   city?: string;
+  /** 여러 관할에 걸친 생활권(위례): 관할별 AdministrativeArea 배열로 낸다(가짜 행정구역명 생성 금지) */
+  jurisdictions?: readonly { name: string; sido: string }[];
 }) {
   const url = `${SITE_URL}${opts.path}`;
   const sidoPlace = { '@type': 'AdministrativeArea', name: opts.sido };
-  const areaServed = opts.city
+  const areaServed = opts.jurisdictions?.length
+    ? opts.jurisdictions.map((j) => ({
+        '@type': 'AdministrativeArea',
+        name: j.name,
+        containedInPlace: { '@type': 'AdministrativeArea', name: j.sido },
+      }))
+    : opts.city
     ? {
         '@type': 'AdministrativeArea',
         name: opts.areaName,

@@ -280,7 +280,18 @@ export default async function SeongnamAreaPage() {
           </p>
         </Surface>
 
-        <p className="mt-8 text-xs text-muted">
+        <nav aria-label="인접 지역" className="mt-8 text-sm text-neutral-700">
+          인접 지역:{' '}
+          <Link href="/areas/wirye" className="font-bold text-brand-700 underline">위례신도시</Link>
+          {' · '}
+          <Link href="/areas/hanam" className="font-bold text-brand-700 underline">하남시</Link>
+          {' · '}
+          <Link href="/areas/songpa" className="font-bold text-brand-700 underline">송파구</Link>
+          {' · '}
+          <Link href="/areas/gwangju" className="font-bold text-brand-700 underline">경기 광주시</Link>
+        </nav>
+
+        <p className="mt-6 text-xs text-muted">
           최종 수정일: {formatKoreanDate(PAGE_UPDATED.areaSeongnam)} · {COMPANY.name}는 시공 업체가 아닌 중개 플랫폼이며,
           전북 군산의 동명 전기용품 판매점과는 무관합니다.
         </p>

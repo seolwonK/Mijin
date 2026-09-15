@@ -17,6 +17,10 @@
 - [성남 수정구 전기 수리 출동](https://xn--ok0bp94bnc26kra.com/areas/seongnam/sujeong): 신흥·태평·수진·단대·산성 구도심과 위례·복정·고등 — 주거 형태별 전기 환경, 먼저 의심할 고장, 수정구 FAQ
 - [성남 중원구 전기 수리 출동](https://xn--ok0bp94bnc26kra.com/areas/seongnam/jungwon): 금광·은행·상대원 주택가, 상대원 산업단지 소규모 사업장, 도촌·성남동 — 중원구 FAQ
 - [분당 전기 수리 출동](https://xn--ok0bp94bnc26kra.com/areas/seongnam/bundang): 1기 신도시 아파트(서현·수내·정자·야탑)와 판교·대장 신축, 역세권 상가 — 분당구 FAQ
+- [송파 전기 수리 출동](https://xn--ok0bp94bnc26kra.com/areas/songpa): 잠실·가락·문정·오금·거여·마천·위례 송파권 — 재건축 대단지·오피스텔·구도심별 전기 환경, 송파 FAQ
+- [하남 전기 수리 출동](https://xn--ok0bp94bnc26kra.com/areas/hanam): 미사강변도시·위례 하남권·감일·덕풍·신장·교산 — 신축 대단지·구도심·단독주택별 전기 환경, 하남 FAQ
+- [경기 광주 전기 수리 출동](https://xn--ok0bp94bnc26kra.com/areas/gwangju): 태전·역동·경안·송정·오포·초월·곤지암 — 전기아저씨 사업장 소재 지역, 전원주택·공장 옥내 설비, 광주 FAQ
+- [위례 전기 수리 출동](https://xn--ok0bp94bnc26kra.com/areas/wirye): 성남·하남·송파 3개 관할 위례신도시 — 주소로 관할 자동 판별, 신축 아파트 고장 유형, 위례 FAQ
 
 ## 전기 상식(가이드)
 - [전기 상식 목차](https://xn--ok0bp94bnc26kra.com/guide): 누전·차단기 / 정전 / 콘센트·화재·긴급 / 비용·점검·주거 4개 묶음 15편

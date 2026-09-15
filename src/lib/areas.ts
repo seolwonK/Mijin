@@ -2,6 +2,7 @@
 // 전기아저씨는 전국 시/도·시/군/구 단위로 접수받는 플랫폼이고, 여기 등재된 지역은 "집중 운영 지역"이다.
 // 새 지역을 늘릴 때는 이 배열에 항목을 추가하고 src/app/(mobile)/areas/<slug>/ 페이지를 만든다(성남 패턴 참조).
 import { SEONGNAM_GU } from '@/lib/seongnamDistricts';
+import { REGION_PAGES } from '@/lib/regionPages';
 
 export type FocusArea = {
   slug: string;
@@ -23,6 +24,15 @@ export const FOCUS_AREAS: readonly FocusArea[] = [
     updated: '2026-09-15',
     children: SEONGNAM_GU.map((g) => ({ slug: g.slug, gu: g.gu, note: g.note })),
   },
+  ...REGION_PAGES.map((r) => ({
+    slug: r.slug,
+    name: r.name,
+    sido: r.sido,
+    label: `${r.shortName} 전기 수리 출동`,
+    summary: r.note,
+    updated: r.updated,
+    children: [],
+  })),
 ] as const;
 
 export const AREAS_PATH = '/areas';

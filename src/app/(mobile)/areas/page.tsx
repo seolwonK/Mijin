@@ -10,9 +10,9 @@ import { getWebPageGraph } from '@/lib/schema';
 import { PAGE_UPDATED, formatKoreanDate } from '@/lib/pageDates';
 
 export const metadata: Metadata = {
-  title: '지역별 전기 수리 출동 안내 · 전국 접수, 성남 우선 집중',
+  title: '지역별 전기 수리 출동 안내 · 성남·분당·위례·하남·송파·경기 광주',
   description:
-    '전기아저씨는 전국 시/도·시/군/구 단위로 전기 고장을 접수받는 출동 중개 플랫폼입니다. 성남시(분당·판교·위례·수정·중원)를 가장 먼저 집중 운영하며 지역을 넓혀 갑니다. 지역별 출동 안내와 접수 방법.',
+    '전기아저씨는 전국 시/도·시/군/구 단위로 전기 고장을 접수받는 출동 중개 플랫폼입니다. 성남(분당·판교·수정·중원)·위례·하남·송파·경기 광주를 우선 집중 운영하며 지역을 넓혀 갑니다. 지역별 출동 안내와 접수 방법.',
   alternates: { canonical: AREAS_PATH },
 };
 
@@ -30,7 +30,7 @@ export default function AreasIndexPage() {
       <PageHeader title="지역 출동 안내" back="/" headingAs="p" />
       <div className="mx-auto w-full max-w-2xl px-5 pt-6">
         <h1 className="text-2xl leading-tight font-extrabold text-fg md:text-3xl">
-          전국 어디서나 접수, 성남부터 집중 운영합니다
+          전국 어디서나 접수, 성남·위례·하남·송파·경기 광주부터 집중 운영합니다
         </h1>
         <p className="mt-3 text-sm leading-relaxed text-neutral-700">
           {COMPANY.name}는 전국 시/도·시/군/구 단위로 전기 고장을 접수받아 등록된 출동 업체·전기기사를 연결하는 중개
@@ -48,6 +48,7 @@ export default function AreasIndexPage() {
                   {a.label}
                 </Link>
                 <p className="mt-2 text-sm leading-relaxed text-muted">{a.summary}</p>
+                {a.children.length > 0 && (
                 <ul className="mt-3 flex flex-wrap gap-2">
                   {a.children.map((c) => (
                     <li key={c.slug}>
@@ -60,6 +61,7 @@ export default function AreasIndexPage() {
                     </li>
                   ))}
                 </ul>
+                )}
               </Surface>
             ))}
           </div>
