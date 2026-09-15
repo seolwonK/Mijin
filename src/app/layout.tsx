@@ -6,7 +6,7 @@ import Analytics from '@/components/Analytics';
 import { COMPANY } from '@/lib/company';
 import { getSiteGraph } from '@/lib/schema';
 
-const SITE_TITLE = '전기아저씨 — 전기 고장 출동 접수, 정전·누전·콘센트 수리';
+const SITE_TITLE = '전기아저씨 — 전기 수리 출동 접수, 누전·두꺼비집·정전·콘센트';
 const SITE_DESCRIPTION =
   '정전·누전·콘센트·조명·두꺼비집 고장을 무료로 접수하면 전기아저씨가 가까운 승인 출동 업체·전기기사를 연결합니다. 전국 시/군/구 접수, 수리비는 현장에서 안내.';
 

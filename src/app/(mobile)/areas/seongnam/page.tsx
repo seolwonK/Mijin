@@ -144,7 +144,7 @@ export default async function SeongnamAreaPage() {
         </section>
 
         <section className="mt-8">
-          <h2 className="text-xl font-extrabold text-fg">성남에서 자주 접수되는 고장</h2>
+          <h2 className="text-xl font-extrabold text-fg">성남 전기 누전·정전·차단기 — 자주 접수되는 고장</h2>
           <ul className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3">
             {symptoms.map((s) => (
               <li key={s.key}>

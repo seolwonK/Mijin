@@ -19,10 +19,11 @@
 
 ## 전기 상식(가이드)
 - [전기 상식 목차](https://xn--ok0bp94bnc26kra.com/guide)
-- [누전차단기가 자꾸 내려가요 — 원인 5가지와 대처 순서](https://xn--ok0bp94bnc26kra.com/guide/nujeon-chadangi)
-- [우리 집만 정전됐을 때 — 1분 확인 순서와 접수 방법](https://xn--ok0bp94bnc26kra.com/guide/jeongjeon-hwakin)
+- [누전차단기(두꺼비집) 내려가는 이유 5가지 — 하나만 내려감·안 올라감 대처](https://xn--ok0bp94bnc26kra.com/guide/nujeon-chadangi)
+- [누전차단기와 배선용 차단기 차이 — 두꺼비집에서 하나만 내려갈 때 읽는 법](https://xn--ok0bp94bnc26kra.com/guide/nujeon-baeseon-chadangi)
+- [우리 집만 정전·아파트 정전일 때 — 1분 확인 순서와 접수 방법](https://xn--ok0bp94bnc26kra.com/guide/jeongjeon-hwakin)
 - [긴급 누전 신호 — 타는 냄새·찌릿함·차단기 반복 시 즉시 할 일](https://xn--ok0bp94bnc26kra.com/guide/gingeup-nujeon)
-- [전기 수리 출장 비용은 어떻게 정해지나요](https://xn--ok0bp94bnc26kra.com/guide/jeongi-suri-biyong)
+- [전기 수리 출장비·비용은 어떻게 정해지나요 — 누전 수리·차단기·콘센트 교체](https://xn--ok0bp94bnc26kra.com/guide/jeongi-suri-biyong)
 
 ## 정책
 - [이용약관](https://xn--ok0bp94bnc26kra.com/terms)
