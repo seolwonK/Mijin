@@ -49,8 +49,8 @@ export default function GuideIndexPage() {
         </ul>
         <p className="mt-8 text-sm text-neutral-700">
           지역별 출동 안내:{' '}
-          <Link href="/areas/seongnam" className="font-bold text-brand-700 underline">
-            성남 전기 수리 출동
+          <Link href="/areas" className="font-bold text-brand-700 underline">
+            전국 접수 · 성남 우선 집중 지역
           </Link>
         </p>
       </div>

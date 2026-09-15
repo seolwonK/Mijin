@@ -10,6 +10,7 @@ import { SYMPTOM_ITEMS, LEAK_SYMPTOM } from '@/lib/symptoms';
 import { GUIDES } from '@/lib/guides';
 import { SEONGNAM_GU } from '@/lib/seongnamDistricts';
 import { getAreaPartnerStats } from '@/lib/areaStats';
+import { AREAS_PATH, MIN_PARTNERS_TO_SHOW } from '@/lib/areas';
 import { getAreaServiceSchema, getFaqPageSchema, getWebPageGraph } from '@/lib/schema';
 import { PAGE_UPDATED, formatKoreanDate } from '@/lib/pageDates';
 
@@ -76,6 +77,7 @@ export default async function SeongnamAreaPage() {
           name: '성남 전기 수리 출동',
           description: String(metadata.description),
           dateModified: PAGE_UPDATED.areaSeongnam,
+          parents: [{ name: '지역별 전기 수리 출동 안내', path: AREAS_PATH }],
         })}
       />
       <JsonLd
@@ -88,32 +90,36 @@ export default async function SeongnamAreaPage() {
         })}
       />
       <JsonLd data={getFaqPageSchema(FAQ)} />
-      <PageHeader title="성남 출동 안내" back="/" headingAs="p" crumbs={[{ label: '홈', href: '/' }, { label: '성남 전기 수리 출동', href: PATH }]} />
+      <PageHeader
+        title="성남 출동 안내"
+        back={AREAS_PATH}
+        headingAs="p"
+        crumbs={[
+          { label: '홈', href: '/' },
+          { label: '지역 출동 안내', href: AREAS_PATH },
+          { label: '성남', href: PATH },
+        ]}
+      />
 
       <div className="mx-auto w-full max-w-2xl px-5 pt-6">
         <Surface tint as="section" className="rounded-2xl p-5">
-          <p className="text-xs font-bold text-brand-600">경기도 성남시 · 전기 출동 중개 플랫폼 {COMPANY.siteDisplayUrl}</p>
+          <p className="text-xs font-bold text-brand-600">전국 전기 출동 중개 플랫폼 {COMPANY.siteDisplayUrl} · 성남시 우선 집중 지역</p>
           <h1 className="mt-2 text-2xl leading-tight font-extrabold text-fg md:text-3xl">
             성남 전기 수리 출동
             <br />
             분당·판교·위례·수정·중원 전기 고장, 접수하면 담당 업체가 갑니다
           </h1>
           <p className="mt-3 text-sm leading-relaxed text-neutral-700">
-            {COMPANY.name}는 성남시 정전·누전·두꺼비집·콘센트·조명 고장을 접수받아, 성남을 담당 지역으로 등록한
-            승인 출동 업체와 전기기사에게 배정하는 중개 서비스입니다. 접수는 무료이고 수리비는 현장에서 안내합니다.
+            {COMPANY.name}는 전국 시/군/구 단위로 전기 고장을 접수받는 중개 플랫폼이며, 성남시를 가장 먼저 집중
+            운영합니다. 성남의 정전·누전·두꺼비집·콘센트·조명 고장을 접수하면 성남을 담당하는 승인 출동 업체·전기기사에게
+            배정합니다. 접수는 무료이고 수리비는 현장에서 안내합니다.
           </p>
           <p className="mt-2 text-sm font-semibold text-brand-700">
             초긴급(정전·누전·타는 냄새)은 1시간 내, 긴급은 2시간 내 응대를 목표로 우선 배정합니다.
           </p>
-          {stats && (
+          {stats && stats.providers + stats.technicians >= MIN_PARTNERS_TO_SHOW && (
             <p className="mt-3 rounded-2xl bg-white/80 px-4 py-3 text-sm font-semibold text-fg">
-              {stats.providers + stats.technicians > 0 ? (
-                <>
-                  지금 성남시를 담당하는 승인 파트너: 출동 업체 {stats.providers}곳 · 전기기사 {stats.technicians}명
-                </>
-              ) : (
-                <>성남시 전담 파트너를 모집 중입니다. 접수 건은 관리자가 담당 가능한 업체를 확인해 배정합니다.</>
-              )}
+              지금 성남시를 담당하는 승인 파트너: 출동 업체 {stats.providers}곳 · 전기기사 {stats.technicians}명
               <span className="mt-1 block text-xs font-normal text-muted">
                 경기도 전역·전 지역 담당 파트너 포함, 최대 1시간 전 집계
               </span>
@@ -147,8 +153,8 @@ export default async function SeongnamAreaPage() {
             ))}
           </div>
           <p className="mt-3 text-xs text-muted">
-            접수 시 주소를 남기면 시/군/구 단위로 자동 판별해 성남 담당 파트너에게 우선 배정합니다. 담당 파트너가
-            없으면 경기도 전역을 담당하는 파트너에게 배정되거나 관리자가 확인 후 안내합니다.
+            접수 시 주소를 남기면 시/군/구 단위로 자동 판별해 성남 담당 파트너에게 우선 배정하고, 배정 결과는 문자로
+            안내합니다. 성남 밖 지역도 같은 방식으로 접수할 수 있습니다.
           </p>
         </section>
 

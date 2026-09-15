@@ -11,7 +11,8 @@
 - [접수 내역 조회](https://xn--ok0bp94bnc26kra.com/lookup): 전화번호로 접수 진행 상황 조회
 - [도움 및 문의](https://xn--ok0bp94bnc26kra.com/support): 계정·배정·근로확인서 등 업체·전기기사용 문제 해결 안내, 전화 문의 070-4995-3910
 
-## 지역 출동 안내
+## 지역 출동 안내 (전국 접수 · 성남 우선 집중)
+- [지역별 전기 수리 출동 안내](https://xn--ok0bp94bnc26kra.com/areas): 전국 시/군/구 접수 원칙, 집중 운영 지역 목록, 파트너 가입 안내
 - [성남 전기 수리 출동 — 분당·수정·중원](https://xn--ok0bp94bnc26kra.com/areas/seongnam): 성남시 3개 구·동별 출동 지역, 담당 파트너 현황, 긴급도별 응대 목표, 비용 구조, 성남 FAQ
 - [성남 수정구 전기 수리 출동](https://xn--ok0bp94bnc26kra.com/areas/seongnam/sujeong): 신흥·태평·수진·단대·산성 구도심과 위례·복정·고등 — 주거 형태별 전기 환경, 먼저 의심할 고장, 수정구 FAQ
 - [성남 중원구 전기 수리 출동](https://xn--ok0bp94bnc26kra.com/areas/seongnam/jungwon): 금광·은행·상대원 주택가, 상대원 산업단지 소규모 사업장, 도촌·성남동 — 중원구 FAQ

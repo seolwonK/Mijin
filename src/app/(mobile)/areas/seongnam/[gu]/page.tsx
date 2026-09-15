@@ -10,6 +10,7 @@ import { COMPANY } from '@/lib/company';
 import { GUIDES } from '@/lib/guides';
 import { SEONGNAM_GU, getSeongnamGu } from '@/lib/seongnamDistricts';
 import { getAreaPartnerStats } from '@/lib/areaStats';
+import { AREAS_PATH, MIN_PARTNERS_TO_SHOW } from '@/lib/areas';
 import { getAreaServiceSchema, getFaqPageSchema, getWebPageGraph } from '@/lib/schema';
 import { formatKoreanDate } from '@/lib/pageDates';
 
@@ -63,7 +64,10 @@ export default async function SeongnamGuPage({ params }: { params: Promise<{ gu:
           name: `성남 ${d.gu} 전기 수리 출동`,
           description: d.description,
           dateModified: d.updated,
-          parents: [{ name: '성남 전기 수리 출동', path: CITY_PATH }],
+          parents: [
+            { name: '지역별 전기 수리 출동 안내', path: AREAS_PATH },
+            { name: '성남 전기 수리 출동', path: CITY_PATH },
+          ],
         })}
       />
       <JsonLd
@@ -83,6 +87,7 @@ export default async function SeongnamGuPage({ params }: { params: Promise<{ gu:
         headingAs="p"
         crumbs={[
           { label: '홈', href: '/' },
+          { label: '지역', href: AREAS_PATH },
           { label: '성남', href: CITY_PATH },
           { label: d.gu, href: path },
         ]}
@@ -91,27 +96,21 @@ export default async function SeongnamGuPage({ params }: { params: Promise<{ gu:
       <div className="mx-auto w-full max-w-2xl px-5 pt-6">
         <Surface tint as="section" className="rounded-2xl p-5">
           <p className="text-xs font-bold text-brand-600">
-            경기도 성남시 {d.gu} · 전기 출동 중개 플랫폼 {COMPANY.siteDisplayUrl}
+            전국 전기 출동 중개 플랫폼 {COMPANY.siteDisplayUrl} · 성남시 {d.gu} 우선 집중 지역
           </p>
           <h1 className="mt-2 text-2xl leading-tight font-extrabold text-fg md:text-3xl">{d.title.split(' · ')[0]}</h1>
           <p className="mt-2 text-base font-bold text-neutral-700">{d.title.split(' · ')[1]}</p>
           <p className="mt-3 text-sm leading-relaxed text-neutral-700">
-            {COMPANY.name}는 성남시 {d.gu}의 정전·누전·두꺼비집·콘센트·조명 고장을 접수받아, 성남을 담당 지역으로
-            등록한 승인 출동 업체와 전기기사에게 배정하는 중개 서비스입니다. 접수는 무료이고 수리비는 현장에서
-            안내합니다.
+            {COMPANY.name}는 전국 시/군/구 단위로 전기 고장을 접수받는 중개 플랫폼이며, 성남시를 가장 먼저 집중
+            운영합니다. {d.gu}의 정전·누전·두꺼비집·콘센트·조명 고장을 접수하면 성남을 담당하는 승인 출동
+            업체·전기기사에게 배정합니다. 접수는 무료이고 수리비는 현장에서 안내합니다.
           </p>
           <p className="mt-2 text-sm font-semibold text-brand-700">
             초긴급(정전·누전·타는 냄새)은 1시간 내, 긴급은 2시간 내 응대를 목표로 우선 배정합니다.
           </p>
-          {stats && (
+          {stats && stats.providers + stats.technicians >= MIN_PARTNERS_TO_SHOW && (
             <p className="mt-3 rounded-2xl bg-white/80 px-4 py-3 text-sm font-semibold text-fg">
-              {stats.providers + stats.technicians > 0 ? (
-                <>
-                  지금 성남시를 담당하는 승인 파트너: 출동 업체 {stats.providers}곳 · 전기기사 {stats.technicians}명
-                </>
-              ) : (
-                <>성남시 전담 파트너를 모집 중입니다. 접수 건은 관리자가 담당 가능한 업체를 확인해 배정합니다.</>
-              )}
+              지금 성남시를 담당하는 승인 파트너: 출동 업체 {stats.providers}곳 · 전기기사 {stats.technicians}명
               <span className="mt-1 block text-xs font-normal text-muted">
                 배정은 구가 아니라 성남시 단위로 이뤄집니다 · 경기도 전역·전 지역 담당 파트너 포함, 최대 1시간 전 집계
               </span>
@@ -246,7 +245,11 @@ export default async function SeongnamGuPage({ params }: { params: Promise<{ gu:
         </Surface>
 
         <nav aria-label="성남 다른 구" className="mt-8 text-sm text-neutral-700">
-          성남 다른 지역:{' '}
+          <Link href={AREAS_PATH} className="font-bold text-brand-700 underline">
+            지역 출동 안내
+          </Link>
+          {' · '}
+          성남:{' '}
           <Link href={CITY_PATH} className="font-bold text-brand-700 underline">
             성남시 전체
           </Link>
