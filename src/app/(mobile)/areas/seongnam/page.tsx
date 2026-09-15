@@ -236,7 +236,7 @@ export default async function SeongnamAreaPage() {
         <section className="mt-8">
           <h2 className="text-xl font-extrabold text-fg">부르기 전에 읽어 보세요</h2>
           <ul className="mt-3 space-y-2">
-            {GUIDES.map((g) => (
+            {GUIDES.filter((g) => g.featured).map((g) => (
               <li key={g.slug}>
                 <Link href={`/guide/${g.slug}`} className="block rounded-2xl bg-white p-4 shadow-surface-sm transition hover:bg-neutral-50">
                   <p className="font-bold text-fg">{g.title}</p>

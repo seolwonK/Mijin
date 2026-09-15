@@ -9,6 +9,7 @@ import styles from './home.module.css';
 import type { Metadata } from 'next';
 import JsonLd from '@/components/JsonLd';
 import { getFaqPageSchema, getProcessListSchema, getWebPageGraph } from '@/lib/schema';
+import { GUIDES } from '@/lib/guides';
 import { PAGE_UPDATED } from '@/lib/pageDates';
 
 // title·description 은 루트 기본값을 그대로 쓴다. canonical 만 정식 도메인의 '/' 로 고정(CloudType 원본 호스트 대비).
@@ -157,6 +158,25 @@ export default function Home() {
             <p className={styles.safetyNote}>위 증상이 있다면 두꺼비집을 내려 두시고, 젖은 손으로 콘센트·스위치를 만지지 마세요.</p>
             <Link href={`/request/new?symptom=${LEAK_SYMPTOM.key}`} className={styles.textLink}>누전 의심 접수하기 <span aria-hidden="true">→</span></Link>
           </div>
+        </section>
+
+        <section aria-labelledby="guide-title" className={styles.section}>
+          <div className={styles.sectionHeading}>
+            <h2 id="guide-title">부르기 전에 1분, 전기 상식</h2>
+            <Link href="/guide" className={styles.textLink}>전체 보기 <span aria-hidden="true">→</span></Link>
+          </div>
+          <p className={styles.sectionDescription}>별것 아닌 원인으로 출장비를 내지 않도록, 증상별 확인 순서와 안전 기준을 정리했어요.</p>
+          <ul className={styles.guideGrid}>
+            {GUIDES.filter((g) => g.featured).map((g) => (
+              <li key={g.slug}>
+                <Link href={`/guide/${g.slug}`} className={styles.guideCard}>
+                  <span className={styles.guideCategory}>{g.short}</span>
+                  <strong>{g.title}</strong>
+                  <span>{g.description}</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
         </section>
 
         <ReviewSection />

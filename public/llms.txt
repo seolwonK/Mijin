@@ -19,12 +19,22 @@
 - [분당 전기 수리 출동](https://xn--ok0bp94bnc26kra.com/areas/seongnam/bundang): 1기 신도시 아파트(서현·수내·정자·야탑)와 판교·대장 신축, 역세권 상가 — 분당구 FAQ
 
 ## 전기 상식(가이드)
-- [전기 상식 목차](https://xn--ok0bp94bnc26kra.com/guide)
+- [전기 상식 목차](https://xn--ok0bp94bnc26kra.com/guide): 누전·차단기 / 정전 / 콘센트·화재·긴급 / 비용·점검·주거 4개 묶음 15편
 - [누전차단기(두꺼비집) 내려가는 이유 5가지 — 하나만 내려감·안 올라감 대처](https://xn--ok0bp94bnc26kra.com/guide/nujeon-chadangi)
-- [누전차단기와 배선용 차단기 차이 — 두꺼비집에서 하나만 내려갈 때 읽는 법](https://xn--ok0bp94bnc26kra.com/guide/nujeon-baeseon-chadangi)
-- [우리 집만 정전·아파트 정전일 때 — 1분 확인 순서와 접수 방법](https://xn--ok0bp94bnc26kra.com/guide/jeongjeon-hwakin)
+- [우리 집만 정전일 때 확인 순서 — 두꺼비집은 올라가 있는데 정전이라면](https://xn--ok0bp94bnc26kra.com/guide/jeongjeon-hwakin)
 - [긴급 누전 신호 — 타는 냄새·찌릿함·차단기 반복 시 즉시 할 일](https://xn--ok0bp94bnc26kra.com/guide/gingeup-nujeon)
 - [전기 수리 출장비·비용은 어떻게 정해지나요 — 누전 수리·차단기·콘센트 교체](https://xn--ok0bp94bnc26kra.com/guide/jeongi-suri-biyong)
+- [누전차단기와 배선용 차단기 차이 — 두꺼비집에서 하나만 내려갈 때 읽는 법](https://xn--ok0bp94bnc26kra.com/guide/nujeon-baeseon-chadangi)
+- [누전차단기 교체 시기·수명·비용 요소 — 두꺼비집 차단기 교체 전 확인](https://xn--ok0bp94bnc26kra.com/guide/nujeon-chadangi-gyoche)
+- [두꺼비집 위치와 구조 — 원룸·아파트·단독주택 어디에 있고 무엇이 들어있나](https://xn--ok0bp94bnc26kra.com/guide/dukkeobijip-wichi-gujo)
+- [아파트 정전 대처 — 우리 집만·동 전체·엘리베이터, 누구에게 연락하나](https://xn--ok0bp94bnc26kra.com/guide/apateu-jeongjeon)
+- [장마철·비 오는 날 누전 예방 체크리스트 — 차단기가 비만 오면 내려갈 때](https://xn--ok0bp94bnc26kra.com/guide/jangma-nujeon-yebang)
+- [콘센트 교체·접지·스파크 — 타는 냄새·헐거움·안 될 때 확인 순서](https://xn--ok0bp94bnc26kra.com/guide/concent-gyoche)
+- [세탁기·냉장고·보일러·에어컨 누전 — 어느 가전이 원인인지 찾는 법](https://xn--ok0bp94bnc26kra.com/guide/gajeon-nujeon)
+- [전기요금이 갑자기 늘었을 때 — 누전·대기전력·계량기 확인 순서](https://xn--ok0bp94bnc26kra.com/guide/jeongi-yogeum-geupjeung)
+- [전기 화재 예방 — 멀티탭·문어발·전열기구·노후 배선에서 불이 나는 이유](https://xn--ok0bp94bnc26kra.com/guide/jeongi-hwajae-yebang)
+- [전기 안전점검 받는 법 — 정기점검 대상·주기, 신청 방법, 전기기사 점검과 차이](https://xn--ok0bp94bnc26kra.com/guide/jeongi-anjeon-jeomgeom)
+- [원룸·오피스텔 전기 고장 — 세입자와 집주인 중 누가 수리비를 내나](https://xn--ok0bp94bnc26kra.com/guide/wonrum-jeongi-gojang)
 
 ## 정책
 - [이용약관](https://xn--ok0bp94bnc26kra.com/terms)

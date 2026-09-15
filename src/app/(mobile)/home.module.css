@@ -592,3 +592,43 @@
     transition: none;
   }
 }
+
+/* 전기 상식 카드 그리드 — processList 와 같은 리듬, 카드는 Surface 문법(보더 없이 그림자) */
+.guideGrid {
+  display: grid;
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 20px;
+  list-style: none;
+  padding: 0;
+}
+@media (min-width: 768px) {
+  .guideGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+.guideCard {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-height: 44px;
+  padding: 16px 18px;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: var(--shadow-surface-sm);
+  transition: background-color 200ms;
+}
+.guideCard:hover { background: var(--color-neutral-50, #f8f9fb); }
+.guideCard strong { font-size: 15px; line-height: 1.45; font-weight: 750; letter-spacing: -0.02em; }
+.guideCard > span:last-child {
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--color-muted);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.guideCategory {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--color-brand-700);
+}
