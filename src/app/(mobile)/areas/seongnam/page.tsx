@@ -56,8 +56,15 @@ const FAQ = [
 ] as const;
 
 export default async function SeongnamAreaPage() {
-  const stats = await getAreaPartnerStats(SIDO, SIGUNGU);
-  const hasPartners = stats.providers + stats.technicians > 0;
+  // 홈 ReviewSection 과 같은 패턴: CloudType 빌드는 DB 없이 돌고(Dockerfile 의 더미 DATABASE_URL) 프리렌더 시
+  // 조회가 실패하므로 여기서 잡아 집계 줄만 생략한다(페이지 500·빌드 실패 금지). throw 라 unstable_cache 엔트리도 안 남아
+  // 런타임 첫 재검증(1h) 때 실제 값이 채워진다.
+  let stats: Awaited<ReturnType<typeof getAreaPartnerStats>> | null = null;
+  try {
+    stats = await getAreaPartnerStats(SIDO, SIGUNGU);
+  } catch {
+    stats = null;
+  }
   // LEAK_SYMPTOM 은 홈 별도 섹션용이라 label 이 없다 — 이 페이지 그리드용 라벨을 붙인다.
   const symptoms = [...SYMPTOM_ITEMS, { key: LEAK_SYMPTOM.key, label: '누전이 의심돼요' }];
 
@@ -98,18 +105,20 @@ export default async function SeongnamAreaPage() {
           <p className="mt-2 text-sm font-semibold text-brand-700">
             초긴급(정전·누전·타는 냄새)은 1시간 내, 긴급은 2시간 내 응대를 목표로 우선 배정합니다.
           </p>
-          <p className="mt-3 rounded-2xl bg-white/80 px-4 py-3 text-sm font-semibold text-fg">
-            {hasPartners ? (
-              <>
-                지금 성남시를 담당하는 승인 파트너: 출동 업체 {stats.providers}곳 · 전기기사 {stats.technicians}명
-              </>
-            ) : (
-              <>성남시 전담 파트너를 모집 중입니다. 접수 건은 관리자가 담당 가능한 업체를 확인해 배정합니다.</>
-            )}
-            <span className="mt-1 block text-xs font-normal text-muted">
-              경기도 전역·전 지역 담당 파트너 포함, 최대 1시간 전 집계
-            </span>
-          </p>
+          {stats && (
+            <p className="mt-3 rounded-2xl bg-white/80 px-4 py-3 text-sm font-semibold text-fg">
+              {stats.providers + stats.technicians > 0 ? (
+                <>
+                  지금 성남시를 담당하는 승인 파트너: 출동 업체 {stats.providers}곳 · 전기기사 {stats.technicians}명
+                </>
+              ) : (
+                <>성남시 전담 파트너를 모집 중입니다. 접수 건은 관리자가 담당 가능한 업체를 확인해 배정합니다.</>
+              )}
+              <span className="mt-1 block text-xs font-normal text-muted">
+                경기도 전역·전 지역 담당 파트너 포함, 최대 1시간 전 집계
+              </span>
+            </p>
+          )}
           <div className="mt-4 flex flex-col gap-2 sm:flex-row">
             <Link href="/request/new" className={buttonClasses('primary', 'md', 'flex-1')}>
               성남 전기 고장 접수하기

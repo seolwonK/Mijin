@@ -45,8 +45,13 @@ export default async function SeongnamGuPage({ params }: { params: Promise<{ gu:
   const d = getSeongnamGu(gu);
   if (!d) notFound();
   const path = `${CITY_PATH}/${d.slug}`;
-  const stats = await getAreaPartnerStats(SIDO, SIGUNGU);
-  const hasPartners = stats.providers + stats.technicians > 0;
+  // 시 페이지와 동일: 빌드(DB 없음)·런타임 DB 장애 시 집계 줄만 생략한다.
+  let stats: Awaited<ReturnType<typeof getAreaPartnerStats>> | null = null;
+  try {
+    stats = await getAreaPartnerStats(SIDO, SIGUNGU);
+  } catch {
+    stats = null;
+  }
   const siblings = SEONGNAM_GU.filter((g) => g.slug !== d.slug);
   const tel = `tel:${COMPANY.tel.replace(/-/g, '')}`;
 
@@ -98,18 +103,20 @@ export default async function SeongnamGuPage({ params }: { params: Promise<{ gu:
           <p className="mt-2 text-sm font-semibold text-brand-700">
             초긴급(정전·누전·타는 냄새)은 1시간 내, 긴급은 2시간 내 응대를 목표로 우선 배정합니다.
           </p>
-          <p className="mt-3 rounded-2xl bg-white/80 px-4 py-3 text-sm font-semibold text-fg">
-            {hasPartners ? (
-              <>
-                지금 성남시를 담당하는 승인 파트너: 출동 업체 {stats.providers}곳 · 전기기사 {stats.technicians}명
-              </>
-            ) : (
-              <>성남시 전담 파트너를 모집 중입니다. 접수 건은 관리자가 담당 가능한 업체를 확인해 배정합니다.</>
-            )}
-            <span className="mt-1 block text-xs font-normal text-muted">
-              배정은 구가 아니라 성남시 단위로 이뤄집니다 · 경기도 전역·전 지역 담당 파트너 포함, 최대 1시간 전 집계
-            </span>
-          </p>
+          {stats && (
+            <p className="mt-3 rounded-2xl bg-white/80 px-4 py-3 text-sm font-semibold text-fg">
+              {stats.providers + stats.technicians > 0 ? (
+                <>
+                  지금 성남시를 담당하는 승인 파트너: 출동 업체 {stats.providers}곳 · 전기기사 {stats.technicians}명
+                </>
+              ) : (
+                <>성남시 전담 파트너를 모집 중입니다. 접수 건은 관리자가 담당 가능한 업체를 확인해 배정합니다.</>
+              )}
+              <span className="mt-1 block text-xs font-normal text-muted">
+                배정은 구가 아니라 성남시 단위로 이뤄집니다 · 경기도 전역·전 지역 담당 파트너 포함, 최대 1시간 전 집계
+              </span>
+            </p>
+          )}
           <div className="mt-4 flex flex-col gap-2 sm:flex-row">
             <Link href="/request/new" className={buttonClasses('primary', 'md', 'flex-1')}>
               {d.gu} 전기 고장 접수하기
