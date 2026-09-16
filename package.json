@@ -7,6 +7,7 @@
     "build": "next build",
     "start": "next start",
     "https-proxy": "node scripts/https-proxy.mjs",
+    "indexnow": "node scripts/indexnow-ping.mjs",
     "lint": "eslint",
     "test:e2e": "node scripts/e2e-lock.mjs npx playwright test",
     "test:e2e:unlocked": "playwright test",
