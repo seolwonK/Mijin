@@ -1,7 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import GuideArticle, { GuideFigure,
-  GuideAnswer,
   GuideChecklist,
   GuideFaq,
   GuideSection,
@@ -48,9 +47,6 @@ export default function Page() {
           아래에서 교체가 필요한 신호를 가리고, 집에서 어디까지 확인해도 되는지, 언제 전기기사를 불러야 하는지
           순서대로 정리했습니다.
         </p>
-        <GuideAnswer>
-          타는 냄새·그을음·스파크·발열 중 하나라도 있으면 그 콘센트는 쓰지 말고 교체해야 합니다.
-        </GuideAnswer>
       </div>
 
       <GuideSection title="콘센트를 교체해야 하는 신호는 무엇인가요">

@@ -1,7 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import GuideArticle, {
-  GuideAnswer,
   GuideChecklist,
   GuideFaq,
   GuideSection,
@@ -41,10 +40,6 @@ const FAQ = [
 export default function Page() {
   return (
     <GuideArticle slug={guide.slug}>
-      <GuideAnswer>
-        전기 수리비는 정찰가가 없고, 출장·진단과 자재, 작업, 할증 네 가지가 현장에서 확인한 상태에 따라
-        더해져 정해집니다.
-      </GuideAnswer>
 
       <GuideSection title="전기 수리 비용은 왜 정찰가로 정해지지 않나요">
         <p>

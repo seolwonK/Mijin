@@ -1,7 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import GuideArticle, {
-  GuideAnswer,
   GuideChecklist,
   GuideFaq,
   GuideFigure,
@@ -48,10 +47,6 @@ export default function Page() {
         정리했습니다.
       </p>
 
-      <GuideAnswer>
-        타는 냄새, 스파크, 찌릿함이 있으면 그 회로의 차단기를 내리고 플러그를 뽑으세요. 연기가 보이면 119, 그다음
-        초긴급 접수입니다.
-      </GuideAnswer>
 
       <GuideSection title="누전은 왜 위험한가요">
         <p>

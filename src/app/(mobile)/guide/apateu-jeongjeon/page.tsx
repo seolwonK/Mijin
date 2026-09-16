@@ -1,7 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import GuideArticle, {
-  GuideAnswer,
   GuideChecklist,
   GuideFaq,
   GuideFigure,
@@ -48,10 +47,6 @@ export default function Page() {
         흘러갑니다.
       </p>
 
-      <GuideAnswer>
-        아파트 정전은 꺼진 범위로 가릅니다. 우리 집만이면 전기기사, 동이나 단지 전체면 관리사무소, 동네까지면 한전
-        123입니다.
-      </GuideAnswer>
 
       <GuideSection title="아파트에서 정전이 나면 가장 먼저 무엇을 확인하나요">
         <p>

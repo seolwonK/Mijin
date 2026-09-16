@@ -1,7 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import GuideArticle, {
-  GuideAnswer,
   GuideChecklist,
   GuideFaq,
   GuideFigure,
@@ -48,10 +47,6 @@ export default function Page() {
         않습니다. 이 글은 그 순서를 1분 안에 정리할 수 있게 만들었습니다.
       </p>
 
-      <GuideAnswer>
-        정전이 나면 먼저 옆집과 가로등을 보세요. 동네가 함께 꺼졌으면 한전 123, 우리 집만 꺼졌으면 두꺼비집부터
-        확인합니다.
-      </GuideAnswer>
 
       <GuideSection title="정전이 났을 때 1분 안에 무엇부터 확인하나요">
         <p>

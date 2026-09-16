@@ -1,7 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import GuideArticle, { GuideFigure,
-  GuideAnswer,
   GuideChecklist,
   GuideFaq,
   GuideSection,
@@ -41,10 +40,6 @@ const FAQ = [
 export default function Page() {
   return (
     <GuideArticle slug={guide.slug}>
-      <GuideAnswer>
-        원룸 전기 고장은 노후 배선이나 분전반 같은 기본 설비면 임대인이, 소모품 교체나 세입자 과실이면
-        세입자가 부담하는 것이 원칙입니다.
-      </GuideAnswer>
 
       <GuideSection title="원룸 전기가 나갔습니다. 누구에게 먼저 연락하나요">
         <p>

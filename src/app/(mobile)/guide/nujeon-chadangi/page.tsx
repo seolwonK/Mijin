@@ -1,7 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import GuideArticle, {
-  GuideAnswer,
   GuideChecklist,
   GuideFaq,
   GuideFigure,
@@ -53,10 +52,6 @@ export default function Page() {
           원인 다섯 가지와 각각을 알아보는 신호, 하나만 내려갔을 때와 메인만 내려갔을 때의 차이, 안 올라갈 때와
           올려도 전기가 안 들어올 때 무엇을 보아야 하는지를 정리했습니다.
         </p>
-        <GuideAnswer>
-          차단기가 내려간 것은 고장이 아니라 누전이나 과부하를 감지해 스스로 끊은 것입니다. 플러그를 모두 뽑고
-          다시 올려 원인 회로부터 좁히세요.
-        </GuideAnswer>
       </div>
 
       <GuideSection title="누전차단기가 내려가는 이유는 무엇인가요">

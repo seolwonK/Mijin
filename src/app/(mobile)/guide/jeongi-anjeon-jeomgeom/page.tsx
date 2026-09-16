@@ -1,7 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import GuideArticle, { GuideFigure,
-  GuideAnswer,
   GuideChecklist,
   GuideFaq,
   GuideSection,
@@ -41,10 +40,6 @@ const FAQ = [
 export default function Page() {
   return (
     <GuideArticle slug={guide.slug}>
-      <GuideAnswer>
-        주택 전기 안전점검은 한국전기안전공사가 법이 정한 주기에 맞춰 실시하는 점검이고, 일반 주택은 3년
-        주기에 해당합니다.
-      </GuideAnswer>
 
       <GuideSection title="전기 안전점검은 누가, 무엇을 하는 점검인가요">
         <p>

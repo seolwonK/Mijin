@@ -1,7 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import GuideArticle, {
-  GuideAnswer,
   GuideChecklist,
   GuideFaq,
   GuideFigure,
@@ -52,10 +51,6 @@ export default function Page() {
           열었을 때 무엇이 들어 있는지, 손을 대도 되는 부분은 어디까지인지를 정리했습니다. 불이 들어올 때 미리 한 번
           찾아 두면 정전이 나도 당황하지 않습니다.
         </p>
-        <GuideAnswer>
-          두꺼비집은 대부분 현관 근처 눈높이 위쪽 벽에 있습니다. 신발장 위, 주방 상부장 옆, 욕실 문 위를 먼저
-          보세요.
-        </GuideAnswer>
       </div>
 
       <GuideSection title="두꺼비집은 보통 어디에 있나요">

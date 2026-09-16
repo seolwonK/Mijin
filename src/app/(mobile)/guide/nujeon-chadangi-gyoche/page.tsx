@@ -1,7 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import GuideArticle, {
-  GuideAnswer,
   GuideChecklist,
   GuideFaq,
   GuideFigure,
@@ -51,10 +50,6 @@ export default function Page() {
           이 글은 언제 바꿔야 하는지, 어떻게 점검하는지, 전기기사가 현장에서 무엇을 하는지, 비용이 무엇으로 갈리는지,
           그리고 직접 갈아 끼우면 왜 위험한지를 정리했습니다.
         </p>
-        <GuideAnswer>
-          시험 버튼을 눌러도 내려가지 않으면 보호 기능이 죽은 것이므로 바로 교체 대상입니다. 연수보다 동작 여부가
-          기준입니다.
-        </GuideAnswer>
       </div>
 
       <GuideSection title="누전차단기는 언제 교체해야 하나요">

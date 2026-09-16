@@ -1,7 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import GuideArticle, { GuideFigure,
-  GuideAnswer,
   GuideChecklist,
   GuideFaq,
   GuideSection,
@@ -47,9 +46,6 @@ export default function Page() {
           가전, 대기전력, 그리고 누전입니다. 드물게 계량기 쪽 문제일 수도 있습니다. 순서대로 좁혀 나가면 전기기사를
           부르기 전에 어디까지가 정상인지 스스로 판단할 수 있습니다.
         </p>
-        <GuideAnswer>
-          모든 전기를 끈 상태에서 계량기가 계속 돌아가면 누전이나 계량기 쪽을 의심해야 합니다.
-        </GuideAnswer>
       </div>
 
       <GuideSection title="전기요금이 갑자기 늘었다면 무엇부터 확인하나요">

@@ -1,7 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import GuideArticle, { GuideFigure,
-  GuideAnswer,
   GuideChecklist,
   GuideFaq,
   GuideSection,
@@ -47,9 +46,6 @@ export default function Page() {
           변색시키고, 냄새가 나다가 마지막에 불꽃이 됩니다. 그래서 <strong>예방 지점이 분명한 사고</strong>이기도
           합니다. 아래에서 불이 시작되는 자리와 집에서 바로 할 수 있는 점검을 정리했습니다.
         </p>
-        <GuideAnswer>
-          전기 화재는 멀티탭 과부하·문어발·전열기구·먼지 낀 콘센트·노후 배선에서 주로 시작됩니다.
-        </GuideAnswer>
       </div>
 
       <GuideSection title="전기 화재는 주로 어디에서 시작되나요">

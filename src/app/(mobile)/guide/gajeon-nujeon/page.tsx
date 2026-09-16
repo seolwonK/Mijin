@@ -1,7 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import GuideArticle, { GuideFigure,
-  GuideAnswer,
   GuideChecklist,
   GuideFaq,
   GuideSection,
@@ -47,9 +46,6 @@ export default function Page() {
           함께 쓰는 제품일수록 내부 절연이 약해지기 쉽고, 오래 쓴 제품일수록 습기와 먼지가 그 틈을 벌립니다. 아래
           순서대로 하면 전문 장비 없이도 어느 가전이 범인인지 상당 부분 좁힐 수 있습니다.
         </p>
-        <GuideAnswer>
-          플러그를 모두 뽑고 차단기를 올린 뒤, 하나씩 다시 꽂아 내려가는 순간의 가전이 원인입니다.
-        </GuideAnswer>
       </div>
 
       <GuideSection title="어느 가전이 누전인지 찾는 순서는 어떻게 되나요">

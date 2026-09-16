@@ -1,7 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import GuideArticle, { GuideFigure,
-  GuideAnswer,
   GuideChecklist,
   GuideFaq,
   GuideSection,
@@ -47,10 +46,6 @@ export default function Page() {
         미리 살펴보면 막을 수 있는 경우가 많습니다.
       </p>
 
-      <GuideAnswer>
-        비 올 때만 차단기가 내려가면 외벽·베란다·옥상 쪽으로 물이 스며 누전이 생긴 것입니다. 마를 때까지 두지 말고
-        점검하세요.
-      </GuideAnswer>
 
       <GuideSection title="비 오는 날만 차단기가 내려가는 이유는 무엇인가요">
         <p>

@@ -1,7 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import GuideArticle, {
-  GuideAnswer,
   GuideChecklist,
   GuideFaq,
   GuideFigure,
@@ -53,10 +52,6 @@ export default function Page() {
           차이, 겉모습으로 가려내는 법, 표기에 적힌 숫자의 뜻, 어느 회로에 누전차단기를 따로 두는지, 그리고 교체가
           필요한 신호를 정리했습니다.
         </p>
-        <GuideAnswer>
-          시험 버튼이 있으면 누전차단기, 없으면 배선용 차단기입니다. 누전차단기는 새는 전기를, 배선용 차단기는
-          과부하와 합선을 끊습니다.
-        </GuideAnswer>
       </div>
 
       <GuideSection title="누전차단기와 배선용 차단기는 무엇이 다른가요">
