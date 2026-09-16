@@ -2,7 +2,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import PageHeader from '@/components/PageHeader';
 import Surface from '@/components/Surface';
-import { BuildingIcon, WrenchIcon } from '@/components/icons';
+import { BoltIcon, BuildingIcon, WrenchIcon } from '@/components/icons';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
@@ -35,6 +35,33 @@ export default function LoginHubPage() {
       <PageHeader title="로그인" back="/" width="max-w-md" />
 
       <div className="mx-auto w-full max-w-md space-y-4 p-4 md:py-10">
+        {/* 고객용 탈출구 — 이 화면은 업체·전기기사 전용인데, 검색·북마크로 접수하러 온 사람이
+            여기로 떨어지면 갈 곳이 없어 그대로 이탈한다. 실제로 2026-09-16 기준 구글 브랜드 검색
+            "전기아저씨" 1페이지가 홈이 아니라 이 URL 이었다(9/14 배포한 noindex 이전 색인분).
+            색인에서 빠진 뒤에도 외부 링크·북마크 유입은 남으므로 이 안내는 상시 유지한다. */}
+        <section className="rounded-2xl border border-brand-200 bg-brand-50 p-4">
+          <h2 className="flex items-center gap-2 font-bold text-fg">
+            <BoltIcon className="h-5 w-5 shrink-0 text-brand-600" />
+            전기 고장 접수하러 오셨나요?
+          </h2>
+          <p className="mt-1.5 text-sm text-muted">
+            이 화면은 업체·전기기사 전용 로그인이에요. 수리 접수는 로그인 없이 바로 하실 수 있어요.
+          </p>
+          <Link
+            href="/request/new"
+            className="mt-3 flex w-full items-center justify-center rounded-xl bg-brand-600 p-4 font-bold text-white transition-colors ease-brand duration-brand-base hover:bg-brand-700"
+          >
+            무료로 전기 고장 접수하기
+            <span aria-hidden="true" className="ml-1.5">→</span>
+          </Link>
+          <Link
+            href="/"
+            className="mt-2 block text-center text-sm font-semibold text-brand-700 underline underline-offset-2"
+          >
+            전기아저씨 홈으로 가기
+          </Link>
+        </section>
+
         <section className="rounded-3xl bg-gradient-to-br from-brand-50 via-white to-brand-100/50 px-6 py-7 text-center">
           <Image
             src="/brand/ajeossi-hero.webp"

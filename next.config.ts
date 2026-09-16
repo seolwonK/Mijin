@@ -33,10 +33,24 @@ const securityHeaders = [
   },
 ];
 
+// 로그인·관리자 화면은 각 page metadata 의 noindex 외에 HTTP 헤더로도 한 번 더 막는다.
+// meta 태그는 Google 이 페이지를 받아 파싱해야 읽히지만 X-Robots-Tag 는 응답 헤더만으로 읽혀,
+// 이미 색인돼 버린 URL 을 더 빨리 떨어뜨린다.
+// 배경(2026-09-16): 브랜드 검색 "전기아저씨" 1페이지에 홈이 아니라 /login 이 노출돼, 접수하러 온
+// 사람이 업체·기사 로그인 화면으로 떨어졌다. noindex 자체는 9/14 배포(f3a157e)라 색인 당시엔 없었다.
+const noindexHeaders = [{ key: "X-Robots-Tag", value: "noindex, nofollow" }];
+
 const nextConfig: NextConfig = {
   allowedDevOrigins: ["localhost", "127.0.0.1", ...lanIPs],
   async headers() {
-    return [{ source: "/:path*", headers: securityHeaders }];
+    return [
+      { source: "/:path*", headers: securityHeaders },
+      // 가입 신청(/partner/signup, /tech/signup)은 모집 페이지라 제외 — 정확히 로그인 경로만 건다.
+      { source: "/login", headers: noindexHeaders },
+      { source: "/partner/login", headers: noindexHeaders },
+      { source: "/tech/login", headers: noindexHeaders },
+      { source: "/admin/:path*", headers: noindexHeaders },
+    ];
   },
 };
 
