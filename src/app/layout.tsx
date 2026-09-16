@@ -37,6 +37,9 @@ export const metadata: Metadata = {
     ],
   },
   twitter: { card: 'summary_large_image' },
+  // 네이버 서치어드바이저 소유 확인(HTML 태그 방식). public/naver*.html 파일 방식과 병행한다 —
+  // 둘 중 하나만 살아 있어도 소유 확인이 유지된다. 값은 서치어드바이저 사이트 등록 시 발급된 토큰.
+  verification: { other: { 'naver-site-verification': 'd0f5639eea329196053917c35a4650a8d32f4c52' } },
   // 스니펫·이미지 미리보기 길이 제한을 풀어 둔다(AI Overviews·Discover 노출용). 로그인·관리자 화면은 각자 noindex 로 덮어쓴다.
   robots: {
     index: true,
@@ -68,6 +71,9 @@ export default function RootLayout({
   return (
     <html lang="ko" className="h-full antialiased">
       <body className="min-h-full bg-surface text-fg">
+        {/* RSS 자동 발견. metadata.alternates 로 넣으면 각 페이지의 alternates.canonical 이 객체째 덮어써
+            대부분 페이지에서 사라지므로, React 가 <head> 로 끌어올리는 link 요소로 직접 렌더한다. */}
+        <link rel="alternate" type="application/rss+xml" title="전기아저씨 전기 상식" href="/rss.xml" />
         {/* 사이트 공통 구조화 데이터(Organization·WebSite·Service) — 모델링 원칙은 src/lib/schema.ts */}
         <JsonLd data={getSiteGraph()} />
         {children}
