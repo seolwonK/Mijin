@@ -29,7 +29,7 @@ export async function generateMetadata({ params }: { params: Promise<{ gu: strin
   const d = getSeongnamGu(gu);
   if (!d) return {};
   return {
-    title: d.title,
+    title: `${d.gu === '분당구' ? '분당' : `성남 ${d.gu}`} 전기수리·누전 점검·차단기 교체`,
     description: d.description,
     alternates: { canonical: `${CITY_PATH}/${d.slug}` },
   };

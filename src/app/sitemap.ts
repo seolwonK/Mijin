@@ -8,7 +8,7 @@ import { AREAS_PATH, FOCUS_AREAS } from '@/lib/areas';
 // lastmod 는 빌드 시각(new Date())이 아니라 페이지 카피의 실제 변경일(src/lib/pageDates.ts)을 쓴다 —
 // Google 은 lastmod 를 재크롤 우선순위 신호로 쓰는데 매 배포마다 바뀌는 값은 거짓 신호가 되어 오히려 무시당한다.
 
-// 공개 색인 대상 7개만 등재한다. 로그인·포털·관리자·설문·접수완료 화면과 /request/new?symptom=*
+// 공개 콘텐츠만 등재한다. 로그인·포털·관리자·설문·접수완료 화면과 /request/new?symptom=*
 // 쿼리 변형은 넣지 않는다(각각 noindex 또는 canonical 로 처리).
 // changeFrequency·priority 는 Google/Bing 이 무시한다고 공식 명시해 넣지 않는다.
 export default function sitemap(): MetadataRoute.Sitemap {

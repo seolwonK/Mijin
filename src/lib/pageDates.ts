@@ -4,7 +4,7 @@
 import { COMPANY } from '@/lib/company';
 
 export const PAGE_UPDATED = {
-  home: '2026-09-15',
+  home: '2026-09-16',
   requestNew: '2026-08-23',
   about: '2026-09-15',
   support: '2026-09-15',
@@ -12,8 +12,8 @@ export const PAGE_UPDATED = {
   terms: COMPANY.termsEffectiveDate,
   privacy: COMPANY.privacyEffectiveDate,
   guideIndex: '2026-09-15',
-  areaSeongnam: '2026-09-15',
-  areasIndex: '2026-09-15',
+  areaSeongnam: '2026-09-16',
+  areasIndex: '2026-09-16',
 } as const;
 
 /** '2026-09-15' → '2026년 9월 15일' */

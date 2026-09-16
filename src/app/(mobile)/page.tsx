@@ -11,6 +11,7 @@ import JsonLd from '@/components/JsonLd';
 import { getFaqPageSchema, getProcessListSchema, getWebPageGraph } from '@/lib/schema';
 import { GUIDES } from '@/lib/guides';
 import { PAGE_UPDATED } from '@/lib/pageDates';
+import { AREAS_PATH, PRIORITY_AREA_LINKS } from '@/lib/areas';
 
 // title·description 은 루트 기본값을 그대로 쓴다. canonical 만 정식 도메인의 '/' 로 고정(CloudType 원본 호스트 대비).
 export const metadata: Metadata = {
@@ -50,7 +51,7 @@ const FAQ_ITEMS = [
   },
   {
     q: '서비스 가능 지역은 어디인가요?',
-    a: '전국 시/도·시/군/구 단위로 접수 가능합니다. 다만 지역별 실제 배정은 등록된 업체·전기기사 현황에 따라 다르며, 담당 업체가 없는 지역은 관리자가 직접 확인 후 연결합니다.',
+    a: '송파·하남·성남·경기 광주·분당·위례를 중심으로 운영하며 전국 시/도·시/군/구 단위로 접수 가능합니다. 실제 배정은 등록된 업체·전기기사 현황에 따라 다르며, 담당 업체가 없는 지역은 관리자가 확인 후 안내합니다.',
   },
   {
     q: '어떤 업체와 전기기사가 방문하나요?',
@@ -129,6 +130,27 @@ export default function Home() {
           <div><h2>접수는 무료예요</h2><p>글이나 음성으로 고장 내용을 남겨 주세요.</p></div>
           <div><h2>수리비는 현장에서 안내해요</h2><p>고장 원인과 자재에 따라 비용이 달라져요.</p></div>
           <div><h2>승인된 업체를 연결해요</h2><p>지역별 출동 가능 여부를 확인해 배정해요.</p></div>
+        </section>
+
+        <section aria-labelledby="areas-title" className={styles.section}>
+          <div className={styles.sectionHeading}>
+            <h2 id="areas-title">우리 동네 전기수리 출동 안내</h2>
+            <Link href={AREAS_PATH} className={styles.textLink}>전체 지역 <span aria-hidden="true">→</span></Link>
+          </div>
+          <p className={styles.sectionDescription}>
+            송파·하남·성남·경기 광주·분당·위례를 중심으로 운영해요. 누전 점검, 차단기·콘센트·조명 교체가
+            필요하면 지역별 접수 방법과 비용 안내를 확인하세요.
+          </p>
+          <ul className={styles.areaGrid}>
+            {PRIORITY_AREA_LINKS.map((area) => (
+              <li key={area.key}>
+                <Link href={area.path} className={styles.guideCard}>
+                  <strong>{area.name} 전기수리</strong>
+                  <span>{area.detail}</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
         </section>
 
         <section id="process" aria-labelledby="process-title" className={styles.section}>

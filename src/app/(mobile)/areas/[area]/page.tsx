@@ -24,7 +24,11 @@ export async function generateMetadata({ params }: { params: Promise<{ area: str
   const { area } = await params;
   const r = getRegionPage(area);
   if (!r) return {};
-  return { title: r.title, description: r.description, alternates: { canonical: `${AREAS_PATH}/${r.slug}` } };
+  return {
+    title: `${r.shortName} 전기수리·누전 점검·차단기 교체`,
+    description: r.description,
+    alternates: { canonical: `${AREAS_PATH}/${r.slug}` },
+  };
 }
 
 const URGENCY = [

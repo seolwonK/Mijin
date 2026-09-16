@@ -37,6 +37,16 @@ export const FOCUS_AREAS: readonly FocusArea[] = [
 
 export const AREAS_PATH = '/areas';
 
+// 홈과 광고에서 사용하는 집중 지역. 분당은 기존 구 페이지를 연결해 중복 문서를 만들지 않는다.
+export const PRIORITY_AREA_LINKS = [
+  { key: 'songpa', name: '송파', path: '/areas/songpa', detail: '잠실·가락·문정·거여·마천' },
+  { key: 'hanam', name: '하남', path: '/areas/hanam', detail: '미사·감일·덕풍·신장' },
+  { key: 'seongnam', name: '성남', path: '/areas/seongnam', detail: '수정·중원·분당·판교' },
+  { key: 'gwangju', name: '경기 광주', path: '/areas/gwangju', detail: '태전·오포·경안·초월·곤지암' },
+  { key: 'bundang', name: '분당', path: '/areas/seongnam/bundang', detail: '서현·정자·야탑·수내·판교' },
+  { key: 'wirye', name: '위례', path: '/areas/wirye', detail: '송파·하남·성남 위례신도시' },
+] as const;
+
 // 파트너 집계 줄 노출 하한 — 이 값 미만이면 숫자를 보여 주지 않는다(홈 리뷰 위젯 MIN_REVIEWS_TO_SHOW 와 같은 사고방식:
 // 작은 숫자는 신뢰를 깎고, 지역 확대 초기에는 배정이 시/도 전체 담당 파트너와 관리자 확인으로 이뤄진다).
 export const MIN_PARTNERS_TO_SHOW = 3;

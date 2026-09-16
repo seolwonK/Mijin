@@ -19,7 +19,7 @@ const SIGUNGU = '성남시';
 const PATH = '/areas/seongnam';
 
 export const metadata: Metadata = {
-  title: '성남 전기 수리 출동 · 분당·판교·위례·수정·중원 전기 고장 접수',
+  title: '성남 전기수리·누전 점검·차단기 교체',
   description:
     '성남시(분당구·수정구·중원구) 정전·누전·두꺼비집·콘센트·조명 고장을 무료로 접수하면 성남을 담당하는 승인 출동 업체·전기기사를 연결합니다. 초긴급 1시간 내 응대 목표, 수리비는 현장 견적·현장 정산.',
   alternates: { canonical: PATH },
