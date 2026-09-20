@@ -13,6 +13,7 @@ import { GUIDES } from '@/lib/guides';
 import { PAGE_UPDATED } from '@/lib/pageDates';
 import { AREAS_PATH, PRIORITY_AREA_LINKS } from '@/lib/areas';
 import { INSPECTION_PRICE_WON, INSPECTION_VISITS_PER_TERM } from '@/lib/inspection';
+import InspectionPromoDialog from '@/components/InspectionPromoDialog';
 
 // title·description 은 루트 기본값을 그대로 쓴다. canonical 만 정식 도메인의 '/' 로 고정(CloudType 원본 호스트 대비).
 export const metadata: Metadata = {
@@ -241,6 +242,11 @@ export default function Home() {
 
         <div className={styles.partnerLink}><span>전기아저씨와 함께 일하고 계신가요?</span><Link href="/login">업체 · 전기기사 로그인 <span aria-hidden="true">→</span></Link></div>
       </div>
+
+      {/* 정기 점검 첫 방문 팝업 — 홈에만 단다. 가이드·지역 페이지는 검색 유입이 바로 떨어지는
+          자리라 팝업이 침입형 간지 광고로 잡힐 위험이 크다. 본문은 클라이언트에서 지연 렌더되므로
+          서버 HTML·크롤러가 보는 문서에는 들어가지 않는다. */}
+      <InspectionPromoDialog />
     </main>
   );
 }
