@@ -160,15 +160,17 @@ function PromoDialog({ onClose }: { onClose: () => void }) {
                 분기마다 전기를 봐 드려요
               </h2>
             </div>
-            {/* 팝업용 일러스트. 지금은 기존 브랜드 마스코트를 쓰고 있고, 점검 장면 전용
-                이미지를 만들면 이 src 만 바꾸면 된다(비율만 함께 맞출 것). */}
+            {/* 팝업에서는 상반신 크롭을 쓴다 — 96px 높이에 전신을 넣으면 얼굴도 분전반도
+                뭉개져 무슨 그림인지 읽히지 않는다. 랜딩 히어로(176~240px)는 전신을 쓴다.
+                mt-7 은 닫기 버튼(top-2 + h-11 = 52px)보다 아래에서 시작시키기 위한 값이다.
+                제목이 뜻을 다 담으므로 그림은 장식으로 둔다(alt=""). */}
             <Image
-              src="/brand/ajeossi-complete.webp"
+              src="/brand/ajeossi-inspection-bust.webp"
               alt=""
-              width={401}
-              height={689}
-              sizes="88px"
-              className="mt-3 h-[5.5rem] w-auto shrink-0"
+              width={447}
+              height={420}
+              sizes="102px"
+              className="mt-7 h-24 w-auto shrink-0"
             />
           </div>
 

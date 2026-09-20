@@ -125,12 +125,14 @@ export default async function InspectionLandingPage() {
               </p>
             </div>
             <div className="flex justify-center px-5 pb-2 md:w-2/5 md:justify-end md:pb-0">
+              {/* 이 페이지의 주제 그대로를 그린 그림이라 장식이 아니다 — 대체텍스트를 준다.
+                  h-44(176px)/md:h-60(240px) 표시, 비율 0.679 → 폭 120px/163px. */}
               <Image
-                src="/brand/ajeossi-working.webp"
-                alt=""
-                width={563}
-                height={688}
-                sizes="(min-width: 768px) 196px, 144px"
+                src="/brand/ajeossi-inspection.webp"
+                alt="점검표를 들고 분전반의 차단기를 확인하는 전기아저씨"
+                width={516}
+                height={760}
+                sizes="(min-width: 768px) 163px, 120px"
                 className="h-44 w-auto md:h-60"
               />
             </div>
