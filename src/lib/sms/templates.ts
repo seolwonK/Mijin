@@ -67,3 +67,49 @@ export function smsProviderAssigned(p: {
 export function smsSurveyRequest(url: string): string {
   return `[전기아저씨] 수리가 완료되었습니다. 만족도 조사 참여: ${url}`;
 }
+
+// ── 정기 전기점검 구독 ──────────────────────────────────────────────────────
+// 구독은 계좌이체라 "입금해 달라 → 입금을 확인했다" 두 통지가 돈의 흐름을 잇는다.
+// 이 두 건은 금액·계좌가 들어가 LMS 가 되지만, 결제 관련 통지를 화면 확인에만
+// 맡기면 입금 누락·중복 입금이 생기므로 비용을 감수한다.
+
+export function smsInspectionApplied(p: {
+  customerName: string;
+  priceWon: number;
+  account: { bankName: string; accountNumber: string; accountHolder: string } | null;
+  depositorName: string;
+}): string {
+  const lines = [
+    `[전기아저씨] ${p.customerName}님, 정기 전기점검 신청이 접수되었습니다.`,
+    `연회비 ${p.priceWon.toLocaleString('ko-KR')}원을 입금해 주시면 점검이 시작됩니다.`,
+  ];
+  if (p.account) {
+    lines.push(`${p.account.bankName} ${p.account.accountNumber} (예금주 ${p.account.accountHolder})`);
+  }
+  lines.push(`입금자명: ${p.depositorName}`);
+  return lines.join('\n');
+}
+
+export function smsInspectionActivated(p: {
+  customerName: string;
+  endDate: string;
+  firstVisitDate: string | null;
+}): string {
+  const lines = [
+    `[전기아저씨] ${p.customerName}님, 입금이 확인되어 정기 전기점검이 시작되었습니다.`,
+    `이용 기간: ${p.endDate}까지 · 분기마다 1회씩 총 4회 방문합니다.`,
+  ];
+  lines.push(
+    p.firstVisitDate
+      ? `1회차 방문 예정일: ${p.firstVisitDate}`
+      : '희망하신 날짜가 지나 1회차 방문일을 다시 선택해 주세요.',
+  );
+  return lines.join('\n');
+}
+
+export function smsInspectionVisitBooked(p: {
+  quarter: number;
+  date: string;
+}): string {
+  return `[전기아저씨] ${p.quarter}회차 전기점검 방문일이 ${p.date}로 예약되었습니다.`;
+}

@@ -49,6 +49,7 @@ const nextConfig: NextConfig = {
       { source: "/login", headers: noindexHeaders },
       { source: "/partner/login", headers: noindexHeaders },
       { source: "/tech/login", headers: noindexHeaders },
+      { source: "/my/:path*", headers: noindexHeaders },
       { source: "/admin/:path*", headers: noindexHeaders },
     ];
   },

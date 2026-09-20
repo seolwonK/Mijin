@@ -14,7 +14,7 @@ import { ipHeaders, runNonce } from '../helpers/ip';
 // ───────────────────────────────────────────────────────────────────────────
 // 무세션·교차역할 401 전수 (계획 Step 3a)
 //
-// 표(helpers/routes.ts)를 돌면서 가드 핸들러 58개마다 테스트를 하나씩 만든다.
+// 표(helpers/routes.ts)를 돌면서 가드 핸들러마다 테스트를 하나씩 만든다.
 // 루프가 아니라 테스트를 생성하는 이유: 리포터 출력에 58개 (path, method) 가
 // 이름으로 남아야 "조용히 빠진 라우트"가 눈에 보인다. 매트릭스 완전성 자체는
 // matrix-completeness.spec.ts 가 파일시스템과 대조해 보증한다.
@@ -30,13 +30,15 @@ const PATH_PARAMS = {
   subject: 'technician',
   token: MISSING_ID,
   photoId: MISSING_ID,
+  visitId: MISSING_ID,
 };
 
 /** 라우트 역할별로, 401 이 나와야 하는 **다른** 역할들. */
 const MISMATCHED_ROLES: Record<SessionRole, SessionRole[]> = {
-  ADMIN: ['TECHNICIAN', 'PROVIDER'],
-  TECHNICIAN: ['ADMIN', 'PROVIDER'],
-  PROVIDER: ['ADMIN', 'TECHNICIAN'],
+  ADMIN: ['TECHNICIAN', 'PROVIDER', 'CUSTOMER'],
+  TECHNICIAN: ['ADMIN', 'PROVIDER', 'CUSTOMER'],
+  PROVIDER: ['ADMIN', 'TECHNICIAN', 'CUSTOMER'],
+  CUSTOMER: ['ADMIN', 'TECHNICIAN', 'PROVIDER'],
 };
 
 /** 교차역할 세션에 넣을 합성 id — 실존하지 않아도 역할 판정에는 충분하다. */
@@ -44,6 +46,8 @@ const SYNTHETIC_IDS: Record<SessionRole, Record<string, string>> = {
   ADMIN: {},
   TECHNICIAN: { technicianId: `${MISSING_ID}-tech` },
   PROVIDER: { providerId: `${MISSING_ID}-partner` },
+  // 고객은 프로필 테이블이 없다 — 세션의 userId 하나로 구독을 찾는다(/api/my/*).
+  CUSTOMER: {},
 };
 
 async function send(ctx: APIRequestContext, path: string, method: HttpMethod) {
@@ -71,7 +75,7 @@ test.beforeAll(async ({ playwright }) => {
   anon = await playwright.request.newContext({
     ...(await apiContextOptions(null, {}, ipHeaders('auth-matrix-anon'))),
   });
-  for (const role of ['ADMIN', 'TECHNICIAN', 'PROVIDER'] as const) {
+  for (const role of ['ADMIN', 'TECHNICIAN', 'PROVIDER', 'CUSTOMER'] as const) {
     sessions.set(
       role,
       await playwright.request.newContext(
@@ -86,10 +90,10 @@ test.afterAll(async () => {
   for (const ctx of sessions.values()) await ctx.dispose();
 });
 
-test('매트릭스 분류: 가드 71 / 공개 17, 가입 2건은 공개로 유지된다', () => {
-  expect(ROUTES.length).toBe(89);
-  expect(GUARDED_ROUTES.length).toBe(71);
-  expect(PUBLIC_ROUTES.length).toBe(18);
+test('매트릭스 분류: 가드 79 / 공개 19, 가입 2건은 공개로 유지된다', () => {
+  expect(ROUTES.length).toBe(98);
+  expect(GUARDED_ROUTES.length).toBe(79);
+  expect(PUBLIC_ROUTES.length).toBe(19);
   // 이 둘은 설계상 공개다. 가드로 옮기면 401 을 단언하는 붉은 테스트가 두 개
   // 생기지만 제품은 정상이다 — 분류를 여기서 못 박아 그 사고를 막는다.
   for (const path of ['/api/tech/signup', '/api/partner/signup']) {

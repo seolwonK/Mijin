@@ -6,7 +6,7 @@ import { expect, type BrowserContext, type Page } from '@playwright/test';
 // 즉시 만들 수 있어야 하기 때문이다.
 export const SESSION_COOKIE = 'mijin_session';
 
-export type SessionRole = 'ADMIN' | 'PROVIDER' | 'TECHNICIAN';
+export type SessionRole = 'ADMIN' | 'PROVIDER' | 'TECHNICIAN' | 'CUSTOMER';
 
 export type SessionPayload = {
   userId: string;
@@ -185,5 +185,11 @@ export async function loginAsTech(page: Page, creds: Credentials, expectedPath =
 
 export async function loginAsPartner(page: Page, creds: Credentials, expectedPath = '/partner') {
   await submitLogin(page, '/partner/login', creds);
+  await expect(page).toHaveURL(arrivedAt(expectedPath));
+}
+
+/** 정기 점검 고객. 업체·기사와 달리 승인 절차가 없어 가입 즉시 로그인된다. */
+export async function loginAsCustomer(page: Page, creds: Credentials, expectedPath = '/my') {
+  await submitLogin(page, '/my/login', creds);
   await expect(page).toHaveURL(arrivedAt(expectedPath));
 }

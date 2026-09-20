@@ -12,6 +12,7 @@ import { getFaqPageSchema, getProcessListSchema, getWebPageGraph } from '@/lib/s
 import { GUIDES } from '@/lib/guides';
 import { PAGE_UPDATED } from '@/lib/pageDates';
 import { AREAS_PATH, PRIORITY_AREA_LINKS } from '@/lib/areas';
+import { INSPECTION_PRICE_WON, INSPECTION_VISITS_PER_TERM } from '@/lib/inspection';
 
 // title·description 은 루트 기본값을 그대로 쓴다. canonical 만 정식 도메인의 '/' 로 고정(CloudType 원본 호스트 대비).
 export const metadata: Metadata = {
@@ -65,6 +66,10 @@ const FAQ_ITEMS = [
     q: '완료 후 후기는 어떻게 남기나요?',
     a: '완료 처리되면 문자로 만족도 조사 링크가 발송되며, 별점과 선택 후기를 1회 제출할 수 있습니다.',
   },
+  {
+    q: '고장 나기 전에 미리 점검받을 수도 있나요?',
+    a: `네. 정기 전기점검은 연 ${INSPECTION_PRICE_WON.toLocaleString('ko-KR')}원에 분기마다 1회씩 1년에 ${INSPECTION_VISITS_PER_TERM}회, 전기기사가 방문해 분전반·누전차단기·콘센트·조명을 점검하는 구독 서비스입니다. 방문 날짜는 분기마다 직접 고를 수 있습니다.`,
+  },
 ] as const;
 
 export default function Home() {
@@ -79,6 +84,7 @@ export default function Home() {
           <Link href="/" aria-label="전기아저씨 홈"><BrandLogo size="md" /></Link>
           <nav aria-label="메인 메뉴" className={styles.headerNav}>
             <Link href="#process" className={styles.desktopLink}>이용 방법</Link>
+            <Link href="/inspection" className={styles.desktopLink}>정기 점검</Link>
             <Link href="/lookup">접수 내역 조회</Link>
             <Link href="/login" className={styles.desktopLink}>업체 · 전기기사 로그인</Link>
           </nav>
@@ -130,6 +136,24 @@ export default function Home() {
           <div><h2>접수는 무료예요</h2><p>글이나 음성으로 고장 내용을 남겨 주세요.</p></div>
           <div><h2>수리비는 현장에서 안내해요</h2><p>고장 원인과 자재에 따라 비용이 달라져요.</p></div>
           <div><h2>승인된 업체를 연결해요</h2><p>지역별 출동 가능 여부를 확인해 배정해요.</p></div>
+        </section>
+
+        {/* 정기 전기점검 — 고장 접수의 반대편 상품(사고 전 예방). 홈에서 한 번은 만나게 한다. */}
+        <section aria-labelledby="inspection-title" className={styles.inspectionPromo}>
+          <div>
+            <p className={styles.eyebrow}>고장 나기 전에, 미리 점검</p>
+            <h2 id="inspection-title">1년에 {INSPECTION_PRICE_WON.toLocaleString('ko-KR')}원, 분기마다 전기를 봐 드려요</h2>
+            <p>
+              연회비만 내시면 전기기사가 3개월에 한 번씩 찾아가 분전반·누전차단기·콘센트·조명을
+              점검해요. 방문 날짜는 분기마다 직접 고르시면 돼요.
+            </p>
+          </div>
+          <dl className={styles.inspectionFacts}>
+            <div><dt>연회비</dt><dd>{INSPECTION_PRICE_WON.toLocaleString('ko-KR')}원</dd></div>
+            <div><dt>방문 횟수</dt><dd>연 {INSPECTION_VISITS_PER_TERM}회</dd></div>
+            <div><dt>방문 주기</dt><dd>분기당 1회</dd></div>
+          </dl>
+          <Link href="/inspection" className={styles.textLink}>정기 전기점검 자세히 보기 <span aria-hidden="true">→</span></Link>
         </section>
 
         <section aria-labelledby="areas-title" className={styles.section}>

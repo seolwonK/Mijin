@@ -204,6 +204,55 @@
   line-height: 1.6;
 }
 
+/* 정기 전기점검 프로모 — 고장 접수(사고 후)와 다른 상품이라 리듬을 끊어 따로 세운다.
+   브랜드 틴트 패널 문법은 히어로·로그인 허브와 공유한다(원칙 4: 한 회사 제품으로 읽히게). */
+.inspectionPromo {
+  margin-block: 32px;
+  padding: 24px;
+  border-radius: 24px;
+  background: linear-gradient(135deg, var(--color-brand-50), #fff 55%, color-mix(in oklch, var(--color-brand-100) 50%, transparent));
+  display: grid;
+  gap: 16px;
+}
+
+.inspectionPromo h2 {
+  font-size: 22px;
+  line-height: 1.35;
+  font-weight: 750;
+  letter-spacing: -0.03em;
+}
+
+.inspectionPromo p {
+  margin-top: 8px;
+  color: var(--color-muted);
+  font-size: 14px;
+  line-height: 1.65;
+}
+
+.inspectionFacts {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.inspectionFacts > div {
+  border-radius: 16px;
+  background: #fff;
+  padding: 12px 8px;
+  text-align: center;
+}
+
+.inspectionFacts dt {
+  color: var(--color-muted);
+  font-size: 12px;
+}
+
+.inspectionFacts dd {
+  margin-top: 4px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
 .section {
   padding-block: 40px;
   scroll-margin-top: 24px;

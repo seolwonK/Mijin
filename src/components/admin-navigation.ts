@@ -2,6 +2,7 @@ export const ADMIN_GROUPS = [
   { id: 'operations', label: '접수 운영', items: [
     { href: '/admin', label: '대시보드' },
     { href: '/admin/rotation', label: '순환 현황' },
+    { href: '/admin/inspections', label: '정기 점검' },
   ] },
   { id: 'partners', label: '파트너 관리', items: [
     { href: '/admin/providers', label: '업체 관리' },

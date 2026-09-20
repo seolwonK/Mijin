@@ -21,6 +21,7 @@ export const COMPANY = {
 } as const;
 
 export const LEGAL_LINKS = [
+  { href: '/inspection', label: '정기 전기점검' },
   { href: '/guide', label: '전기 상식' },
   { href: '/areas', label: '지역 출동 안내' },
   { href: '/about', label: '서비스 소개' },

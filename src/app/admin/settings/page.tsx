@@ -5,6 +5,7 @@ import layout from '@/components/admin-layout.module.css';
 import PageHeader from '@/components/PageHeader';
 import { useConfirm } from '@/components/useConfirm';
 import AdminEggChargeSettings from '@/components/AdminEggChargeSettings';
+import AdminInspectionAccountSettings from '@/components/AdminInspectionAccountSettings';
 
 type Settings = {
   autoAssignEnabled: boolean;
@@ -150,6 +151,7 @@ export default function AdminSettingsPage() {
 
       <div className={layout.settings}>
         <AdminEggChargeSettings />
+        <AdminInspectionAccountSettings />
         <section className="rounded-admin-md border border-border p-4">
           <div className="flex items-center justify-between gap-4">
             <div>

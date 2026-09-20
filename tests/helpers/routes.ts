@@ -1,8 +1,8 @@
 // ───────────────────────────────────────────────────────────────────────────
 // API 라우트 매트릭스 — 단일 진실 원천.
 //
-// 76개 route.ts 파일이 89개 핸들러를 export 한다 (13개 라우트가 2개 메서드).
-// 그중 18개가 설계상 공개이고, 나머지 **71개가 가드 대상**이다.
+// 84개 route.ts 파일이 98개 핸들러를 export 한다 (14개 라우트가 2개 메서드).
+// 그중 19개가 설계상 공개이고, 나머지 **79개가 가드 대상**이다.
 //
 // 이 표를 손으로 유지하지 않는다: tests/cross/matrix-completeness.spec.ts 가
 // src/app/api/** 를 걸어 실제 export 와 대조하므로, 라우트가 추가·삭제되면
@@ -20,7 +20,7 @@ export type RouteEntry = {
   /** 무세션 호출의 기대 상태코드. 공개 라우트는 null (핸들러마다 다름). */
   expectedUnauthedStatus: number | null;
   /** 401 을 내는 세션 역할 — 교차역할 단언에 쓴다. */
-  role?: 'ADMIN' | 'PROVIDER' | 'TECHNICIAN';
+  role?: 'ADMIN' | 'PROVIDER' | 'TECHNICIAN' | 'CUSTOMER';
   note?: string;
 };
 
@@ -45,6 +45,13 @@ const partner = (path: string, method: HttpMethod): RouteEntry => ({
   expectedUnauthedStatus: 401,
   role: 'PROVIDER',
 });
+const customer = (path: string, method: HttpMethod): RouteEntry => ({
+  path,
+  method,
+  isPublic: false,
+  expectedUnauthedStatus: 401,
+  role: 'CUSTOMER',
+});
 const open = (path: string, method: HttpMethod, note: string): RouteEntry => ({
   path,
   method,
@@ -54,7 +61,7 @@ const open = (path: string, method: HttpMethod, note: string): RouteEntry => ({
 });
 
 export const ROUTES: RouteEntry[] = [
-  // ── 관리자 (38 핸들러, 전부 ADMIN 세션 필요) ──────────────────────────
+  // ── 관리자 (48 핸들러, 전부 ADMIN 세션 필요) ──────────────────────────
   admin('/api/admin/analytics/dashboard', 'GET'),
   admin('/api/admin/analytics/map/dispatch', 'GET'),
   admin('/api/admin/analytics/map/regions', 'GET'),
@@ -97,8 +104,20 @@ export const ROUTES: RouteEntry[] = [
   admin('/api/admin/technicians/[id]/contract', 'GET'),
   admin('/api/admin/technicians/[id]/contract', 'PUT'),
   admin('/api/admin/technicians/[id]/reject', 'POST'),
+  // 정기 전기점검 구독 운영 — 입금 확인·취소·방문 상태·입금 계좌 설정
+  admin('/api/admin/inspections', 'GET'),
+  admin('/api/admin/inspections/[id]/confirm-payment', 'POST'),
+  admin('/api/admin/inspections/[id]/cancel', 'POST'),
+  admin('/api/admin/inspections/visits/[visitId]', 'PATCH'),
+  admin('/api/admin/inspection-account', 'GET'),
+  admin('/api/admin/inspection-account', 'PUT'),
 
-  // ── 전기기사 (12 핸들러, TECHNICIAN 세션 필요) ─────────────────────────
+  // ── 정기 점검 고객 (2 핸들러, CUSTOMER 세션 필요) ──────────────────────
+  // 유일한 CUSTOMER 계열이다. 신청(/api/inspection/apply)만 공개이고, 그 뒤는 전부 세션.
+  customer('/api/my/inspection', 'GET'),
+  customer('/api/my/inspection/visits', 'POST'),
+
+  // ── 전기기사 (15 핸들러, TECHNICIAN 세션 필요) ─────────────────────────
   tech('/api/tech/commissions', 'GET'),
   tech('/api/tech/contract', 'GET'),
   tech('/api/tech/contract', 'PUT'),
@@ -115,7 +134,7 @@ export const ROUTES: RouteEntry[] = [
   tech('/api/tech/reviews', 'GET'),
   tech('/api/tech/stats', 'GET'),
 
-  // ── 업체 (12 핸들러, PROVIDER 세션 필요) ─────────────────────────────
+  // ── 업체 (13 핸들러, PROVIDER 세션 필요) ─────────────────────────────
   partner('/api/partner/commissions', 'GET'),
   partner('/api/partner/eggs', 'GET'),
   partner('/api/partner/eggs/charge', 'GET'),
@@ -143,7 +162,7 @@ export const ROUTES: RouteEntry[] = [
     note: '관리자 + 해당 접수에 배정된 업체/기술자',
   },
 
-  // ── 공개 18 핸들러 — 401 단언에서 제외한다 ───────────────────────────
+  // ── 공개 19 핸들러 — 401 단언에서 제외한다 ───────────────────────────
   open('/api/auth/check-login-id', 'GET', '아이디 중복 확인 — 가입 폼에서 호출'),
   open('/api/auth/login', 'POST', '로그인 자체 — 세션을 만드는 입구'),
   open('/api/auth/logout', 'POST', '로그아웃 — 세션 없이 호출해도 무해'),
@@ -179,9 +198,15 @@ export const ROUTES: RouteEntry[] = [
   open('/api/survey/[token]', 'GET', '만족도 조사 — 토큰이 곧 인증'),
   open('/api/survey/[token]', 'POST', '만족도 조사 제출 — 토큰이 곧 인증'),
   open('/api/tech/signup', 'POST', '전기기사 셀프 가입 — 즉시 APPROVED(signup:176)'),
+  open(
+    '/api/inspection/apply',
+    'POST',
+    '정기 전기점검 신청 — 계정 생성 + 구독(입금 대기)을 만드는 공개 진입점. ' +
+      'CUSTOMER 세션으로 호출하면 계정을 새로 만들지 않고 갱신 신청이 된다',
+  ),
 ];
 
-/** 무세션 401 을 단언해야 하는 핸들러 (81 − 공개 17 = 64). */
+/** 무세션 401 을 단언해야 하는 핸들러 (98 − 공개 19 = 79). */
 export const GUARDED_ROUTES = ROUTES.filter((r) => !r.isPublic);
 
 /** 설계상 공개인 핸들러 — 401 오탐 방지용으로 명시 보관한다. */

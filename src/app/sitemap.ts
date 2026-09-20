@@ -17,6 +17,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   return [
     { url: `${base}/`, lastModified: PAGE_UPDATED.home },
     { url: `${base}/request/new`, lastModified: PAGE_UPDATED.requestNew },
+    { url: `${base}/inspection`, lastModified: PAGE_UPDATED.inspection },
     { url: `${base}/about`, lastModified: PAGE_UPDATED.about },
     { url: `${base}/support`, lastModified: PAGE_UPDATED.support },
     { url: `${base}/lookup`, lastModified: PAGE_UPDATED.lookup },

@@ -1437,6 +1437,262 @@ export const GATES: Record<string, HandlerGates> = {
       { order: 1, status: 401, line: 16, kind: 'state', message: '권한이 없습니다', reach: '두 헤더 모두 없거나 값 불일치' },
     ],
   },
+
+  // ═══ 정기 전기점검 구독 ═══════════════════════════════════════════════════
+  //
+  // 고객 계정(CUSTOMER)으로 도는 유일한 계열이다. 신청은 무세션 공개이고, 예약은
+  // CUSTOMER 세션, 입금 확인·취소는 ADMIN 세션이 필요하다.
+
+  'POST /api/inspection/apply': {
+    file: 'src/app/api/inspection/apply/route.ts',
+    note:
+      '희망일 검증(applyDateIssue)은 **zod 스키마 안에** 있어 :80 의 400 으로 나온다 — ' +
+      '라우트 본문에 별도 날짜 분기가 없다. :93·:101 은 무세션 신규 가입 경로에서만, ' +
+      ':111 은 CUSTOMER 세션(갱신 신청) 경로에서만 도달한다 — 배타적이다.',
+    gates: [
+      {
+        order: 1,
+        status: 429,
+        line: 66,
+        kind: 'rate-limit',
+        message: '신청이 너무 많습니다. 잠시 후 다시 시도해 주세요.',
+        reach: '같은 IP 로 10분에 6회째 요청',
+      },
+      {
+        order: 2,
+        status: 400,
+        line: 74,
+        kind: 'body-parse',
+        message: '잘못된 요청입니다',
+        reach: 'JSON 이 아닌 본문',
+      },
+      {
+        order: 3,
+        status: 400,
+        line: 80,
+        kind: 'schema',
+        message: null,
+        reach: '필수 필드 누락·형식 위반. 희망일이 모레 이전이거나 90일을 넘어도 여기로 온다',
+      },
+      {
+        order: 4,
+        status: 400,
+        line: 93,
+        kind: 'state',
+        message: '아이디와 비밀번호를 입력해 주세요',
+        reach: '무세션 + 스키마는 통과하되 loginId/password 미동봉',
+        trap: '희망일이 부실하면 :80 의 400 이 먼저 나온다',
+      },
+      {
+        order: 5,
+        status: 409,
+        line: 101,
+        kind: 'conflict',
+        message: '이미 사용 중인 아이디입니다',
+        reach: '무세션 + 이미 존재하는 loginId',
+      },
+      {
+        order: 6,
+        status: 409,
+        line: 111,
+        kind: 'state',
+        message: '이미 진행 중인 점검 구독이 있습니다.',
+        reach: 'CUSTOMER 세션 + PENDING_PAYMENT/ACTIVE 구독 보유',
+      },
+      {
+        order: 7,
+        status: 409,
+        line: 177,
+        kind: 'race',
+        message: null,
+        reach:
+          '사전 검사(:101·:111)와 INSERT 사이에 끼어든 동시 요청. P2002 가 어느 유니크에서 ' +
+          '났는지에 따라 위 두 문구 중 하나가 그대로 나온다 — 고정 문구가 아니라 null',
+      },
+    ],
+  },
+
+  'POST /api/my/inspection/visits': {
+    file: 'src/app/api/my/inspection/visits/route.ts',
+    note:
+      '날짜 검증(:92)은 구독의 startDate 가 있어야 계산되므로 zod 로 접을 수 없다. ' +
+      '그래서 스키마 400(:50)과 구별되도록 고정 머리말을 붙여 반환한다.',
+    gates: [
+      {
+        order: 1,
+        status: 400,
+        line: 44,
+        kind: 'body-parse',
+        message: '잘못된 요청입니다',
+        reach: 'JSON 이 아닌 본문',
+      },
+      {
+        order: 2,
+        status: 400,
+        line: 50,
+        kind: 'schema',
+        message: null,
+        reach: 'quarter 가 1~4 밖이거나 timeSlot 이 enum 밖',
+      },
+      {
+        order: 3,
+        status: 404,
+        line: 63,
+        kind: 'not-found',
+        message: '점검 구독이 없습니다.',
+        reach: 'CUSTOMER 세션이지만 구독 행이 하나도 없음',
+      },
+      {
+        order: 4,
+        status: 409,
+        line: 68,
+        kind: 'state',
+        message: '입금이 확인된 뒤에 방문 날짜를 정할 수 있습니다.',
+        reach: '구독이 PENDING_PAYMENT',
+      },
+      {
+        order: 5,
+        status: 409,
+        line: 77,
+        kind: 'state',
+        message: '이용 기간이 끝난 구독입니다. 새로 신청해 주세요.',
+        reach: '구독이 EXPIRED 또는 CANCELED',
+      },
+      {
+        order: 6,
+        status: 400,
+        line: 92,
+        kind: 'state',
+        message: '예약할 수 없는 날짜입니다.',
+        reach: 'ACTIVE 구독 + 그 분기 창 밖이거나 모레 이전 날짜',
+        trap: '구독이 아직 PENDING_PAYMENT 면 :68 의 409 가 먼저 나온다',
+      },
+      {
+        order: 7,
+        status: 409,
+        line: 100,
+        kind: 'state',
+        message: '이미 점검이 완료된 회차입니다.',
+        reach: '그 분기 방문이 이미 COMPLETED + 날짜는 유효',
+      },
+    ],
+  },
+
+  'POST /api/admin/inspections/[id]/confirm-payment': {
+    file: 'src/app/api/admin/inspections/[id]/confirm-payment/route.ts',
+    note: '본문을 읽지 않는다(경로 파라미터만). 전이는 lib/inspectionLifecycle.activatePlan 의 CAS.',
+    gates: [
+      {
+        order: 1,
+        status: 404,
+        line: 24,
+        kind: 'not-found',
+        message: '구독을 찾을 수 없습니다',
+        reach: '존재하지 않는 구독 id',
+      },
+      {
+        order: 2,
+        status: 409,
+        line: 27,
+        kind: 'conflict',
+        message: '이미 처리된 구독입니다. 화면을 새로고침해 주세요.',
+        reach: '이미 ACTIVE/EXPIRED/CANCELED 인 구독 — CAS 가 0행을 잡는다',
+      },
+    ],
+  },
+
+  'POST /api/admin/inspections/[id]/cancel': {
+    file: 'src/app/api/admin/inspections/[id]/cancel/route.ts',
+    note: '404 가 409 보다 **뒤 행**에 있다 — CAS 실패 후 존재 여부를 되물어 갈라내기 때문이다.',
+    gates: [
+      {
+        order: 1,
+        status: 400,
+        line: 32,
+        kind: 'body-parse',
+        message: '잘못된 요청입니다',
+        reach: 'JSON 이 아닌 본문',
+      },
+      {
+        order: 2,
+        status: 400,
+        line: 38,
+        kind: 'schema',
+        message: null,
+        reach: 'reason 누락 또는 공백',
+      },
+      {
+        order: 3,
+        status: 409,
+        line: 56,
+        kind: 'conflict',
+        message: '이미 종료된 구독입니다. 화면을 새로고침해 주세요.',
+        reach: '이미 EXPIRED/CANCELED 인 구독 + 유효한 reason',
+      },
+      {
+        order: 4,
+        status: 404,
+        line: 58,
+        kind: 'not-found',
+        message: '구독을 찾을 수 없습니다',
+        reach: '존재하지 않는 구독 id + 유효한 reason',
+      },
+    ],
+  },
+
+  'PATCH /api/admin/inspections/visits/[visitId]': {
+    file: 'src/app/api/admin/inspections/visits/[visitId]/route.ts',
+    gates: [
+      {
+        order: 1,
+        status: 400,
+        line: 29,
+        kind: 'body-parse',
+        message: '잘못된 요청입니다',
+        reach: 'JSON 이 아닌 본문',
+      },
+      {
+        order: 2,
+        status: 400,
+        line: 35,
+        kind: 'schema',
+        message: null,
+        reach: 'status 가 enum 밖이거나 adminMemo 가 300자 초과',
+      },
+      {
+        order: 3,
+        status: 400,
+        line: 40,
+        kind: 'state',
+        message: '변경할 내용이 없습니다',
+        reach: '빈 객체 `{}` — 스키마는 통과하지만 바꿀 필드가 없다',
+      },
+      {
+        order: 4,
+        status: 404,
+        line: 45,
+        kind: 'not-found',
+        message: '방문 일정을 찾을 수 없습니다',
+        reach: '존재하지 않는 visitId + 바꿀 필드가 1개 이상',
+        trap: '본문이 `{}` 면 :40 의 400 이 먼저 나온다',
+      },
+    ],
+  },
+
+  'PUT /api/admin/inspection-account': {
+    file: 'src/app/api/admin/inspection-account/route.ts',
+    note: 'egg-charge-account 와 같은 계약 — 세 필드를 모두 채우거나 모두 비워야 한다.',
+    gates: [
+      {
+        order: 1,
+        status: 400,
+        line: 35,
+        kind: 'schema',
+        message: null,
+        reach: '세 필드 중 일부만 채움, 또는 계좌번호에 숫자·하이픈·공백 외 문자',
+      },
+    ],
+  },
 };
 
 /** `${METHOD} ${path}` 로 게이트 목록을 얻는다. 없으면 401 가드 외 4xx 분기가 없는 핸들러다. */

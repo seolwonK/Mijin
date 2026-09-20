@@ -8,6 +8,7 @@ function loginPathFor(pathname: string): string {
   if (pathname.startsWith('/admin')) return '/admin/login';
   if (pathname.startsWith('/tech')) return '/tech/login';
   if (pathname.startsWith('/partner')) return '/partner/login';
+  if (pathname.startsWith('/my')) return '/my/login';
   return '/';
 }
 

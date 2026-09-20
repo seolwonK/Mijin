@@ -278,3 +278,46 @@ export function getSiteGraph() {
     '@graph': [getOrganizationSchema(), getWebsiteSchema(), getServiceSchema()],
   };
 }
+
+// 정기 전기점검 구독 — 사이트 공통 Service(출동 중개)와 **다른 상품**이라 별도 @id 를 쓴다.
+// 이쪽은 중개가 아니라 우리가 값을 매겨 파는 구독 상품이므로 Offer(가격·통화·기간)를 붙인다.
+// 가격은 코드 상수(INSPECTION_PRICE_WON)를 그대로 받아 화면 표기와 어긋날 수 없게 한다.
+export function getInspectionServiceSchema(opts: {
+  path: string;
+  priceWon: number;
+  visitsPerTerm: number;
+}) {
+  const url = `${SITE_URL}${opts.path}`;
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'Service',
+    '@id': `${url}#service`,
+    name: '정기 전기점검 구독',
+    serviceType: '전기 안전점검',
+    provider: { '@id': ORG_ID },
+    isRelatedTo: { '@id': SERVICE_ID },
+    areaServed: { '@type': 'Country', name: 'KR' },
+    audience: { '@type': 'Audience', audienceType: '주택·상가의 전기 안전을 미리 점검받으려는 일반 소비자' },
+    description:
+      `연 ${opts.priceWon.toLocaleString('ko-KR')}원에 분기마다 1회씩 1년에 ${opts.visitsPerTerm}회, ` +
+      '전기기사가 방문해 분전반·누전차단기·콘센트·조명 등 생활 전기 설비를 점검하는 정기 점검 서비스. ' +
+      '고장이 난 뒤 부르는 출동 수리와 달리 사고가 나기 전에 미리 확인한다.',
+    url,
+    offers: {
+      '@type': 'Offer',
+      price: opts.priceWon,
+      priceCurrency: 'KRW',
+      url,
+      availability: 'https://schema.org/InStock',
+      // 계좌이체(무통장입금) 단일 수단 — PG 결제는 쓰지 않는다.
+      acceptedPaymentMethod: {
+        '@type': 'PaymentMethod',
+        name: '계좌이체(무통장입금)',
+      },
+      itemOffered: {
+        '@type': 'Service',
+        name: `정기 전기점검 (연 ${opts.visitsPerTerm}회 방문)`,
+      },
+    },
+  };
+}

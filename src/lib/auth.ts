@@ -4,7 +4,7 @@ import { prisma } from '@/lib/db';
 
 export const SESSION_COOKIE = 'mijin_session';
 
-export type SessionRole = 'ADMIN' | 'PROVIDER' | 'TECHNICIAN';
+export type SessionRole = 'ADMIN' | 'PROVIDER' | 'TECHNICIAN' | 'CUSTOMER';
 
 export type Session = {
   userId: string;
@@ -68,6 +68,9 @@ export async function getSession(): Promise<Session | null> {
  */
 async function approvalRevoked(session: Session): Promise<boolean> {
   if (session.role === 'ADMIN') return false;
+  // 점검 구독 고객(CUSTOMER)은 승인 절차 자체가 없다 — 가입 즉시 이용하고, 구독의
+  // 입금 확인 여부는 권한이 아니라 화면의 상태(PENDING_PAYMENT)로 표현된다.
+  if (session.role === 'CUSTOMER') return false;
 
   if (session.role === 'PROVIDER') {
     if (!session.providerId) return false; // 라우트가 자체적으로 처리한다

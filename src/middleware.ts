@@ -8,16 +8,23 @@ export async function middleware(req: NextRequest) {
   // 공개 페이지(로그인·가입 신청)는 세션 보호에서 제외
   const partnerPublic = pathname === '/partner/login' || pathname === '/partner/signup';
   const techPublic = pathname === '/tech/login' || pathname === '/tech/signup';
+  // 점검 구독 고객 영역. 가입(신청)은 /inspection/apply 라 이 접두 밖이고, 로그인만 공개다.
+  const customerPublic = pathname === '/my/login';
   const isAdminArea = pathname.startsWith('/admin') && pathname !== '/admin/login';
   const isPartnerArea = pathname.startsWith('/partner') && !partnerPublic;
   const isTechArea = pathname.startsWith('/tech') && !techPublic;
-  if (!isAdminArea && !isPartnerArea && !isTechArea) return NextResponse.next();
+  const isCustomerArea = pathname.startsWith('/my') && !customerPublic;
+  if (!isAdminArea && !isPartnerArea && !isTechArea && !isCustomerArea) {
+    return NextResponse.next();
+  }
 
   const loginPath = isAdminArea
     ? '/admin/login'
     : isTechArea
       ? '/tech/login'
-      : '/partner/login';
+      : isCustomerArea
+        ? '/my/login'
+        : '/partner/login';
   const loginUrl = new URL(loginPath, req.url);
   // 로그인 후 원래 가려던 화면으로 돌아오도록 현재 경로를 returnTo 로 넘긴다.
   const withReturn = () => {
@@ -46,6 +53,7 @@ export async function middleware(req: NextRequest) {
     if (isAdminArea && payload.role !== 'ADMIN') return redirectNoindex(loginUrl);
     if (isPartnerArea && payload.role !== 'PROVIDER') return redirectNoindex(loginUrl);
     if (isTechArea && payload.role !== 'TECHNICIAN') return redirectNoindex(loginUrl);
+    if (isCustomerArea && payload.role !== 'CUSTOMER') return redirectNoindex(loginUrl);
     // 인증을 통과한 포털 화면 본문도 색인 대상이 아니다.
     const res = NextResponse.next();
     res.headers.set('X-Robots-Tag', 'noindex, nofollow');
@@ -56,5 +64,5 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/admin/:path*', '/partner/:path*', '/tech/:path*'],
+  matcher: ['/admin/:path*', '/partner/:path*', '/tech/:path*', '/my/:path*'],
 };

@@ -64,7 +64,9 @@ export default function LoginForm({
           ? '/admin'
           : data.role === 'TECHNICIAN'
             ? '/tech'
-            : '/partner';
+            : data.role === 'CUSTOMER'
+              ? '/my'
+              : '/partner';
       // 로그인 전 가려던 화면(returnTo)이 이 역할의 경로면 그곳으로, 아니면 포털 홈으로.
       const returnTo = new URLSearchParams(window.location.search).get(
         'returnTo',

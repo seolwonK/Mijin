@@ -6,7 +6,9 @@ export function redirectToLogin() {
     ? '/tech'
     : path.startsWith('/partner')
       ? '/partner'
-      : '/admin';
+      : path.startsWith('/my')
+        ? '/my'
+        : '/admin';
   window.location.assign(
     `${root}/login?returnTo=${encodeURIComponent(path + window.location.search)}`,
   );
