@@ -85,7 +85,7 @@ export default function Home() {
           <Link href="/" aria-label="전기아저씨 홈"><BrandLogo size="md" /></Link>
           <nav aria-label="메인 메뉴" className={styles.headerNav}>
             <Link href="#process" className={styles.desktopLink}>이용 방법</Link>
-            <Link href="/inspection" className={styles.desktopLink}>정기 점검</Link>
+            <Link href="/inspection" className={styles.desktopLink}>전기점검</Link>
             <Link href="/lookup">접수 내역 조회</Link>
             <Link href="/login" className={styles.desktopLink}>업체 · 전기기사 로그인</Link>
           </nav>
@@ -243,7 +243,7 @@ export default function Home() {
         <div className={styles.partnerLink}><span>전기아저씨와 함께 일하고 계신가요?</span><Link href="/login">업체 · 전기기사 로그인 <span aria-hidden="true">→</span></Link></div>
       </div>
 
-      {/* 정기 점검 첫 방문 팝업 — 홈에만 단다. 가이드·지역 페이지는 검색 유입이 바로 떨어지는
+      {/* 전기점검 첫 방문 팝업 — 홈에만 단다. 가이드·지역 페이지는 검색 유입이 바로 떨어지는
           자리라 팝업이 침입형 간지 광고로 잡힐 위험이 크다. 본문은 클라이언트에서 지연 렌더되므로
           서버 HTML·크롤러가 보는 문서에는 들어가지 않는다. */}
       <InspectionPromoDialog />

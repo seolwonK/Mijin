@@ -300,7 +300,7 @@ export function getInspectionServiceSchema(opts: {
     audience: { '@type': 'Audience', audienceType: '주택·상가의 전기 안전을 미리 점검받으려는 일반 소비자' },
     description:
       `연 ${opts.priceWon.toLocaleString('ko-KR')}원에 분기마다 1회씩 1년에 ${opts.visitsPerTerm}회, ` +
-      '전기기사가 방문해 분전반·누전차단기·콘센트·조명 등 생활 전기 설비를 점검하는 정기 점검 서비스. ' +
+      '전기기사가 방문해 분전반·누전차단기·콘센트·조명 등 생활 전기 설비를 점검하는 전기점검 서비스. ' +
       '고장이 난 뒤 부르는 출동 수리와 달리 사고가 나기 전에 미리 확인한다.',
     url,
     offers: {

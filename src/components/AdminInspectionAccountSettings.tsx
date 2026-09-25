@@ -87,11 +87,11 @@ export default function AdminInspectionAccountSettings() {
 
   return (
     <section id="inspection-account" className="rounded-admin-md border border-border bg-white p-4">
-      <h2 className="font-bold">정기 점검 구독료 입금 계좌</h2>
+      <h2 className="font-bold">전기점검 구독료 입금 계좌</h2>
       <p className="mt-1 text-sm leading-relaxed text-muted">
         고객이 정기 전기점검을 신청할 때 안내되는 계좌입니다. 연회비는{' '}
         {formatWon(INSPECTION_PRICE_WON)}(분기마다 1회씩 연 {INSPECTION_VISITS_PER_TERM}회)이며,
-        입금을 확인한 뒤 <strong className="font-semibold text-fg">정기 점검</strong> 화면에서
+        입금을 확인한 뒤 <strong className="font-semibold text-fg">전기점검</strong> 화면에서
         구독을 시작해 주세요. 알 충전 계좌와는 별개로 관리됩니다.
       </p>
       {!loaded ? (

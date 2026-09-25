@@ -25,7 +25,7 @@ const DISALLOW = [
   // 접수자 본인용 화면 — 토큰·ID 로만 도달한다.
   '/survey',
   '/request/complete',
-  // 정기 점검 고객 포털 — 로그인 뒤에서만 쓴다. 모집 페이지(/inspection, /inspection/apply)는 열어 둔다.
+  // 전기점검 고객 포털 — 로그인 뒤에서만 쓴다. 모집 페이지(/inspection, /inspection/apply)는 열어 둔다.
   '/my',
 ];
 

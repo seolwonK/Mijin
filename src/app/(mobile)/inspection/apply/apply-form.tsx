@@ -350,7 +350,7 @@ export default function ApplyForm({
           disabled={busy}
           className={buttonClasses('primary', 'lg', 'w-full')}
         >
-          {busy ? '신청 중…' : `${formatWon(INSPECTION_PRICE_WON)} 정기 점검 신청하기`}
+          {busy ? '신청 중…' : `${formatWon(INSPECTION_PRICE_WON)} 전기점검 신청하기`}
         </button>
         <p className="text-center text-xs text-muted">
           신청 후 입금해 주시면 관리자가 확인한 뒤 점검이 시작됩니다.

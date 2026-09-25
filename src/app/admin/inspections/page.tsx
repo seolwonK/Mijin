@@ -142,7 +142,7 @@ export default function AdminInspectionsPage() {
 
   return (
     <main className="min-h-screen">
-      <PageHeader title="정기 점검" width="max-w-6xl" />
+      <PageHeader title="전기점검" width="max-w-6xl" />
       <div className="mx-auto w-full max-w-6xl space-y-4 px-4 py-4">
         <div className="flex flex-wrap items-center gap-3">
           <div className="rounded-admin-md border border-border bg-white px-4 py-3">
@@ -211,7 +211,7 @@ export default function AdminInspectionsPage() {
                 {plans.length === 0 && (
                   <tr>
                     <td colSpan={8} className="px-3 py-8 text-center text-sm text-muted">
-                      신청된 정기 점검이 없습니다.
+                      신청된 전기점검이 없습니다.
                     </td>
                   </tr>
                 )}
