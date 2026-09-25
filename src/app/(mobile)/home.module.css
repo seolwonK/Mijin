@@ -95,7 +95,30 @@
 }
 
 .heroAction {
-  display: none;
+  margin-top: 20px;
+}
+
+.primaryLink {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 28px;
+  min-height: 52px;
+  padding: 13px 20px;
+  border-radius: 10px;
+  background: var(--color-brand-700);
+  color: white;
+  font-size: 16px;
+  font-weight: 650;
+  transition: background-color 160ms;
+}
+
+.primaryLink:hover {
+  background: var(--color-brand-800);
+}
+
+.primaryLink:active {
+  background: var(--color-brand-900);
 }
 
 .priceNote {
@@ -492,6 +515,10 @@
     margin-top: 0;
     font-size: 15px;
   }
+  .heroAction {
+    grid-column: 1 / -1;
+    margin-top: 0;
+  }
   .priceNote {
     grid-column: 1 / -1;
     margin-top: 0;
@@ -527,28 +554,13 @@
     font-size: 13px;
   }
   .heroAction {
-    display: block;
     margin-top: 24px;
   }
   .primaryLink {
     display: inline-flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 28px;
     min-height: 54px;
     padding: 14px 22px;
-    border-radius: 10px;
-    background: var(--color-brand-700);
-    color: white;
     font-size: 17px;
-    font-weight: 650;
-    transition: background-color 160ms;
-  }
-  .primaryLink:hover {
-    background: var(--color-brand-800);
-  }
-  .primaryLink:active {
-    background: var(--color-brand-900);
   }
   .symptomGrid {
     grid-template-columns: repeat(3, minmax(0, 1fr));

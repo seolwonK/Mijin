@@ -6,9 +6,9 @@ import Analytics from '@/components/Analytics';
 import { COMPANY } from '@/lib/company';
 import { getSiteGraph } from '@/lib/schema';
 
-const SITE_TITLE = '전기아저씨 — 전기수리·누전·차단기 고장 접수';
+const SITE_TITLE = '전기아저씨 — 전기점검 연 5만원 · 전기수리·누전 고장 접수';
 const SITE_DESCRIPTION =
-  '송파·하남·성남·경기 광주·분당·위례 중심 전기수리 출동 업체 연결. 누전·정전·차단기·콘센트·조명 고장을 무료로 접수하세요. 전국 접수 가능, 실제 출동은 지역별 업체 현황에 따라 안내하며 수리비는 현장에서 확인합니다.';
+  '연 50,000원 정기 전기점검(분기마다 1회 전기기사 방문)과 송파·하남·성남·경기 광주·분당·위례 중심 전기수리 출동 업체 연결. 누전·정전·차단기·콘센트·조명 고장을 무료로 접수하세요. 전국 접수 가능, 실제 출동은 지역별 업체 현황에 따라 안내하며 수리비는 현장에서 확인합니다.';
 
 export const metadata: Metadata = {
   // canonical·og:image 같은 URL 필드를 상대경로로 쓰기 위한 기준. 어느 호스트(CloudType 원본 포함)에서

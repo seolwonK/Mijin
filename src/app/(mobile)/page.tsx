@@ -36,6 +36,10 @@ const LEAK_SIGNS = [
 
 const FAQ_ITEMS = [
   {
+    q: '전기점검은 1년에 얼마이고 몇 번 방문하나요?',
+    a: `정기 전기점검은 연 ${INSPECTION_PRICE_WON.toLocaleString('ko-KR')}원에 분기마다 1회씩 1년에 ${INSPECTION_VISITS_PER_TERM}회, 전기기사가 방문해 분전반·누전차단기·콘센트·조명을 점검하는 구독 서비스입니다. 방문 날짜는 분기마다 직접 고를 수 있습니다.`,
+  },
+  {
     q: '요금은 어떻게 책정되나요?',
     a: '접수는 무료예요. 수리 비용은 고장 원인과 필요한 자재에 따라 달라져 현장 확인 후 안내해요. 수리 대금은 현장에서 시공 업체와 직접 정산합니다.',
   },
@@ -67,17 +71,13 @@ const FAQ_ITEMS = [
     q: '완료 후 후기는 어떻게 남기나요?',
     a: '완료 처리되면 문자로 만족도 조사 링크가 발송되며, 별점과 선택 후기를 1회 제출할 수 있습니다.',
   },
-  {
-    q: '고장 나기 전에 미리 점검받을 수도 있나요?',
-    a: `네. 정기 전기점검은 연 ${INSPECTION_PRICE_WON.toLocaleString('ko-KR')}원에 분기마다 1회씩 1년에 ${INSPECTION_VISITS_PER_TERM}회, 전기기사가 방문해 분전반·누전차단기·콘센트·조명을 점검하는 구독 서비스입니다. 방문 날짜는 분기마다 직접 고를 수 있습니다.`,
-  },
 ] as const;
 
 export default function Home() {
   return (
     <main className={styles.page}>
-      {/* 구조화 데이터 — 화면의 절차 4단계·FAQ 8문답과 같은 배열을 넘긴다(보이지 않는 내용을 마크업하지 않는다) */}
-      <JsonLd data={getWebPageGraph({ path: '/', name: '전기아저씨 — 전기 고장 출동 접수', dateModified: PAGE_UPDATED.home })} />
+      {/* 구조화 데이터 — 화면의 절차 4단계·FAQ 9문답과 같은 배열을 넘긴다(보이지 않는 내용을 마크업하지 않는다) */}
+      <JsonLd data={getWebPageGraph({ path: '/', name: '전기아저씨 — 정기 전기점검 · 전기 고장 출동 접수', dateModified: PAGE_UPDATED.home })} />
       <JsonLd data={getProcessListSchema('전기 고장 접수 처리 절차', PROCESS_STEPS)} />
       <JsonLd data={getFaqPageSchema(FAQ_ITEMS)} />
       <div className={styles.container}>
@@ -95,9 +95,9 @@ export default function Home() {
           <section aria-labelledby="home-title" className={styles.intro}>
             <div className={styles.heroHeading}>
               <div>
-                <p className={styles.eyebrow}>전기 고장 접수 · 출동 업체 연결</p>
+                <p className={styles.eyebrow}>정기 전기점검 · 1년 {INSPECTION_PRICE_WON.toLocaleString('ko-KR')}원</p>
                 <h1 id="home-title" className={styles.title}>
-                  <span>전기가 고장나면,</span>
+                  <span>전기점검 하러,</span>
                   <span>아저씨가 갑니다</span>
                 </h1>
               </div>
@@ -111,16 +111,16 @@ export default function Home() {
                 className={styles.character}
               />
             </div>
-            <p className={styles.lead}>고장 내용을 남겨 주세요.<br />가까운 출동 업체를 <span>연결해 드려요.</span></p>
+            <p className={styles.lead}>분기마다 한 번, 전기기사가 찾아가 분전반·차단기·콘센트를 <span>살펴 드려요.</span></p>
             <div className={styles.heroAction}>
-              <Link href="/request/new" className={styles.primaryLink}>고장 접수하기 <span aria-hidden="true">↗</span></Link>
+              <Link href="/inspection" className={styles.primaryLink}>전기점검 신청하기 <span aria-hidden="true">↗</span></Link>
             </div>
-            <p className={styles.priceNote}><CheckIcon className="h-4 w-4 shrink-0" />접수는 무료 · 수리비는 현장에서 안내</p>
+            <p className={styles.priceNote}><CheckIcon className="h-4 w-4 shrink-0" />1년 {INSPECTION_PRICE_WON.toLocaleString('ko-KR')}원 · 연 {INSPECTION_VISITS_PER_TERM}회 방문 · 날짜는 직접 선택</p>
           </section>
 
           <section aria-labelledby="symptom-title" className={styles.symptoms}>
-            <h2 id="symptom-title">어떤 문제가 생겼나요?</h2>
-            <p className={styles.sectionDescription}>증상을 고르면 접수 내용에 넣어 드려요.</p>
+            <h2 id="symptom-title">전기가 고장나면, 아저씨가 갑니다</h2>
+            <p className={styles.sectionDescription}>이미 고장이 났다면 증상을 골라 무료로 접수하세요. 가까운 출동 업체를 연결해 드려요.</p>
             <div className={styles.symptomGrid}>
               {SYMPTOM_ITEMS.map((symptom) => (
                 <Link key={symptom.key} href={`/request/new?symptom=${symptom.key}`} className={styles.symptomLink}>
