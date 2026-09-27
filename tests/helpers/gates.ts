@@ -1138,37 +1138,79 @@ export const GATES: Record<string, HandlerGates> = {
   'POST /api/auth/login': {
     file: 'src/app/api/auth/login/route.ts',
     note:
-      '⚠️ **:37 의 401 은 세션 가드가 아니다** — 자격증명 불일치다. 이 라우트가 공개라는 사실과 ' +
+      '⚠️ **:81 의 401 은 세션 가드가 아니다** — 자격증명 불일치다. 이 라우트가 공개라는 사실과 ' +
       '모순되지 않으니 auth-matrix 의 401 단언 대상으로 오해하지 말 것. ' +
-      '**그리고 :37 이 승인 게이트(:52·:61)보다 앞선다** — "승인 대기 업체는 로그인 차단(403)" 을 ' +
-      '검증하려면 비밀번호를 **맞게** 줘야 한다. 틀리면 401 이 나오고 403 은 실행조차 안 된다.',
+      '**그리고 :81 이 승인 게이트(:99·:108)보다 앞선다** — "승인 대기 업체는 로그인 차단(403)" 을 ' +
+      '검증하려면 비밀번호를 **맞게** 줘야 한다. 틀리면 401 이 나오고 403 은 실행조차 안 된다. ' +
+      'IP 레이트리밋(:44)은 시도를 먼저 세고 비밀번호가 맞으면 1회 환불하므로, 공유 x-forwarded-for ' +
+      '버킷(ui-default)에서 성공 로그인을 아무리 반복해도 소진되지 않는다. 계정 잠금(:63)은 IP 제한 ' +
+      '뒤에 있어 한 IP 로 재현하려면 1분 10회 한도에 걸리지 않게 freshIp 를 써야 한다.',
     gates: [
-      { order: 1, status: 400, line: 17, kind: 'body-parse', message: '잘못된 요청입니다', reach: 'JSON 이 아닌 본문' },
-      { order: 2, status: 400, line: 23, kind: 'schema', message: null, reach: 'loginSchema 위반. `{}` 로 도달' },
       {
-        order: 3,
+        order: 1,
+        status: 403,
+        line: 40,
+        kind: 'state',
+        message: '허용되지 않은 요청입니다',
+        reach: '호스트가 다른 Origin, Origin: null, 또는 Sec-Fetch-Site: cross-site. Origin 없는 비브라우저 호출은 통과',
+      },
+      {
+        order: 2,
+        status: 429,
+        line: 44,
+        kind: 'rate-limit',
+        message: '로그인 시도가 너무 많습니다. 잠시 후 다시 시도해 주세요.',
+        reach: '같은 IP 에서 1분 내 11번째 또는 10분 내 31번째 미환불 시도(비밀번호가 맞은 시도는 세지 않음)',
+      },
+      { order: 3, status: 400, line: 51, kind: 'body-parse', message: '잘못된 요청입니다', reach: 'JSON 이 아닌 본문' },
+      { order: 4, status: 400, line: 57, kind: 'schema', message: null, reach: 'loginSchema 위반. `{}` 로 도달' },
+      {
+        order: 5,
+        status: 429,
+        line: 63,
+        kind: 'state',
+        message: '로그인 실패가 반복되어 잠시 잠겼습니다. 15분 뒤 다시 시도해 주세요.',
+        reach: '같은 loginId(trim·소문자)로 연속 실패 10회 뒤 15분 안의 시도 — 없는 아이디도 같은 카운터',
+      },
+      {
+        order: 6,
         status: 401,
-        line: 37,
+        line: 81,
         kind: 'state',
         message: '아이디 또는 비밀번호가 올바르지 않습니다',
-        reach: '없는 loginId 또는 비밀번호 불일치',
+        reach: '없는 loginId 또는 비밀번호 불일치(없는 아이디도 더미 해시와 비교해 응답 시간이 같다)',
         trap: '아래 403 두 개를 전부 가린다',
       },
       {
-        order: 4,
+        order: 7,
         status: 403,
-        line: 52,
+        line: 99,
         kind: 'state',
         message: '가입 승인 대기 중입니다. 승인 완료 후 다시 로그인해 주세요.',
         reach: "approvalStatus='PENDING' + **올바른 비밀번호**",
       },
       {
-        order: 5,
+        order: 8,
         status: 403,
-        line: 61,
+        line: 108,
         kind: 'state',
         message: null,
         reach: "approvalStatus='REJECTED' + 올바른 비밀번호. message 에 rejectReason 이 끼어들어 고정 문자열이 아니다",
+      },
+    ],
+  },
+
+  'POST /api/auth/logout': {
+    file: 'src/app/api/auth/logout/route.ts',
+    note: '세션 없이 호출해도 무해. 유일한 분기는 교차 사이트 폼 제출로 강제 로그아웃시키는 것을 막는 403 이다.',
+    gates: [
+      {
+        order: 1,
+        status: 403,
+        line: 8,
+        kind: 'state',
+        message: '허용되지 않은 요청입니다',
+        reach: '호스트가 다른 Origin, Origin: null, 또는 Sec-Fetch-Site: cross-site. Origin 없는 비브라우저 호출은 통과',
       },
     ],
   },
@@ -1446,81 +1488,93 @@ export const GATES: Record<string, HandlerGates> = {
   'POST /api/inspection/apply': {
     file: 'src/app/api/inspection/apply/route.ts',
     note:
-      '희망일 검증(applyDateIssue)은 **zod 스키마 안에** 있어 :157 의 400 으로 나온다 — ' +
+      '희망일 검증(applyDateIssue)은 **zod 스키마 안에** 있어 :159 의 400 으로 나온다 — ' +
       '라우트 본문에 별도 날짜 분기가 없다. 이름·입금자명·주소의 제어·줄구분 문자 차단(문자 본문 ' +
-      '주입 방지)도 같은 스키마 400 이다. 오류 응답은 `field`(loginId·preferredDate·phone)로 어느 ' +
-      '입력란의 문제인지 알린다. :178·:181·:210 은 무세션 신규 가입 경로에서만, :222 은 CUSTOMER ' +
-      '세션(갱신 신청) 경로에서만 도달한다 — 배타적이다. 같은 아이디·전화·비밀번호의 재시도는 ' +
-      '409 대신 기존 계정으로 로그인시켜 200(resumed) 을 돌려준다(끊긴 요청의 재시도).',
+      '주입 방지)과 비밀번호 72바이트 상한도 같은 스키마 400 이다. 오류 응답은 `field`(loginId·' +
+      'preferredDate·phone)로 어느 입력란의 문제인지 알린다. :182·:185·:201 은 무세션 경로에서만, ' +
+      ':233 은 CUSTOMER 세션(갱신 신청) 경로에서만 도달한다 — 배타적이다. 무세션인데 아이디가 이미 ' +
+      '있고 본인 확인(CUSTOMER·같은 전화·비밀번호 일치)에 성공하면 409 대신 그 계정으로 로그인시켜 ' +
+      '진행 중 구독이 있으면 200(resumed), 없으면 이번 내용으로 새 구독을 만들어 200(renewed) 을 돌려준다.',
     gates: [
       {
         order: 1,
+        status: 403,
+        line: 136,
+        kind: 'state',
+        message: '허용되지 않은 요청입니다',
+        reach:
+          '호스트가 다른 Origin, Origin: null, 또는 Sec-Fetch-Site: cross-site — 자동 로그인 쿠키를 ' +
+          '발급하는 경로라 로그인 CSRF 를 막는다. Origin 없는 비브라우저 호출(E2E request)은 통과',
+      },
+      {
+        order: 2,
         status: 429,
-        line: 140,
+        line: 142,
         kind: 'rate-limit',
         message: '신청이 너무 많습니다. 잠시 후 다시 시도해 주세요.',
         reach: '같은 IP 로 10분에 6회째 요청',
       },
       {
-        order: 2,
+        order: 3,
         status: 400,
-        line: 148,
+        line: 150,
         kind: 'body-parse',
         message: '잘못된 요청입니다',
         reach: 'JSON 이 아닌 본문',
       },
       {
-        order: 3,
+        order: 4,
         status: 400,
-        line: 157,
+        line: 159,
         kind: 'schema',
         message: null,
         reach:
           '필수 필드 누락·형식 위반. 희망일이 모레 이전이거나 "오늘 확인 기준 1분기 마지막 날"을 ' +
-          '넘어도, 이름·입금자명·주소에 제어·줄구분 문자(U+2028 포함)가 있어도 여기로 온다',
+          '넘어도, 이름·입금자명·주소에 제어·줄구분 문자(U+2028 포함)가 있어도, 비밀번호가 72바이트를 ' +
+          '넘어도 여기로 온다',
       },
       {
-        order: 4,
+        order: 5,
         status: 409,
-        line: 169,
+        line: 171,
         kind: 'state',
         message: '다른 계정으로 로그인되어 있습니다. 로그아웃한 뒤 신청해 주세요.',
         reach: 'ADMIN/PROVIDER/TECHNICIAN 세션으로 신청 — 새 고객 쿠키가 그 세션을 덮어쓰는 것을 막는다',
       },
       {
-        order: 5,
+        order: 6,
         status: 401,
-        line: 178,
+        line: 182,
         kind: 'state',
         message: '로그인이 필요합니다',
         reach:
           '무세션 + 스키마는 통과하되 loginId·password 둘 다 미동봉 — 갱신 화면에서 온 요청의 세션이 ' +
-          '그 사이 끝난 경우. 클라이언트가 이 401 을 보고 /my/login 으로 보낸다',
-        trap: '희망일이 부실하면 :157 의 400 이 먼저 나온다',
-      },
-      {
-        order: 6,
-        status: 400,
-        line: 181,
-        kind: 'state',
-        message: '아이디와 비밀번호를 입력해 주세요',
-        reach: '무세션 + loginId/password 중 하나만 동봉',
-        trap: '희망일이 부실하면 :157 의 400 이 먼저 나온다',
+          '그 사이 끝난 경우. 클라이언트가 이 401 을 보고 /my/login?returnTo=/inspection/apply 로 보낸다',
+        trap: '희망일이 부실하면 :159 의 400 이 먼저 나온다',
       },
       {
         order: 7,
-        status: 409,
-        line: 210,
-        kind: 'conflict',
-        message: '이미 사용 중인 아이디입니다',
-        reach:
-          '무세션 + 이미 존재하는 loginId. 단 그 계정이 CUSTOMER 이고 전화번호·비밀번호가 같고 진행 중 ' +
-          '구독이 있으면 여기 오지 않고 200(resumed) — 끊긴 요청의 재시도로 본다',
+        status: 400,
+        line: 185,
+        kind: 'state',
+        message: '아이디와 비밀번호를 입력해 주세요',
+        reach: '무세션 + loginId/password 중 하나만 동봉',
+        trap: '희망일이 부실하면 :159 의 400 이 먼저 나온다',
       },
       {
         order: 8,
         status: 409,
-        line: 222,
+        line: 201,
+        kind: 'conflict',
+        message: '이미 사용 중인 아이디입니다',
+        reach:
+          '무세션 + 이미 존재하는 loginId 인데 본인 확인에 실패한 경우(CUSTOMER 가 아니거나, 전화번호가 ' +
+          '다르거나, 비밀번호가 틀림). 본인 확인에 성공하면 여기 오지 않고 200(resumed 또는 renewed)',
+      },
+      {
+        order: 9,
+        status: 409,
+        line: 233,
         kind: 'state',
         message: '이미 진행 중인 점검 구독이 있습니다.',
         reach:
@@ -1528,14 +1582,14 @@ export const GATES: Record<string, HandlerGates> = {
           '구독은 이 검사 직전에 expireDuePlans 가 내리므로 갱신을 막지 않는다',
       },
       {
-        order: 9,
+        order: 10,
         status: 409,
-        line: 285,
+        line: 296,
         kind: 'race',
         message: null,
         reach:
-          '사전 검사(:210·:222)와 INSERT 사이에 끼어든 동시 요청. P2002 가 어느 유니크에서 ' +
-          '났는지에 따라 위 두 문구 중 하나가 그대로 나온다 — 고정 문구가 아니라 null',
+          '사전 검사(:201·:233)와 INSERT 사이에 끼어든 동시 요청(renewed 경로 포함). P2002 가 어느 ' +
+          '유니크에서 났는지에 따라 위 두 문구 중 하나가 그대로 나온다 — 고정 문구가 아니라 null',
       },
     ],
   },

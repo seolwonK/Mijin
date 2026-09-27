@@ -1,5 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { jwtVerify } from 'jose';
+import {
+  pickSessionClaims,
+  sessionCookieOptions,
+  shouldRefreshSession,
+  signSession,
+} from '@/lib/sessionPolicy';
 
 const SESSION_COOKIE = 'mijin_session';
 
@@ -45,10 +51,8 @@ export async function middleware(req: NextRequest) {
   if (!token) return redirectNoindex(withReturn());
 
   try {
-    const { payload } = await jwtVerify(
-      token,
-      new TextEncoder().encode(process.env.AUTH_SECRET!),
-    );
+    const secret = new TextEncoder().encode(process.env.AUTH_SECRET!);
+    const { payload } = await jwtVerify(token, secret);
     // 역할 불일치는 계정 문제라 returnTo 없이 로그인으로 보낸다.
     if (isAdminArea && payload.role !== 'ADMIN') return redirectNoindex(loginUrl);
     if (isPartnerArea && payload.role !== 'PROVIDER') return redirectNoindex(loginUrl);
@@ -57,6 +61,12 @@ export async function middleware(req: NextRequest) {
     // 인증을 통과한 포털 화면 본문도 색인 대상이 아니다.
     const res = NextResponse.next();
     res.headers.set('X-Robots-Tag', 'noindex, nofollow');
+    // 고객 세션 슬라이딩 갱신 — 30일 세션의 남은 기간이 15일 미만이면 같은 내용으로 재발급한다.
+    // 분기마다 들어오는 고객이 매번 다시 로그인하지 않게 하려는 것이다. /my 요청에서만 한다.
+    if (isCustomerArea && shouldRefreshSession(payload)) {
+      const fresh = await signSession(pickSessionClaims(payload), secret);
+      res.cookies.set(SESSION_COOKIE, fresh, sessionCookieOptions('CUSTOMER'));
+    }
     return res;
   } catch {
     return redirectNoindex(withReturn());

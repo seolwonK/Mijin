@@ -1,6 +1,9 @@
-import { SignJWT, jwtVerify } from 'jose';
+import { jwtVerify } from 'jose';
 import { cookies } from 'next/headers';
 import { prisma } from '@/lib/db';
+import { signSession } from '@/lib/sessionPolicy';
+
+export { sessionCookieOptions, sessionMaxAgeSeconds } from '@/lib/sessionPolicy';
 
 export const SESSION_COOKIE = 'mijin_session';
 
@@ -20,12 +23,13 @@ function secretKey(): Uint8Array {
   return new TextEncoder().encode(secret);
 }
 
+/**
+ * 만료는 역할별이다 — CUSTOMER 30일, 그 외 7일(sessionPolicy.sessionMaxAgeSeconds).
+ * 시그니처는 그대로라 호출부(login·inspection/apply·tech/signup)는 수정 없이 따라온다.
+ * 단, 쿠키 maxAge 는 호출부가 따로 넣으므로 sessionCookieOptions(role) 을 쓰도록 맞춰야 한다.
+ */
 export async function createSessionToken(session: Session): Promise<string> {
-  return new SignJWT(session)
-    .setProtectedHeader({ alg: 'HS256' })
-    .setIssuedAt()
-    .setExpirationTime('7d')
-    .sign(secretKey());
+  return signSession(session, secretKey());
 }
 
 export async function verifySessionToken(token: string): Promise<Session | null> {

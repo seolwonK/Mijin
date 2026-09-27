@@ -12,6 +12,18 @@ function loginPathFor(pathname: string): string {
   return '/';
 }
 
+// 세션 만료(401) 시 현재 위치(pathname+search)를 returnTo 로 기억해 역할별 로그인으로 보낸다.
+// 폴링 훅과 화면의 쓰기 요청(예: 고객 포털 회차 예약 저장)이 같은 규칙을 쓰도록 export 한다.
+export function redirectToLogin(
+  router: ReturnType<typeof useRouter>,
+  pathname: string,
+  search = '',
+) {
+  const loginPath = loginPathFor(pathname);
+  if (pathname === loginPath) return;
+  router.replace(`${loginPath}?returnTo=${encodeURIComponent(pathname + search)}`);
+}
+
 // url이 null이면 폴링하지 않는다.
 // URL은 데이터 identity 경계다 — 상태는 그것을 만든 url과 함께 저장되고,
 // 반환값은 현재 url과 일치할 때만 노출된다(전환 커밋 1프레임의 이전 대상 표시 차단).
@@ -58,13 +70,7 @@ export function usePolling<T>(url: string | null, intervalMs: number) {
       if (!res.ok) {
         if (res.status === 401) {
           // 세션 만료 — 하드 리로드(깜빡임) 대신 현재 위치를 기억해 로그인으로 부드럽게 이동
-          const path = window.location.pathname;
-          const loginPath = loginPathFor(path);
-          if (path !== loginPath) {
-            router.replace(
-              `${loginPath}?returnTo=${encodeURIComponent(path + window.location.search)}`,
-            );
-          }
+          redirectToLogin(router, window.location.pathname, window.location.search);
           return;
         }
         const body = await res.json().catch(() => null);

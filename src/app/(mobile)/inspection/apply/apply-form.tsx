@@ -248,8 +248,9 @@ export default function ApplyForm({
       else if (idStatus?.state === 'taken')
         next['ins-loginId'] = '이미 사용 중이에요. 다른 아이디를 입력해 주세요.';
       if (password.length < 8) next['ins-password'] = '비밀번호를 8자 이상 입력해 주세요';
-      // 서버 스키마(api/inspection/apply)의 password 상한과 같다.
-      else if (password.length > 72) next['ins-password'] = '비밀번호는 72자 이내로 입력해 주세요';
+      // 서버 스키마(api/inspection/apply)의 password 상한과 같다 — bcrypt 한계라 글자 수가 아닌 UTF-8 바이트로 잰다.
+      else if (new TextEncoder().encode(password).length > 72)
+        next['ins-password'] = '비밀번호가 너무 깁니다(72바이트 이내)';
       if (!passwordConfirm) next['ins-passwordConfirm'] = '비밀번호를 한 번 더 입력해 주세요';
       else if (passwordConfirm !== password) next['ins-passwordConfirm'] = PASSWORD_MISMATCH;
     }
@@ -331,10 +332,11 @@ export default function ApplyForm({
         else setFormError(message);
         return;
       }
-      // 신청 직후 자동 로그인된 상태(또는 재시도가 기존 신청으로 처리됨, resumed) —
-      // 입금 안내가 있는 마이페이지로 보낸다.
+      // 신청 직후 자동 로그인된 상태 — 입금 안내가 있는 마이페이지로 보낸다.
+      // resumed: 재시도가 기존 신청으로 처리됨(이번 입력은 저장 안 됨),
+      // renewed: 기존 계정으로 로그인해 갱신 신청이 접수됨. 마이페이지가 쿼리를 보고 안내 배너를 띄운다.
       leaving = true;
-      router.replace('/my');
+      router.replace(data.resumed === true ? '/my?resumed=1' : data.renewed === true ? '/my?renewed=1' : '/my');
     } catch (err) {
       setFormError(requestError(err));
     } finally {

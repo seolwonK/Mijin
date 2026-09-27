@@ -12,6 +12,29 @@ import { buttonClasses } from '@/components/Button';
 // 화면 톤만 분기한다.
 type Variant = 'c' | 'b';
 
+// 역할별로 로그인 뒤 돌아갈 수 있는 경로(포털 접두사 외의 추가 허용). 목록의 경로는 그 경로
+// 자체만 허용한다(쿼리는 허용, 하위 경로는 금지). 오픈 리다이렉트를 막기 위해 같은 출처의
+// 절대 경로만 받는다 — '//' 시작과 역슬래시·공백·제어 문자(브라우저가 지워 '//' 가 될 수
+// 있다)는 거절한다. '/' 로 시작해야 하므로 'https:' 같은 프로토콜은 들어올 수 없다.
+const EXTRA_RETURN_PATHS: Record<string, readonly string[]> = {
+  // 갱신 신청 중 세션이 끝나 로그인으로 왔다가 신청서로 돌아가는 경로.
+  CUSTOMER: ['/inspection/apply'],
+};
+
+function isAllowedReturnTo(
+  returnTo: string,
+  rolePrefix: string,
+  role: unknown,
+): boolean {
+  if (!returnTo.startsWith('/') || returnTo.startsWith('//')) return false;
+  if (/[\\\s\p{Cc}]/u.test(returnTo)) return false;
+  // 쿼리·해시를 떼어낸 경로 부분으로만 판정한다.
+  const path = returnTo.split(/[?#]/, 1)[0];
+  if (path === rolePrefix || path.startsWith(`${rolePrefix}/`)) return true;
+  const extras = typeof role === 'string' ? EXTRA_RETURN_PATHS[role] : undefined;
+  return !!extras?.includes(path);
+}
+
 export default function LoginForm({
   title,
   footer,
@@ -67,13 +90,12 @@ export default function LoginForm({
             : data.role === 'CUSTOMER'
               ? '/my'
               : '/partner';
-      // 로그인 전 가려던 화면(returnTo)이 이 역할의 경로면 그곳으로, 아니면 포털 홈으로.
+      // 로그인 전 가려던 화면(returnTo)이 이 역할에 허용된 경로면 그곳으로, 아니면 포털 홈으로.
       const returnTo = new URLSearchParams(window.location.search).get(
         'returnTo',
       );
       const dest =
-        returnTo &&
-        (returnTo === rolePrefix || returnTo.startsWith(`${rolePrefix}/`))
+        returnTo && isAllowedReturnTo(returnTo, rolePrefix, data.role)
           ? returnTo
           : rolePrefix;
       router.replace(dest);

@@ -1,7 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useRef, useState } from 'react';
+import { Suspense, useEffect, useRef, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import PageHeader from '@/components/PageHeader';
 import LogoutButton from '@/components/LogoutButton';
 import PortalLoadState from '@/components/PortalLoadState';
@@ -11,7 +12,7 @@ import { HomeIcon } from '@/components/icons';
 import InspectionCalendar, { SelectedDateLine } from '@/components/InspectionCalendar';
 import InspectionTimeSlotPicker from '@/components/InspectionTimeSlotPicker';
 import { buttonClasses } from '@/components/Button';
-import { usePolling } from '@/components/usePolling';
+import { redirectToLogin, usePolling } from '@/components/usePolling';
 import { requestError } from '@/lib/clientApi';
 import { COMPANY } from '@/lib/company';
 import type { PublicBankAccount } from '@/lib/inspectionAccount';
@@ -80,6 +81,42 @@ const BADGE_TONE: Record<QuarterDisplay, string> = {
   UNSET: '',
 };
 
+// 신청서가 기존 신청으로 보낼 때 붙이는 쿼리(resumed=1·renewed=1)에 대한 안내.
+const ARRIVAL_NOTICE = {
+  resumed: '이미 접수된 신청으로 이동했어요. 새로 입력한 내용은 저장되지 않았어요.',
+  renewed: '기존 계정으로 로그인해 갱신 신청을 접수했어요.',
+} as const;
+
+// useSearchParams 를 쓰는 부분만 Suspense 로 감싸 나머지 화면은 그대로 미리 렌더되게 한다.
+function ArrivalNotice() {
+  const router = useRouter();
+  const params = useSearchParams();
+  const message =
+    params.get('resumed') === '1'
+      ? ARRIVAL_NOTICE.resumed
+      : params.get('renewed') === '1'
+        ? ARRIVAL_NOTICE.renewed
+        : null;
+  if (!message) return null;
+  return (
+    <div
+      role="status"
+      className="flex items-start gap-2 rounded-2xl border border-brand-200 bg-brand-50 py-2 pr-2 pl-4 text-sm font-semibold text-brand-800"
+    >
+      <p className="min-w-0 flex-1 py-2.5 leading-relaxed break-keep">{message}</p>
+      {/* 닫으면 쿼리를 지워 새로고침해도 다시 뜨지 않게 한다. */}
+      <button
+        type="button"
+        aria-label="안내 닫기"
+        onClick={() => router.replace('/my', { scroll: false })}
+        className="inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-lg text-lg text-brand-700 transition-colors hover:bg-brand-100"
+      >
+        <span aria-hidden="true">×</span>
+      </button>
+    </div>
+  );
+}
+
 export default function MyInspection() {
   // 30초 폴링 — 관리자의 입금 확인이 이 화면에 반영되는 경로다(다른 실시간 요소는 없다).
   const { data, error, refresh } = usePolling<MyInspectionData>('/api/my/inspection', 30_000);
@@ -112,6 +149,10 @@ export default function MyInspection() {
       />
 
       <div className="mx-auto w-full max-w-2xl space-y-5 px-5 py-5">
+        <Suspense fallback={null}>
+          <ArrivalNotice />
+        </Suspense>
+
         <PortalLoadState
           label="점검 정보"
           error={error}
@@ -433,6 +474,7 @@ function QuarterCard({
   onOpen: () => void;
   onSaved: (message: string) => void;
 }) {
+  const router = useRouter();
   const [open, setOpen] = useState(false);
   const formRef = useRef<HTMLDivElement>(null);
   const toggleRef = useRef<HTMLButtonElement>(null);
@@ -509,6 +551,11 @@ function QuarterCard({
           note: note.trim() || null,
         }),
       });
+      if (res.status === 401) {
+        // 세션 만료 — 폴링과 같은 방식으로 로그인 화면으로 보낸다(입력란 아래 "권한이 없습니다" 대신).
+        redirectToLogin(router, window.location.pathname, window.location.search);
+        return;
+      }
       const body = await res.json().catch(() => ({}));
       if (!res.ok) {
         setError(body.error ?? '예약하지 못했습니다. 잠시 후 다시 시도해 주세요.');

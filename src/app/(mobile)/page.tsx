@@ -113,7 +113,7 @@ export default function Home() {
             </div>
             <p className={styles.lead}>분기마다 한 번, 전기기사가 찾아가 <span className={styles.keepWide}>분전반·차단기·콘센트를</span> <span>살펴 드려요.</span></p>
             <div className={styles.heroAction}>
-              <Link href="/inspection" className={styles.primaryLink}>전기점검 신청하기 <span aria-hidden="true">↗</span></Link>
+              <Link href="/inspection/apply" className={styles.primaryLink}>전기점검 신청하기 <span aria-hidden="true">↗</span></Link>
               <Link href="/request/new" className={styles.secondaryLink}>전기 수리 요청하기 <span aria-hidden="true">→</span></Link>
             </div>
             <p className={styles.priceNote}><CheckIcon className="h-4 w-4 shrink-0" />1년 {INSPECTION_PRICE_WON.toLocaleString('ko-KR')}원 · 연 {INSPECTION_VISITS_PER_TERM}회 방문 · 날짜는 직접 선택</p>

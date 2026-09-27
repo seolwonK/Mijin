@@ -4,7 +4,8 @@ import { Prisma } from '@prisma/client';
 import { z } from 'zod';
 import { prisma } from '@/lib/db';
 import { geocode } from '@/lib/geo';
-import { createSessionToken, getSession, SESSION_COOKIE } from '@/lib/auth';
+import { createSessionToken, getSession, SESSION_COOKIE, sessionCookieOptions } from '@/lib/auth';
+import { isCrossSiteRequest } from '@/lib/requestOrigin';
 import { sendSms } from '@/lib/sms';
 import { smsInspectionApplied } from '@/lib/sms/templates';
 import { INSPECTION_PRICE_WON, applyDateIssue, fromDateString, todayKst } from '@/lib/inspection';
@@ -16,6 +17,7 @@ import { expireDuePlans } from '@/lib/inspectionLifecycle';
 //
 // 이미 로그인한 고객(CUSTOMER 세션)은 계정을 새로 만들지 않고 구독만 추가한다 — 1년이 지나
 // 만료된 구독을 갱신하는 경로다. 진행 중인 구독이 있으면 DB 의 부분 유니크 인덱스가 막는다.
+// 로그인하지 않았어도 기존 아이디·비밀번호·전화번호로 본인이 확인되면 같은 갱신 경로를 탄다(renewed).
 
 // 인메모리 레이트리밋: IP당 10분에 5회 (가입 계열과 동일 — tech/signup:35-48).
 const hits = new Map<string, { count: number; resetAt: number }>();
@@ -66,13 +68,8 @@ async function withSessionCookie(
   user: { userId: string; name: string },
 ): Promise<NextResponse> {
   const token = await createSessionToken({ userId: user.userId, role: 'CUSTOMER', name: user.name });
-  res.cookies.set(SESSION_COOKIE, token, {
-    httpOnly: true,
-    sameSite: 'lax',
-    secure: process.env.NODE_ENV === 'production',
-    path: '/',
-    maxAge: 60 * 60 * 24 * 7,
-  });
+  // 수명은 역할별 세션 정책(고객 30일)을 따른다 — 로그인 라우트와 같은 옵션.
+  res.cookies.set(SESSION_COOKIE, token, sessionCookieOptions('CUSTOMER'));
   return res;
 }
 
@@ -88,7 +85,7 @@ const applySchema = z.object({
   password: z
     .string()
     .min(8, '비밀번호는 8자 이상')
-    .max(72, '비밀번호는 72자 이내로 입력해 주세요')
+    .refine((v) => new TextEncoder().encode(v).length <= 72, '비밀번호가 너무 깁니다(72바이트 이내)')
     .optional(),
   name: z
     .string()
@@ -133,6 +130,11 @@ const applySchema = z.object({
 });
 
 export async function POST(req: NextRequest) {
+  // 자동 로그인 쿠키를 발급하는 경로라 로그인 CSRF 와 같은 위험 — 다른 사이트의 폼 제출을 막는다
+  // (Origin 없는 비브라우저 호출은 통과).
+  if (isCrossSiteRequest(req)) {
+    return NextResponse.json({ error: '허용되지 않은 요청입니다' }, { status: 403 });
+  }
   const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'local';
   if (rateLimited(ip)) {
     return NextResponse.json(
@@ -169,7 +171,9 @@ export async function POST(req: NextRequest) {
       { status: 409 },
     );
   }
-  const existingUserId = session ? session.userId : null;
+  let existingUserId = session ? session.userId : null;
+  // 로그인 없이 기존 계정으로 본인 확인된 갱신 — 끝에서 그 계정의 세션 쿠키를 발급한다.
+  let renewed = false;
 
   if (!existingUserId) {
     // 아이디·비밀번호가 둘 다 없으면 갱신 화면에서 온 요청이다 — 그 사이 세션이 끝난 것이므로
@@ -185,30 +189,37 @@ export async function POST(req: NextRequest) {
       select: { id: true, name: true, role: true, phone: true, passwordHash: true },
     });
     if (dupLogin) {
-      // 방금 끊긴 신청의 재시도 — 계정·구독은 이미 만들어졌는데 응답(쿠키)만 못 받은 경우다.
-      // 같은 전화번호에 비밀번호까지 맞으면 본인이므로 새로 만들지 않고 로그인시켜 /my 로 보낸다.
-      // 진행 중인 구독이 없으면 재시도가 아니다 — 예전처럼 아이디 중복으로 돌려보낸다.
-      if (
+      // 같은 전화번호에 비밀번호까지 맞으면 본인이다 — 새 계정은 만들지 않는다.
+      // 본인 확인에 실패하면 남의 아이디이므로 아이디 중복으로 돌려보낸다.
+      const verified =
         dupLogin.role === 'CUSTOMER' &&
         dupLogin.phone === data.phone &&
-        (await bcrypt.compare(data.password, dupLogin.passwordHash))
-      ) {
-        const open = await prisma.inspectionPlan.findFirst({
-          where: { userId: dupLogin.id, status: { in: ['PENDING_PAYMENT', 'ACTIVE'] } },
-          orderBy: { createdAt: 'desc' },
-          select: { id: true },
-        });
-        if (open) {
-          return withSessionCookie(
-            NextResponse.json({ ok: true, planId: open.id, resumed: true }),
-            { userId: dupLogin.id, name: dupLogin.name },
-          );
-        }
+        (await bcrypt.compare(data.password, dupLogin.passwordHash));
+      if (!verified) {
+        return NextResponse.json(
+          { error: '이미 사용 중인 아이디입니다', field: 'loginId' },
+          { status: 409 },
+        );
       }
-      return NextResponse.json(
-        { error: '이미 사용 중인 아이디입니다', field: 'loginId' },
-        { status: 409 },
-      );
+      // 기간이 끝났는데 아직 ACTIVE 로 남은 구독을 먼저 내린다(세션 갱신 경로와 같은 이유).
+      await expireDuePlans({ userId: dupLogin.id });
+      const open = await prisma.inspectionPlan.findFirst({
+        where: { userId: dupLogin.id, status: { in: ['PENDING_PAYMENT', 'ACTIVE'] } },
+        orderBy: { createdAt: 'desc' },
+        select: { id: true },
+      });
+      if (open) {
+        // 방금 끊긴 신청의 재시도 — 계정·구독은 이미 만들어졌는데 응답(쿠키)만 못 받은 경우다.
+        // 이번 입력은 저장하지 않고 로그인시켜 기존 신청으로 보낸다.
+        return withSessionCookie(
+          NextResponse.json({ ok: true, planId: open.id, resumed: true }),
+          { userId: dupLogin.id, name: dupLogin.name },
+        );
+      }
+      // 만료·취소된 구독만 있는 기존 고객 — 로그인 없이 온 갱신 신청이다.
+      // 아래 세션 갱신 경로와 같은 구독 생성 로직으로 그 계정에 새 구독을 만든다.
+      existingUserId = dupLogin.id;
+      renewed = true;
     }
   } else {
     // 만료는 읽기 경로가 맡는데, 기간이 끝난 뒤 /my 를 열지 않고 곧장 갱신하러 온 고객은
@@ -309,8 +320,12 @@ export async function POST(req: NextRequest) {
     }
   });
 
-  const res = NextResponse.json({ ok: true, planId: created.planId });
-  if (existingUserId) return res;
+  const res = NextResponse.json({
+    ok: true,
+    planId: created.planId,
+    ...(renewed ? { renewed: true } : {}),
+  });
+  if (existingUserId && !renewed) return res;
   // 신청 직후 자동 로그인 — 입금 안내와 예약 현황이 있는 /my 로 바로 들어간다.
   return withSessionCookie(res, { userId: created.userId, name: created.userName });
 }
