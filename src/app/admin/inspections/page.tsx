@@ -1,7 +1,8 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { useSearchParams } from 'next/navigation';
 import PageHeader from '@/components/PageHeader';
 import { buttonClasses } from '@/components/Button';
 import { usePolling } from '@/components/usePolling';
@@ -119,13 +120,35 @@ async function send(url: string, method: 'POST' | 'PATCH', body?: unknown) {
 //   ① 입금을 확인해 구독을 시작시킨다  ② 누가 언제 예약했는지 보고 기사를 보낸다.
 // 기사 배정을 시스템이 하지 않기로 했으므로(사용자 결정 2026-09-20) 후보 추천·배정 UI 가 없고,
 // 방문 담당자는 일정표의 '담당 메모' 자유 입력으로 남긴다.
+//
+// 대시보드 요약 띠가 바로 들어올 수 있도록 두 쿼리 파라미터를 **초기값으로만** 읽는다.
+//   ?tab=plans|schedule  ?status=ALL|PENDING_PAYMENT|ACTIVE|EXPIRED|CANCELED
+// 모르는 값은 무시하고 기본값(plans·ALL)을 쓴다. 들어온 뒤 탭·필터를 바꿔도 URL 은 건드리지 않는다.
+// useSearchParams 는 정적 프리렌더에서 가장 가까운 Suspense 까지 클라이언트 렌더로 넘기므로 경계를 둔다.
 export default function AdminInspectionsPage() {
+  return (
+    <Suspense fallback={<p className="p-8 text-sm text-muted">점검 구독을 불러오는 중…</p>}>
+      <AdminInspections />
+    </Suspense>
+  );
+}
+
+function initialTab(value: string | null): 'plans' | 'schedule' {
+  return value === 'schedule' ? 'schedule' : 'plans';
+}
+
+function initialFilter(value: string | null): StatusFilter {
+  return STATUS_FILTERS.find((key) => key === value) ?? 'ALL';
+}
+
+function AdminInspections() {
+  const searchParams = useSearchParams();
   const { data, error, refresh } = usePolling<InspectionsData>(
     '/api/admin/inspections',
     20_000,
   );
-  const [tab, setTab] = useState<'plans' | 'schedule'>('plans');
-  const [filter, setFilter] = useState<StatusFilter>('ALL');
+  const [tab, setTab] = useState<'plans' | 'schedule'>(() => initialTab(searchParams.get('tab')));
+  const [filter, setFilter] = useState<StatusFilter>(() => initialFilter(searchParams.get('status')));
   const [query, setQuery] = useState('');
   const [busyId, setBusyId] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);

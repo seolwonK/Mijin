@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { type ReactNode, useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import SelectedRequestPanel from '@/components/SelectedRequestPanel';
 import { AdminStatusTag, AdminUrgencyTag } from '@/components/AdminStatusTag';
@@ -59,8 +59,10 @@ function RequestTime({ value }: { value: string }) {
   return <time dateTime={value} className={styles.time}><span>{date.toLocaleDateString('ko-KR', { month: '2-digit', day: '2-digit', timeZone: 'Asia/Seoul' })}</span><span>{date.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'Asia/Seoul' })}</span></time>;
 }
 
-export default function AdminWorkQueue({ requests, refresh, summary, lastUpdatedAt }: {
+export default function AdminWorkQueue({ requests, refresh, summary, lastUpdatedAt, beforeWorkspace }: {
   requests: AdminWorkQueueRequest[]; refresh: () => void | Promise<void>; summary?: AdminQueueSummary; lastUpdatedAt?: number | null;
+  /** 접수 요약과 접수 목록 사이에 끼울 영역(대시보드의 정기점검 요약 띠). */
+  beforeWorkspace?: ReactNode;
 }) {
   const searchParams = useSearchParams();
   const [tab, setTab] = useState('ALL');
@@ -128,6 +130,7 @@ export default function AdminWorkQueue({ requests, refresh, summary, lastUpdated
       <button type="button" className={styles.metric} onClick={() => changeTab('ACTIVE')} aria-label="진행 중 접수 보기"><span className={styles.metricLabel}>진행 중</span><span className={styles.metricMain}><strong>{number(active)}</strong><span>조회된 접수 기준</span></span></button>
       <Link className={styles.metric} href="/admin/analytics/dashboard#operational" data-urgent={!!urgent}><span className={styles.metricLabel}>긴급 미완료</span><span className={styles.metricMain}><strong>{number(urgent)}</strong><span>{scope}</span></span></Link>
     </div>
+    {beforeWorkspace}
     <div className={styles.workspace} data-selected={!!selected}>
       <div className={styles.queue}>
         <div className={styles.toolbar}>
