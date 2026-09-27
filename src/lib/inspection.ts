@@ -20,11 +20,6 @@ export const INSPECTION_TERM_MONTHS = 12;
 export const INSPECTION_QUARTER_MONTHS = INSPECTION_TERM_MONTHS / INSPECTION_VISITS_PER_TERM;
 /** 방문 준비에 필요한 최소 리드타임(일). 오늘·내일 방문 요청은 받지 않는다. */
 export const INSPECTION_MIN_LEAD_DAYS = 2;
-/**
- * 신청서에서 받는 1분기 희망일의 상한(일). 이 시점엔 아직 입금 전이라 구독 시작일이 없어
- * 분기 창으로 검증할 수 없다 — 1분기 길이(3개월)에 해당하는 이 창으로만 거른다.
- */
-export const INSPECTION_APPLY_WINDOW_DAYS = 90;
 
 export type Quarter = 1 | 2 | 3 | 4;
 export const INSPECTION_QUARTERS: readonly Quarter[] = [1, 2, 3, 4];
@@ -157,26 +152,33 @@ export function quarterOf(startDate: string, date: string): Quarter | null {
   return null;
 }
 
-/** 오늘이 속한 분기 — 아직 예약하지 않은 분기 중 "지금 잡아야 할 것"을 화면에서 강조할 때 쓴다. */
-export function currentQuarter(startDate: string, today: string): Quarter | null {
-  return quarterOf(startDate, today);
-}
-
 // ── 예약일 검증 ─────────────────────────────────────────────────────────────
 //
 // 실패 사유를 **사용자에게 보여 줄 문장**으로 돌려준다. 통과면 null.
 // 라우트와 화면이 같은 함수를 쓰므로 "서버는 막는데 화면은 통과시키는" 어긋남이 생기지 않는다.
+
+/**
+ * 신청서에서 고를 수 있는 가장 늦은 1회차 희망일.
+ *
+ * 이 시점엔 아직 입금 전이라 구독 시작일이 없다. 그래서 "오늘 바로 입금이 확인된다면"의
+ * 1분기 창을 상한으로 쓴다 — 시작일은 그보다 늦어질 수만 있으므로, 이 안에서 고른 날짜는
+ * 확인이 희망일보다 늦어지지 않는 한 언제나 1분기 창 안에 든다. 일수(90일)로 자르면
+ * 2월을 낀 석 달(89일)에서 화면이 내준 날짜를 당일 확인으로도 지킬 수 없게 된다.
+ */
+export function applyLatestDate(today: string): string {
+  return quarterWindow(today, 1).lastDay;
+}
 
 /** 신청서에서 받는 1분기 희망일 — 아직 구독 시작일이 없어 상대 창으로만 검증한다. */
 export function applyDateIssue(date: string, today: string): string | null {
   if (!isDateString(date)) return '희망 날짜를 선택해 주세요.';
   const earliest = addDays(today, INSPECTION_MIN_LEAD_DAYS);
   if (date < earliest) {
-    return `방문 준비를 위해 ${INSPECTION_MIN_LEAD_DAYS}일 뒤(${earliest})부터 선택할 수 있습니다.`;
+    return `방문 준비를 위해 ${INSPECTION_MIN_LEAD_DAYS}일 뒤(${formatDate(earliest)})부터 선택할 수 있습니다.`;
   }
-  const latest = addDays(today, INSPECTION_APPLY_WINDOW_DAYS);
+  const latest = applyLatestDate(today);
   if (date > latest) {
-    return `첫 점검은 신청일로부터 ${INSPECTION_APPLY_WINDOW_DAYS}일 이내로 선택해 주세요.`;
+    return `첫 점검은 ${formatDate(latest)}까지의 날짜로 선택해 주세요.`;
   }
   return null;
 }
@@ -192,11 +194,11 @@ export function visitDateIssue(opts: {
   if (!isDateString(date)) return '희망 날짜를 선택해 주세요.';
   const w = quarterWindow(startDate, quarter);
   if (date < w.start || date >= w.endExclusive) {
-    return `${quarter}분기 방문은 ${w.start} ~ ${w.lastDay} 사이에서 선택해 주세요.`;
+    return `${quarter}회차 방문은 ${formatDateRange(w.start, w.lastDay)} 사이에서 선택해 주세요.`;
   }
   const earliest = addDays(today, INSPECTION_MIN_LEAD_DAYS);
   if (date < earliest) {
-    return `방문 준비를 위해 ${INSPECTION_MIN_LEAD_DAYS}일 뒤(${earliest})부터 선택할 수 있습니다.`;
+    return `방문 준비를 위해 ${INSPECTION_MIN_LEAD_DAYS}일 뒤(${formatDate(earliest)})부터 선택할 수 있습니다.`;
   }
   return null;
 }
@@ -214,6 +216,93 @@ export function isQuarterBookable(
   return addDays(today, INSPECTION_MIN_LEAD_DAYS) < w.endExclusive;
 }
 
+// ── 방문 상태와 고객 예약 가능 판정 ─────────────────────────────────────────
+//
+// Prisma enum(InspectionVisitStatus)과 같은 값이지만 여기서 다시 선언한다 — 이 모듈은
+// 클라이언트 번들에도 들어가므로 @prisma/client 를 끌어오지 않는다.
+
+export type VisitStatus = 'REQUESTED' | 'SCHEDULED' | 'COMPLETED' | 'CANCELED';
+
+/** 고객이 그 회차의 날짜를 잡거나 바꿀 수 없는 이유. */
+export type BookingBlock =
+  /** 이미 점검을 마친 회차. */
+  | 'COMPLETED'
+  /** 확정된 방문이 코앞(리드타임 안쪽)이거나 이미 지났다 — 기사가 움직이고 있을 수 있다. */
+  | 'VISIT_IMMINENT'
+  /** 분기 창이 끝나 고를 날짜가 남아 있지 않다. */
+  | 'WINDOW_PASSED';
+
+/**
+ * 고객이 이 회차를 지금 예약·변경할 수 있는가. 막혀 있으면 그 이유, 아니면 null.
+ *
+ * 화면(buildPlanView)과 서버(api/my/inspection/visits)가 같은 함수를 쓴다 — 화면은
+ * "날짜 변경" 버튼을 보여 주는데 서버는 거절하는(또는 그 반대) 어긋남을 구조적으로 없앤다.
+ *
+ * 취소된 방문(CANCELED)은 막지 않는다: 관리자가 방문을 취소했다면 고객이 새 날짜를
+ * 골라야 그 회차를 쓸 수 있다.
+ */
+export function bookingBlock(opts: {
+  startDate: string;
+  quarter: Quarter;
+  today: string;
+  visit: { date: string; status: VisitStatus } | null;
+}): BookingBlock | null {
+  const { startDate, quarter, today, visit } = opts;
+  if (visit?.status === 'COMPLETED') return 'COMPLETED';
+  // "방문 N일 전까지 바꿀 수 있다"는 약속의 서버 쪽 절반. REQUESTED 는 아직 확정 전이라
+  // (입금 지연으로 날짜가 지난 1회차가 여기 해당) 잠그지 않는다.
+  if (
+    visit?.status === 'SCHEDULED' &&
+    visit.date < addDays(today, INSPECTION_MIN_LEAD_DAYS)
+  ) {
+    return 'VISIT_IMMINENT';
+  }
+  if (!isQuarterBookable(startDate, quarter, today)) return 'WINDOW_PASSED';
+  return null;
+}
+
+/** 서버가 거절할 때 고객에게 보여 줄 문장. 화면의 안내 문구와 뜻이 같아야 한다. */
+export const BOOKING_BLOCK_MESSAGE: Record<BookingBlock, string> = {
+  COMPLETED: '이미 점검이 완료된 회차입니다.',
+  VISIT_IMMINENT: '방문이 임박했거나 지난 일정은 직접 바꿀 수 없습니다. 고객센터로 문의해 주세요.',
+  WINDOW_PASSED: '이 회차는 예약 가능 기간이 지났습니다. 고객센터로 문의해 주세요.',
+};
+
+/**
+ * 관리자가 방문 상태를 옮길 수 있는 경로. 완료·취소에서 SCHEDULED 로 돌아가는 길은
+ * 잘못 누른 처리를 되돌리기 위한 것이다(되돌릴 수 없는 한 번의 탭을 만들지 않는다).
+ */
+const VISIT_TRANSITIONS: Record<VisitStatus, readonly VisitStatus[]> = {
+  REQUESTED: ['SCHEDULED', 'CANCELED'],
+  SCHEDULED: ['COMPLETED', 'CANCELED'],
+  COMPLETED: ['SCHEDULED'],
+  CANCELED: ['SCHEDULED'],
+};
+
+export function canTransitionVisit(from: VisitStatus, to: VisitStatus): boolean {
+  return VISIT_TRANSITIONS[from].includes(to);
+}
+
+/**
+ * 관리자의 대리 일정 변경 — 전화로 요청받아 옮겨 주는 경우다. 고객 규칙과 달리 리드타임과
+ * 분기 창을 강제하지 않는다(지나간 회차의 보충 방문을 다음 분기 안에 잡아 주는 일이 실제로
+ * 생긴다). 구독 기간 안이고 과거가 아니기만 하면 된다.
+ */
+export function adminVisitDateIssue(opts: {
+  date: string;
+  startDate: string;
+  endDate: string;
+  today: string;
+}): string | null {
+  const { date, startDate, endDate, today } = opts;
+  if (!isDateString(date)) return '방문 날짜를 선택해 주세요.';
+  if (date < today) return '지난 날짜로는 옮길 수 없습니다.';
+  if (date < startDate || date > endDate) {
+    return `방문일은 이용 기간(${startDate} ~ ${endDate}) 안에서 선택해 주세요.`;
+  }
+  return null;
+}
+
 // ── 표기 ────────────────────────────────────────────────────────────────────
 
 /** '2026-09-20' → '2026년 9월 20일 (일)' */
@@ -223,6 +312,22 @@ export function formatVisitDate(date: string): string {
     fromDateString(date).getUTCDay()
   ];
   return `${y}년 ${m}월 ${d}일 (${weekday})`;
+}
+
+/** '2026-09-20' → '2026년 9월 20일' */
+export function formatDate(date: string): string {
+  const [y, m, d] = date.split('-').map(Number);
+  return `${y}년 ${m}월 ${d}일`;
+}
+
+/**
+ * 기간 표기. 같은 해면 뒤쪽의 연도를 생략한다 —
+ * '2026년 9월 20일 ~ 12월 19일' / '2026년 12월 20일 ~ 2027년 3월 19일'.
+ */
+export function formatDateRange(start: string, end: string): string {
+  const [sy] = start.split('-').map(Number);
+  const [ey, em, ed] = end.split('-').map(Number);
+  return `${formatDate(start)} ~ ${sy === ey ? `${em}월 ${ed}일` : formatDate(end)}`;
 }
 
 /** '2026-09-20' → '9/20' (일정표의 조밀한 표기) */

@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse, after } from 'next/server';
 import bcrypt from 'bcryptjs';
 import { Prisma } from '@prisma/client';
 import { z } from 'zod';
@@ -9,6 +9,7 @@ import { sendSms } from '@/lib/sms';
 import { smsInspectionApplied } from '@/lib/sms/templates';
 import { INSPECTION_PRICE_WON, applyDateIssue, fromDateString, todayKst } from '@/lib/inspection';
 import { readInspectionAccount } from '@/lib/inspectionAccount';
+import { expireDuePlans } from '@/lib/inspectionLifecycle';
 
 // 정기 전기점검 구독 신청 — 계정 생성 + 구독(입금 대기) + 1분기 희망일을 한 번에 받는다.
 // 입금 전에 희망일까지 받는 것은 사용자 결정(2026-09-20): 고객이 두 번 들어오지 않게 한다.
@@ -32,17 +33,85 @@ function rateLimited(ip: string): boolean {
   return h.count > 5;
 }
 
+// 이름과 입금자명은 입금 안내 문자 본문에 그대로 들어간다. trim() 은 양 끝만 다듬으므로
+// 가운데의 줄바꿈이 살아남으면, 실제 계좌가 찍힌 문자에 "※ 계좌 변경: …" 같은 줄을 끼워
+// 임의의 번호로 보낼 수 있다(본인인증 없는 공개 라우트다).
+// \p{Cc} 만으로는 U+2028/U+2029(줄·문단 구분자)와 서식 문자(Cf)가 빠진다 — 문자 템플릿의
+// oneLine()(lib/sms/templates.ts)과 같은 범주를 막는다. 한 줄 입력란(주소·상세주소)도
+// 업체 배정 문자 등으로 흘러갈 수 있어 같은 규칙을 건다. 메모는 여러 줄 입력란이라 제외.
+const SINGLE_LINE = /^[^\p{Cc}\p{Cf}\p{Zl}\p{Zp}]*$/u;
+
+// 오류를 어느 입력란 옆에 보일지 클라이언트에 알린다(응답의 field). 여기 없는 필드는 생략(폼 상단에 표시).
+// 반환문은 헬퍼로 접지 않는다 — 게이트 지도(tests/helpers/gates.ts)가 각 줄의 `status: 4xx` 리터럴로 대조한다.
+type ErrorField = 'loginId' | 'preferredDate' | 'phone';
+const ERROR_FIELDS: readonly string[] = ['loginId', 'preferredDate', 'phone'];
+
+// 지오코딩 전체 상한 — 카카오(4초) → OSM(4초×최대 2회)이 모두 늘어지면 12초가 된다.
+// 좌표는 없어도 신청이 진행되므로, 계정 생성이 클라이언트 타임아웃(20초)을 넘기지 않게 자른다.
+const GEOCODE_BUDGET_MS = 6_000;
+async function geocodeWithin(address: string) {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const budget = new Promise<null>((resolve) => {
+    timer = setTimeout(() => resolve(null), GEOCODE_BUDGET_MS);
+  });
+  try {
+    return await Promise.race([geocode(address).catch(() => null), budget]);
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+async function withSessionCookie(
+  res: NextResponse,
+  user: { userId: string; name: string },
+): Promise<NextResponse> {
+  const token = await createSessionToken({ userId: user.userId, role: 'CUSTOMER', name: user.name });
+  res.cookies.set(SESSION_COOKIE, token, {
+    httpOnly: true,
+    sameSite: 'lax',
+    secure: process.env.NODE_ENV === 'production',
+    path: '/',
+    maxAge: 60 * 60 * 24 * 7,
+  });
+  return res;
+}
+
 const applySchema = z.object({
   // 신규 가입에만 필요하다. 갱신(로그인 상태)에서는 비워 보낸다.
-  loginId: z.string().trim().min(3, '아이디는 3자 이상').max(30).optional(),
-  password: z.string().min(8, '비밀번호는 8자 이상').optional(),
-  name: z.string().trim().min(1, '이름을 입력해 주세요').max(50),
+  loginId: z
+    .string()
+    .trim()
+    .min(3, '아이디는 3자 이상')
+    .max(30, '아이디는 30자 이내로 입력해 주세요')
+    .optional(),
+  // bcrypt 는 72바이트 뒤를 버린다 — 그 뒤가 달라도 같은 비밀번호로 통과하지 않게 막는다.
+  password: z
+    .string()
+    .min(8, '비밀번호는 8자 이상')
+    .max(72, '비밀번호는 72자 이내로 입력해 주세요')
+    .optional(),
+  name: z
+    .string()
+    .trim()
+    .min(1, '이름을 입력해 주세요')
+    .max(50, '이름은 50자 이내로 입력해 주세요')
+    .regex(SINGLE_LINE, '이름에 줄바꿈을 넣을 수 없습니다'),
   phone: z
     .string()
     .transform((s) => s.replace(/\D/g, ''))
     .pipe(z.string().regex(/^0\d{8,10}$/, '전화번호 형식이 올바르지 않습니다')),
-  address: z.string().trim().min(1, '점검받을 주소를 입력해 주세요').max(200),
-  addressDetail: z.string().trim().max(100).nullish(),
+  address: z
+    .string()
+    .trim()
+    .min(1, '점검받을 주소를 입력해 주세요')
+    .max(200, '주소는 200자 이내로 입력해 주세요')
+    .regex(SINGLE_LINE, '주소에 줄바꿈을 넣을 수 없습니다'),
+  addressDetail: z
+    .string()
+    .trim()
+    .max(100, '상세주소는 100자 이내로 입력해 주세요')
+    .regex(SINGLE_LINE, '상세주소에 줄바꿈을 넣을 수 없습니다')
+    .nullish(),
   // 희망일은 형식뿐 아니라 "언제부터 언제까지"라는 규칙까지 스키마가 본다 —
   // 같은 판정을 화면(apply-form)도 같은 함수로 쓰므로 양쪽이 어긋나지 않는다.
   preferredDate: z
@@ -53,9 +122,14 @@ const applySchema = z.object({
       if (issue) ctx.addIssue({ code: 'custom', message: issue });
     }),
   timeSlot: z.enum(['MORNING', 'AFTERNOON', 'ANY']),
-  memo: z.string().trim().max(500).nullish(),
+  memo: z.string().trim().max(500, '요청 사항은 500자 이내로 입력해 주세요').nullish(),
   // 입금자명이 신청자 이름과 다를 수 있다(가족 계좌 등). 비우면 이름을 그대로 쓴다.
-  depositorName: z.string().trim().max(50).nullish(),
+  depositorName: z
+    .string()
+    .trim()
+    .max(50, '입금자명은 50자 이내로 입력해 주세요')
+    .regex(SINGLE_LINE, '입금자명에 줄바꿈을 넣을 수 없습니다')
+    .nullish(),
 });
 
 export async function POST(req: NextRequest) {
@@ -75,8 +149,11 @@ export async function POST(req: NextRequest) {
   }
   const parsed = applySchema.safeParse(body);
   if (!parsed.success) {
+    const issue = parsed.error.issues[0];
+    const key = String(issue?.path[0] ?? '');
+    const field = ERROR_FIELDS.includes(key) ? (key as ErrorField) : undefined;
     return NextResponse.json(
-      { error: parsed.error.issues[0]?.message ?? '입력값을 확인해 주세요' },
+      { error: issue?.message ?? '입력값을 확인해 주세요', ...(field ? { field } : {}) },
       { status: 400 },
     );
   }
@@ -84,37 +161,70 @@ export async function POST(req: NextRequest) {
 
   // 갱신 경로 — 로그인한 고객은 계정을 다시 만들지 않는다.
   const session = await getSession();
-  const existingUserId = session?.role === 'CUSTOMER' ? session.userId : null;
+  // 업체·기사·관리자로 로그인한 채 신청하면 새 고객 세션 쿠키가 그 세션을 덮어써, 본인 포털에서
+  // 말없이 로그아웃된다.
+  if (session && session.role !== 'CUSTOMER') {
+    return NextResponse.json(
+      { error: '다른 계정으로 로그인되어 있습니다. 로그아웃한 뒤 신청해 주세요.' },
+      { status: 409 },
+    );
+  }
+  const existingUserId = session ? session.userId : null;
 
   if (!existingUserId) {
+    // 아이디·비밀번호가 둘 다 없으면 갱신 화면에서 온 요청이다 — 그 사이 세션이 끝난 것이므로
+    // 입력을 요구하지 않고 로그인으로 돌려보낸다(클라이언트가 401 을 보고 /my/login 으로 보낸다).
+    if (!data.loginId && !data.password) {
+      return NextResponse.json({ error: '로그인이 필요합니다', field: null }, { status: 401 });
+    }
     if (!data.loginId || !data.password) {
-      return NextResponse.json(
-        { error: '아이디와 비밀번호를 입력해 주세요' },
-        { status: 400 },
-      );
+      return NextResponse.json({ error: '아이디와 비밀번호를 입력해 주세요' }, { status: 400 });
     }
     const dupLogin = await prisma.user.findUnique({
       where: { loginId: data.loginId },
-      select: { id: true },
+      select: { id: true, name: true, role: true, phone: true, passwordHash: true },
     });
     if (dupLogin) {
-      return NextResponse.json({ error: '이미 사용 중인 아이디입니다' }, { status: 409 });
+      // 방금 끊긴 신청의 재시도 — 계정·구독은 이미 만들어졌는데 응답(쿠키)만 못 받은 경우다.
+      // 같은 전화번호에 비밀번호까지 맞으면 본인이므로 새로 만들지 않고 로그인시켜 /my 로 보낸다.
+      // 진행 중인 구독이 없으면 재시도가 아니다 — 예전처럼 아이디 중복으로 돌려보낸다.
+      if (
+        dupLogin.role === 'CUSTOMER' &&
+        dupLogin.phone === data.phone &&
+        (await bcrypt.compare(data.password, dupLogin.passwordHash))
+      ) {
+        const open = await prisma.inspectionPlan.findFirst({
+          where: { userId: dupLogin.id, status: { in: ['PENDING_PAYMENT', 'ACTIVE'] } },
+          orderBy: { createdAt: 'desc' },
+          select: { id: true },
+        });
+        if (open) {
+          return withSessionCookie(
+            NextResponse.json({ ok: true, planId: open.id, resumed: true }),
+            { userId: dupLogin.id, name: dupLogin.name },
+          );
+        }
+      }
+      return NextResponse.json(
+        { error: '이미 사용 중인 아이디입니다', field: 'loginId' },
+        { status: 409 },
+      );
     }
   } else {
+    // 만료는 읽기 경로가 맡는데, 기간이 끝난 뒤 /my 를 열지 않고 곧장 갱신하러 온 고객은
+    // 아직 ACTIVE 로 남아 있다 — 여기서 내리지 않으면 갱신이 "진행 중인 구독"에 막힌다.
+    await expireDuePlans({ userId: existingUserId });
     const open = await prisma.inspectionPlan.findFirst({
       where: { userId: existingUserId, status: { in: ['PENDING_PAYMENT', 'ACTIVE'] } },
       select: { id: true },
     });
     if (open) {
-      return NextResponse.json(
-        { error: '이미 진행 중인 점검 구독이 있습니다.' },
-        { status: 409 },
-      );
+      return NextResponse.json({ error: '이미 진행 중인 점검 구독이 있습니다.' }, { status: 409 });
     }
   }
 
-  // 좌표는 시도만 한다 — 실패해도 신청은 진행(tech/signup 과 같은 정책).
-  const geo = await geocode(data.address);
+  // 좌표는 시도만 한다 — 실패해도 신청은 진행(tech/signup 과 같은 정책). 상한을 둬 늘어지지 않게 한다.
+  const geo = await geocodeWithin(data.address);
   const depositorName = data.depositorName || data.name;
   const planData = {
     contactName: data.name,
@@ -169,44 +279,38 @@ export async function POST(req: NextRequest) {
       // 위의 사전 검사와 이 사이의 동시 요청만 여기에 닿는다.
       const target = String(e.meta?.target ?? '');
       return NextResponse.json(
-        {
-          error: target.includes('loginId')
-            ? '이미 사용 중인 아이디입니다'
-            : '이미 진행 중인 점검 구독이 있습니다.',
-        },
+        target.includes('loginId')
+          ? { error: '이미 사용 중인 아이디입니다', field: 'loginId' }
+          : { error: '이미 진행 중인 점검 구독이 있습니다.' },
         { status: 409 },
       );
     }
     throw e;
   }
 
-  // 입금 안내 문자 — 계좌가 아직 등록되지 않았다면 금액·입금자명만 안내한다.
-  const account = await readInspectionAccount();
-  await sendSms(
-    data.phone,
-    smsInspectionApplied({
-      customerName: created.userName,
-      priceWon: INSPECTION_PRICE_WON,
-      account,
-      depositorName,
-    }),
-  );
+  // 입금 안내 문자는 응답 뒤로 미룬다(next/server after). 문자 공급자는 최대 20초까지
+  // 늘어질 수 있는데, 그걸 기다리다 클라이언트가 끊으면 계정은 생기고 쿠키는 못 받는다.
+  // 계좌가 아직 등록되지 않았다면 금액·입금자명만 안내한다. 실패는 로그만 남긴다.
+  const applied = created;
+  after(async () => {
+    try {
+      const account = await readInspectionAccount();
+      await sendSms(
+        data.phone,
+        smsInspectionApplied({
+          customerName: applied.userName,
+          priceWon: INSPECTION_PRICE_WON,
+          account,
+          depositorName,
+        }),
+      );
+    } catch (e) {
+      console.error('[점검 신청 입금 안내 문자 실패]', e);
+    }
+  });
 
   const res = NextResponse.json({ ok: true, planId: created.planId });
-  if (!existingUserId) {
-    // 신청 직후 자동 로그인 — 입금 안내와 예약 현황이 있는 /my 로 바로 들어간다.
-    const token = await createSessionToken({
-      userId: created.userId,
-      role: 'CUSTOMER',
-      name: created.userName,
-    });
-    res.cookies.set(SESSION_COOKIE, token, {
-      httpOnly: true,
-      sameSite: 'lax',
-      secure: process.env.NODE_ENV === 'production',
-      path: '/',
-      maxAge: 60 * 60 * 24 * 7,
-    });
-  }
-  return res;
+  if (existingUserId) return res;
+  // 신청 직후 자동 로그인 — 입금 안내와 예약 현황이 있는 /my 로 바로 들어간다.
+  return withSessionCookie(res, { userId: created.userId, name: created.userName });
 }

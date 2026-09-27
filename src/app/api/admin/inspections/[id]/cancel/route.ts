@@ -1,12 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { requireSession } from '@/lib/auth';
-import { prisma } from '@/lib/db';
-import { PLAN_WITH_VISITS } from '@/lib/inspectionLifecycle';
+import { COMPANY } from '@/lib/company';
+import { sendSms } from '@/lib/sms';
+import { smsInspectionPlanCanceled } from '@/lib/sms/templates';
+import { cancelPlan } from '@/lib/inspectionLifecycle';
 import { buildPlanView } from '@/lib/inspectionView';
 
 // 구독 취소 — 오입금·환불·고객 요청. 사유는 필수다(나중에 "왜 취소했더라"가 남지 않게).
-// 예정된 방문도 함께 취소한다: 구독이 없는데 방문만 일정표에 남으면 기사가 헛걸음한다.
+// 전이·CAS·딸린 방문 취소는 lib/inspectionLifecycle.ts 가 소유한다(라우트는 얇게).
 
 const cancelSchema = z.object({
   reason: z
@@ -39,33 +41,22 @@ export async function POST(
     );
   }
 
-  const now = new Date();
-  // CAS — 이미 취소·만료된 구독은 건드리지 않는다.
-  const claimed = await prisma.inspectionPlan.updateMany({
-    where: { id, status: { in: ['PENDING_PAYMENT', 'ACTIVE'] } },
-    data: { status: 'CANCELED', canceledAt: now, cancelReason: parsed.data.reason },
-  });
-  if (claimed.count === 0) {
-    const exists = await prisma.inspectionPlan.findUnique({
-      where: { id },
-      select: { id: true },
-    });
-    return exists
-      ? NextResponse.json(
+  const result = await cancelPlan(id, parsed.data.reason);
+  if (!result.ok) {
+    return result.reason === 'NOT_FOUND'
+      ? NextResponse.json({ error: '구독을 찾을 수 없습니다' }, { status: 404 })
+      : NextResponse.json(
           { error: '이미 종료된 구독입니다. 화면을 새로고침해 주세요.' },
           { status: 409 },
-        )
-      : NextResponse.json({ error: '구독을 찾을 수 없습니다' }, { status: 404 });
+        );
   }
 
-  await prisma.inspectionVisit.updateMany({
-    where: { planId: id, status: { in: ['REQUESTED', 'SCHEDULED'] } },
-    data: { status: 'CANCELED', canceledAt: now },
-  });
+  // 사유는 고객 화면(/my)에 그대로 보이므로 문자에는 싣지 않는다 — 단문(SMS) 요금에 맞춘다.
+  const { plan } = result;
+  await sendSms(
+    plan.contactPhone,
+    smsInspectionPlanCanceled({ customerName: plan.contactName, tel: COMPANY.tel }),
+  );
 
-  const plan = await prisma.inspectionPlan.findUniqueOrThrow({
-    where: { id },
-    include: PLAN_WITH_VISITS,
-  });
-  return NextResponse.json({ ok: true, plan: buildPlanView(plan) });
+  return NextResponse.json({ ok: true, plan: buildPlanView(plan, 'admin') });
 }

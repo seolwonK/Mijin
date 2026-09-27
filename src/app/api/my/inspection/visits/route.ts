@@ -1,11 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { Prisma } from '@prisma/client';
 import { z } from 'zod';
 import { requireSession } from '@/lib/auth';
 import { prisma } from '@/lib/db';
 import { sendSms } from '@/lib/sms';
 import { smsInspectionVisitBooked } from '@/lib/sms/templates';
 import {
+  BOOKING_BLOCK_MESSAGE,
   type Quarter,
+  bookingBlock,
   fromDateString,
   toDateString,
   todayKst,
@@ -17,6 +20,24 @@ import { buildPlanView } from '@/lib/inspectionView';
 // 분기 방문 예약 — 신규 예약과 날짜 변경이 같은 입구를 쓴다((planId, quarter) 유니크).
 // 날짜별 인원 한도가 없으므로(사용자 확정) 정원 검사가 없고, 고객이 고른 날짜는 즉시
 // 방문 예정(SCHEDULED)으로 확정된다. 관리자 승인 단계를 두지 않는 것이 그 결정의 귀결이다.
+
+// 인메모리 레이트리밋: 계정당 10분에 10회. 날짜를 바꿀 때마다 과금되는 문자가 나가고 그 번호는
+// 신청서에 적은 값일 뿐 본인 확인을 거치지 않았으므로, 제한이 없으면 남의 번호로 문자를 무한히
+// 쏘는 길이 된다. 세션이 있는 경로라 IP 가 아니라 위조할 수 없는 userId 를 키로 쓴다.
+const hits = new Map<string, { count: number; resetAt: number }>();
+function rateLimited(userId: string): boolean {
+  const now = Date.now();
+  if (hits.size > 10_000) {
+    for (const [k, v] of hits) if (v.resetAt < now) hits.delete(k);
+  }
+  const h = hits.get(userId);
+  if (!h || h.resetAt < now) {
+    hits.set(userId, { count: 1, resetAt: now + 10 * 60_000 });
+    return false;
+  }
+  h.count++;
+  return h.count > 10;
+}
 
 const bookSchema = z.object({
   // 화면이 보내는 값이라 정상 사용에서는 틀릴 일이 없지만, 기본 zod 문구(영문)가 그대로
@@ -36,6 +57,12 @@ export async function POST(req: NextRequest) {
   if (!session) {
     return NextResponse.json({ error: '권한이 없습니다' }, { status: 401 });
   }
+  if (rateLimited(session.userId)) {
+    return NextResponse.json(
+      { error: '변경이 너무 잦습니다. 잠시 후 다시 시도해 주세요.' },
+      { status: 429 },
+    );
+  }
 
   let body: unknown;
   try {
@@ -52,7 +79,7 @@ export async function POST(req: NextRequest) {
   }
   const { quarter, date, timeSlot, note } = parsed.data;
 
-  await expireDuePlans();
+  await expireDuePlans({ userId: session.userId });
 
   const plan = await prisma.inspectionPlan.findFirst({
     where: { userId: session.userId },
@@ -78,13 +105,25 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const issue = visitDateIssue({
-    date,
+  const startDate = toDateString(plan.startDate);
+  const today = todayKst();
+  const existing = plan.visits.find((v) => v.quarter === quarter) ?? null;
+
+  // 회차 자체가 잠겨 있는지부터 본다(완료·임박·기간 경과) — 화면의 "날짜 변경" 버튼을
+  // 숨기는 것과 같은 함수라 둘이 어긋나지 않는다. 잠긴 회차에 날짜 오류를 먼저 돌려주면
+  // 고객은 날짜만 바꿔 가며 헛되이 다시 시도하게 된다.
+  const block = bookingBlock({
+    startDate,
     quarter: quarter as Quarter,
-    startDate: toDateString(plan.startDate),
-    today: todayKst(),
+    today,
+    visit: existing && { date: toDateString(existing.preferredDate), status: existing.status },
   });
-  // 고정 머리말 + 구체 사유. 머리말이 있어야 이 400 이 스키마 위반 400(:44)과
+  if (block) {
+    return NextResponse.json({ error: BOOKING_BLOCK_MESSAGE[block] }, { status: 409 });
+  }
+
+  const issue = visitDateIssue({ date, quarter: quarter as Quarter, startDate, today });
+  // 고정 머리말 + 구체 사유. 머리말이 있어야 이 400 이 스키마 위반 400 과
   // 응답만으로 구별된다(gate-map 의 모호성 검사 — false-green 방지).
   if (issue) {
     return NextResponse.json(
@@ -93,39 +132,55 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const existing = plan.visits.find((v) => v.quarter === quarter);
-  if (existing?.status === 'COMPLETED') {
-    return NextResponse.json(
-      { error: '이미 점검이 완료된 회차입니다.' },
-      { status: 409 },
-    );
+  const preferredDate = fromDateString(date);
+  const unchanged =
+    existing?.status === 'SCHEDULED' &&
+    existing.preferredDate.getTime() === preferredDate.getTime() &&
+    existing.timeSlot === timeSlot;
+
+  if (existing) {
+    // CAS — 읽고 쓰는 사이에 관리자가 완료 처리했다면 그 기록을 덮어쓰지 않는다.
+    const saved = await prisma.inspectionVisit.updateMany({
+      where: { id: existing.id, status: existing.status },
+      data: {
+        preferredDate,
+        timeSlot,
+        note: note || null,
+        status: 'SCHEDULED',
+        // 재예약이면 이전 취소 흔적을 지운다 — 상태와 타임스탬프가 어긋나지 않게.
+        canceledAt: null,
+      },
+    });
+    if (saved.count === 0) {
+      return NextResponse.json(
+        { error: '방금 일정 상태가 바뀌었습니다. 화면을 새로고침해 주세요.' },
+        { status: 409 },
+      );
+    }
+  } else {
+    const fields = { preferredDate, timeSlot, note: note || null, status: 'SCHEDULED' as const };
+    try {
+      await prisma.inspectionVisit.create({ data: { planId: plan.id, quarter, ...fields } });
+    } catch (e) {
+      // 같은 회차를 두 탭에서 동시에 처음 잡은 경우 — (planId, quarter) 유니크에 걸린다.
+      // 나중 요청이 이긴다: 방금 생긴 행을 같은 값으로 갱신한다.
+      if (!(e instanceof Prisma.PrismaClientKnownRequestError && e.code === 'P2002')) throw e;
+      await prisma.inspectionVisit.update({
+        where: { planId_quarter: { planId: plan.id, quarter } },
+        data: fields,
+      });
+    }
   }
 
-  await prisma.inspectionVisit.upsert({
-    where: { planId_quarter: { planId: plan.id, quarter } },
-    create: {
-      planId: plan.id,
-      quarter,
-      preferredDate: fromDateString(date),
-      timeSlot,
-      note: note || null,
-      status: 'SCHEDULED',
-    },
-    update: {
-      preferredDate: fromDateString(date),
-      timeSlot,
-      note: note || null,
-      status: 'SCHEDULED',
-      // 재예약이면 이전 취소 흔적을 지운다 — 상태와 타임스탬프가 어긋나지 않게.
-      canceledAt: null,
-    },
-  });
-
-  await sendSms(plan.contactPhone, smsInspectionVisitBooked({ quarter, date }));
+  // 요청사항만 고쳤거나 같은 값으로 다시 저장한 경우에는 문자를 보내지 않는다 —
+  // 저장 버튼을 누를 때마다 과금되는 문자가 나가면 안 된다.
+  if (!unchanged) {
+    await sendSms(plan.contactPhone, smsInspectionVisitBooked({ quarter, date }));
+  }
 
   const updated = await prisma.inspectionPlan.findUniqueOrThrow({
     where: { id: plan.id },
     include: PLAN_WITH_VISITS,
   });
-  return NextResponse.json({ ok: true, plan: buildPlanView(updated) });
+  return NextResponse.json({ ok: true, plan: buildPlanView(updated, 'customer') });
 }

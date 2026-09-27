@@ -2,8 +2,13 @@ import { describe, expect, it } from 'vitest';
 import {
   INSPECTION_MIN_LEAD_DAYS,
   addDays,
+  adminVisitDateIssue,
+  bookingBlock,
+  canTransitionVisit,
+  formatDateRange,
   addMonths,
   applyDateIssue,
+  applyLatestDate,
   daysBetween,
   formatVisitDate,
   fromDateString,
@@ -112,9 +117,18 @@ describe('신청서의 1분기 희망일 (입금 전 — 구독 시작일이 아
     expect(applyDateIssue(addDays(today, INSPECTION_MIN_LEAD_DAYS), today)).toBeNull();
   });
 
-  it('90일을 넘는 날짜를 막는다', () => {
-    expect(applyDateIssue(addDays(today, 90), today)).toBeNull();
-    expect(applyDateIssue(addDays(today, 91), today)).toContain('90일 이내');
+  it('오늘 확인된다고 쳤을 때의 1분기 마지막 날까지만 받는다', () => {
+    expect(applyLatestDate(today)).toBe('2026-12-19');
+    expect(applyDateIssue('2026-12-19', today)).toBeNull();
+    expect(applyDateIssue('2026-12-20', today)).toContain('2026년 12월 19일까지');
+  });
+
+  it('화면이 내준 가장 늦은 날짜는 당일 확인이면 반드시 1분기 창 안이다 — 2월을 낀 석 달 포함', () => {
+    // 일수(90일)로 자르던 때는 2027-02-01 신청의 상한이 5/2 였고, 1분기 창은 4/30 에 끝났다.
+    for (const day of ['2027-02-01', '2026-11-30', '2028-02-29', '2026-03-01', '2026-08-31']) {
+      const latest = applyLatestDate(day);
+      expect(quarterOf(day, latest), `${day} 신청의 상한 ${latest}`).toBe(1);
+    }
   });
 
   it('형식이 틀린 값을 막는다', () => {
@@ -132,7 +146,7 @@ describe('활성 구독의 분기 예약', () => {
       startDate,
       today: '2026-10-01',
     });
-    expect(issue).toContain('1분기 방문은 2026-09-20 ~ 2026-12-19');
+    expect(issue).toContain('1회차 방문은 2026년 9월 20일 ~ 12월 19일');
   });
 
   it('창 안이면서 리드타임을 지키면 통과한다', () => {
@@ -163,7 +177,73 @@ describe('활성 구독의 분기 예약', () => {
   });
 });
 
+describe('고객이 회차를 예약·변경할 수 있는가 (bookingBlock)', () => {
+  const startDate = '2026-09-20';
+  const block = (today: string, visit: Parameters<typeof bookingBlock>[0]['visit'], quarter = 1) =>
+    bookingBlock({ startDate, quarter: quarter as 1 | 2 | 3 | 4, today, visit });
+
+  it('아직 날짜가 없는 회차는 창이 남아 있으면 열려 있다', () => {
+    expect(block('2026-10-01', null)).toBeNull();
+    expect(block('2026-12-18', null)).toBe('WINDOW_PASSED');
+  });
+
+  it('완료된 회차는 다시 잡을 수 없다', () => {
+    expect(block('2026-10-01', { date: '2026-09-25', status: 'COMPLETED' })).toBe('COMPLETED');
+  });
+
+  it('관리자가 취소한 방문은 고객이 새 날짜로 다시 잡을 수 있다', () => {
+    expect(block('2026-10-01', { date: '2026-10-05', status: 'CANCELED' })).toBeNull();
+  });
+
+  it('확정된 방문은 리드타임 안쪽으로 들어오면 잠긴다 — "방문 2일 전까지"', () => {
+    const visit = { date: '2026-10-10', status: 'SCHEDULED' } as const;
+    expect(block('2026-10-08', visit)).toBeNull(); // 정확히 2일 전 — 아직 바꿀 수 있다
+    expect(block('2026-10-09', visit)).toBe('VISIT_IMMINENT'); // 하루 전
+    expect(block('2026-10-10', visit)).toBe('VISIT_IMMINENT'); // 당일
+    expect(block('2026-10-11', visit)).toBe('VISIT_IMMINENT'); // 지났지만 아직 완료 처리 전
+  });
+
+  it('입금 지연으로 날짜가 지난 1회차(REQUESTED)는 잠그지 않는다 — 다시 골라야 하므로', () => {
+    expect(block('2026-10-01', { date: '2026-09-25', status: 'REQUESTED' })).toBeNull();
+  });
+});
+
+describe('관리자의 방문 상태 전이', () => {
+  it('정방향과 되돌리기만 허용한다', () => {
+    expect(canTransitionVisit('SCHEDULED', 'COMPLETED')).toBe(true);
+    expect(canTransitionVisit('SCHEDULED', 'CANCELED')).toBe(true);
+    expect(canTransitionVisit('REQUESTED', 'CANCELED')).toBe(true);
+    expect(canTransitionVisit('COMPLETED', 'SCHEDULED')).toBe(true); // 되돌리기
+    expect(canTransitionVisit('CANCELED', 'SCHEDULED')).toBe(true); // 되돌리기
+    expect(canTransitionVisit('REQUESTED', 'COMPLETED')).toBe(false); // 확정 전 완료 금지
+    expect(canTransitionVisit('COMPLETED', 'CANCELED')).toBe(false);
+    expect(canTransitionVisit('CANCELED', 'COMPLETED')).toBe(false);
+  });
+});
+
+describe('관리자의 대리 일정 변경', () => {
+  const term = { startDate: '2026-09-20', endDate: '2027-09-19' };
+
+  it('리드타임과 분기 창을 강제하지 않는다 — 구독 기간 안이고 과거가 아니면 된다', () => {
+    expect(adminVisitDateIssue({ ...term, date: '2026-10-01', today: '2026-10-01' })).toBeNull();
+    // 1회차 보충 방문을 2분기 창 안에 잡는 경우
+    expect(adminVisitDateIssue({ ...term, date: '2027-01-15', today: '2026-10-01' })).toBeNull();
+    expect(adminVisitDateIssue({ ...term, date: '2027-09-19', today: '2026-10-01' })).toBeNull();
+  });
+
+  it('과거·구독 기간 밖·형식 오류는 막는다', () => {
+    expect(adminVisitDateIssue({ ...term, date: '2026-09-30', today: '2026-10-01' })).toContain('지난 날짜');
+    expect(adminVisitDateIssue({ ...term, date: '2027-09-20', today: '2026-10-01' })).toContain('이용 기간');
+    expect(adminVisitDateIssue({ ...term, date: 'x', today: '2026-10-01' })).toContain('선택');
+  });
+});
+
 describe('표기', () => {
+  it('기간은 같은 해면 뒤쪽 연도를 생략한다', () => {
+    expect(formatDateRange('2026-09-20', '2026-12-19')).toBe('2026년 9월 20일 ~ 12월 19일');
+    expect(formatDateRange('2026-12-20', '2027-03-19')).toBe('2026년 12월 20일 ~ 2027년 3월 19일');
+  });
+
   it('요일까지 붙인 한국어 날짜를 만든다', () => {
     expect(formatVisitDate('2026-09-20')).toBe('2026년 9월 20일 (일)');
     expect(formatVisitDate('2026-09-21')).toBe('2026년 9월 21일 (월)');

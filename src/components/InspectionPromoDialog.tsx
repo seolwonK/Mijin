@@ -202,6 +202,14 @@ function PromoDialog({ onClose }: { onClose: () => void }) {
             자세히 보기
             <span aria-hidden="true">→</span>
           </Link>
+          {/* 이미 마음을 정한 사람은 설명을 건너뛰고 바로 신청서로. 닫힘 사유는 '자세히 보기'와 같은 'cta'. */}
+          <Link
+            href="/inspection/apply"
+            onClick={() => close('cta')}
+            className={buttonClasses('secondary', 'md', 'mt-2 w-full')}
+          >
+            바로 신청하기
+          </Link>
           <button
             type="button"
             onClick={() => close('close')}

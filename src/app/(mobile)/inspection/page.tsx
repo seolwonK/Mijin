@@ -15,6 +15,7 @@ import {
   getWebPageGraph,
 } from '@/lib/schema';
 import {
+  INSPECTION_MIN_LEAD_DAYS,
   INSPECTION_PRICE_WON,
   INSPECTION_VISITS_PER_TERM,
   formatWon,
@@ -66,7 +67,8 @@ const FAQ_ITEMS = [
   },
   {
     q: '방문 날짜는 제가 정하나요?',
-    a: '네. 분기마다 원하는 날짜를 직접 고르면 그날 방문합니다. 날짜별 예약 인원 제한은 없으며, 방문 준비를 위해 신청일로부터 2일 뒤부터 선택할 수 있습니다. 날짜는 방문 전까지 마이페이지에서 언제든 바꿀 수 있습니다.',
+    // 숫자를 상수에서 끌어온다 — 규칙(서버의 bookingBlock)이 바뀌면 안내도 같이 바뀌어야 한다.
+    a: `네. 분기마다 원하는 날짜를 직접 고르면 그날 방문합니다. 날짜별 예약 인원 제한은 없으며, 방문 준비를 위해 오늘로부터 ${INSPECTION_MIN_LEAD_DAYS}일 뒤의 날짜부터 선택할 수 있습니다. 정한 날짜는 방문 ${INSPECTION_MIN_LEAD_DAYS}일 전까지 마이페이지에서 직접 바꿀 수 있고, 그 뒤에는 고객센터(${COMPANY.tel})로 연락해 주시면 옮겨 드립니다.`,
   },
   {
     q: '점검하다 고장을 발견하면 수리도 해주나요?',
@@ -113,7 +115,7 @@ export default async function InspectionLandingPage() {
           <div className="flex flex-col md:flex-row md:items-center">
             <div className="px-6 pt-6 pb-4 md:w-3/5 md:py-10">
               <p className="text-xs font-bold text-brand-600">고장 나기 전에, 미리 점검</p>
-              <h1 className="mt-2 text-2xl leading-tight font-extrabold text-fg md:text-3xl">
+              <h1 className="mt-2 text-2xl leading-tight font-extrabold break-keep text-fg md:text-3xl">
                 1년에 {INSPECTION_PRICE_WON.toLocaleString('ko-KR')}원,
                 <br />
                 분기마다 전기를 봐 드려요
@@ -161,11 +163,18 @@ export default async function InspectionLandingPage() {
             ))}
           </dl>
           <div className="mt-4 flex flex-col gap-2 sm:flex-row">
-            <Link href="/inspection/apply" className={buttonClasses('primary', 'lg', 'flex-1')}>
+            {/* 모바일(세로 배치)에서 flex-1 은 높이 쪽으로 작동해 버튼이 28px 로 눌린다 —
+                가로 배치(sm:)에서만 늘리고, 모바일은 보조 버튼과 같이 w-full 로 둔다. */}
+            <Link
+              href="/inspection/apply"
+              className={buttonClasses('primary', 'lg', 'w-full sm:w-auto sm:flex-1')}
+            >
               점검 신청하기
               <span aria-hidden="true">↗</span>
             </Link>
-            <Link href="/my/login" className={buttonClasses('secondary', 'lg', 'sm:w-44')}>
+            {/* /my 로 보낸다 — 로그인돼 있으면 바로 현황이고, 아니면 미들웨어가 로그인으로 돌린다.
+                /my/login 으로 직접 보내면 이미 로그인한 고객도 매번 로그인 화면을 만난다. */}
+            <Link href="/my" className={buttonClasses('secondary', 'lg', 'w-full sm:w-44')}>
               내 점검 현황
             </Link>
           </div>
@@ -271,9 +280,23 @@ export default async function InspectionLandingPage() {
           </div>
         </section>
 
-        <div className="mt-10 flex flex-col gap-2 sm:flex-row">
+        {/* md+ 전용 — 모바일은 아래의 고정 CTA 가 같은 일을 한다. */}
+        <div className="mt-10 hidden md:flex">
           <Link href="/inspection/apply" className={buttonClasses('primary', 'lg', 'flex-1')}>
             정기 전기점검 신청하기
+          </Link>
+        </div>
+      </div>
+
+      {/* 모바일 고정 CTA — 긴 랜딩 어디에서든 한 번에 신청으로 간다. 이 화면에는 FloatingDock 이
+          뜨지 않으므로(VISIBLE_PATHS 밖) 자리가 겹치지 않고, main 의 pb-28 이 가려질 높이를 비워 둔다. */}
+      <div className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-white/95 px-5 pt-3 pb-[max(12px,env(safe-area-inset-bottom))] backdrop-blur md:hidden">
+        <div className="mx-auto flex w-full max-w-md gap-2">
+          <Link href="/my" className={buttonClasses('secondary', 'lg', 'shrink-0 px-4 text-base')}>
+            내 현황
+          </Link>
+          <Link href="/inspection/apply" className={buttonClasses('primary', 'lg', 'flex-1')}>
+            연 {formatWon(INSPECTION_PRICE_WON)} 신청하기
           </Link>
         </div>
       </div>

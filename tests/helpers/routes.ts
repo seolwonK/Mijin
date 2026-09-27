@@ -61,7 +61,7 @@ const open = (path: string, method: HttpMethod, note: string): RouteEntry => ({
 });
 
 export const ROUTES: RouteEntry[] = [
-  // ── 관리자 (48 핸들러, 전부 ADMIN 세션 필요) ──────────────────────────
+  // ── 관리자 (49 핸들러, 전부 ADMIN 세션 필요) ──────────────────────────
   admin('/api/admin/analytics/dashboard', 'GET'),
   admin('/api/admin/analytics/map/dispatch', 'GET'),
   admin('/api/admin/analytics/map/regions', 'GET'),
@@ -104,10 +104,11 @@ export const ROUTES: RouteEntry[] = [
   admin('/api/admin/technicians/[id]/contract', 'GET'),
   admin('/api/admin/technicians/[id]/contract', 'PUT'),
   admin('/api/admin/technicians/[id]/reject', 'POST'),
-  // 정기 전기점검 구독 운영 — 입금 확인·취소·방문 상태·입금 계좌 설정
+  // 정기 전기점검 구독 운영 — 입금 확인·취소·대리 예약·방문 상태·입금 계좌 설정
   admin('/api/admin/inspections', 'GET'),
   admin('/api/admin/inspections/[id]/confirm-payment', 'POST'),
   admin('/api/admin/inspections/[id]/cancel', 'POST'),
+  admin('/api/admin/inspections/[id]/visits', 'POST'),
   admin('/api/admin/inspections/visits/[visitId]', 'PATCH'),
   admin('/api/admin/inspection-account', 'GET'),
   admin('/api/admin/inspection-account', 'PUT'),

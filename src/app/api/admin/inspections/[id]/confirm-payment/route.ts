@@ -3,7 +3,7 @@ import { requireSession } from '@/lib/auth';
 import { sendSms } from '@/lib/sms';
 import { smsInspectionActivated } from '@/lib/sms/templates';
 import { toDateString } from '@/lib/inspection';
-import { activatePlan } from '@/lib/inspectionLifecycle';
+import { activatePlan, inspectionPortalUrl } from '@/lib/inspectionLifecycle';
 import { buildPlanView } from '@/lib/inspectionView';
 
 // 입금 확인 → 구독 활성화. 확인한 날이 구독 시작일이고, 거기서 분기 4구간이 파생된다.
@@ -35,8 +35,13 @@ export async function POST(
       customerName: plan.contactName,
       endDate: plan.endDate ? toDateString(plan.endDate) : '',
       firstVisitDate,
+      // 1회차가 확정됐을 때만 시간대를 싣는다 — 재선택이 필요한 경우 날짜·시간대 모두 없다.
+      firstVisitTimeSlot: firstVisitDate
+        ? (plan.visits.find((v) => v.quarter === 1)?.timeSlot ?? null)
+        : null,
+      portalUrl: inspectionPortalUrl(),
     }),
   );
 
-  return NextResponse.json({ ok: true, plan: buildPlanView(plan) });
+  return NextResponse.json({ ok: true, plan: buildPlanView(plan, 'admin') });
 }

@@ -36,9 +36,19 @@ export type LocationValue = {
 export default function LocationPicker({
   value,
   onChange,
+  inputId,
+  invalid = false,
+  describedBy,
+  maxLength,
 }: {
   value: LocationValue;
   onChange: (v: LocationValue) => void;
+  /** 주소 입력란의 id — 바깥 라벨(htmlFor)과 오류 시 포커스 이동이 이 값을 쓴다. */
+  inputId?: string;
+  invalid?: boolean;
+  describedBy?: string;
+  /** 주소 입력란 글자 상한 — 받는 쪽 서버 스키마의 상한과 맞춰 넘긴다. */
+  maxLength?: number;
 }) {
   const [status, setStatus] = useState<
     'idle' | 'loading' | 'ok' | 'notfound' | 'error'
@@ -97,21 +107,25 @@ export default function LocationPicker({
           type="button"
           onClick={locate}
           disabled={status === 'loading'}
-          className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-brand-300 bg-brand-50 p-3 text-base font-medium text-brand-700 transition disabled:cursor-not-allowed disabled:opacity-60 enabled:hover:bg-brand-100 enabled:active:scale-[0.98] enabled:active:bg-brand-200"
+          // 좁은 화면에서는 "내 위치"만 보인다 — 두 버튼이 반씩 나눠 쓰는 폭에 "내 위치로 채우기"가
+          // 다 들어가지 않아 "채우/기"처럼 음절 중간에서 끊겼다. 읽어 주는 이름은 온전한 문장.
+          aria-label={status === 'loading' ? undefined : '내 위치로 주소 채우기'}
+          className="flex min-w-0 flex-1 items-center justify-center gap-2 whitespace-nowrap rounded-xl border border-brand-300 bg-brand-50 p-3 text-base font-medium text-brand-700 transition disabled:cursor-not-allowed disabled:opacity-60 enabled:hover:bg-brand-100 enabled:active:scale-[0.98] enabled:active:bg-brand-200"
         >
           {status === 'loading' ? (
             '위치 확인 중…'
           ) : (
             <>
               <MapPinIcon className="h-4 w-4 shrink-0" />
-              내 위치로 채우기
+              <span className="sm:hidden">내 위치</span>
+              <span className="hidden sm:inline">내 위치로 채우기</span>
             </>
           )}
         </button>
         <button
           type="button"
           onClick={searchAddress}
-          className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-neutral-300 bg-white p-3 text-base font-medium text-neutral-700 transition hover:bg-neutral-50 active:scale-[0.98] active:bg-neutral-100"
+          className="flex min-w-0 flex-1 items-center justify-center gap-2 whitespace-nowrap rounded-xl border border-neutral-300 bg-white p-3 text-base font-medium text-neutral-700 transition hover:bg-neutral-50 active:scale-[0.98] active:bg-neutral-100"
         >
           <SearchIcon className="h-4 w-4 shrink-0" />
           주소 검색
@@ -139,10 +153,14 @@ export default function LocationPicker({
       )}
       {/* 검색/GPS 결과 뒤에 동·호수 등 상세를 덧붙이는 입력란 */}
       <input
+        id={inputId}
         type="text"
         value={value.address}
+        aria-invalid={invalid || undefined}
+        aria-describedby={describedBy}
+        maxLength={maxLength}
         onChange={(e) => onChange({ ...value, address: e.target.value })}
-        placeholder="주소 (예: 서울 강남구 역삼동 ○○아파트 101동)"
+        placeholder="예) 성남시 분당구 정자동 1"
         className="w-full rounded-xl border border-border p-3 text-base transition-colors focus:border-brand-500 focus:ring-2 focus:ring-brand-500/15 focus:outline-none"
       />
     </div>

@@ -90,9 +90,9 @@ test.afterAll(async () => {
   for (const ctx of sessions.values()) await ctx.dispose();
 });
 
-test('매트릭스 분류: 가드 79 / 공개 19, 가입 2건은 공개로 유지된다', () => {
-  expect(ROUTES.length).toBe(98);
-  expect(GUARDED_ROUTES.length).toBe(79);
+test('매트릭스 분류: 가드 80 / 공개 19, 가입 2건은 공개로 유지된다', () => {
+  expect(ROUTES.length).toBe(99);
+  expect(GUARDED_ROUTES.length).toBe(80);
   expect(PUBLIC_ROUTES.length).toBe(19);
   // 이 둘은 설계상 공개다. 가드로 옮기면 401 을 단언하는 붉은 테스트가 두 개
   // 생기지만 제품은 정상이다 — 분류를 여기서 못 박아 그 사고를 막는다.

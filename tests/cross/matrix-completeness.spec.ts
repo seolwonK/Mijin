@@ -117,12 +117,12 @@ test.describe('매트릭스 완전성 (전수의 유일한 증명)', () => {
     expect(dupes).toEqual([]);
   });
 
-  test('④ 98 핸들러 = 공개 19 + 가드 79', () => {
+  test('④ 99 핸들러 = 공개 19 + 가드 80', () => {
     const actual = actualHandlers();
-    expect(actual.length, '84개 route.ts 파일이 98개 핸들러를 export 해야 한다').toBe(98);
-    expect(ROUTES.length).toBe(98);
+    expect(actual.length, '85개 route.ts 파일이 99개 핸들러를 export 해야 한다').toBe(99);
+    expect(ROUTES.length).toBe(99);
     expect(PUBLIC_ROUTES.length, '설계상 공개 핸들러').toBe(19);
-    expect(GUARDED_ROUTES.length, '401 을 단언해야 하는 가드 핸들러').toBe(79);
+    expect(GUARDED_ROUTES.length, '401 을 단언해야 하는 가드 핸들러').toBe(80);
   });
 
   test('⑤ 2메서드 라우트 14개가 두 메서드 모두 표에 있다', () => {

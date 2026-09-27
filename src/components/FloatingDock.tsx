@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { HomeIcon, BoltIcon, SearchIcon, UserIcon } from '@/components/icons';
+import { HomeIcon, BoltIcon, ClipboardIcon, SearchIcon, UserIcon } from '@/components/icons';
 
 // "결"(C) 플로팅 글래스 독 — 보류돼 있던 P3 시드#1(전역 탭바) 제안을 흡수한다
 // (.omc/research/simplification-proposals.md 시드#1: 화면 수 적고 선형 플로우라 보류 권장,
@@ -14,16 +14,21 @@ import { HomeIcon, BoltIcon, SearchIcon, UserIcon } from '@/components/icons';
 // 소개·약관·개인정보처리방침은 푸터에서 진입하는 고객 정보 화면이라 독을 유지한다.
 const VISIBLE_PATHS = ['/', '/lookup', '/about', '/terms', '/privacy'];
 
+// 전기점검(/inspection)은 고장 접수의 반대편 상품이다. 모바일 홈 헤더는 폭 때문에 이 링크를
+// 숨기므로(home.module.css .desktopLink), 독에 없으면 모바일 고객은 본문 중간의 홍보 구획까지
+// 스크롤해야만 닿는다 — 가입한 고객이 "내 점검"으로 돌아올 길도 같이 막힌다.
 const ITEMS = [
   { href: '/', label: '홈', Icon: HomeIcon },
   { href: '/request/new', label: '접수', Icon: BoltIcon },
   { href: '/lookup', label: '조회', Icon: SearchIcon },
+  { href: '/inspection', label: '점검', Icon: ClipboardIcon },
 ];
 
 const HOME_LINKS = [
   { href: '/lookup', label: '접수 조회', Icon: SearchIcon },
   { href: '/request/new', label: '고장 접수', Icon: BoltIcon },
-  { href: '/login', label: '업체·기사 로그인', Icon: UserIcon },
+  { href: '/inspection', label: '전기점검', Icon: ClipboardIcon },
+  { href: '/login', label: '로그인', Icon: UserIcon },
 ];
 
 export default function FloatingDock() {
@@ -31,11 +36,11 @@ export default function FloatingDock() {
   if (!VISIBLE_PATHS.includes(pathname)) return null;
 
   // 홈의 바로가기는 동일한 폭과 아이콘·라벨 구성을 사용한다.
-  // 아직 세 목적지 중 어느 곳에도 진입하지 않았으므로 선택 상태는 표시하지 않는다.
+  // 아직 어느 목적지에도 진입하지 않았으므로 선택 상태는 표시하지 않는다.
   if (pathname === '/') {
     return (
       <nav aria-label="고객 화면 이동" className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-white px-2 pt-1 pb-[max(8px,env(safe-area-inset-bottom))] md:hidden">
-        <div className="mx-auto grid max-w-md grid-cols-3">
+        <div className="mx-auto grid max-w-md grid-cols-4">
           {HOME_LINKS.map(({ href, label, Icon }) => (
             <Link
               key={href}
@@ -67,7 +72,7 @@ export default function FloatingDock() {
             key={href}
             href={href}
             aria-current={active ? 'page' : undefined}
-            className={`flex flex-col items-center gap-0.5 rounded-full px-5 py-2 text-xs font-semibold whitespace-nowrap transition active:scale-95 ${
+            className={`flex flex-col items-center gap-0.5 rounded-full px-4 py-2 text-xs font-semibold whitespace-nowrap transition active:scale-95 ${
               active ? 'bg-brand-600 text-white' : 'text-muted hover:text-fg'
             }`}
           >

@@ -2,11 +2,11 @@ import Link from 'next/link';
 import Image from 'next/image';
 import PageHeader from '@/components/PageHeader';
 import Surface from '@/components/Surface';
-import { BoltIcon, BuildingIcon, WrenchIcon } from '@/components/icons';
+import { BoltIcon, BuildingIcon, ClipboardIcon, WrenchIcon } from '@/components/icons';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: '업체·전기기사 로그인',
+  title: '로그인',
   robots: { index: false, follow: false },
 };
 
@@ -18,6 +18,9 @@ const ROLES: {
 }[] = [
   { href: '/partner/login', Icon: BuildingIcon, title: '업체', desc: '출동 업체 로그인' },
   { href: '/tech/login', Icon: WrenchIcon, title: '전기기사', desc: '전기기사 로그인' },
+  // 전기점검 고객도 "로그인"을 찾아 이 허브로 온다 — 여기에 길이 없으면 자기 계정이 어느
+  // 로그인에 속하는지 알 수 없다(로그인 API 는 공용이라 어디서 해도 되지만 고객은 그걸 모른다).
+  { href: '/my/login', Icon: ClipboardIcon, title: '전기점검 고객', desc: '방문 날짜 예약·변경' },
   // 관리자 로그인은 /admin/login 직접 접근 — 고객용 허브에는 노출하지 않는다(불필요한 공격면·혼란 제거).
 ];
 
@@ -45,7 +48,8 @@ export default function LoginHubPage() {
             전기 고장 접수하러 오셨나요?
           </h2>
           <p className="mt-1.5 text-sm text-muted">
-            이 화면은 업체·전기기사 전용 로그인이에요. 수리 접수는 로그인 없이 바로 하실 수 있어요.
+            수리 접수는 로그인 없이 바로 하실 수 있어요. 로그인은 업체·전기기사와 전기점검 고객만
+            필요해요.
           </p>
           <Link
             href="/request/new"
@@ -112,6 +116,16 @@ export default function LoginHubPage() {
           >
             <WrenchIcon className="h-5 w-5 shrink-0" />
             전기기사로 가입하기
+            <span className="ml-auto">→</span>
+          </Link>
+          {/* 전기점검은 따로 가입하지 않는다 — 신청서가 계정을 함께 만든다. 가입 목록에 신청으로
+              가는 길이 없으면 점검을 받으려는 사람이 어디서 시작할지 모른다. 소개부터 보게 랜딩으로. */}
+          <Link
+            href="/inspection"
+            className="flex items-center gap-3 rounded-2xl bg-brand-50 p-4 text-sm font-semibold text-brand-700 transition-colors ease-brand duration-brand-base hover:bg-brand-100"
+          >
+            <ClipboardIcon className="h-5 w-5 shrink-0" />
+            전기점검 신청하기
             <span className="ml-auto">→</span>
           </Link>
         </div>

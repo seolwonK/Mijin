@@ -15,7 +15,7 @@ export async function GET() {
   }
 
   // 기간이 끝난 구독을 먼저 내린다 — 만료를 크론이 아니라 읽기 경로가 맡는다(inspectionLifecycle).
-  await expireDuePlans();
+  await expireDuePlans({ userId: session.userId });
 
   const plan = await prisma.inspectionPlan.findFirst({
     where: { userId: session.userId },
@@ -29,7 +29,7 @@ export async function GET() {
       name: session.name,
       priceWon: INSPECTION_PRICE_WON,
       account,
-      plan: plan ? buildPlanView(plan) : null,
+      plan: plan ? buildPlanView(plan, 'customer') : null,
     },
     { headers: { 'Cache-Control': 'no-store' } },
   );
