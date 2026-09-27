@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useEffectEvent, useState } from 'react';
+import { useEffect, useEffectEvent, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import PageHeader from '@/components/PageHeader';
 import LocationPicker, { type LocationValue } from '@/components/LocationPicker';
@@ -55,17 +55,23 @@ const FIELD_ORDER = [
   'ins-date',
   'ins-loginId',
   'ins-password',
+  'ins-passwordConfirm',
   'ins-agree',
 ] as const;
 
 type FieldErrors = Partial<Record<string, string>>;
 
+const PASSWORD_MISMATCH = '비밀번호가 서로 달라요';
+
 /** 아이디 자동 확인 결과. value 는 확인한 아이디(앞뒤 공백 제거) — 입력이 바뀌면 결과가 저절로 무효가 된다. */
 type LoginIdCheck = {
   value: string;
-  state: 'checking' | 'available' | 'taken' | 'error';
+  state: 'checking' | IdCheckResult;
   message?: string;
 };
+
+/** 한 번의 아이디 확인이 끝났을 때의 판정. */
+type IdCheckResult = 'available' | 'taken' | 'error';
 
 export type ApplyPrefill = {
   name: string;
@@ -105,7 +111,13 @@ export default function ApplyForm({
   const [depositorName, setDepositorName] = useState('');
   const [loginId, setLoginId] = useState('');
   const [idCheck, setIdCheck] = useState<LoginIdCheck | null>(null);
+  // 진행 중인 아이디 확인 — 자동 확인·버튼·제출 게이트가 같은 요청을 함께 기다린다.
+  const idInflight = useRef<{ value: string; promise: Promise<IdCheckResult> } | null>(null);
+  // 제출 게이트가 확인을 기다리는 사이 아이디를 바꿨는지 알아보려고 최신 입력을 따로 둔다.
+  const latestLoginId = useRef('');
   const [password, setPassword] = useState('');
+  // 확인 값은 서버로 보내지 않는다 — 오타로 모르는 비밀번호가 만들어지는 것만 막는다.
+  const [passwordConfirm, setPasswordConfirm] = useState('');
   const [agreed, setAgreed] = useState(false);
   // 입력란별 오류. 문구는 그 입력란 아래에 뜨고(FieldError), 서버 오류처럼 특정 입력란에
   // 속하지 않는 것만 제출 버튼 위(formError)에 뜬다 — tech/signup 과 같은 문법.
@@ -137,37 +149,78 @@ export default function ApplyForm({
     });
   }
 
+  /** 비밀번호·확인 칸 중 하나를 고치면 "서로 달라요" 오류는 지운다(비어 있음 오류는 확인 칸에서만 지운다). */
+  function clearMismatch() {
+    setErrors((prev) => {
+      if (prev['ins-passwordConfirm'] !== PASSWORD_MISMATCH) return prev;
+      const rest = { ...prev };
+      delete rest['ins-passwordConfirm'];
+      return rest;
+    });
+  }
+
   /** 입력란에 붙이는 오류 연결 속성. */
   const errorProps = (id: string) => ({
     'aria-invalid': errors[id] ? true : undefined,
     'aria-describedby': errors[id] ? `${id}-error` : undefined,
   });
 
-  // ── 아이디 자동 확인 ── 입력을 멈추고 500ms 뒤, 또는 입력란을 벗어날 때 확인한다.
-  // 확인은 안내일 뿐 제출을 막지 않는다 — 확인 전에 제출해도 서버가 409 로 같은 판정을 돌려준다.
-  async function checkLoginId(target: string) {
-    if (renewal || target.length < 3) return;
-    // 같은 아이디를 이미 확인했거나 확인 중이면 다시 묻지 않는다(실패했을 때만 재시도).
-    if (idCheck?.value === target && idCheck.state !== 'error') return;
+  // ── 아이디 확인 ── 입력을 멈추고 500ms 뒤, 입력란을 벗어날 때, "중복 확인" 버튼을 누를 때
+  // 확인한다. 제출할 때 아직 'available' 이 아니면 submit 이 한 번 더 확인한 뒤에 진행한다.
+  // 결과를 돌려주므로 제출 게이트가 await 로 판정을 받는다(확인 자체는 throw 하지 않는다).
+  async function checkLoginId(
+    target: string,
+    { force = false }: { force?: boolean } = {},
+  ): Promise<IdCheckResult | null> {
+    if (renewal || target.length < 3) return null;
+    // 같은 아이디를 확인하는 중이면 새로 묻지 않고 그 결과를 함께 기다린다.
+    const inflight = idInflight.current;
+    if (inflight?.value === target) return inflight.promise;
+    // 같은 아이디를 이미 확인했으면 다시 묻지 않는다(실패했거나 버튼으로 강제할 때만 재확인).
+    if (
+      !force &&
+      idCheck?.value === target &&
+      (idCheck.state === 'available' || idCheck.state === 'taken')
+    )
+      return idCheck.state;
     setIdCheck({ value: target, state: 'checking' });
+    const promise = (async (): Promise<IdCheckResult> => {
+      try {
+        const res = await fetch(
+          `/api/auth/check-login-id?loginId=${encodeURIComponent(target)}`,
+          { signal: AbortSignal.timeout(15_000) },
+        );
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.error ?? 'check failed');
+        const state: IdCheckResult = data.available ? 'available' : 'taken';
+        // 응답을 기다리는 사이 다른 아이디로 바꿨다면 화면 표시는 건드리지 않는다.
+        setIdCheck((prev) => (prev?.value === target ? { value: target, state } : prev));
+        return state;
+      } catch {
+        setIdCheck((prev) =>
+          prev?.value === target
+            ? { value: target, state: 'error', message: '확인에 실패했어요. 다시 눌러 주세요.' }
+            : prev,
+        );
+        return 'error';
+      }
+    })();
+    idInflight.current = { value: target, promise };
     try {
-      const res = await fetch(
-        `/api/auth/check-login-id?loginId=${encodeURIComponent(target)}`,
-        { signal: AbortSignal.timeout(15_000) },
-      );
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok)
-        throw new Error(data.error ?? '아이디를 확인하지 못했어요. 잠시 후 다시 시도해 주세요.');
-      const next: LoginIdCheck = { value: target, state: data.available ? 'available' : 'taken' };
-      // 응답을 기다리는 사이 다른 아이디로 바꿨다면 이 결과는 버린다.
-      setIdCheck((prev) => (prev?.value === target ? next : prev));
-    } catch (err) {
-      setIdCheck((prev) =>
-        prev?.value === target
-          ? { value: target, state: 'error', message: requestError(err) }
-          : prev,
-      );
+      return await promise;
+    } finally {
+      if (idInflight.current?.promise === promise) idInflight.current = null;
     }
+  }
+
+  /** "중복 확인" 버튼 — 이미 확인한 아이디여도 즉시 다시 묻는다. */
+  function onCheckLoginIdClick() {
+    if (trimmedLoginId.length < 3) {
+      setErrors((prev) => ({ ...prev, 'ins-loginId': '아이디를 3자 이상 입력해 주세요' }));
+      return;
+    }
+    clearError('ins-loginId');
+    void checkLoginId(trimmedLoginId, { force: true });
   }
   const onLoginIdSettled = useEffectEvent((target: string) => {
     void checkLoginId(target);
@@ -195,6 +248,10 @@ export default function ApplyForm({
       else if (idStatus?.state === 'taken')
         next['ins-loginId'] = '이미 사용 중이에요. 다른 아이디를 입력해 주세요.';
       if (password.length < 8) next['ins-password'] = '비밀번호를 8자 이상 입력해 주세요';
+      // 서버 스키마(api/inspection/apply)의 password 상한과 같다.
+      else if (password.length > 72) next['ins-password'] = '비밀번호는 72자 이내로 입력해 주세요';
+      if (!passwordConfirm) next['ins-passwordConfirm'] = '비밀번호를 한 번 더 입력해 주세요';
+      else if (passwordConfirm !== password) next['ins-passwordConfirm'] = PASSWORD_MISMATCH;
     }
     if (!agreed) next['ins-agree'] = '개인정보 수집·이용에 동의해 주세요';
     return next;
@@ -210,6 +267,27 @@ export default function ApplyForm({
     if (Object.keys(found).length > 0) return;
 
     setBusy(true);
+    // ── 아이디 확인 게이트 ── 'available' 로 확인된 아이디만 보낸다. 확인 전·실패·확인 중이면
+    // 여기서 한 번(확인 중이면 그 요청을) 기다려 판정한다. taken 은 validate 가 이미 막았다.
+    if (!renewal && idStatus?.state !== 'available') {
+      const target = trimmedLoginId;
+      const result = await checkLoginId(target);
+      if (latestLoginId.current.trim() !== target) {
+        // 기다리는 사이 아이디를 바꿨다 — 바뀐 아이디로 다시 누르게 한다.
+        setBusy(false);
+        return;
+      }
+      if (result !== 'available') {
+        setBusy(false);
+        showErrors({
+          'ins-loginId':
+            result === 'taken'
+              ? '이미 사용 중이에요. 다른 아이디를 입력해 주세요.'
+              : '아이디 확인에 실패했어요. 다시 시도해 주세요.',
+        });
+        return;
+      }
+    }
     // 성공(또는 로그인 화면으로 보내는) 경로에서는 버튼을 다시 풀지 않는다 — 화면이 넘어가는
     // 동안 "신청 중…"이 유지돼야 두 번 누르지 않는다.
     let leaving = false;
@@ -269,14 +347,15 @@ export default function ApplyForm({
   const loginIdFeedback =
     loginIdError ??
     (idStatus?.state === 'checking'
-      ? '확인하는 중…'
+      ? '확인 중…'
       : idStatus?.state === 'available'
-        ? '사용할 수 있는 아이디예요'
+        ? '사용할 수 있는 아이디예요 ✓'
         : idStatus?.state === 'taken'
           ? '이미 사용 중이에요'
           : idStatus?.state === 'error'
-            ? (idStatus.message ?? '아이디를 확인하지 못했어요.')
-            : '3자 이상 입력하면 사용할 수 있는지 바로 알려 드려요.');
+            ? (idStatus.message ?? '확인에 실패했어요. 다시 눌러 주세요.')
+            : '3자 이상 입력하면 바로 확인해 드려요. 중복 확인을 눌러도 돼요.');
+  const idChecking = idStatus?.state === 'checking';
 
   return (
     <main className="min-h-screen pb-28 md:pb-12">
@@ -472,29 +551,44 @@ export default function ApplyForm({
                 로그인하기
               </Link>
             </p>
-            {/* 아이디는 입력을 멈추면 저절로 확인한다 — "중복 확인" 버튼을 따로 누르게 하지 않는다.
-                피드백 문구 한 줄이 안내·확인 결과·오류를 모두 맡아, FieldError 를 따로 달지 않는다. */}
+            {/* 아이디는 입력을 멈추면 저절로 확인하고, "중복 확인" 버튼으로 바로 확인할 수도 있다.
+                피드백 문구 한 줄이 안내·확인 결과·오류를 모두 맡아, FieldError 를 따로 달지 않는다.
+                공용 LoginIdCheckField 는 자동 확인·제출 게이트가 없어 쓰지 않는다. */}
             <div className="space-y-1">
               <label htmlFor="ins-loginId" className="block text-sm font-medium">
                 로그인 아이디
               </label>
-              <input
-                id="ins-loginId"
-                type="text"
-                value={loginId}
-                onChange={(e) => {
-                  setLoginId(e.target.value);
-                  clearError('ins-loginId');
-                }}
-                onBlur={() => void checkLoginId(trimmedLoginId)}
-                aria-invalid={loginIdInvalid || undefined}
-                aria-describedby="ins-loginId-error"
-                placeholder="3자 이상"
-                autoComplete="username"
-                // 서버 스키마의 loginId 상한과 같다.
-                maxLength={30}
-                className={inputClass}
-              />
+              <div className="flex gap-2">
+                <input
+                  id="ins-loginId"
+                  type="text"
+                  value={loginId}
+                  onChange={(e) => {
+                    latestLoginId.current = e.target.value;
+                    setLoginId(e.target.value);
+                    // 값을 바꾸면 이전 확인 결과를 버린다.
+                    setIdCheck(null);
+                    clearError('ins-loginId');
+                  }}
+                  onBlur={() => void checkLoginId(trimmedLoginId)}
+                  aria-invalid={loginIdInvalid || undefined}
+                  aria-describedby="ins-loginId-error"
+                  placeholder="3자 이상"
+                  autoComplete="username"
+                  // 서버 스키마의 loginId 상한과 같다.
+                  maxLength={30}
+                  className={`${inputClass} min-w-0 flex-1`}
+                />
+                <button
+                  type="button"
+                  onClick={onCheckLoginIdClick}
+                  disabled={idChecking || busy}
+                  aria-describedby="ins-loginId-error"
+                  className={buttonClasses('secondary', 'md', 'min-h-11 shrink-0 rounded-xl text-sm')}
+                >
+                  {idChecking ? '확인 중…' : '중복 확인'}
+                </button>
+              </div>
               <p
                 id="ins-loginId-error"
                 role={loginIdInvalid ? 'alert' : 'status'}
@@ -509,16 +603,38 @@ export default function ApplyForm({
                 {loginIdFeedback}
               </p>
             </div>
+            <div>
+              <PasswordInput
+                id="ins-password"
+                value={password}
+                onChange={(v) => {
+                  setPassword(v);
+                  clearError('ins-password');
+                  clearMismatch();
+                }}
+                className={inputClass}
+                placeholder="8자 이상"
+                autoComplete="new-password"
+                error={errors['ins-password']}
+              />
+              {/* 서버 규칙(8~72자)만 안내한다 — 그 이상의 조합 규칙은 요구하지 않는다.
+                  오류가 뜨면 오류 문구가 같은 자리를 맡는다. */}
+              {!errors['ins-password'] && (
+                <p className="mt-1 text-xs text-muted">8자 이상이면 돼요.</p>
+              )}
+            </div>
             <PasswordInput
-              id="ins-password"
-              value={password}
+              id="ins-passwordConfirm"
+              ariaLabel="비밀번호 확인"
+              value={passwordConfirm}
               onChange={(v) => {
-                setPassword(v);
-                clearError('ins-password');
+                setPasswordConfirm(v);
+                clearError('ins-passwordConfirm');
               }}
               className={inputClass}
-              placeholder="8자 이상"
-              error={errors['ins-password']}
+              placeholder="비밀번호를 한 번 더 입력해 주세요"
+              autoComplete="new-password"
+              error={errors['ins-passwordConfirm']}
             />
           </section>
         )}
