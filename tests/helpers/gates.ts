@@ -1488,18 +1488,18 @@ export const GATES: Record<string, HandlerGates> = {
   'POST /api/inspection/apply': {
     file: 'src/app/api/inspection/apply/route.ts',
     note:
-      '희망일 검증(applyDateIssue)은 **zod 스키마 안에** 있어 :159 의 400 으로 나온다 — ' +
+      '희망일 검증(applyDateIssue)은 **zod 스키마 안에** 있어 :161 의 400 으로 나온다 — ' +
       '라우트 본문에 별도 날짜 분기가 없다. 이름·입금자명·주소의 제어·줄구분 문자 차단(문자 본문 ' +
       '주입 방지)과 비밀번호 72바이트 상한도 같은 스키마 400 이다. 오류 응답은 `field`(loginId·' +
-      'preferredDate·phone)로 어느 입력란의 문제인지 알린다. :182·:185·:201 은 무세션 경로에서만, ' +
-      ':233 은 CUSTOMER 세션(갱신 신청) 경로에서만 도달한다 — 배타적이다. 무세션인데 아이디가 이미 ' +
+      'preferredDate·phone)로 어느 입력란의 문제인지 알린다. :184·:187·:203 은 무세션 경로에서만, ' +
+      ':235 은 CUSTOMER 세션(갱신 신청) 경로에서만 도달한다 — 배타적이다. 무세션인데 아이디가 이미 ' +
       '있고 본인 확인(CUSTOMER·같은 전화·비밀번호 일치)에 성공하면 409 대신 그 계정으로 로그인시켜 ' +
       '진행 중 구독이 있으면 200(resumed), 없으면 이번 내용으로 새 구독을 만들어 200(renewed) 을 돌려준다.',
     gates: [
       {
         order: 1,
         status: 403,
-        line: 136,
+        line: 138,
         kind: 'state',
         message: '허용되지 않은 요청입니다',
         reach:
@@ -1509,7 +1509,7 @@ export const GATES: Record<string, HandlerGates> = {
       {
         order: 2,
         status: 429,
-        line: 142,
+        line: 144,
         kind: 'rate-limit',
         message: '신청이 너무 많습니다. 잠시 후 다시 시도해 주세요.',
         reach: '같은 IP 로 10분에 6회째 요청',
@@ -1517,7 +1517,7 @@ export const GATES: Record<string, HandlerGates> = {
       {
         order: 3,
         status: 400,
-        line: 150,
+        line: 152,
         kind: 'body-parse',
         message: '잘못된 요청입니다',
         reach: 'JSON 이 아닌 본문',
@@ -1525,7 +1525,7 @@ export const GATES: Record<string, HandlerGates> = {
       {
         order: 4,
         status: 400,
-        line: 159,
+        line: 161,
         kind: 'schema',
         message: null,
         reach:
@@ -1536,7 +1536,7 @@ export const GATES: Record<string, HandlerGates> = {
       {
         order: 5,
         status: 409,
-        line: 171,
+        line: 173,
         kind: 'state',
         message: '다른 계정으로 로그인되어 있습니다. 로그아웃한 뒤 신청해 주세요.',
         reach: 'ADMIN/PROVIDER/TECHNICIAN 세션으로 신청 — 새 고객 쿠키가 그 세션을 덮어쓰는 것을 막는다',
@@ -1544,27 +1544,27 @@ export const GATES: Record<string, HandlerGates> = {
       {
         order: 6,
         status: 401,
-        line: 182,
+        line: 184,
         kind: 'state',
         message: '로그인이 필요합니다',
         reach:
           '무세션 + 스키마는 통과하되 loginId·password 둘 다 미동봉 — 갱신 화면에서 온 요청의 세션이 ' +
           '그 사이 끝난 경우. 클라이언트가 이 401 을 보고 /my/login?returnTo=/inspection/apply 로 보낸다',
-        trap: '희망일이 부실하면 :159 의 400 이 먼저 나온다',
+        trap: '희망일이 부실하면 :161 의 400 이 먼저 나온다',
       },
       {
         order: 7,
         status: 400,
-        line: 185,
+        line: 187,
         kind: 'state',
         message: '아이디와 비밀번호를 입력해 주세요',
         reach: '무세션 + loginId/password 중 하나만 동봉',
-        trap: '희망일이 부실하면 :159 의 400 이 먼저 나온다',
+        trap: '희망일이 부실하면 :161 의 400 이 먼저 나온다',
       },
       {
         order: 8,
         status: 409,
-        line: 201,
+        line: 203,
         kind: 'conflict',
         message: '이미 사용 중인 아이디입니다',
         reach:
@@ -1574,7 +1574,7 @@ export const GATES: Record<string, HandlerGates> = {
       {
         order: 9,
         status: 409,
-        line: 233,
+        line: 235,
         kind: 'state',
         message: '이미 진행 중인 점검 구독이 있습니다.',
         reach:
@@ -1584,11 +1584,11 @@ export const GATES: Record<string, HandlerGates> = {
       {
         order: 10,
         status: 409,
-        line: 296,
+        line: 300,
         kind: 'race',
         message: null,
         reach:
-          '사전 검사(:201·:233)와 INSERT 사이에 끼어든 동시 요청(renewed 경로 포함). P2002 가 어느 ' +
+          '사전 검사(:203·:235)와 INSERT 사이에 끼어든 동시 요청(renewed 경로 포함). P2002 가 어느 ' +
           '유니크에서 났는지에 따라 위 두 문구 중 하나가 그대로 나온다 — 고정 문구가 아니라 null',
       },
     ],
@@ -1597,15 +1597,16 @@ export const GATES: Record<string, HandlerGates> = {
   'POST /api/my/inspection/visits': {
     file: 'src/app/api/my/inspection/visits/route.ts',
     note:
-      '날짜 검증(:131)은 구독의 startDate 가 있어야 계산되므로 zod 로 접을 수 없다. ' +
-      '그래서 스키마 400(:77)과 구별되도록 고정 머리말을 붙여 반환한다. 회차 잠금(:122)은 ' +
-      '날짜 검증보다 **먼저** 본다 — 잠긴 회차에 날짜 오류를 돌려주면 고객이 날짜만 바꿔 가며 ' +
-      '헛되이 재시도한다. 잠금 판정은 화면(buildPlanView)과 같은 lib/inspection.bookingBlock 이다.',
+      '신규 예약(visitId 없음)과 기존 회차의 날짜 변경(visitId)이 한 입구다. 날짜 검증(:143)은 ' +
+      '구독의 startDate·termMonths 가 있어야 계산되므로 zod 로 접을 수 없다 — 그래서 스키마 400(:78)과 ' +
+      '구별되도록 고정 머리말을 붙여 반환한다. 회차 잠금(:127)은 날짜 검증보다 **먼저** 본다 — 잠긴 ' +
+      '회차에 날짜 오류를 돌려주면 고객이 날짜만 바꿔 가며 헛되이 재시도한다. 잠금 판정은 화면' +
+      '(buildPlanView)과 같은 lib/inspection.bookingBlock 이다.',
     gates: [
       {
         order: 1,
         status: 429,
-        line: 63,
+        line: 64,
         kind: 'rate-limit',
         message: '변경이 너무 잦습니다. 잠시 후 다시 시도해 주세요.',
         reach: '같은 계정(userId)으로 10분에 11회째 요청 — 키가 IP 가 아니라 세션의 userId 다',
@@ -1613,7 +1614,7 @@ export const GATES: Record<string, HandlerGates> = {
       {
         order: 2,
         status: 400,
-        line: 71,
+        line: 72,
         kind: 'body-parse',
         message: '잘못된 요청입니다',
         reach: 'JSON 이 아닌 본문',
@@ -1621,15 +1622,15 @@ export const GATES: Record<string, HandlerGates> = {
       {
         order: 3,
         status: 400,
-        line: 77,
+        line: 78,
         kind: 'schema',
         message: null,
-        reach: 'quarter 가 1~4 밖이거나 timeSlot 이 enum 밖',
+        reach: 'visitId 가 빈 문자열이거나 timeSlot 이 enum 밖, date 누락',
       },
       {
         order: 4,
         status: 404,
-        line: 90,
+        line: 91,
         kind: 'not-found',
         message: '점검 구독이 없습니다.',
         reach: 'CUSTOMER 세션이지만 구독 행이 하나도 없음',
@@ -1637,7 +1638,7 @@ export const GATES: Record<string, HandlerGates> = {
       {
         order: 5,
         status: 409,
-        line: 95,
+        line: 96,
         kind: 'state',
         message: '입금이 확인된 뒤에 방문 날짜를 정할 수 있습니다.',
         reach: '구독이 PENDING_PAYMENT',
@@ -1645,42 +1646,76 @@ export const GATES: Record<string, HandlerGates> = {
       {
         order: 6,
         status: 409,
-        line: 104,
+        line: 105,
         kind: 'state',
         message: '이용 기간이 끝난 구독입니다. 새로 신청해 주세요.',
         reach: '구독이 EXPIRED 또는 CANCELED',
       },
       {
         order: 7,
-        status: 409,
-        line: 122,
-        kind: 'state',
-        message: null,
-        reach:
-          '그 회차가 잠겨 있다 — 문구는 lib/inspection.BOOKING_BLOCK_MESSAGE 의 셋 중 하나: ' +
-          'COMPLETED(이미 점검 완료) / VISIT_IMMINENT(확정 방문이 모레보다 이르거나 지남) / ' +
-          'WINDOW_PASSED(분기 창 종료). 관리자가 취소한 방문(CANCELED)은 잠기지 않는다',
-        trap: '날짜가 부실해도 잠긴 회차면 :131 의 400 이 아니라 이 409 가 먼저 나온다',
+        status: 404,
+        line: 113,
+        kind: 'not-found',
+        message: '점검 일정을 찾을 수 없습니다.',
+        reach: 'ACTIVE 구독 + 내 구독에 없는 visitId(남의 방문 id 포함)',
       },
       {
         order: 8,
-        status: 400,
-        line: 131,
+        status: 409,
+        line: 127,
         kind: 'state',
-        message: '예약할 수 없는 날짜입니다.',
-        reach: 'ACTIVE 구독 + 열린 회차 + 그 분기 창 밖이거나 모레 이전 날짜',
-        trap: '구독이 아직 PENDING_PAYMENT 면 :95 의 409 가 먼저 나온다',
+        message: null,
+        reach:
+          'visitId 의 회차가 잠겨 있다 — 문구는 lib/inspection.BOOKING_BLOCK_MESSAGE 의 셋 중 하나: ' +
+          'COMPLETED(이미 점검 완료) / VISIT_IMMINENT(확정 점검이 오늘이거나 지남) / ' +
+          'WINDOW_PASSED(회차의 이용 연차 종료). 관리자가 취소한 점검(CANCELED)은 잠기지 않는다',
+        trap: '날짜가 부실해도 잠긴 회차면 :143 의 400 이 아니라 이 409 가 먼저 나온다',
       },
       {
         order: 9,
+        status: 400,
+        line: 143,
+        kind: 'state',
+        message: '예약할 수 없는 날짜입니다.',
+        reach:
+          'ACTIVE 구독 + 이용 기간 밖이거나 오늘 이전 날짜, 또는 기존 회차를 다른 연차로 옮김',
+        trap: '구독이 아직 PENDING_PAYMENT 면 :96 의 409 가 먼저 나온다',
+      },
+      {
+        order: 10,
         status: 409,
         line: 157,
+        kind: 'conflict',
+        message: '그날은 이미 점검이 잡혀 있습니다. 다른 날짜를 골라 주세요.',
+        reach: '취소되지 않은 다른 회차가 같은 날짜에 있음',
+      },
+      {
+        order: 11,
+        status: 409,
+        line: 188,
         kind: 'race',
         message: '방금 일정 상태가 바뀌었습니다. 화면을 새로고침해 주세요.',
-        reach: '읽기와 쓰기 사이에 관리자가 그 방문을 완료·취소 처리 — CAS(status 일치) 가 0행을 잡는다',
+        reach: '날짜 변경 중 관리자가 그 점검을 완료·취소 처리 — CAS(status 일치) 가 0행을 잡는다',
+      },
+      {
+        order: 12,
+        status: 409,
+        line: 201,
+        kind: 'state',
+        message: null,
+        reach: '신규 예약인데 고른 날짜의 연차에 12회가 모두 잡혀 있음 — 문구에 연차 번호가 들어간다',
+      },
+      {
+        order: 13,
+        status: 409,
+        line: 229,
+        kind: 'race',
+        message: '방금 일정 상태가 바뀌었습니다. 화면을 새로고침해 주세요.',
+        reach: '두 탭이 동시에 같은 빈 회차 번호로 새 점검을 만듦 — (planId, round) 유니크 P2002',
       },
     ],
   },
+
 
   'POST /api/admin/inspections/[id]/confirm-payment': {
     file: 'src/app/api/admin/inspections/[id]/confirm-payment/route.ts',
@@ -1749,14 +1784,14 @@ export const GATES: Record<string, HandlerGates> = {
   'POST /api/admin/inspections/[id]/visits': {
     file: 'src/app/api/admin/inspections/[id]/visits/route.ts',
     note:
-      '관리자의 대리 예약 — 방문 행이 없는(또는 CANCELED 인) 회차에만 쓴다. 고객이 분기를 놓쳐 ' +
-      '행 자체가 없는 회차는 visits/[visitId] PATCH 로 손댈 수 없기 때문에 따로 있다. 날짜 규칙은 ' +
-      'lib/inspection.adminVisitDateIssue(리드타임·분기 창 없음, 이용 기간 안 + 과거 아님).',
+      '관리자의 대리 예약 — 전화로 요청받은 점검이나, 통화 결과 필요한 방문 점검을 새 회차로 잡는다. ' +
+      '회차 번호는 서버가 고른 날짜의 연차에서 빈(또는 CANCELED) 가장 작은 번호로 정한다. 날짜 규칙은 ' +
+      'lib/inspection.adminVisitDateIssue(리드타임 없음, 이용 기간 안 + 과거 아님).',
     gates: [
       {
         order: 1,
         status: 400,
-        line: 38,
+        line: 41,
         kind: 'body-parse',
         message: '잘못된 요청입니다',
         reach: 'JSON 이 아닌 본문',
@@ -1764,15 +1799,15 @@ export const GATES: Record<string, HandlerGates> = {
       {
         order: 2,
         status: 400,
-        line: 44,
+        line: 47,
         kind: 'schema',
         message: null,
-        reach: 'quarter 가 1~4 밖, date 누락, timeSlot 이 enum 밖',
+        reach: 'date 누락, timeSlot·method 가 enum 밖',
       },
       {
         order: 3,
         status: 404,
-        line: 54,
+        line: 57,
         kind: 'not-found',
         message: '구독을 찾을 수 없습니다',
         reach: '존재하지 않는 구독 id + 유효한 본문',
@@ -1780,41 +1815,50 @@ export const GATES: Record<string, HandlerGates> = {
       {
         order: 4,
         status: 409,
-        line: 59,
+        line: 62,
         kind: 'state',
-        message: '이용 중인 구독에만 방문을 잡을 수 있습니다.',
+        message: '이용 중인 구독에만 점검을 잡을 수 있습니다.',
         reach: '구독이 PENDING_PAYMENT/EXPIRED/CANCELED',
       },
       {
         order: 5,
-        status: 409,
-        line: 66,
-        kind: 'conflict',
-        message: '이미 일정이 있는 회차입니다. 방문 일정에서 변경해 주세요.',
-        reach: '그 회차에 REQUESTED/SCHEDULED/COMPLETED 방문이 이미 있음',
-      },
-      {
-        order: 6,
         status: 400,
-        line: 77,
+        line: 74,
         kind: 'state',
         message: '잡을 수 없는 날짜입니다.',
         reach: 'date 가 과거이거나 이용 기간 밖, 또는 형식 오류',
       },
+      {
+        order: 6,
+        status: 409,
+        line: 83,
+        kind: 'conflict',
+        message: '그날은 이미 점검이 잡혀 있습니다. 점검 일정에서 방식이나 날짜를 바꿔 주세요.',
+        reach: '취소되지 않은 회차가 같은 날짜에 있음',
+      },
+      {
+        order: 7,
+        status: 409,
+        line: 92,
+        kind: 'state',
+        message: null,
+        reach: '고른 날짜의 연차에 12회가 모두 잡혀 있음 — 문구에 연차 번호가 들어간다',
+      },
     ],
   },
+
 
   'PATCH /api/admin/inspections/visits/[visitId]': {
     file: 'src/app/api/admin/inspections/visits/[visitId]/route.ts',
     note:
-      '완료·취소·되돌리기(status), 대리 일정 변경(date·timeSlot), 담당 메모(adminMemo)가 한 입구다. ' +
+      '완료·취소·되돌리기(status), 대리 일정 변경(date·timeSlot), 점검 방식 전환(method: 전화↔방문), 담당 메모(adminMemo)가 한 입구다. ' +
       '상태 전이는 lib/inspection.canTransitionVisit 의 표를 따르고, 메모만 고치는 요청은 ' +
-      ':96~:125 의 상태·날짜 게이트를 모두 건너뛰고, CAS(:163)도 날짜가 아니라 status 만 본다.',
+      ':111~:141 의 상태·날짜 게이트를 모두 건너뛰고, CAS(:194)도 날짜가 아니라 status 만 본다.',
     gates: [
       {
         order: 1,
         status: 400,
-        line: 53,
+        line: 59,
         kind: 'body-parse',
         message: '잘못된 요청입니다',
         reach: 'JSON 이 아닌 본문',
@@ -1822,17 +1866,17 @@ export const GATES: Record<string, HandlerGates> = {
       {
         order: 2,
         status: 400,
-        line: 59,
+        line: 65,
         kind: 'schema',
         message: null,
         reach:
-          'status·timeSlot 이 enum 밖, adminMemo 300자 초과, 또는 date 와 COMPLETED/CANCELED 를 ' +
+          'status·timeSlot·method 가 enum 밖, adminMemo 300자 초과, 또는 date 와 COMPLETED/CANCELED 를 ' +
           '한 요청에 섞음(일정 변경과 완료·취소는 따로)',
       },
       {
         order: 3,
         status: 400,
-        line: 69,
+        line: 76,
         kind: 'state',
         message: '변경할 내용이 없습니다',
         reach: '빈 객체 `{}` — 스키마는 통과하지만 바꿀 필드가 없다',
@@ -1840,16 +1884,16 @@ export const GATES: Record<string, HandlerGates> = {
       {
         order: 4,
         status: 404,
-        line: 81,
+        line: 94,
         kind: 'not-found',
         message: '방문 일정을 찾을 수 없습니다',
         reach: '존재하지 않는 visitId + 바꿀 필드가 1개 이상',
-        trap: '본문이 `{}` 면 :69 의 400 이 먼저 나온다',
+        trap: '본문이 `{}` 면 :76 의 400 이 먼저 나온다',
       },
       {
         order: 5,
         status: 409,
-        line: 96,
+        line: 111,
         kind: 'state',
         message: '취소되었거나 입금 전인 구독의 방문은 바꿀 수 없습니다.',
         reach: '구독이 CANCELED/PENDING_PAYMENT 인 방문의 상태·날짜·시간대 변경',
@@ -1858,7 +1902,7 @@ export const GATES: Record<string, HandlerGates> = {
       {
         order: 6,
         status: 409,
-        line: 102,
+        line: 117,
         kind: 'state',
         message: '지금 상태에서는 그렇게 바꿀 수 없습니다. 화면을 새로고침해 주세요.',
         reach: '전이 표에 없는 이동 — 예: REQUESTED→COMPLETED, COMPLETED→CANCELED',
@@ -1867,7 +1911,7 @@ export const GATES: Record<string, HandlerGates> = {
       {
         order: 7,
         status: 409,
-        line: 108,
+        line: 123,
         kind: 'state',
         message: '방문일이 아직 오지 않았습니다. 미리 다녀왔다면 방문일을 먼저 바꿔 주세요.',
         reach: 'SCHEDULED + 방문일이 내일 이후인 방문을 COMPLETED 로',
@@ -1875,26 +1919,34 @@ export const GATES: Record<string, HandlerGates> = {
       {
         order: 8,
         status: 409,
-        line: 114,
+        line: 129,
         kind: 'state',
         message: '완료된 방문은 일정을 바꿀 수 없습니다. 먼저 완료를 되돌려 주세요.',
-        reach: 'COMPLETED 방문에 date 또는 timeSlot 을 보냄',
+        reach: 'COMPLETED 방문에 date·timeSlot 또는 다른 method 를 보냄',
         trap:
-          'date 는 status 를 SCHEDULED 로 끌고 가므로 COMPLETED→SCHEDULED 는 전이 표(:102)를 통과한다 — ' +
+          'date 는 status 를 SCHEDULED 로 끌고 가므로 COMPLETED→SCHEDULED 는 전이 표(:117)를 통과한다 — ' +
           '그래서 이 게이트가 따로 있다',
       },
       {
         order: 9,
         status: 400,
-        line: 125,
+        line: 141,
         kind: 'state',
         message: '옮길 수 없는 날짜입니다.',
-        reach: 'date 가 과거이거나 구독 이용 기간(startDate~endDate) 밖, 또는 형식 오류',
+        reach: 'date 가 과거이거나 구독 이용 기간(startDate~endDate) 밖, 그 회차의 이용 연차 밖, 또는 형식 오류',
       },
       {
         order: 10,
         status: 409,
-        line: 163,
+        line: 153,
+        kind: 'conflict',
+        message: '그날은 이미 다른 점검이 잡혀 있습니다.',
+        reach: '같은 구독의 취소되지 않은 다른 회차가 이미 있는 날짜로 date 를 옮김',
+      },
+      {
+        order: 11,
+        status: 409,
+        line: 194,
         kind: 'race',
         message: '방금 다른 곳에서 일정이 바뀌었습니다. 화면을 새로고침해 주세요.',
         reach:

@@ -14,7 +14,8 @@ function visit(over: Partial<InspectionSummaryScheduleRow> & { date: string }): 
   seq += 1;
   return {
     visitId: `v${seq}`,
-    quarter: 1,
+    round: 1,
+    method: 'PHONE',
     timeSlot: 'ANY',
     status: 'SCHEDULED',
     contactName: `고객${seq}`,
@@ -103,7 +104,7 @@ describe('summarizeInspections', () => {
     const s = summarizeInspections(input({
       schedule: [
         visit({ date: TODAY, timeSlot: 'ANY', contactName: '다' }),
-        visit({ date: TODAY, timeSlot: 'AFTERNOON', contactName: '나', quarter: 2 }),
+        visit({ date: TODAY, timeSlot: 'AFTERNOON', contactName: '나', round: 2 }),
         visit({ date: TODAY, timeSlot: 'MORNING', contactName: '가', address: '서울특별시 송파구 잠실동 5' }),
         visit({ date: TODAY, timeSlot: 'ANY', contactName: '라' }),
       ],
@@ -111,7 +112,7 @@ describe('summarizeInspections', () => {
     expect(s.todayVisits).toBe(4);
     expect(s.todayList.map((v) => v.contactName)).toEqual(['가', '나', '다']);
     expect(s.todayList[0]).toMatchObject({ timeSlot: 'MORNING', address: '송파구 잠실동' });
-    expect(s.todayList[1].quarter).toBe(2);
+    expect(s.todayList[1].round).toBe(2);
   });
 
   it('최근 입금 대기 신청은 PENDING_PAYMENT 만, 신청 시각 내림차순 최대 3건', () => {

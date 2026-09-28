@@ -7,17 +7,22 @@ import {
   smsInspectionVisitBooked,
   smsInspectionVisitCanceled,
   smsInspectionVisitRescheduled,
+  smsInspectionSwitchedToOnsite,
 } from '@/lib/sms/templates';
 import {
   adminVisitDateIssue,
   canTransitionVisit,
   fromDateString,
+  occupiesRound,
   toDateString,
   todayKst,
 } from '@/lib/inspection';
 import { inspectionPortalUrl } from '@/lib/inspectionLifecycle';
 
-// 방문 1건의 관리자 갱신 — 완료·취소·되돌리기, 대리 일정 변경, 담당자 메모.
+// 점검 1건의 관리자 갱신 — 완료·취소·되돌리기, 대리 일정 변경, 점검 방식(전화↔방문), 담당자 메모.
+//
+// 점검 방식(method)은 플랫폼의 판단이다(사용자 결정 2026-09-28): 전화 점검을 해 보고 방문이
+// 필요하면 관리자가 ONSITE 로 돌린다 — 이때 날짜·시간대를 같은 요청으로 방문일로 옮길 수 있다.
 //
 // adminMemo 가 "누가 갔는지"를 적는 칸이다: 기사 배정을 시스템이 하지 않기로 했으므로
 // (사용자 결정 2026-09-20) 방문 담당자는 구조화된 FK 가 아니라 자유 메모로 남는다.
@@ -31,6 +36,7 @@ const patchSchema = z
     adminMemo: z.string().trim().max(300).nullish(),
     date: z.string().trim().optional(),
     timeSlot: z.enum(['MORNING', 'AFTERNOON', 'ANY']).optional(),
+    method: z.enum(['PHONE', 'ONSITE']).optional(),
   })
   .refine(
     (v) => v.date === undefined || v.status === undefined || v.status === 'SCHEDULED',
@@ -59,12 +65,13 @@ export async function PATCH(
       { status: 400 },
     );
   }
-  const { adminMemo, date, timeSlot } = parsed.data;
+  const { adminMemo, date, timeSlot, method } = parsed.data;
   if (
     parsed.data.status === undefined &&
     adminMemo === undefined &&
     date === undefined &&
-    timeSlot === undefined
+    timeSlot === undefined &&
+    method === undefined
   ) {
     return NextResponse.json({ error: '변경할 내용이 없습니다' }, { status: 400 });
   }
@@ -73,7 +80,13 @@ export async function PATCH(
     where: { id: visitId },
     include: {
       plan: {
-        select: { status: true, startDate: true, endDate: true, contactPhone: true },
+        select: {
+          status: true,
+          startDate: true,
+          endDate: true,
+          contactPhone: true,
+          visits: { select: { id: true, status: true, preferredDate: true } },
+        },
       },
     },
   });
@@ -85,7 +98,9 @@ export async function PATCH(
   const nextStatus = date !== undefined ? 'SCHEDULED' : parsed.data.status;
   const statusChanges = nextStatus !== undefined && nextStatus !== visit.status;
   // 담당 메모만 고치는 요청인가, 일정·상태를 움직이는 요청인가 — 아래의 게이트와 CAS 가 함께 쓴다.
-  const touchesSchedule = statusChanges || date !== undefined || timeSlot !== undefined;
+  const methodChanges = method !== undefined && method !== visit.method;
+  const touchesSchedule =
+    statusChanges || date !== undefined || timeSlot !== undefined || methodChanges;
   const today = todayKst();
   const currentDate = toDateString(visit.preferredDate);
 
@@ -108,7 +123,7 @@ export async function PATCH(
       { status: 409 },
     );
   }
-  if ((date !== undefined || timeSlot !== undefined) && visit.status === 'COMPLETED') {
+  if ((date !== undefined || timeSlot !== undefined || methodChanges) && visit.status === 'COMPLETED') {
     return NextResponse.json(
       { error: '완료된 방문은 일정을 바꿀 수 없습니다. 먼저 완료를 되돌려 주세요.' },
       { status: 409 },
@@ -120,10 +135,24 @@ export async function PATCH(
       startDate: visit.plan.startDate ? toDateString(visit.plan.startDate) : '',
       endDate: visit.plan.endDate ? toDateString(visit.plan.endDate) : '',
       today,
+      round: visit.round,
     });
     if (issue) {
       return NextResponse.json({ error: `옮길 수 없는 날짜입니다. ${issue}` }, { status: 400 });
     }
+  // 같은 날 두 건은 고객 달력이 그날을 막아 버려 풀 수 없게 된다 — 대리 예약(POST)과 같은 규칙.
+  if (
+    date !== undefined &&
+    date !== currentDate &&
+    visit.plan.visits.some(
+      (v) => v.id !== visitId && occupiesRound(v.status) && toDateString(v.preferredDate) === date,
+    )
+  ) {
+    return NextResponse.json(
+      { error: '그날은 이미 다른 점검이 잡혀 있습니다.' },
+      { status: 409 },
+    );
+  }
   }
 
   const now = new Date();
@@ -132,12 +161,14 @@ export async function PATCH(
     adminMemo?: string | null;
     preferredDate?: Date;
     timeSlot?: 'MORNING' | 'AFTERNOON' | 'ANY';
+    method?: 'PHONE' | 'ONSITE';
     completedAt?: Date | null;
     canceledAt?: Date | null;
   } = {};
   if (adminMemo !== undefined) data.adminMemo = adminMemo || null;
   if (date !== undefined) data.preferredDate = fromDateString(date);
   if (timeSlot !== undefined) data.timeSlot = timeSlot;
+  if (methodChanges) data.method = method;
   if (statusChanges) {
     data.status = nextStatus;
     // 상태와 타임스탬프를 항상 함께 옮긴다 — 되돌릴 때 이전 흔적이 남아 있으면
@@ -167,27 +198,39 @@ export async function PATCH(
   // 고객은 이 변화를 보고 있지 않다 — 일정이 움직였으면 알린다. 완료 처리와 메모는 알리지 않는다.
   // 이미 끝난 구독에는 보내지 않는다: "새 날짜를 선택해 주세요"·"예약되었습니다"가 거짓말이 된다.
   const newDate = date ?? currentDate;
+  const newSlot = timeSlot ?? visit.timeSlot;
+  const newMethod = method ?? visit.method;
   const slotChanged = timeSlot !== undefined && timeSlot !== visit.timeSlot;
   const phone = visit.plan.contactPhone;
+  const round = visit.round;
   if (visit.plan.status === 'ACTIVE') {
     if (statusChanges && nextStatus === 'CANCELED') {
       await sendSms(
         phone,
         smsInspectionVisitCanceled({
-          quarter: visit.quarter,
+          round,
           date: currentDate,
+          method: newMethod,
           portalUrl: inspectionPortalUrl(),
         }),
+      );
+    } else if (methodChanges && newMethod === 'ONSITE') {
+      // 방문으로 바뀌면 고객이 집에 있어야 한다 — 날짜·시간대를 한 문자에 모두 싣는다.
+      await sendSms(
+        phone,
+        smsInspectionSwitchedToOnsite({ round, date: newDate, timeSlot: newSlot }),
       );
     } else if (statusChanges && nextStatus === 'SCHEDULED' && visit.status !== 'COMPLETED') {
       // 취소됐던 방문을 되살렸거나, 확정 보류(REQUESTED)였던 희망일을 확정한 경우 — 날짜를 그대로
       // 뒀더라도 고객이 마지막으로 들은 말은 "취소됐다"/"다시 골라 달라"였으므로 반드시 알린다.
-      await sendSms(phone, smsInspectionVisitBooked({ quarter: visit.quarter, date: newDate }));
-    } else if (newDate !== currentDate || slotChanged) {
+      await sendSms(phone, smsInspectionVisitBooked({ round, date: newDate, method: newMethod }));
+    } else if (newDate !== currentDate || slotChanged || methodChanges) {
+      // 방문 → 전화로 되돌린 경우도 여기로 온다 — "전화 점검이 …로 변경"으로 알린다.
       await sendSms(
         phone,
         smsInspectionVisitRescheduled({
-          quarter: visit.quarter,
+          round,
+          method: newMethod,
           date: newDate,
           timeSlot: slotChanged ? timeSlot : null,
         }),
@@ -201,6 +244,7 @@ export async function PATCH(
       visitId,
       date: newDate,
       status: nextStatus ?? visit.status,
+      method: newMethod,
       adminMemo: adminMemo !== undefined ? adminMemo || null : visit.adminMemo,
     },
   });

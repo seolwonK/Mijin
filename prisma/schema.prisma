@@ -477,28 +477,35 @@ model KcpCertSession {
 // Assignment·ServiceRequest 로 이어지는 연결이 없다 — 긴급 출동 파이프라인과 완전히 분리된다.
 
 enum InspectionPlanStatus {
-  PENDING_PAYMENT // 신청 완료 · 입금 대기 (1분기 희망일은 이미 받아 둔 상태)
+  PENDING_PAYMENT // 신청 완료 · 입금 대기 (1회차 희망일은 이미 받아 둔 상태)
   ACTIVE // 입금 확인 완료 — 이용 중
-  EXPIRED // 구독 1년 종료
+  EXPIRED // 이용 기간(1년·2년) 종료
   CANCELED // 관리자 취소(오입금·환불 등)
 }
 
 enum InspectionVisitStatus {
-  REQUESTED // 고객이 희망일을 냈고 아직 확정되지 않음 (입금 확인 전 1분기가 여기서 시작한다)
-  SCHEDULED // 방문 예정 — 날짜 확정
+  REQUESTED // 고객이 희망일을 냈고 아직 확정되지 않음 (입금 확인 전 1회차가 여기서 시작한다)
+  SCHEDULED // 점검 예정 — 날짜 확정
   COMPLETED // 점검 완료
   CANCELED // 취소 (고객 요청·관리자 판단)
 }
 
-// 방문 시간대. 날짜별 인원 한도가 없으므로(사용자 확정) 정원 계산에는 쓰이지 않고,
-// 기사 동선을 짜는 관리자에게 주는 힌트다.
+// 점검 방식 (사용자 결정 2026-09-28). 기본은 전화(유선) 점검이고, 통화 결과 플랫폼이
+// 필요하다고 판단한 회차만 관리자가 방문 점검으로 돌린다 — 고객이 고르는 값이 아니다.
+enum InspectionMethod {
+  PHONE // 유선 점검
+  ONSITE // 전기기사 방문 점검
+}
+
+// 점검 시간대. 날짜별 인원 한도가 없으므로(사용자 확정) 정원 계산에는 쓰이지 않고,
+// 전화·방문 일정을 짜는 관리자에게 주는 힌트다.
 enum InspectionTimeSlot {
   MORNING // 오전(09~12시)
   AFTERNOON // 오후(13~18시)
   ANY // 무관
 }
 
-// 구독 1건 = 1년 · 4회. 갱신은 새 행으로 만든다(기간·금액 스냅샷이 섞이지 않게).
+// 구독 1건 = 1년권 또는 2년권, 1년마다 12회 점검. 갱신은 새 행으로 만든다(기간·금액 스냅샷이 섞이지 않게).
 // "한 계정이 동시에 여러 구독을 들 수 없다"는 불변식은 마이그레이션의 부분 유니크
 // 인덱스(status IN ('PENDING_PAYMENT','ACTIVE'))가 DB 차원에서 강제한다 — Prisma 스키마
 // 문법으로는 부분 인덱스를 표현할 수 없어 SQL 에만 존재한다(EggLedger CHECK 제약 전례).
@@ -518,15 +525,16 @@ model InspectionPlan {
   lng           Float?
   memo          String? // 고객이 남긴 요청사항
 
-  status   InspectionPlanStatus @default(PENDING_PAYMENT)
-  priceWon Int // 신청 시점 연회비 동결 — 가격을 올려도 기존 구독엔 영향이 없다
+  status     InspectionPlanStatus @default(PENDING_PAYMENT)
+  termMonths Int                  @default(12) // 이용 기간(개월) — 12(1년권) 또는 24(2년권)
+  priceWon   Int // 신청 시점 기간 총액(일시 입금액) 동결 — 가격을 올려도 기존 구독엔 영향이 없다
 
   // 입금 대조용 입금자명. 계좌이체는 우리가 "누가 보냈는지"를 이 문자열로만 알 수 있다.
   depositorName         String
   paidConfirmedAt       DateTime?
   paidConfirmedByUserId String? // 확인한 관리자 User.id (감사 추적)
 
-  // 구독 기간 — 입금 확인 시점에 확정된다. 분기 창은 startDate 기준 3개월씩 4구간이며,
+  // 구독 기간 — 입금 확인 시점에 확정된다. 이용 연차(1년 단위 창)는 startDate 에서 파생되며,
   // 계산은 전부 src/lib/inspection.ts 가 소유한다. 날짜 개념이라 DATE 로 저장한다
   // (시각이 없으므로 타임존에 따라 하루가 밀리는 문제를 원천 차단).
   startDate DateTime? @db.Date
@@ -543,15 +551,17 @@ model InspectionPlan {
   @@index([userId, createdAt]) // 내 구독 조회(갱신 이력 포함)
 }
 
-// 분기 방문 1건. (planId, quarter) 유니크가 "분기당 1회"를 DB 로 못박는다.
+// 점검 1건. (planId, round) 유니크가 "회차당 1건"을 DB 로 못박는다. 회차는 이용 연차마다
+// 12개(1년차 1~12, 2년차 13~24)이고, 고객은 연차 안에서 날짜를 자유롭게 고른다.
 // 날짜별 인원 한도는 없다(사용자 확정) — 그래서 날짜에 대한 유니크·카운트 제약이 없다.
 model InspectionVisit {
   id     String         @id @default(cuid())
   plan   InspectionPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
   planId String
 
-  quarter       Int // 1~4 (구독 시작일 기준 3개월 구간)
+  round         Int // 1~24 — (round-1)/12 의 몫 + 1 이 이용 연차
   preferredDate DateTime              @db.Date
+  method        InspectionMethod      @default(PHONE)
   timeSlot      InspectionTimeSlot    @default(ANY)
   status        InspectionVisitStatus @default(REQUESTED)
   note          String? // 고객 요청사항
@@ -562,6 +572,6 @@ model InspectionVisit {
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
-  @@unique([planId, quarter]) // 분기당 1회
+  @@unique([planId, round]) // 회차당 1건
   @@index([preferredDate, status]) // 관리자 일정표: 날짜순 조회
 }

@@ -7,7 +7,8 @@ import {
   type TimeSlot,
 } from '@/lib/inspection';
 
-// 희망 시간대 선택 — 신청서와 마이페이지의 회차 예약이 같은 것을 쓴다.
+// 통화 희망 시간대 선택 — 신청서와 마이페이지의 점검 예약이 같은 것을 쓴다.
+// 점검은 전화가 기본이라 "통화" 시간대로 부르고, 방문 점검으로 바뀌면 같은 값을 방문 시간대로 쓴다.
 //
 // 셋 중 하나만 고르는 선택이라 토글 버튼이 아니라 **라디오**다. 네이티브 radio 를 그대로 두고
 // 모양만 입히면 방향키 이동·그룹 낭독("3개 중 1번째")을 브라우저가 맡아 준다.
@@ -23,7 +24,7 @@ export default function InspectionTimeSlotPicker({
 }) {
   return (
     <fieldset>
-      <legend className="mb-1 block text-sm font-medium">희망 시간대</legend>
+      <legend className="mb-1 block text-sm font-medium">통화 희망 시간대</legend>
       <div className="grid grid-cols-3 gap-2">
         {TIME_SLOTS.map((slot) => {
           const checked = value === slot;

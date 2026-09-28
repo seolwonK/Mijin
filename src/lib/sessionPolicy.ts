@@ -15,7 +15,7 @@ export type SessionClaims = {
 };
 
 /**
- * 점검 구독 고객(CUSTOMER)은 분기 1회 방문 확인 정도로만 들어오므로 30일, 나머지 역할은 7일.
+ * 점검 구독 고객(CUSTOMER)은 점검 날짜를 잡을 때만 가끔 들어오므로 30일, 나머지 역할은 7일.
  * JWT 만료와 쿠키 maxAge 는 반드시 이 값을 같이 쓴다.
  */
 export function sessionMaxAgeSeconds(role: string): number {

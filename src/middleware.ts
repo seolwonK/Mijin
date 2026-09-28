@@ -62,7 +62,7 @@ export async function middleware(req: NextRequest) {
     const res = NextResponse.next();
     res.headers.set('X-Robots-Tag', 'noindex, nofollow');
     // 고객 세션 슬라이딩 갱신 — 30일 세션의 남은 기간이 15일 미만이면 같은 내용으로 재발급한다.
-    // 분기마다 들어오는 고객이 매번 다시 로그인하지 않게 하려는 것이다. /my 요청에서만 한다.
+    // 점검 날짜를 잡으러 가끔 들어오는 고객이 매번 다시 로그인하지 않게 하려는 것이다. /my 요청에서만 한다.
     if (isCustomerArea && shouldRefreshSession(payload)) {
       const fresh = await signSession(pickSessionClaims(payload), secret);
       res.cookies.set(SESSION_COOKIE, fresh, sessionCookieOptions('CUSTOMER'));

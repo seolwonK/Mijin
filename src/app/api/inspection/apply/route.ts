@@ -8,14 +8,14 @@ import { createSessionToken, getSession, SESSION_COOKIE, sessionCookieOptions } 
 import { isCrossSiteRequest } from '@/lib/requestOrigin';
 import { sendSms } from '@/lib/sms';
 import { smsInspectionApplied } from '@/lib/sms/templates';
-import { INSPECTION_PRICE_WON, applyDateIssue, fromDateString, todayKst } from '@/lib/inspection';
+import { INSPECTION_PRICING, applyDateIssue, fromDateString, todayKst } from '@/lib/inspection';
 import { readInspectionAccount } from '@/lib/inspectionAccount';
 import { expireDuePlans } from '@/lib/inspectionLifecycle';
 
-// 정기 전기점검 구독 신청 — 계정 생성 + 구독(입금 대기) + 1분기 희망일을 한 번에 받는다.
+// 정기 전기점검 구독 신청 — 계정 생성 + 구독(입금 대기, 1년권·2년권) + 1회차 희망일을 한 번에 받는다.
 // 입금 전에 희망일까지 받는 것은 사용자 결정(2026-09-20): 고객이 두 번 들어오지 않게 한다.
 //
-// 이미 로그인한 고객(CUSTOMER 세션)은 계정을 새로 만들지 않고 구독만 추가한다 — 1년이 지나
+// 이미 로그인한 고객(CUSTOMER 세션)은 계정을 새로 만들지 않고 구독만 추가한다 — 기간이 지나
 // 만료된 구독을 갱신하는 경로다. 진행 중인 구독이 있으면 DB 의 부분 유니크 인덱스가 막는다.
 // 로그인하지 않았어도 기존 아이디·비밀번호·전화번호로 본인이 확인되면 같은 갱신 경로를 탄다(renewed).
 
@@ -119,6 +119,8 @@ const applySchema = z.object({
       if (issue) ctx.addIssue({ code: 'custom', message: issue });
     }),
   timeSlot: z.enum(['MORNING', 'AFTERNOON', 'ANY']),
+  // 요금제 — 2년권(월 5,500원)·1년권(월 7,700원). 금액은 서버의 요금표로 정한다(클라이언트 값 불신).
+  term: z.enum(['ONE_YEAR', 'TWO_YEAR'], { error: '요금제를 선택해 주세요' }),
   memo: z.string().trim().max(500, '요청 사항은 500자 이내로 입력해 주세요').nullish(),
   // 입금자명이 신청자 이름과 다를 수 있다(가족 계좌 등). 비우면 이름을 그대로 쓴다.
   depositorName: z
@@ -237,6 +239,7 @@ export async function POST(req: NextRequest) {
   // 좌표는 시도만 한다 — 실패해도 신청은 진행(tech/signup 과 같은 정책). 상한을 둬 늘어지지 않게 한다.
   const geo = await geocodeWithin(data.address);
   const depositorName = data.depositorName || data.name;
+  const pricing = INSPECTION_PRICING[data.term];
   const planData = {
     contactName: data.name,
     contactPhone: data.phone,
@@ -245,11 +248,12 @@ export async function POST(req: NextRequest) {
     lat: geo?.lat ?? null,
     lng: geo?.lng ?? null,
     memo: data.memo || null,
-    priceWon: INSPECTION_PRICE_WON,
+    termMonths: pricing.months,
+    priceWon: pricing.totalWon,
     depositorName,
     visits: {
       create: {
-        quarter: 1,
+        round: 1,
         preferredDate: fromDateString(data.preferredDate),
         timeSlot: data.timeSlot,
         note: data.memo || null,
@@ -310,7 +314,8 @@ export async function POST(req: NextRequest) {
         data.phone,
         smsInspectionApplied({
           customerName: applied.userName,
-          priceWon: INSPECTION_PRICE_WON,
+          planLabel: pricing.label,
+          priceWon: pricing.totalWon,
           account,
           depositorName,
         }),

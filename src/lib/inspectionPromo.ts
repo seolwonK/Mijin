@@ -9,7 +9,7 @@ export const PROMO_STORAGE_KEY = 'ajeossi_inspection_promo_until';
 
 /**
  * 팝업이 닫힌 사유. 사유마다 다시 보여주기까지의 간격이 다르다 —
- * 그냥 닫은 사람에게는 2주 뒤 한 번 더, 내용을 보러 간 사람에게는 분기 뒤,
+ * 그냥 닫은 사람에게는 2주 뒤 한 번 더, 내용을 보러 간 사람에게는 석 달 뒤,
  * 명시적으로 거절한 사람에게는 사실상 영구히 띄우지 않는다.
  */
 export type PromoDismissReason = 'close' | 'cta' | 'never';

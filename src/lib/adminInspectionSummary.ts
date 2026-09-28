@@ -14,8 +14,9 @@ export const INSPECTION_SUMMARY_LIST_LIMIT = 3;
 export type InspectionSummaryScheduleRow = {
   visitId: string;
   date: string;
-  quarter: number;
+  round: number;
   timeSlot: TimeSlot;
+  method: 'PHONE' | 'ONSITE';
   status: 'REQUESTED' | 'SCHEDULED' | 'COMPLETED' | 'CANCELED';
   contactName: string;
   address: string;
@@ -51,7 +52,14 @@ export type InspectionSummary = {
   /** 날짜가 지났는데 아직 SCHEDULED 인 방문 — 완료 처리가 필요하다. */
   overdue: number;
   /** 오늘 방문 목록(시간대 순, 최대 3). */
-  todayList: { visitId: string; timeSlot: TimeSlot; contactName: string; address: string; quarter: number }[];
+  todayList: {
+    visitId: string;
+    timeSlot: TimeSlot;
+    method: 'PHONE' | 'ONSITE';
+    contactName: string;
+    address: string;
+    round: number;
+  }[];
   /** 최근 입금 대기 신청(신청 시각 내림차순, 최대 3). */
   recentPending: { planId: string; createdDate: string; contactName: string; contactPhone: string }[];
 };
@@ -83,7 +91,8 @@ export function summarizeInspections(data: InspectionSummaryInput): InspectionSu
       timeSlot: v.timeSlot,
       contactName: v.contactName,
       address: shortAddress(v.address),
-      quarter: v.quarter,
+      round: v.round,
+      method: v.method,
     }));
 
   const recentPending = data.plans

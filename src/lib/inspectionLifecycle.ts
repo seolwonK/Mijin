@@ -6,18 +6,16 @@ import { COMPANY } from '@/lib/company';
 import { prisma } from '@/lib/db';
 import {
   INSPECTION_MIN_LEAD_DAYS,
-  type Quarter,
   addDays,
   fromDateString,
   planEndDate,
-  quarterWindow,
   toDateString,
   todayKst,
 } from '@/lib/inspection';
 import type { PlanWithVisits } from '@/lib/inspectionView';
 
 const PLAN_WITH_VISITS = {
-  visits: { orderBy: { quarter: 'asc' } },
+  visits: { orderBy: { round: 'asc' } },
 } as const;
 
 /** 문자에 싣는 고객 포털 주소. 조사 링크(lib/survey.ts)와 같은 우선순위로 호스트를 고른다. */
@@ -54,9 +52,9 @@ export type ActivateResult =
   | SettleFailure;
 
 /**
- * 입금 확인 → 구독 활성화. **확인한 날이 구독 시작일**이다(사용자 결정: 가입일 기준 4구간).
+ * 입금 확인 → 구독 활성화. **확인한 날이 구독 시작일**이고, 기간은 신청한 요금제(termMonths)를 따른다.
  *
- * 1분기 방문은 입금 전에 이미 희망일을 받아 둔 상태(REQUESTED)다. 확인이 늦어져 그 날짜가
+ * 1회차 점검은 입금 전에 이미 희망일을 받아 둔 상태(REQUESTED)다. 확인이 늦어져 그 날짜가
  * 지났거나 **방문 준비 시간(리드타임)이 남지 않았으면 확정하지 않고 REQUESTED 로 남긴다** —
  * 고객 화면이 needsReschedule 로 읽어 다시 고르게 한다. 조용히 다른 날로 옮기지 않는 것이
  * 요점이다. 리드타임을 여기서도 지키는 이유: 확인한 그날이 희망일이면 "오늘 방문"이 아무
@@ -68,11 +66,15 @@ export async function activatePlan(
   now: Date = new Date(),
 ): Promise<ActivateResult> {
   const today = todayKst(now);
-  const endDate = planEndDate(today);
-  const firstQuarter: Quarter = 1;
-  const window = quarterWindow(today, firstQuarter);
 
   return prisma.$transaction(async (tx): Promise<ActivateResult> => {
+    const pending = await tx.inspectionPlan.findUnique({
+      where: { id: planId },
+      select: { termMonths: true },
+    });
+    if (!pending) return { ok: false, reason: 'NOT_FOUND' };
+    const endDate = planEndDate(today, pending.termMonths);
+
     // CAS — PENDING_PAYMENT 인 동안 정확히 한 번만 성공한다(더블 클릭·재전송 방어).
     const claimed = await tx.inspectionPlan.updateMany({
       where: { id: planId, status: 'PENDING_PAYMENT' },
@@ -92,15 +94,15 @@ export async function activatePlan(
       return { ok: false, reason: exists ? 'ALREADY_SETTLED' : 'NOT_FOUND' };
     }
 
-    // 1분기 희망일이 아직 유효하면 방문 예정으로 확정한다.
+    // 1회차 희망일이 아직 유효하면 점검 예정으로 확정한다.
     const firstVisit = await tx.inspectionVisit.findUnique({
-      where: { planId_quarter: { planId, quarter: firstQuarter } },
+      where: { planId_round: { planId, round: 1 } },
     });
     let firstVisitDate: string | null = null;
     if (firstVisit && firstVisit.status === 'REQUESTED') {
       const date = toDateString(firstVisit.preferredDate);
-      // 창의 시작일이 곧 오늘이므로 하한은 리드타임 하나로 충분하다.
-      if (date >= addDays(today, INSPECTION_MIN_LEAD_DAYS) && date < window.endExclusive) {
+      // 기간의 시작일이 곧 오늘이므로 하한은 리드타임 하나로 충분하다.
+      if (date >= addDays(today, INSPECTION_MIN_LEAD_DAYS) && date <= endDate) {
         await tx.inspectionVisit.update({
           where: { id: firstVisit.id },
           data: { status: 'SCHEDULED' },

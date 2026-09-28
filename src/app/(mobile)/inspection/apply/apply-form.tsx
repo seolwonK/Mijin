@@ -13,10 +13,13 @@ import { buttonClasses } from '@/components/Button';
 import { requestError } from '@/lib/clientApi';
 import type { PublicBankAccount } from '@/lib/inspectionAccount';
 import {
+  INSPECTION_CHECKS_PER_YEAR,
   INSPECTION_MIN_LEAD_DAYS,
-  INSPECTION_PRICE_WON,
-  INSPECTION_VISITS_PER_TERM,
+  INSPECTION_PRICING,
+  INSPECTION_TERMS,
+  type InspectionTerm,
   type TimeSlot,
+  planYears,
   addDays,
   applyDateIssue,
   applyLatestDate,
@@ -105,6 +108,9 @@ export default function ApplyForm({
     address: prefill?.address ?? '',
   });
   const [addressDetail, setAddressDetail] = useState(prefill?.addressDetail ?? '');
+  // 2년권이 추천·기본 선택이다(사용자 결정 2026-09-28).
+  const [term, setTerm] = useState<InspectionTerm>('TWO_YEAR');
+  const plan = INSPECTION_PRICING[term];
   const [preferredDate, setPreferredDate] = useState('');
   const [timeSlot, setTimeSlot] = useState<TimeSlot>('ANY');
   const [memo, setMemo] = useState('');
@@ -238,7 +244,7 @@ export default function ApplyForm({
     if (!/^0\d{8,10}$/.test(phone.replace(/\D/g, '')))
       next['ins-phone'] = '전화번호를 확인해 주세요';
     if (!location.address.trim()) next['ins-address'] = '점검받을 주소를 입력해 주세요';
-    if (!isDateString(preferredDate)) next['ins-date'] = '1회차 희망 날짜를 선택해 주세요';
+    if (!isDateString(preferredDate)) next['ins-date'] = '첫 전화 점검 희망 날짜를 선택해 주세요';
     else {
       const dateIssue = applyDateIssue(preferredDate, today);
       if (dateIssue) next['ins-date'] = dateIssue;
@@ -300,6 +306,7 @@ export default function ApplyForm({
         body: JSON.stringify({
           // 갱신은 세션의 계정을 그대로 쓴다 — 서버가 CUSTOMER 세션을 보고 분기한다.
           ...(renewal ? {} : { loginId: loginId.trim(), password }),
+          term,
           name: name.trim(),
           phone,
           address: location.address.trim(),
@@ -365,13 +372,60 @@ export default function ApplyForm({
 
       <form onSubmit={submit} className="mx-auto w-full max-w-2xl space-y-5 px-5 py-5">
         <section className="rounded-2xl bg-gradient-to-br from-brand-50 via-white to-brand-100/50 p-5">
-          <p className="text-xs font-bold text-brand-600">신청 내용 확인</p>
-          <p className="mt-1 text-lg font-extrabold text-fg">
-            연 {formatWon(INSPECTION_PRICE_WON)} · 분기마다 1회 · 1년 {INSPECTION_VISITS_PER_TERM}회
-          </p>
-          <p className="mt-2 text-sm leading-relaxed text-muted">
-            아래 내용을 남기시면 입금 계좌를 안내해 드립니다. 입금이 확인된 날부터 1년이
-            시작되고, 그날을 기준으로 분기가 나뉩니다.
+          <p className="text-xs font-bold text-brand-600">요금제 선택</p>
+          <fieldset className="mt-3">
+            <legend className="sr-only">요금제</legend>
+            <div className="grid gap-3 sm:grid-cols-2">
+              {INSPECTION_TERMS.map((t) => {
+                const p = INSPECTION_PRICING[t];
+                const checked = term === t;
+                const checks = INSPECTION_CHECKS_PER_YEAR * planYears(p.months);
+                return (
+                  <label
+                    key={t}
+                    className={`relative block cursor-pointer rounded-2xl border-2 bg-white p-4 transition has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-brand-500/40 ${
+                      checked ? 'border-brand-600' : 'border-border'
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="ins-term"
+                      value={t}
+                      checked={checked}
+                      onChange={() => setTerm(t)}
+                      className="sr-only"
+                    />
+                    <span className="flex items-center gap-2">
+                      <span className="font-bold text-fg">{p.label}</span>
+                      {t === 'TWO_YEAR' && (
+                        <span className="rounded-full bg-brand-600 px-2 py-0.5 text-xs font-bold text-white">
+                          추천
+                        </span>
+                      )}
+                    </span>
+                    <span className="mt-1 block text-xl font-extrabold text-fg">
+                      월 {formatWon(p.monthlyWon)}
+                    </span>
+                    <span className="mt-1 block text-sm text-fg">
+                      {p.months}개월 · 총 {formatWon(p.totalWon)} 일시 입금
+                    </span>
+                    <span className="mt-0.5 block text-xs text-muted">
+                      공급가 {formatWon(p.supplyWon)} + 수수료 {formatWon(p.feeWon)}
+                    </span>
+                    <span className="mt-2 block text-sm font-semibold text-brand-700">
+                      점검 {checks}회
+                      {p.months > 12 ? ` (1년에 ${INSPECTION_CHECKS_PER_YEAR}회)` : ''}
+                    </span>
+                  </label>
+                );
+              })}
+            </div>
+          </fieldset>
+          <p className="mt-3 text-sm leading-relaxed text-muted">
+            점검은 전화로 진행하고, 필요하다고 판단되면 전기기사가 방문해 점검합니다. 1년에{' '}
+            {INSPECTION_CHECKS_PER_YEAR}회를 이용 연차 안에서 원하는 날짜에 자유롭게 쓰실 수
+            있어요. 아래 내용을 남기시면 입금 계좌를 안내해 드리고, 입금이 확인된 날부터 이용
+            기간이 시작됩니다.
           </p>
         </section>
 
@@ -418,7 +472,7 @@ export default function ApplyForm({
             />
             <FieldError id="ins-phone">{errors['ins-phone']}</FieldError>
             <p className="mt-1 text-xs text-muted">
-              방문 전 연락과 입금 확인 안내를 이 번호로 보내드립니다.
+              전화 점검과 입금 확인 안내를 이 번호로 드립니다.
             </p>
           </div>
           <div>
@@ -455,24 +509,26 @@ export default function ApplyForm({
         </section>
 
         <section className="space-y-4 rounded-2xl border border-border bg-white p-5">
-          <h2 className="font-bold text-fg">2. 1회차 방문 희망일</h2>
+          <h2 className="font-bold text-fg">2. 첫 전화 점검 희망일</h2>
           <div>
             {/* 달력에는 라벨을 <label htmlFor> 로 걸지 않는다 — 대상이 입력란이 아니라 격자라,
                 격자 자체의 aria-label(label prop)이 이름을 맡는다. */}
             <p className="mb-1 text-sm font-medium">희망 날짜</p>
             <p className="mb-2 text-xs text-muted">
-              {formatDate(minDate)}부터 {formatDate(maxDate)} 사이에서 고를 수 있어요. 날짜별 예약
-              인원 제한은 없습니다.
+              {INSPECTION_MIN_LEAD_DAYS === 1 ? `내일(${formatDate(minDate)})` : formatDate(minDate)}부터 {formatDate(maxDate)} 사이에서 고를 수 있어요.
+              날짜별 예약 인원 제한은 없습니다.
             </p>
             {/* 변경 잠금 규칙(bookingBlock 의 VISIT_IMMINENT)과 같은 상수를 쓴다. */}
             <p className="mb-2 text-xs text-muted">
-              정한 날짜는 방문 {INSPECTION_MIN_LEAD_DAYS}일 전까지 마이페이지에서 직접 바꿀 수 있어요.
+              {INSPECTION_MIN_LEAD_DAYS === 1
+                ? '정한 날짜는 점검 전날까지 마이페이지에서 직접 바꿀 수 있고, 당일에는 고객센터로 연락해 주세요.'
+                : `정한 날짜는 점검 ${INSPECTION_MIN_LEAD_DAYS}일 전까지 마이페이지에서 직접 바꿀 수 있어요.`}
             </p>
             {/* 모바일에서 날짜 칸이 44px 이상 되도록 달력을 카드 안쪽 여백까지 넓힌다. */}
             <div className="-mx-3 sm:mx-0">
               <InspectionCalendar
                 id="ins-date"
-                label="1회차 방문 희망일"
+                label="첫 전화 점검 희망일"
                 value={preferredDate}
                 onChange={(date) => {
                   setPreferredDate(date);
@@ -494,7 +550,12 @@ export default function ApplyForm({
               }}
             />
           </div>
-          <InspectionTimeSlotPicker name="ins-slot" value={timeSlot} onChange={setTimeSlot} />
+          <div>
+            <InspectionTimeSlotPicker name="ins-slot" value={timeSlot} onChange={setTimeSlot} />
+            <p className="mt-1 text-xs text-muted">
+              통화 희망 시간대예요. 방문 점검으로 바뀌면 방문 시간대로 삼습니다.
+            </p>
+          </div>
           <div>
             <label htmlFor="ins-memo" className="mb-1 block text-sm font-medium">
               요청사항 <span className="font-normal text-muted">(선택)</span>
@@ -513,7 +574,7 @@ export default function ApplyForm({
 
         <section className="space-y-4 rounded-2xl border border-border bg-white p-5">
           <h2 className="font-bold text-fg">3. 입금 정보</h2>
-          <BankAccountCard account={account} amountWon={INSPECTION_PRICE_WON} />
+          <BankAccountCard account={account} amountWon={plan.totalWon} />
           <div>
             <label htmlFor="ins-depositor" className="mb-1 block text-sm font-medium">
               입금자명 <span className="font-normal text-muted">(이름과 다를 때만)</span>
@@ -543,7 +604,7 @@ export default function ApplyForm({
           <section className="space-y-4 rounded-2xl border border-border bg-white p-5">
             <h2 className="font-bold text-fg">4. 로그인 정보</h2>
             <p className="text-sm leading-relaxed text-muted">
-              2·3·4회차 방문 날짜를 직접 고르시려면 계정이 필요합니다. 신청하면 바로 로그인됩니다.
+              다음 점검 날짜를 직접 고르시려면 계정이 필요합니다. 신청하면 바로 로그인됩니다.
             </p>
             {/* 이미 계정이 있는 고객이 같은 전화번호로 계정을 하나 더 만들지 않도록 길을 낸다.
                 로그인하면 /my 가 상태에 맞는 다음 행동(다시 신청하기 등)을 보여 준다. */}
@@ -654,7 +715,7 @@ export default function ApplyForm({
             className="mt-0.5 h-5 w-5 shrink-0 accent-brand-600"
           />
           <span className="leading-relaxed text-muted">
-            점검 방문과 입금 확인을 위해 이름·연락처·주소를 수집·이용하는 데 동의합니다.{' '}
+            점검 연락·방문과 입금 확인을 위해 이름·연락처·주소를 수집·이용하는 데 동의합니다.{' '}
             <Link href="/privacy" className="font-semibold text-brand-700 underline">
               개인정보처리방침
             </Link>
@@ -674,7 +735,7 @@ export default function ApplyForm({
           disabled={busy}
           className={buttonClasses('primary', 'lg', 'w-full')}
         >
-          {busy ? '신청 중…' : `${formatWon(INSPECTION_PRICE_WON)} 전기점검 신청하기`}
+          {busy ? '신청 중…' : `${plan.label} ${formatWon(plan.totalWon)} 전기점검 신청하기`}
         </button>
         <p className="text-center text-xs text-muted">
           신청 후 입금해 주시면 관리자가 확인한 뒤 점검이 시작됩니다.

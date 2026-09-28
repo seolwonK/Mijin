@@ -11,19 +11,23 @@ import PortalLoadState from '@/components/PortalLoadState';
 import { requestError } from '@/lib/clientApi';
 import { PLAN_STATUS_LABEL, VISIT_STATUS_LABEL, type PlanView } from '@/lib/inspectionView';
 import {
-  INSPECTION_PRICE_WON,
+  INSPECTION_PRICING,
+  INSPECTION_TERMS,
+  METHOD_LABEL,
   TIME_SLOTS,
   TIME_SLOT_LABEL,
+  type InspectionMethod,
   type TimeSlot,
   type VisitStatus,
   formatPhone,
   formatDateRange,
-  formatShortDate,
   formatVisitDate,
   formatWon,
   daysBetween,
   fromDateString,
   isDateString,
+  planLabel,
+  yearOfDate,
 } from '@/lib/inspection';
 
 type PlanRow = PlanView & { loginId: string; userName: string };
@@ -32,8 +36,9 @@ type ScheduleRow = {
   visitId: string;
   planId: string;
   date: string;
-  quarter: number;
+  round: number;
   timeSlot: TimeSlot;
+  method: InspectionMethod;
   status: VisitStatus;
   note: string | null;
   adminMemo: string | null;
@@ -58,6 +63,7 @@ type VisitPatch = {
   adminMemo?: string | null;
   date?: string;
   timeSlot?: TimeSlot;
+  method?: InspectionMethod;
 };
 
 type StatusFilter = PlanView['status'] | 'ALL';
@@ -81,14 +87,30 @@ const cellClass = 'px-3 py-2 align-top text-sm';
 const headClass = 'whitespace-nowrap px-3 py-2 text-left text-xs font-semibold text-muted';
 const fieldClass = 'min-h-11 rounded-admin-md border border-border bg-white px-3 text-sm';
 
-// 방문 일정 탭의 날짜 묶음. 기준일은 서버가 준 today(todayKst — KST 달력 날짜)다.
-// "오늘" 을 맨 위에 두어 오늘 보낼 방문이 첫눈에 보이게 한다. 주는 월요일에 시작한다.
+// 점검 방식 배지. 방문 점검은 전기기사를 보내야 하는 일이라 채운 색으로 도드라지게 하고,
+// 기본값인 전화 점검은 옅게 둔다.
+const METHOD_TONE: Record<InspectionMethod, string> = {
+  PHONE: 'border border-border bg-white text-muted',
+  ONSITE: 'bg-orange-600 text-white',
+};
+const METHOD_SHORT: Record<InspectionMethod, string> = { PHONE: '전화', ONSITE: '방문' };
+
+function MethodBadge({ method }: { method: InspectionMethod }) {
+  return (
+    <span className={`whitespace-nowrap rounded-full px-2 py-0.5 font-semibold ${METHOD_TONE[method]}`}>
+      {METHOD_SHORT[method]}
+    </span>
+  );
+}
+
+// 점검 일정 탭의 날짜 묶음. 기준일은 서버가 준 today(todayKst — KST 달력 날짜)다.
+// "오늘" 을 맨 위에 두어 오늘 할 전화·방문 점검이 첫눈에 보이게 한다. 주는 월요일에 시작한다.
 type ScheduleGroup = 'today' | 'tomorrow' | 'thisWeek' | 'later' | 'past';
 
 const SCHEDULE_GROUPS: readonly { key: ScheduleGroup; label: string }[] = [
   { key: 'today', label: '오늘' },
-  // 지난 방문은 완료 처리가 남은 할 일이라 오늘 바로 아래에 둔다(0건이면 숨김).
-  { key: 'past', label: '지난 방문 · 완료 처리 필요' },
+  // 지난 점검은 완료 처리가 남은 할 일이라 오늘 바로 아래에 둔다(0건이면 숨김).
+  { key: 'past', label: '지난 점검 · 완료 처리 필요' },
   { key: 'tomorrow', label: '내일' },
   { key: 'thisWeek', label: '이번 주' },
   { key: 'later', label: '다음 주 이후' },
@@ -116,10 +138,12 @@ async function send(url: string, method: 'POST' | 'PATCH', body?: unknown) {
   if (!res.ok) throw new Error(json.error ?? '처리하지 못했습니다');
 }
 
-// 점검 구독 운영 화면. 관리자가 여기서 하는 일은 두 가지뿐이다 —
-//   ① 입금을 확인해 구독을 시작시킨다  ② 누가 언제 예약했는지 보고 기사를 보낸다.
+// 점검 구독 운영 화면. 관리자가 여기서 하는 일은 세 가지다 —
+//   ① 입금을 확인해 구독을 시작시킨다  ② 누가 언제 예약했는지 보고 전화 점검을 한다
+//   ③ 통화 결과 방문이 필요하면 방문 점검으로 전환하고 기사를 보낸다.
+// 점검은 전화가 기본이고 방문 여부는 플랫폼이 판단한다(사용자 결정 2026-09-28) — 고객은 방식을 고르지 않는다.
 // 기사 배정을 시스템이 하지 않기로 했으므로(사용자 결정 2026-09-20) 후보 추천·배정 UI 가 없고,
-// 방문 담당자는 일정표의 '담당 메모' 자유 입력으로 남긴다.
+// 통화·방문 담당자는 일정표의 '담당 메모' 자유 입력으로 남긴다.
 //
 // 대시보드 요약 띠가 바로 들어올 수 있도록 두 쿼리 파라미터를 **초기값으로만** 읽는다.
 //   ?tab=plans|schedule  ?status=ALL|PENDING_PAYMENT|ACTIVE|EXPIRED|CANCELED
@@ -153,7 +177,8 @@ function AdminInspections() {
   const [busyId, setBusyId] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
   const [canceling, setCanceling] = useState<PlanRow | null>(null);
-  const [booking, setBooking] = useState<{ plan: PlanRow; quarter: number } | null>(null);
+  const [booking, setBooking] = useState<PlanRow | null>(null);
+  const [switching, setSwitching] = useState<ScheduleRow | null>(null);
   // 확인 모달은 기본 모양을 쓴다 — 'admin' 모양의 주 버튼은 노란색이라 이 화면의 남색 주 버튼
   // (buttonClasses('primary'))과 어긋났다. 기본 모양은 같은 primary, 파괴적 동작은 danger(빨강)다.
   const [confirm, confirmUI] = useConfirm();
@@ -175,7 +200,7 @@ function AdminInspections() {
   async function confirmPayment(plan: PlanRow) {
     const ok = await confirm({
       title: '입금 확인',
-      message: `${plan.userName}님(입금자명 ${plan.depositorName})의 ${formatWon(plan.priceWon)} 입금을 확인했습니까? 확인하면 오늘부터 1년이 시작되고 고객에게 문자가 발송됩니다.`,
+      message: `${plan.userName}님(입금자명 ${plan.depositorName})의 ${planLabel(plan.termMonths, plan.priceWon)} ${formatWon(plan.priceWon)} 입금을 확인했습니까? 확인하면 오늘부터 이용 기간이 시작되고 고객에게 문자가 발송됩니다.`,
       confirmText: '입금 확인',
     });
     if (!ok) return;
@@ -192,7 +217,7 @@ function AdminInspections() {
   async function completeVisit(visit: ScheduleRow, unsavedMemo?: string) {
     const ok = await confirm({
       title: '점검 완료',
-      message: `${visit.contactName}님 ${visit.quarter}회차(${formatVisitDate(visit.date)}) 점검을 완료 처리합니다.`,
+      message: `${visit.contactName}님 ${visit.round}회차 ${METHOD_LABEL[visit.method]}(${formatVisitDate(visit.date)})을 완료 처리합니다.`,
       confirmText: '완료 처리',
     });
     if (ok) {
@@ -203,11 +228,21 @@ function AdminInspections() {
     }
   }
 
+  // 방문 점검 → 전화 점검. 날짜는 그대로 두고 방식만 되돌린다.
+  async function revertToPhone(visit: ScheduleRow) {
+    const ok = await confirm({
+      title: '전화 점검으로 되돌리기',
+      message: `${visit.contactName}님 ${visit.round}회차(${formatVisitDate(visit.date)})를 전화 점검으로 되돌립니다. 기사 방문 없이 통화로 점검합니다.`,
+      confirmText: '전화 점검으로',
+    });
+    if (ok) await patchVisit(visit.visitId, { method: 'PHONE' });
+  }
+
   async function cancelVisit(visit: ScheduleRow) {
     const ok = await confirm({
-      title: '방문 취소',
-      message: `${visit.contactName}님 ${visit.quarter}회차(${formatVisitDate(visit.date)}) 방문을 취소합니다. 고객에게 취소 문자가 발송되고, 고객이 새 날짜를 다시 고를 수 있습니다.`,
-      confirmText: '방문 취소',
+      title: '점검 취소',
+      message: `${visit.contactName}님 ${visit.round}회차 ${METHOD_LABEL[visit.method]}(${formatVisitDate(visit.date)})을 취소합니다. 고객에게 취소 문자가 발송되고, 고객이 새 날짜를 다시 고를 수 있습니다.`,
+      confirmText: '점검 취소',
       danger: true,
     });
     if (ok) await patchVisit(visit.visitId, { status: 'CANCELED' });
@@ -251,16 +286,24 @@ function AdminInspections() {
             </p>
           </div>
           <div className="rounded-admin-md border border-border bg-white px-4 py-3">
-            <p className="text-xs text-muted">연회비</p>
-            <p className="mt-0.5 text-xl font-bold tabular-nums">
-              {formatWon(INSPECTION_PRICE_WON)}
+            <p className="text-xs text-muted">요금(총액 일시 입금)</p>
+            <p className="mt-0.5 text-sm font-semibold tabular-nums">
+              {INSPECTION_TERMS.map((term) => {
+                const p = INSPECTION_PRICING[term];
+                return (
+                  <span key={term} className="block whitespace-nowrap">
+                    {p.label} 월 {formatWon(p.monthlyWon)}
+                    <span className="font-normal text-muted"> · 총 {formatWon(p.totalWon)}</span>
+                  </span>
+                );
+              })}
             </p>
           </div>
           <div className="ml-auto flex gap-1 rounded-admin-md border border-border bg-white p-1">
             {(
               [
                 ['plans', `구독 ${data?.plans.length ?? 0}`],
-                ['schedule', `방문 일정 ${schedule.length}`],
+                ['schedule', `점검 일정 ${schedule.length}`],
               ] as const
             ).map(([key, label]) => (
               <button
@@ -330,7 +373,7 @@ function AdminInspections() {
                     <th className={headClass}>점검 주소</th>
                     <th className={headClass}>입금자명</th>
                     <th className={headClass}>이용 기간</th>
-                    <th className={headClass}>회차 예약</th>
+                    <th className={headClass}>점검 사용</th>
                     <th className={headClass}>처리</th>
                   </tr>
                 </thead>
@@ -375,66 +418,54 @@ function AdminInspections() {
                       </td>
                       <td className={`${cellClass} whitespace-nowrap`}>{plan.depositorName}</td>
                       <td className={`${cellClass} whitespace-nowrap`}>
+                        <p className="font-semibold">
+                          {planLabel(plan.termMonths, plan.priceWon)}
+                          <span className="ml-1 text-xs font-normal text-muted tabular-nums">
+                            {formatWon(plan.priceWon)}
+                          </span>
+                        </p>
                         {plan.startDate ? (
                           <>
                             <p className="tabular-nums">{plan.startDate}</p>
                             <p className="text-xs text-muted tabular-nums">~ {plan.endDate}</p>
                           </>
                         ) : (
-                          <span className="text-muted">—</span>
+                          <p className="text-xs text-muted">입금 확인 후 시작</p>
                         )}
                       </td>
-                      <td className={cellClass}>
-                        <div className="flex gap-1">
-                          {plan.quarters.map((q) => {
-                            const open = q.visit != null && q.visit.status !== 'CANCELED';
-                            const label = q.needsReschedule
-                              ? '재선택'
-                              : open
-                                ? formatShortDate(q.visit!.date)
-                                : '미정';
-                            const title = q.visit
-                              ? `${q.quarter}회차 ${formatVisitDate(q.visit.date)} · ${
-                                  q.needsReschedule
-                                    ? '고객 재선택 대기'
-                                    : VISIT_STATUS_LABEL[q.visit.status]
-                                }`
-                              : `${q.quarter}회차 미정`;
-                            const chipClass = `inline-flex min-w-[3.25rem] flex-col items-center rounded-md border px-1.5 py-1 text-[11px] leading-tight ${
-                              q.visit?.status === 'COMPLETED'
-                                ? 'border-brand-200 bg-brand-50 text-brand-700'
-                                : q.needsReschedule
-                                  ? 'border-amber-300 bg-amber-50 text-amber-900'
-                                  : open
-                                    ? 'border-border bg-white'
-                                    : 'border-dashed border-neutral-300 text-neutral-400'
-                            }`;
-                            const body = (
-                              <>
-                                <span className="font-semibold">{q.quarter}회</span>
-                                <span className="tabular-nums">{label}</span>
-                              </>
-                            );
-                            // 방문이 없는(또는 취소된) 회차는 행 자체가 없어 일정표에 뜨지 않는다 —
-                            // 고객이 분기를 놓쳤을 때 전화로 받은 보충 방문을 잡아 줄 입구가 여기다.
-                            return plan.status === 'ACTIVE' && !open ? (
-                              <button
-                                key={q.quarter}
-                                type="button"
-                                title={`${title} — 눌러서 방문 잡기`}
-                                aria-label={`${plan.contactName}님 ${q.quarter}회차 방문 잡기`}
-                                onClick={() => setBooking({ plan, quarter: q.quarter })}
-                                className={`${chipClass} min-h-11 cursor-pointer hover:border-admin-cyan-ink hover:text-admin-cyan-ink`}
-                              >
-                                {body}
-                              </button>
-                            ) : (
-                              <span key={q.quarter} title={title} className={chipClass}>
-                                {body}
-                              </span>
-                            );
-                          })}
-                        </div>
+                      <td className={`${cellClass} whitespace-nowrap`}>
+                        <ul className="space-y-0.5 text-xs tabular-nums">
+                          {plan.years.map((y) => (
+                            <li
+                              key={y.year}
+                              title={
+                                y.window
+                                  ? formatDateRange(y.window.start, y.window.lastDay)
+                                  : undefined
+                              }
+                              className={y.isCurrent ? 'font-semibold text-fg' : 'text-muted'}
+                            >
+                              {y.year}년차 {y.used}/{y.quota}
+                              <span className="font-normal text-muted"> (완료 {y.completed})</span>
+                            </li>
+                          ))}
+                        </ul>
+                        {plan.actionVisitId && (
+                          <p className="mt-1 text-xs font-semibold text-amber-800">고객 재선택 대기</p>
+                        )}
+                        {/* 관리자는 리드타임에 묶이지 않으므로 남은 횟수만 있으면 대리 예약 입구를 연다 —
+                            고객이 전화로 요청한 점검을 여기서 잡아 준다. */}
+                        {plan.status === 'ACTIVE' && plan.years.some((y) => y.remaining > 0) && (
+                          <button
+                            type="button"
+                            disabled={busyId === plan.id}
+                            onClick={() => setBooking(plan)}
+                            aria-label={`${plan.contactName}님 점검 잡기`}
+                            className={buttonClasses('secondary', 'sm', 'mt-2 whitespace-nowrap')}
+                          >
+                            점검 잡기
+                          </button>
+                        )}
                       </td>
                       <td className={cellClass}>
                         <div className="flex flex-col gap-1">
@@ -475,12 +506,12 @@ function AdminInspections() {
           <div className="space-y-5">
             {schedule.length === 0 && (
               <p className="rounded-admin-md border border-border bg-white px-4 py-8 text-center text-sm text-muted">
-                예정된 방문이 없습니다.
+                예정된 점검이 없습니다.
               </p>
             )}
             {schedule.length > 0 &&
               scheduleGroups.map((group) =>
-                // "오늘" 은 비어 있어도 머리글을 남긴다 — 오늘 보낼 방문이 없다는 사실 자체가 정보다.
+                // "오늘" 은 비어 있어도 머리글을 남긴다 — 오늘 할 점검이 없다는 사실 자체가 정보다.
                 group.visits.length === 0 && group.key !== 'today' ? null : (
                   <section key={group.key} aria-labelledby={`schedule-group-${group.key}`}>
                     <h2
@@ -500,20 +531,22 @@ function AdminInspections() {
                     </h2>
                     {group.visits.length === 0 ? (
                       <p className="rounded-admin-md border border-dashed border-border bg-white px-4 py-3 text-sm text-muted">
-                        오늘 예정된 방문이 없어요
+                        오늘 예정된 점검이 없어요
                       </p>
                     ) : (
                       <div className="space-y-3">
                         {group.visits.map((visit) => (
                           <ScheduleCard
-                            // 메모·날짜가 서버에서 바뀌면 카드의 입력 상태를 새 값으로 다시 시작한다.
-                            key={`${visit.visitId}:${visit.date}:${visit.timeSlot}:${visit.adminMemo ?? ''}`}
+                            // 메모·날짜·방식이 서버에서 바뀌면 카드의 입력 상태를 새 값으로 다시 시작한다.
+                            key={`${visit.visitId}:${visit.date}:${visit.timeSlot}:${visit.method}:${visit.adminMemo ?? ''}`}
                             visit={visit}
                             today={data.today}
                             busy={busyId === visit.visitId}
                             onPatch={patchVisit}
                             onComplete={completeVisit}
                             onCancel={cancelVisit}
+                            onSwitchOnsite={setSwitching}
+                            onRevertPhone={revertToPhone}
                           />
                         ))}
                       </div>
@@ -526,7 +559,7 @@ function AdminInspections() {
             {settled.length > 0 && (
               <details className="rounded-admin-md border border-border bg-white">
                 <summary className="flex min-h-11 cursor-pointer items-center px-4 text-sm font-semibold">
-                  최근 처리한 방문 {settled.length}건
+                  최근 처리한 점검 {settled.length}건
                 </summary>
                 <ul className="divide-y divide-border border-t border-border">
                   {settled.map((visit) => (
@@ -544,8 +577,11 @@ function AdminInspections() {
                         {VISIT_STATUS_LABEL[visit.status]}
                       </span>
                       <span className="tabular-nums">{formatVisitDate(visit.date)}</span>
+                      <span className="text-xs">
+                        <MethodBadge method={visit.method} />
+                      </span>
                       <span className="min-w-0 flex-1 text-muted">
-                        {visit.contactName} · {visit.quarter}회차
+                        {visit.contactName} · {visit.round}회차
                         {visit.adminMemo ? ` · ${visit.adminMemo}` : ''}
                       </span>
                       <button
@@ -554,7 +590,7 @@ function AdminInspections() {
                         onClick={() => patchVisit(visit.visitId, { status: 'SCHEDULED' })}
                         className={buttonClasses('secondary', 'sm', 'whitespace-nowrap')}
                       >
-                        방문 예정으로 되돌리기
+                        예정으로 되돌리기
                       </button>
                     </li>
                   ))}
@@ -567,16 +603,27 @@ function AdminInspections() {
       {confirmUI}
       {booking && (
         <BookVisitDialog
-          plan={booking.plan}
-          quarter={booking.quarter}
+          plan={booking}
           today={data?.today ?? ''}
           onClose={() => setBooking(null)}
           onSubmit={async (body) => {
-            const { plan, quarter } = booking;
+            const plan = booking;
             setBooking(null);
             await run(plan.id, () =>
-              send(`/api/admin/inspections/${plan.id}/visits`, 'POST', { quarter, ...body }),
+              send(`/api/admin/inspections/${plan.id}/visits`, 'POST', body),
             );
+          }}
+        />
+      )}
+      {switching && (
+        <SwitchOnsiteDialog
+          visit={switching}
+          today={data?.today ?? ''}
+          onClose={() => setSwitching(null)}
+          onSubmit={async (body) => {
+            const visit = switching;
+            setSwitching(null);
+            await patchVisit(visit.visitId, { method: 'ONSITE', ...body });
           }}
         />
       )}
@@ -604,6 +651,8 @@ function ScheduleCard({
   onPatch,
   onComplete,
   onCancel,
+  onSwitchOnsite,
+  onRevertPhone,
 }: {
   visit: ScheduleRow;
   today: string;
@@ -611,6 +660,8 @@ function ScheduleCard({
   onPatch: (visitId: string, body: VisitPatch) => Promise<void>;
   onComplete: (visit: ScheduleRow, unsavedMemo?: string) => Promise<void>;
   onCancel: (visit: ScheduleRow) => Promise<void>;
+  onSwitchOnsite: (visit: ScheduleRow) => void;
+  onRevertPhone: (visit: ScheduleRow) => Promise<void>;
 }) {
   const [memo, setMemo] = useState(visit.adminMemo ?? '');
   const [moving, setMoving] = useState(false);
@@ -620,18 +671,24 @@ function ScheduleCard({
   const isToday = visit.date === today;
   const isPast = visit.date < today;
   // REQUESTED 는 고객이 아직 확정하지 않은 희망일이다(입금 지연으로 날짜를 다시 골라야 하는
-  // 1회차). 확정 방문과 똑같이 그리면 그 날짜로 기사를 보내게 된다.
+  // 1회차). 확정 점검과 똑같이 그리면 그 날짜로 전화하거나 기사를 보내게 된다.
   const unconfirmed = visit.status === 'REQUESTED';
   const moved = date !== visit.date || timeSlot !== visit.timeSlot;
-  // 아직 오지 않은 방문은 완료할 수 없다(서버도 막는다) — 미리 다녀왔다면 날짜부터 옮긴다.
+  // 아직 오지 않은 점검은 완료할 수 없다(서버도 막는다) — 미리 했다면 날짜부터 옮긴다.
   const canComplete = !unconfirmed && visit.date <= today;
-  // 기간이 끝난 구독의 방문은 옮길 수 있는 날짜가 없다(오늘 이후이면서 이용 기간 안인 날이 없음).
+  // 기간이 끝난 구독의 점검은 옮길 수 있는 날짜가 없다(오늘 이후이면서 이용 기간 안인 날이 없음).
   // 완료·취소만 남긴다.
   const canMove = visit.planEndDate != null && visit.planEndDate >= today;
+  // 방식 전환은 완료된 점검에는 의미가 없다(서버도 막는다). 방문 전환은 날짜를 새로 고를 수
+  // 있어야 하므로 옮길 수 있는 구독에서만 연다.
+  // 확정된 점검만 방문으로 돌린다 — 날짜 재선택 대기(REQUESTED)에 방문 문자를 보내면 확정되지 않은
+  // 날짜로 기사가 온다고 알리게 된다. 그 경우는 먼저 날짜를 확정한다.
+  const canSwitch = visit.status === 'SCHEDULED';
+  const onsite = visit.method === 'ONSITE';
 
   return (
     <article
-      className={`rounded-admin-md border bg-white p-4 ${
+      className={`rounded-admin-md border bg-white p-4 ${onsite ? 'border-l-4 border-l-orange-600' : ''} ${
         unconfirmed
           ? 'border-dashed border-amber-400'
           : isToday
@@ -651,8 +708,9 @@ function ScheduleCard({
           <p className="text-sm text-muted">{TIME_SLOT_LABEL[visit.timeSlot]}</p>
           <p className="mt-1 flex flex-wrap items-center gap-1 text-xs">
             <span className="rounded-full bg-neutral-100 px-2 py-0.5 font-semibold">
-              {visit.quarter}회차
+              {visit.round}회차
             </span>
+            <MethodBadge method={visit.method} />
             {/* 상태 칩 — 날짜 머리글이 '언제'를, 이 칩이 '지금 어떤 상태인지'를 맡는다. */}
             {unconfirmed ? (
               <span className="rounded-full border border-dashed border-amber-400 bg-amber-50 px-2 py-0.5 font-semibold text-amber-900">
@@ -669,7 +727,7 @@ function ScheduleCard({
                     isToday ? 'bg-admin-cyan-ink text-white' : 'bg-brand-50 text-brand-700'
                   }`}
                 >
-                  {isToday ? '오늘 방문 · 확정' : '방문 확정'}
+                  {isToday ? `오늘 ${METHOD_SHORT[visit.method]} · 확정` : '확정'}
                 </span>
               )
             ) : (
@@ -709,6 +767,26 @@ function ScheduleCard({
               점검 완료
             </button>
           )}
+          {canSwitch && !onsite && canMove && (
+            <button
+              type="button"
+              disabled={busy}
+              onClick={() => onSwitchOnsite(visit)}
+              className={buttonClasses('secondary', 'sm', 'whitespace-nowrap')}
+            >
+              방문 점검으로 전환
+            </button>
+          )}
+          {canSwitch && onsite && (
+            <button
+              type="button"
+              disabled={busy}
+              onClick={() => onRevertPhone(visit)}
+              className={buttonClasses('secondary', 'sm', 'whitespace-nowrap')}
+            >
+              전화 점검으로 되돌리기
+            </button>
+          )}
           {canMove && (
             <button
               type="button"
@@ -726,7 +804,7 @@ function ScheduleCard({
             onClick={() => onCancel(visit)}
             className={buttonClasses('secondary', 'sm', 'whitespace-nowrap')}
           >
-            방문 취소
+            점검 취소
           </button>
         </div>
       </div>
@@ -738,7 +816,7 @@ function ScheduleCard({
               htmlFor={`move-date-${visit.visitId}`}
               className="mb-1 block text-xs font-semibold text-muted"
             >
-              새 방문일
+              {onsite ? '새 방문일' : '새 점검일'}
             </label>
             <input
               id={`move-date-${visit.visitId}`}
@@ -782,8 +860,8 @@ function ScheduleCard({
             {busy ? '저장 중…' : '이 날짜로 확정'}
           </button>
           <p className="w-full text-xs text-muted">
-            전화로 요청받은 변경을 대신 처리합니다. 분기 창·리드타임 제한 없이 이용 기간 안에서
-            옮길 수 있고, 고객에게 변경 문자가 발송됩니다.
+            전화로 요청받은 변경을 대신 처리합니다. 리드타임 제한 없이 이용 기간 안에서 옮길 수
+            있고, 고객에게 변경 문자가 발송됩니다.
           </p>
         </div>
       )}
@@ -797,7 +875,7 @@ function ScheduleCard({
           value={memo}
           maxLength={300}
           onChange={(e) => setMemo(e.target.value)}
-          placeholder="방문할 기사·차량 등 (고객에게 보이지 않음)"
+          placeholder="통화 담당·방문 기사 등 (고객에게 보이지 않음)"
           className={`${fieldClass} min-w-0 flex-1`}
         />
         <button
@@ -813,24 +891,34 @@ function ScheduleCard({
   );
 }
 
-// 관리자의 대리 예약 — 방문이 없는(또는 취소된) 회차에 날짜를 잡는다.
+// 관리자의 대리 예약 — 고객이 전화로 요청한 점검을 새 회차로 잡는다. 회차 번호는 서버가 배정한다.
+// 관리자는 리드타임에 묶이지 않지만, 같은 날 중복과 그 연차의 횟수 소진은 서버와 같이 미리 막는다.
 function BookVisitDialog({
   plan,
-  quarter,
   today,
   onClose,
   onSubmit,
 }: {
   plan: PlanRow;
-  quarter: number;
   today: string;
   onClose: () => void;
-  onSubmit: (body: { date: string; timeSlot: TimeSlot }) => Promise<void>;
+  onSubmit: (body: { date: string; timeSlot: TimeSlot; method: InspectionMethod }) => Promise<void>;
 }) {
   const dialog = useRef<HTMLDialogElement>(null);
   const [date, setDate] = useState('');
   const [timeSlot, setTimeSlot] = useState<TimeSlot>('ANY');
-  const quarterWindow = plan.quarters.find((q) => q.quarter === quarter)?.window ?? null;
+  const [method, setMethod] = useState<InspectionMethod>('PHONE');
+  const issue = !isDateString(date)
+    ? null
+    : plan.bookedDates.includes(date)
+      ? '이날은 이미 점검이 잡혀 있습니다.'
+      : (() => {
+          const year =
+            plan.startDate != null ? yearOfDate(plan.startDate, plan.termMonths, date) : null;
+          if (year == null) return '이용 기간 밖의 날짜입니다.';
+          const y = plan.years.find((row) => row.year === year);
+          return y && y.remaining <= 0 ? `${year}년차 점검 ${y.quota}회를 모두 잡았습니다.` : null;
+        })();
 
   useEffect(() => {
     const node = dialog.current;
@@ -855,28 +943,28 @@ function BookVisitDialog({
         className="rounded-2xl bg-white p-6 shadow-pop"
         onSubmit={(event) => {
           event.preventDefault();
-          if (isDateString(date)) void onSubmit({ date, timeSlot });
+          if (isDateString(date) && !issue) void onSubmit({ date, timeSlot, method });
         }}
       >
         <h2 id="book-visit-title" className="text-base font-bold">
-          {plan.contactName}님 {quarter}회차 방문 잡기
+          {plan.contactName}님 점검 잡기
         </h2>
         <p className="mt-2 text-sm leading-relaxed text-slate-600">
-          전화로 합의한 날짜를 대신 잡습니다. 분기 기간이 지난 회차의 보충 방문도 이용 기간(
+          전화로 합의한 날짜를 대신 잡습니다. 이용 기간(
           {plan.startDate && plan.endDate
             ? formatDateRange(plan.startDate, plan.endDate)
             : '미정'}
-          ) 안이면 잡을 수 있고, 고객에게 예약 문자가 발송됩니다.
+          ) 안이면 리드타임 제한 없이 잡을 수 있고, 고객에게 예약 문자가 발송됩니다.
         </p>
-        {quarterWindow && (
-          <p className="mt-2 text-xs text-muted">
-            이 회차의 원래 기간: {formatDateRange(quarterWindow.start, quarterWindow.lastDay)}
-          </p>
-        )}
+        <p className="mt-2 text-xs text-muted tabular-nums">
+          {plan.years
+            .map((y) => `${y.year}년차 남은 ${y.remaining}회`)
+            .join(' · ')}
+        </p>
         <div className="mt-4 flex flex-wrap gap-3">
           <div>
             <label htmlFor="book-visit-date" className="mb-1 block text-sm font-semibold">
-              방문일
+              점검일
             </label>
             <input
               id="book-visit-date"
@@ -887,6 +975,7 @@ function BookVisitDialog({
               onChange={(e) => setDate(e.target.value)}
               required
               autoFocus
+              aria-describedby="book-visit-issue"
               className={fieldClass}
             />
           </div>
@@ -896,6 +985,138 @@ function BookVisitDialog({
             </label>
             <select
               id="book-visit-slot"
+              value={timeSlot}
+              onChange={(e) => setTimeSlot(e.target.value as TimeSlot)}
+              className={fieldClass}
+            >
+              {TIME_SLOTS.map((slot) => (
+                <option key={slot} value={slot}>
+                  {TIME_SLOT_LABEL[slot]}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label htmlFor="book-visit-method" className="mb-1 block text-sm font-semibold">
+              점검 방식
+            </label>
+            <select
+              id="book-visit-method"
+              value={method}
+              onChange={(e) => setMethod(e.target.value as InspectionMethod)}
+              className={fieldClass}
+            >
+              {(['PHONE', 'ONSITE'] as const).map((m) => (
+                <option key={m} value={m}>
+                  {METHOD_LABEL[m]}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+        <p id="book-visit-issue" role="status" className="mt-2 min-h-5 text-xs text-red-700">
+          {issue}
+        </p>
+        <div className="mt-3 flex gap-2">
+          <button
+            type="button"
+            onClick={onClose}
+            className={buttonClasses('secondary', 'md', 'flex-1')}
+          >
+            닫기
+          </button>
+          <button
+            type="submit"
+            disabled={!isDateString(date) || issue != null}
+            className={buttonClasses('primary', 'md', 'flex-1')}
+          >
+            이 날짜로 예약
+          </button>
+        </div>
+      </form>
+    </dialog>,
+    document.body,
+  );
+}
+
+// 전화 점검 → 방문 점검 전환. 통화 결과 기사가 가야 한다고 판단했을 때 쓴다(방식은 플랫폼 판단).
+// 방문 날짜는 대개 통화하며 새로 합의하므로 날짜·시간대를 같이 고르게 하되 기본값은 지금 일정이다.
+function SwitchOnsiteDialog({
+  visit,
+  today,
+  onClose,
+  onSubmit,
+}: {
+  visit: ScheduleRow;
+  today: string;
+  onClose: () => void;
+  onSubmit: (body: { date?: string; timeSlot?: TimeSlot }) => Promise<void>;
+}) {
+  const dialog = useRef<HTMLDialogElement>(null);
+  const [date, setDate] = useState(visit.date);
+  const [timeSlot, setTimeSlot] = useState<TimeSlot>(visit.timeSlot);
+
+  useEffect(() => {
+    const node = dialog.current;
+    node?.showModal();
+    return () => node?.close();
+  }, []);
+
+  return createPortal(
+    <dialog
+      ref={dialog}
+      aria-labelledby="switch-onsite-title"
+      onCancel={(event) => {
+        event.preventDefault();
+        onClose();
+      }}
+      onClick={(event) => {
+        if (event.target === event.currentTarget) onClose();
+      }}
+      className="fixed inset-0 m-auto w-[calc(100%_-_2rem)] max-w-md overflow-visible rounded-2xl border-0 bg-transparent p-0 text-fg backdrop:bg-slate-900/40"
+    >
+      <form
+        className="rounded-2xl bg-white p-6 shadow-pop"
+        onSubmit={(event) => {
+          event.preventDefault();
+          if (!isDateString(date)) return;
+          // 바뀐 값만 보낸다 — 날짜를 보내면 서버가 미확정(REQUESTED) 회차를 확정으로 바꾼다.
+          void onSubmit({
+            ...(date !== visit.date ? { date } : {}),
+            ...(timeSlot !== visit.timeSlot ? { timeSlot } : {}),
+          });
+        }}
+      >
+        <h2 id="switch-onsite-title" className="text-base font-bold">
+          {visit.contactName}님 {visit.round}회차 방문 점검으로 전환
+        </h2>
+        <p className="mt-2 text-sm leading-relaxed text-slate-600">
+          전화 점검 결과 전기기사 방문이 필요할 때 전환합니다. 기사가 찾아갈 날짜와 시간대를
+          확인해 주세요. 고객에게 방문 점검 안내 문자가 발송됩니다.
+        </p>
+        <div className="mt-4 flex flex-wrap gap-3">
+          <div>
+            <label htmlFor="switch-onsite-date" className="mb-1 block text-sm font-semibold">
+              방문일
+            </label>
+            <input
+              id="switch-onsite-date"
+              type="date"
+              value={date}
+              min={today}
+              max={visit.planEndDate ?? undefined}
+              onChange={(e) => setDate(e.target.value)}
+              required
+              autoFocus
+              className={fieldClass}
+            />
+          </div>
+          <div>
+            <label htmlFor="switch-onsite-slot" className="mb-1 block text-sm font-semibold">
+              방문 시간대
+            </label>
+            <select
+              id="switch-onsite-slot"
               value={timeSlot}
               onChange={(e) => setTimeSlot(e.target.value as TimeSlot)}
               className={fieldClass}
@@ -921,7 +1142,7 @@ function BookVisitDialog({
             disabled={!isDateString(date)}
             className={buttonClasses('primary', 'md', 'flex-1')}
           >
-            이 날짜로 예약
+            방문 점검으로 전환
           </button>
         </div>
       </form>
@@ -974,7 +1195,7 @@ function CancelPlanDialog({
           구독 취소
         </h2>
         <p className="mt-2 text-sm leading-relaxed text-slate-600">
-          {plan.userName}님의 구독과 예정된 방문을 모두 취소합니다. 고객에게 취소 문자가
+          {plan.userName}님의 구독과 예정된 점검을 모두 취소합니다. 고객에게 취소 문자가
           발송됩니다.
         </p>
         <label htmlFor="cancel-plan-reason" className="mt-4 block text-sm font-semibold">

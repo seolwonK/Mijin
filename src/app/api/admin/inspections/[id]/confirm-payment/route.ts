@@ -6,8 +6,8 @@ import { toDateString } from '@/lib/inspection';
 import { activatePlan, inspectionPortalUrl } from '@/lib/inspectionLifecycle';
 import { buildPlanView } from '@/lib/inspectionView';
 
-// 입금 확인 → 구독 활성화. 확인한 날이 구독 시작일이고, 거기서 분기 4구간이 파생된다.
-// 전이·CAS·1분기 확정 규칙은 lib/inspectionLifecycle.ts 가 소유한다(라우트는 얇게).
+// 입금 확인 → 구독 활성화. 확인한 날이 구독 시작일이고, 거기서 이용 연차가 파생된다.
+// 전이·CAS·1회차 확정 규칙은 lib/inspectionLifecycle.ts 가 소유한다(라우트는 얇게).
 export async function POST(
   _req: NextRequest,
   { params }: { params: Promise<{ id: string }> },
@@ -37,7 +37,7 @@ export async function POST(
       firstVisitDate,
       // 1회차가 확정됐을 때만 시간대를 싣는다 — 재선택이 필요한 경우 날짜·시간대 모두 없다.
       firstVisitTimeSlot: firstVisitDate
-        ? (plan.visits.find((v) => v.quarter === 1)?.timeSlot ?? null)
+        ? (plan.visits.find((v) => v.round === 1)?.timeSlot ?? null)
         : null,
       portalUrl: inspectionPortalUrl(),
     }),

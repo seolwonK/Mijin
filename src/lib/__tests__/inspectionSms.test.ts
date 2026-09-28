@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   smsInspectionActivated,
   smsInspectionApplied,
+  smsInspectionSwitchedToOnsite,
   smsInspectionVisitBooked,
   smsInspectionVisitCanceled,
   smsInspectionVisitRescheduled,
@@ -11,7 +12,8 @@ describe('전기점검 문자', () => {
   it('이름·입금자명의 줄바꿈이 본문의 새 줄이 되지 않는다 — 계좌 안내 문자에 줄을 끼워 넣을 수 없다', () => {
     const body = smsInspectionApplied({
       customerName: '홍길동',
-      priceWon: 50_000,
+      planLabel: '2년권',
+      priceWon: 132_000,
       account: { bankName: '국민', accountNumber: '123-45', accountHolder: '전기아저씨' },
       depositorName: '김철수\n※ 계좌 변경: 카카오 3333-01-1234567',
     });
@@ -22,7 +24,8 @@ describe('전기점검 문자', () => {
   it('U+2028/U+2029(줄·문단 구분자)와 서식 문자도 새 줄이 되지 않는다 — \\p{Cc} 만으로는 빠진다', () => {
     const body = smsInspectionApplied({
       customerName: '홍\u2029길동',
-      priceWon: 50_000,
+      planLabel: '2년권',
+      priceWon: 132_000,
       account: { bankName: '국민', accountNumber: '123-45', accountHolder: '전기아저씨' },
       depositorName: '김철수\u2028※ 계좌 변경:\u202e카카오 3333-01-1234567',
     });
@@ -41,19 +44,22 @@ describe('전기점검 문자', () => {
     });
     expect(body).not.toMatch(/\d{4}-\d{2}-\d{2}/);
     expect(body).toContain('이용 기간: 2027년 9월 21일까지');
-    expect(body).toContain('1회차 방문 예정일: 10월 1일 오후(13~18시)');
+    expect(body).toContain('1년에 12회, 원하시는 날 전화로 점검');
+    expect(body).toContain('1회차 점검 예정일: 10월 1일 오후(13~18시)');
     // 시간대를 모르는 호출부는 날짜만 싣는다.
     expect(smsInspectionActivated({ ...base, firstVisitDate: '2026-10-01' })).toContain(
-      '1회차 방문 예정일: 10월 1일',
+      '1회차 점검 예정일: 10월 1일',
     );
   });
 
   it('날짜 뒤의 조사는 끝 숫자와 무관하게 맞는다("…일로")', () => {
-    expect(smsInspectionVisitBooked({ quarter: 2, date: '2026-12-23' })).toContain('12월 23일로 예약');
+    expect(smsInspectionVisitBooked({ round: 2, date: '2026-12-23', method: 'PHONE' })).toBe(
+      '[전기아저씨] 2회차 전화 점검이 12월 23일로 예약되었습니다.',
+    );
   });
 
   it('시간대가 바뀌었으면 문자에 시간대를 싣는다 — 날짜만 말하면 고객은 여전히 오전에 기다린다', () => {
-    const base = { quarter: 1, date: '2026-10-10' };
+    const base = { round: 1, date: '2026-10-10', method: 'PHONE' as const };
     expect(smsInspectionVisitRescheduled({ ...base, timeSlot: null })).toContain('10월 10일로 변경');
     expect(smsInspectionVisitRescheduled({ ...base, timeSlot: 'AFTERNOON' })).toContain('10월 10일 오후로 변경');
     expect(smsInspectionVisitRescheduled({ ...base, timeSlot: 'MORNING' })).toContain('오전으로 변경');
@@ -64,6 +70,14 @@ describe('전기점검 문자', () => {
     const base = { customerName: '홍길동', endDate: '2027-09-21', portalUrl: url };
     expect(smsInspectionActivated({ ...base, firstVisitDate: '2026-09-27' })).not.toContain(url);
     expect(smsInspectionActivated({ ...base, firstVisitDate: null })).toContain(url);
-    expect(smsInspectionVisitCanceled({ quarter: 1, date: '2026-09-27', portalUrl: url })).toContain(url);
+    expect(
+      smsInspectionVisitCanceled({ round: 1, date: '2026-09-27', method: 'PHONE', portalUrl: url }),
+    ).toContain(url);
+  });
+
+  it('방문 점검 전환 문자는 방문일과 시간대를 함께 알린다 — 고객이 집에 있어야 하므로', () => {
+    expect(smsInspectionSwitchedToOnsite({ round: 3, date: '2026-10-15', timeSlot: 'MORNING' })).toBe(
+      '[전기아저씨] 3회차 점검은 전기기사가 직접 방문합니다. 방문일: 10월 15일 오전(09~12시)',
+    );
   });
 });

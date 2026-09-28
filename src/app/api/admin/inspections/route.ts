@@ -8,7 +8,7 @@ import { buildPlanView, type PlanView } from '@/lib/inspectionView';
 
 // 관리자 점검 구독 화면의 단일 조회 — 두 가지 관점을 함께 내려보낸다.
 //   plans    : 누가 신청했고 입금이 확인됐는지 (구독 목록)
-//   schedule : 언제 누가 방문을 예약했는지 (날짜순 일정표)
+//   schedule : 언제 누가 점검을 예약했는지 (날짜순 일정표 — 전화·방문 점검 모두)
 //   settled  : 최근에 완료·취소 처리한 방문 — 잘못 누른 처리를 되돌리는 자리
 // 기사 배정은 이 시스템의 관심사가 아니다(사용자 결정 2026-09-20) — 일정표를 보고
 // 오프라인으로 기사를 보낸다. 그래서 여기에 후보 추천·배정 API 가 없다.
@@ -29,8 +29,9 @@ export type AdminInspectionScheduleRow = {
   visitId: string;
   planId: string;
   date: string;
-  quarter: number;
+  round: number;
   timeSlot: InspectionVisit['timeSlot'];
+  method: InspectionVisit['method'];
   status: InspectionVisit['status'];
   note: string | null;
   adminMemo: string | null;
@@ -62,8 +63,9 @@ function toScheduleRow(visit: VisitWithPlan): AdminInspectionScheduleRow {
     visitId: visit.id,
     planId: visit.plan.id,
     date: toDateString(visit.preferredDate),
-    quarter: visit.quarter,
+    round: visit.round,
     timeSlot: visit.timeSlot,
+    method: visit.method,
     status: visit.status,
     note: visit.note,
     adminMemo: visit.adminMemo,
@@ -101,7 +103,7 @@ export async function GET(req: NextRequest) {
       orderBy: [{ status: 'asc' }, { createdAt: 'desc' }],
       take: PLAN_LIMIT,
       include: {
-        visits: { orderBy: { quarter: 'asc' } },
+        visits: { orderBy: { round: 'asc' } },
         user: { select: { loginId: true, name: true } },
       },
     }),

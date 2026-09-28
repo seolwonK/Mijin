@@ -7,12 +7,12 @@ import LogoutButton from '@/components/LogoutButton';
 import { getSession, type SessionRole } from '@/lib/auth';
 import { prisma } from '@/lib/db';
 import { readInspectionAccount } from '@/lib/inspectionAccount';
-import { INSPECTION_PRICE_WON } from '@/lib/inspection';
+import { INSPECTION_MIN_MONTHLY_WON } from '@/lib/inspection';
 import { expireDuePlans } from '@/lib/inspectionLifecycle';
 
 export const metadata: Metadata = {
   title: '정기 전기점검 신청',
-  description: `연 ${INSPECTION_PRICE_WON.toLocaleString('ko-KR')}원 정기 전기점검을 신청합니다. 점검받을 주소와 1회차 희망 날짜를 남기면 입금 계좌를 안내해 드립니다.`,
+  description: `월 ${INSPECTION_MIN_MONTHLY_WON.toLocaleString('ko-KR')}원부터, 1년에 12회 전화로 점검하고 필요하면 전기기사가 방문하는 정기 전기점검을 신청합니다. 요금제와 첫 전화 점검 희망 날짜를 고르면 입금 계좌를 안내해 드립니다.`,
   alternates: { canonical: '/inspection/apply' },
 };
 

@@ -1,4 +1,4 @@
-import { TIME_SLOT_LABEL, type TimeSlot } from '@/lib/inspection';
+import { INSPECTION_CHECKS_PER_YEAR, TIME_SLOT_LABEL, type InspectionMethod, type TimeSlot } from '@/lib/inspection';
 
 // 발송 정책:
 //  1) 접수 완료 → 고객에게 1건
@@ -102,13 +102,15 @@ function oneLine(value: string): string {
 
 export function smsInspectionApplied(p: {
   customerName: string;
+  /** '1년권' / '2년권' */
+  planLabel: string;
   priceWon: number;
   account: { bankName: string; accountNumber: string; accountHolder: string } | null;
   depositorName: string;
 }): string {
   const lines = [
     `[전기아저씨] ${oneLine(p.customerName)}님, 정기 전기점검 신청이 접수되었습니다.`,
-    `연회비 ${p.priceWon.toLocaleString('ko-KR')}원을 입금해 주시면 점검이 시작됩니다.`,
+    `${p.planLabel} ${p.priceWon.toLocaleString('ko-KR')}원을 입금해 주시면 점검이 시작됩니다.`,
   ];
   if (p.account) {
     lines.push(`${p.account.bankName} ${p.account.accountNumber} (예금주 ${p.account.accountHolder})`);
@@ -128,47 +130,67 @@ export function smsInspectionActivated(p: {
 }): string {
   const lines = [
     `[전기아저씨] ${oneLine(p.customerName)}님, 입금이 확인되어 정기 전기점검이 시작되었습니다.`,
-    `이용 기간: ${monthDayYear(p.endDate)}까지 · 분기마다 1회씩 총 4회 방문합니다.`,
+    `이용 기간: ${monthDayYear(p.endDate)}까지 · 1년에 ${INSPECTION_CHECKS_PER_YEAR}회, 원하시는 날 전화로 점검해 드립니다.`,
   ];
   lines.push(
     p.firstVisitDate
-      ? `1회차 방문 예정일: ${monthDay(p.firstVisitDate)}${
+      ? `1회차 점검 예정일: ${monthDay(p.firstVisitDate)}${
           p.firstVisitTimeSlot ? ` ${TIME_SLOT_LABEL[p.firstVisitTimeSlot]}` : ''
         }`
-      : `희망하신 날짜에는 방문이 어려워 1회차 방문일을 다시 선택해 주세요. ${p.portalUrl}`,
+      : `희망하신 날짜가 지나 1회차 점검일을 다시 선택해 주세요. ${p.portalUrl}`,
   );
   return lines.join('\n');
 }
 
-export function smsInspectionVisitBooked(p: {
-  quarter: number;
-  date: string;
-}): string {
-  return `[전기아저씨] ${p.quarter}회차 전기점검 방문일이 ${monthDay(p.date)}로 예약되었습니다.`;
+// 점검 방식에 따라 "전화 점검"/"방문 점검"으로 부른다 — 방문 점검 문자를 받은 고객만 집에서 기다린다.
+function checkName(method: InspectionMethod): string {
+  return method === 'ONSITE' ? '방문 점검' : '전화 점검';
 }
 
-// 아래 세 건은 **관리자가 고객 대신 움직인 결과**를 알린다. 고객은 그 변화를 화면에서
-// 보고 있지 않으므로, 알리지 않으면 취소된 날에 집에서 기다리게 된다.
+export function smsInspectionVisitBooked(p: {
+  round: number;
+  date: string;
+  method: InspectionMethod;
+}): string {
+  return `[전기아저씨] ${p.round}회차 ${checkName(p.method)}이 ${monthDay(p.date)}로 예약되었습니다.`;
+}
+
+// 아래 네 건은 **관리자가 고객 대신 움직인 결과**를 알린다. 고객은 그 변화를 화면에서
+// 보고 있지 않으므로, 알리지 않으면 취소된 날에 전화를 기다리거나 집을 비운다.
 
 // 조사까지 붙여 둔다 — 받침 유무가 제각각이라("오전으로"/"오후로") 뒤에서 한 가지로 붙일 수 없다.
 const SLOT_TO = { MORNING: '오전으로', AFTERNOON: '오후로', ANY: '시간 무관으로' } as const;
 
 export function smsInspectionVisitRescheduled(p: {
-  quarter: number;
+  round: number;
   date: string;
+  method: InspectionMethod;
   /** 시간대가 바뀌었을 때만 넘긴다 — 날짜만 말하면 고객은 여전히 오전에 기다린다. */
   timeSlot: keyof typeof SLOT_TO | null;
 }): string {
   const when = p.timeSlot ? `${monthDay(p.date)} ${SLOT_TO[p.timeSlot]}` : `${monthDay(p.date)}로`;
-  return `[전기아저씨] ${p.quarter}회차 전기점검 방문이 ${when} 변경되었습니다.`;
+  return `[전기아저씨] ${p.round}회차 ${checkName(p.method)}이 ${when} 변경되었습니다.`;
+}
+
+/**
+ * 전화 점검 결과 플랫폼이 방문이 필요하다고 판단한 경우 — 고객이 집에 있어야 하므로
+ * 날짜·시간대를 함께 알린다.
+ */
+export function smsInspectionSwitchedToOnsite(p: {
+  round: number;
+  date: string;
+  timeSlot: TimeSlot;
+}): string {
+  return `[전기아저씨] ${p.round}회차 점검은 전기기사가 직접 방문합니다. 방문일: ${monthDay(p.date)} ${TIME_SLOT_LABEL[p.timeSlot]}`;
 }
 
 export function smsInspectionVisitCanceled(p: {
-  quarter: number;
+  round: number;
   date: string;
+  method: InspectionMethod;
   portalUrl: string;
 }): string {
-  return `[전기아저씨] ${p.quarter}회차 전기점검(${monthDay(p.date)}) 방문이 취소되었습니다. 새 날짜를 선택해 주세요. ${p.portalUrl}`;
+  return `[전기아저씨] ${p.round}회차 ${checkName(p.method)}(${monthDay(p.date)})이 취소되었습니다. 새 날짜를 선택해 주세요. ${p.portalUrl}`;
 }
 
 export function smsInspectionPlanCanceled(p: { customerName: string; tel: string }): string {

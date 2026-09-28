@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { requireSession } from '@/lib/auth';
 import { prisma } from '@/lib/db';
-import { INSPECTION_PRICE_WON } from '@/lib/inspection';
+import { INSPECTION_PRICING } from '@/lib/inspection';
 import { readInspectionAccount } from '@/lib/inspectionAccount';
 import { expireDuePlans, PLAN_WITH_VISITS } from '@/lib/inspectionLifecycle';
 import { buildPlanView } from '@/lib/inspectionView';
@@ -27,7 +27,7 @@ export async function GET() {
   return NextResponse.json(
     {
       name: session.name,
-      priceWon: INSPECTION_PRICE_WON,
+      pricing: INSPECTION_PRICING,
       account,
       plan: plan ? buildPlanView(plan, 'customer') : null,
     },

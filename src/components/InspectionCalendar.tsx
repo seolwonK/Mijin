@@ -18,8 +18,8 @@ import {
 
 // 방문 희망일을 고르는 인라인 달력.
 //
-// 왜 네이티브 <input type="date"> 를 버렸나 — 이 상품의 날짜 규칙은 "분기 창 안에서, 오늘로부터
-// 2일 뒤부터"라 고를 수 있는 구간이 좁고 달을 걸친다. 네이티브 피커는 min/max 로 막기만 할 뿐
+// 왜 네이티브 <input type="date"> 를 버렸나 — 이 상품의 날짜 규칙은 "이용 연차 안에서, 내일부터,
+// 이미 잡힌 날 제외"라 고를 수 있는 구간이 들쭉날쭉하고 달을 걸친다. 네이티브 피커는 min/max 로 막기만 할 뿐
 // **왜 못 고르는지**를 보여 주지 않고, 모바일에서는 OS 마다 생김새가 달라 "며칠부터 되는지"를
 // 고객이 화면의 안내 문장과 피커를 번갈아 보며 맞춰야 했다. 달력을 펼쳐 두면 고를 수 있는 날이
 // 한눈에 들어오고 탭 한 번에 끝난다.
@@ -97,6 +97,7 @@ export default function InspectionCalendar({
   label,
   invalid = false,
   describedBy,
+  isDisabled,
 }: {
   /** 바깥의 오류 처리가 포커스를 보낼 대상. 로빙 tabindex 를 가진 날짜 버튼에 붙는다. */
   id: string;
@@ -110,6 +111,11 @@ export default function InspectionCalendar({
   label: string;
   invalid?: boolean;
   describedBy?: string;
+  /**
+   * 범위 안이지만 고를 수 없는 날(이미 점검이 잡힌 날 등). 이런 칸은 disabled 가 아니라
+   * aria-disabled 로 둔다 — 방향키로 지나갈 수 있어야 로빙 초점이 막히지 않는다.
+   */
+  isDisabled?: (date: string) => boolean;
 }) {
   const today = todayKst();
   // 표시 중인 달. 고른 날짜가 있으면 그 달, 없으면 고를 수 있는 첫날이 있는 달에서 시작한다 —
@@ -276,7 +282,9 @@ export default function InspectionCalendar({
             <tr key={week.find(Boolean) ?? String(week.length)}>
               {week.map((date, weekday) => {
                 if (!date) return <td key={weekday} />;
-                const disabled = date < min || date > max;
+                const outOfRange = date < min || date > max;
+                const taken = !outOfRange && (isDisabled?.(date) ?? false);
+                const disabled = outOfRange || taken;
                 const selected = date === value;
                 const isToday = date === today;
                 return (
@@ -292,10 +300,11 @@ export default function InspectionCalendar({
                       id={date === rovingDate ? id : undefined}
                       data-date={date}
                       tabIndex={date === rovingDate ? 0 : -1}
-                      disabled={disabled}
+                      disabled={outOfRange}
+                      aria-disabled={taken || undefined}
                       onClick={() => {
                         setFocusedDate(date);
-                        onChange(date);
+                        if (!taken) onChange(date);
                       }}
                       onKeyDown={onKeyDown}
                       aria-current={isToday ? 'date' : undefined}
@@ -303,7 +312,7 @@ export default function InspectionCalendar({
                       aria-label={formatVisitDate(date)}
                       className={`relative mx-auto flex h-11 w-full max-w-12 items-center justify-center rounded-xl text-sm tabular-nums transition ease-brand duration-brand-fast ${
                         disabled
-                          ? 'cursor-not-allowed text-neutral-300'
+                          ? `cursor-not-allowed text-neutral-300 ${taken ? 'line-through' : ''}`
                           : selected
                             ? 'bg-brand-600 font-bold text-white'
                             : `font-medium hover:bg-brand-50 active:bg-brand-100 ${

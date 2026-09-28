@@ -15,18 +15,25 @@ import {
   getWebPageGraph,
 } from '@/lib/schema';
 import {
+  INSPECTION_CHECKS_PER_YEAR,
   INSPECTION_MIN_LEAD_DAYS,
-  INSPECTION_PRICE_WON,
-  INSPECTION_VISITS_PER_TERM,
+  INSPECTION_MIN_MONTHLY_WON,
+  INSPECTION_PRICING,
+  INSPECTION_TERMS,
   formatWon,
+  planYears,
 } from '@/lib/inspection';
 import { readInspectionAccount } from '@/lib/inspectionAccount';
 
-const PER_VISIT_WON = INSPECTION_PRICE_WON / INSPECTION_VISITS_PER_TERM;
+/** 표시 순서(2년권 먼저)대로 늘어놓은 요금제. */
+const PLANS = INSPECTION_TERMS.map((t) => INSPECTION_PRICING[t]);
+const TWO_YEAR = INSPECTION_PRICING.TWO_YEAR;
+const ONE_YEAR = INSPECTION_PRICING.ONE_YEAR;
+const MIN_MONTHLY = INSPECTION_MIN_MONTHLY_WON.toLocaleString('ko-KR');
 
 export const metadata: Metadata = {
-  title: `정기 전기점검 — 연 ${INSPECTION_PRICE_WON.toLocaleString('ko-KR')}원, 분기마다 1회 방문`,
-  description: `${COMPANY.name} 정기 전기점검은 연 ${INSPECTION_PRICE_WON.toLocaleString('ko-KR')}원에 분기마다 1회씩 1년 ${INSPECTION_VISITS_PER_TERM}회, 전기기사가 방문해 분전반·누전차단기·콘센트·조명을 점검합니다. 고장 나기 전에 미리 확인하세요.`,
+  title: `정기 전기점검 — 월 ${MIN_MONTHLY}원부터, 1년 ${INSPECTION_CHECKS_PER_YEAR}회 전화 점검`,
+  description: `${COMPANY.name} 정기 전기점검은 월 ${MIN_MONTHLY}원부터(2년권), 1년에 ${INSPECTION_CHECKS_PER_YEAR}회 원하는 날짜에 전화로 분전반·누전차단기·콘센트·조명 상태를 점검하고, 필요하다고 판단되면 전기기사가 방문해 점검합니다. 고장 나기 전에 미리 확인하세요.`,
   alternates: { canonical: '/inspection' },
 };
 
@@ -36,43 +43,54 @@ export const metadata: Metadata = {
 // 화면은 "계좌 준비 중"으로 떨어졌다가 첫 재검증에서 정상화된다.
 export const revalidate = 300;
 
+// 전화 점검이 기본이라, 통화로 함께 확인하는 항목과 방문해야 하는 판단을 나눠 적는다.
 const CHECK_ITEMS = [
-  { title: '분전반(두꺼비집)', desc: '차단기 동작·단자 조임·과열 흔적을 확인해요.' },
-  { title: '누전차단기', desc: '테스트 버튼으로 실제로 떨어지는지 직접 확인해요.' },
-  { title: '콘센트 · 스위치', desc: '흔들림·탄 자국·접촉 불량을 살펴요.' },
-  { title: '조명 · 배선', desc: '노출 배선과 등기구 상태를 함께 봐요.' },
-  { title: '누전 여부', desc: '절연 상태를 측정해 새는 전기가 있는지 확인해요.' },
+  { title: '분전반(두꺼비집)', desc: '차단기가 자주 떨어지는지, 타는 냄새·열감은 없는지 통화로 함께 확인해요.' },
+  { title: '누전차단기', desc: '테스트 버튼을 눌러 실제로 떨어지는지 안내에 따라 확인해요.' },
+  { title: '콘센트 · 스위치', desc: '흔들림·탄 자국·접촉 불량이 있는지 살펴봐요.' },
+  { title: '조명 · 배선', desc: '깜빡임·노출 배선·등기구 상태를 함께 짚어요.' },
+  { title: '필요하면 방문 점검', desc: '통화로 위험 신호가 보이면 전기기사가 찾아가 직접 측정·점검해요.' },
   { title: '점검 결과 안내', desc: '당장 고쳐야 할 것과 지켜봐도 되는 것을 구분해 알려드려요.' },
 ] as const;
 
 const PROCESS_STEPS = [
-  { title: '신청하기', desc: '점검받을 주소와 1회차 희망 날짜를 남겨 주세요.' },
-  { title: '연회비 입금', desc: `안내된 계좌로 ${formatWon(INSPECTION_PRICE_WON)}을 입금해 주세요.` },
-  { title: '입금 확인', desc: '확인되면 문자로 알려드리고, 그날부터 1년이 시작돼요.' },
-  { title: '분기마다 방문', desc: '분기별로 원하는 날짜를 직접 고르면 그날 방문해요.' },
+  { title: '신청하기', desc: '요금제를 고르고 점검받을 주소와 첫 전화 점검 희망 날짜를 남겨 주세요.' },
+  {
+    title: '이용료 입금',
+    desc: `안내된 계좌로 기간 총액(2년권 ${formatWon(TWO_YEAR.totalWon)}, 1년권 ${formatWon(ONE_YEAR.totalWon)})을 한 번에 입금해 주세요.`,
+  },
+  { title: '입금 확인', desc: '확인되면 문자로 알려드리고, 그날부터 이용 기간이 시작돼요.' },
+  {
+    title: '원하는 날 전화 점검',
+    desc: `1년에 ${INSPECTION_CHECKS_PER_YEAR}회, 원하는 날짜를 고르면 그날 전화로 점검해요. 필요하면 전기기사가 방문해요.`,
+  },
 ] as const;
 
 const FAQ_ITEMS = [
   {
     q: '비용은 얼마인가요?',
-    a: `1년에 ${INSPECTION_PRICE_WON.toLocaleString('ko-KR')}원입니다. 분기마다 1회씩 1년에 ${INSPECTION_VISITS_PER_TERM}회 방문하므로 1회당 ${PER_VISIT_WON.toLocaleString('ko-KR')}원꼴입니다. 점검 비용 외에 출장비를 따로 받지 않습니다.`,
+    a: `2년권은 월 ${formatWon(TWO_YEAR.monthlyWon)}(공급가 ${formatWon(TWO_YEAR.supplyWon)} + 수수료 ${formatWon(TWO_YEAR.feeWon)})로 ${TWO_YEAR.months}개월 총 ${formatWon(TWO_YEAR.totalWon)}, 1년권은 월 ${formatWon(ONE_YEAR.monthlyWon)}(공급가 ${formatWon(ONE_YEAR.supplyWon)} + 수수료 ${formatWon(ONE_YEAR.feeWon)})로 ${ONE_YEAR.months}개월 총 ${formatWon(ONE_YEAR.totalWon)}입니다. 기간 총액을 한 번에 입금하며, 필요해서 방문 점검을 하더라도 출장비를 따로 받지 않습니다.`,
   },
   {
     q: '결제는 어떻게 하나요?',
     a: '카드 결제는 받지 않고 계좌이체(무통장입금)로만 받습니다. 신청하면 화면과 문자로 입금 계좌를 안내해 드리고, 관리자가 입금을 확인하면 구독이 시작됩니다.',
   },
   {
-    q: '분기는 언제부터 언제까지인가요?',
-    a: '입금이 확인된 날부터 1년이며, 그날을 기준으로 3개월씩 4구간으로 나눕니다. 예를 들어 3월 10일에 시작하면 1회차는 3월 10일~6월 9일, 2회차는 6월 10일~9월 9일 사이에 방문합니다.',
+    q: '정말 매번 방문하나요?',
+    a: '아니요. 전화(유선) 점검이 기본입니다. 통화로 분전반·차단기·콘센트 상태를 함께 확인하고, 위험 신호가 보이는 등 필요하다고 판단되면 전기기사가 방문해 직접 점검합니다. 방문 여부는 통화 결과를 보고 저희가 정합니다.',
   },
   {
-    q: '방문 날짜는 제가 정하나요?',
+    q: `${INSPECTION_CHECKS_PER_YEAR}회는 어떻게 쓰나요?`,
+    a: `입금이 확인된 날부터 1년 단위(이용 연차)로 ${INSPECTION_CHECKS_PER_YEAR}회씩 드립니다. 그 1년 안에서 원하는 날짜에 자유롭게 쓰시면 되고, 한 달에 여러 번 받으셔도 됩니다(같은 날 2회는 불가). 2년권은 1년차 ${INSPECTION_CHECKS_PER_YEAR}회, 2년차 ${INSPECTION_CHECKS_PER_YEAR}회입니다.`,
+  },
+  {
+    q: '점검 날짜는 제가 정하나요?',
     // 숫자를 상수에서 끌어온다 — 규칙(서버의 bookingBlock)이 바뀌면 안내도 같이 바뀌어야 한다.
-    a: `네. 분기마다 원하는 날짜를 직접 고르면 그날 방문합니다. 날짜별 예약 인원 제한은 없으며, 방문 준비를 위해 오늘로부터 ${INSPECTION_MIN_LEAD_DAYS}일 뒤의 날짜부터 선택할 수 있습니다. 정한 날짜는 방문 ${INSPECTION_MIN_LEAD_DAYS}일 전까지 마이페이지에서 직접 바꿀 수 있고, 그 뒤에는 고객센터(${COMPANY.tel})로 연락해 주시면 옮겨 드립니다.`,
+    a: `네. 원하는 날짜와 통화 시간대를 직접 고르면 그날 전화드립니다. 날짜별 예약 인원 제한은 없으며, ${INSPECTION_MIN_LEAD_DAYS === 1 ? '내일' : `오늘로부터 ${INSPECTION_MIN_LEAD_DAYS}일 뒤`} 날짜부터 선택할 수 있습니다. 정한 날짜는 ${INSPECTION_MIN_LEAD_DAYS === 1 ? '점검 전날' : `점검 ${INSPECTION_MIN_LEAD_DAYS}일 전`}까지 마이페이지에서 직접 바꿀 수 있고, ${INSPECTION_MIN_LEAD_DAYS === 1 ? '당일에는' : '그 뒤에는'} 고객센터(${COMPANY.tel})로 연락해 주시면 옮겨 드립니다.`,
   },
   {
     q: '점검하다 고장을 발견하면 수리도 해주나요?',
-    a: '점검은 상태를 확인하고 알려드리는 데까지입니다. 수리가 필요하면 그 자리에서 필요한 작업과 예상 비용을 안내해 드리고, 수리 대금은 점검 비용과 별도로 현장에서 정산합니다.',
+    a: '점검은 상태를 확인하고 알려드리는 데까지입니다. 수리가 필요하면 필요한 작업과 예상 비용을 안내해 드리고, 수리 대금은 점검 비용과 별도로 정산합니다.',
   },
   {
     q: '지금 전기가 고장 났는데 이걸 신청하면 되나요?',
@@ -100,8 +118,8 @@ export default async function InspectionLandingPage() {
       <JsonLd
         data={getInspectionServiceSchema({
           path: '/inspection',
-          priceWon: INSPECTION_PRICE_WON,
-          visitsPerTerm: INSPECTION_VISITS_PER_TERM,
+          plans: PLANS,
+          checksPerYear: INSPECTION_CHECKS_PER_YEAR,
         })}
       />
       <JsonLd data={getProcessListSchema('정기 전기점검 이용 절차', PROCESS_STEPS)} />
@@ -116,14 +134,14 @@ export default async function InspectionLandingPage() {
             <div className="px-6 pt-6 pb-4 md:w-3/5 md:py-10">
               <p className="text-xs font-bold text-brand-600">고장 나기 전에, 미리 점검</p>
               <h1 className="mt-2 text-2xl leading-tight font-extrabold break-keep text-fg md:text-3xl">
-                1년에 {INSPECTION_PRICE_WON.toLocaleString('ko-KR')}원,
+                월 {MIN_MONTHLY}원부터,
                 <br />
-                분기마다 전기를 봐 드려요
+                1년에 {INSPECTION_CHECKS_PER_YEAR}번 전기를 봐 드려요
               </h1>
               <p className="mt-3 text-sm leading-relaxed text-muted">
-                연회비 {formatWon(INSPECTION_PRICE_WON)}만 내시면 전기기사가 1년에{' '}
-                {INSPECTION_VISITS_PER_TERM}번, 3개월에 한 번씩 댁으로 찾아가 분전반·누전차단기·
-                콘센트·조명을 점검합니다. 방문 날짜는 분기마다 직접 고르시면 됩니다.
+                원하는 날짜를 고르시면 그날 전화로 분전반·누전차단기·콘센트·조명 상태를 함께
+                점검합니다. 필요하다고 판단되면 전기기사가 방문해 점검합니다. 1년에{' '}
+                {INSPECTION_CHECKS_PER_YEAR}회를 이용 연차 안에서 자유롭게 쓰세요.
               </p>
             </div>
             <div className="flex justify-center px-5 pb-2 md:w-2/5 md:justify-end md:pb-0">
@@ -148,10 +166,10 @@ export default async function InspectionLandingPage() {
           </h2>
           <dl className="grid grid-cols-2 gap-2 sm:grid-cols-4">
             {[
-              { label: '연회비', value: formatWon(INSPECTION_PRICE_WON) },
-              { label: '방문 횟수', value: `연 ${INSPECTION_VISITS_PER_TERM}회` },
-              { label: '방문 주기', value: '분기당 1회' },
-              { label: '1회당 비용', value: formatWon(PER_VISIT_WON) },
+              { label: '월 요금', value: `${formatWon(INSPECTION_MIN_MONTHLY_WON)}부터` },
+              { label: '점검 횟수', value: `연 ${INSPECTION_CHECKS_PER_YEAR}회` },
+              { label: '점검 방식', value: '전화 · 필요 시 방문' },
+              { label: '날짜', value: '원하는 날 자유롭게' },
             ].map((item) => (
               <div
                 key={item.label}
@@ -180,7 +198,7 @@ export default async function InspectionLandingPage() {
           </div>
           <p className="mt-2 flex items-center gap-1.5 text-sm text-muted">
             <CheckIcon className="h-4 w-4 shrink-0" />
-            출장비 없음 · 점검 결과는 방문 현장에서 바로 안내
+            방문 점검도 출장비 없음 · 점검 결과는 바로 안내
           </p>
         </section>
 
@@ -228,18 +246,47 @@ export default async function InspectionLandingPage() {
         <section aria-labelledby="pay-title" className="mt-10">
           <h2 id="pay-title" className="flex items-center gap-2 text-xl font-extrabold text-fg">
             <WonIcon className="h-5 w-5 shrink-0 text-brand-600" />
-            연회비와 입금 방법
+            요금제와 입금 방법
           </h2>
-          <p className="mt-3 text-sm leading-relaxed text-muted">
-            연회비는 {formatWon(INSPECTION_PRICE_WON)}이며 계좌이체(무통장입금)로만 받습니다.
-            아래 계좌로 입금하신 뒤 관리자가 입금을 확인하면 그날부터 1년이 시작됩니다.
+          <ul className="mt-4 grid gap-3 sm:grid-cols-2">
+            {PLANS.map((p) => (
+              <li
+                key={p.term}
+                className={`rounded-2xl border-2 bg-white p-4 ${
+                  p.term === 'TWO_YEAR' ? 'border-brand-600' : 'border-border'
+                }`}
+              >
+                <p className="flex items-center gap-2">
+                  <span className="font-bold text-fg">{p.label}</span>
+                  {p.term === 'TWO_YEAR' && (
+                    <span className="rounded-full bg-brand-600 px-2 py-0.5 text-xs font-bold text-white">
+                      추천
+                    </span>
+                  )}
+                </p>
+                <p className="mt-1 text-xl font-extrabold tabular-nums text-fg">
+                  월 {formatWon(p.monthlyWon)}
+                </p>
+                <p className="mt-1 text-sm text-fg">
+                  {p.months}개월 · 총 {formatWon(p.totalWon)} 일시 입금
+                </p>
+                <p className="mt-0.5 text-xs text-muted">
+                  공급가 {formatWon(p.supplyWon)} + 수수료 {formatWon(p.feeWon)}
+                </p>
+                <p className="mt-2 text-sm font-semibold text-brand-700">
+                  점검 {INSPECTION_CHECKS_PER_YEAR * planYears(p.months)}회
+                  {p.months > 12 ? ` (1년에 ${INSPECTION_CHECKS_PER_YEAR}회)` : ''}
+                </p>
+              </li>
+            ))}
+          </ul>
+          <p className="mt-4 text-sm leading-relaxed text-muted">
+            이용료는 고른 요금제의 기간 총액을 계좌이체(무통장입금)로 한 번에 받습니다. 아래
+            계좌로 입금하신 뒤 관리자가 입금을 확인하면 그날부터 이용 기간이 시작됩니다.
             입금자명이 신청자 이름과 다르면 신청서에 입금자명을 따로 적어 주세요.
           </p>
-          <BankAccountCard
-            account={account}
-            amountWon={INSPECTION_PRICE_WON}
-            className="mt-4"
-          />
+          {/* 금액은 요금제마다 달라 계좌만 보여 준다 — 입금액은 위 요금표와 신청서가 안내한다. */}
+          <BankAccountCard account={account} className="mt-4" />
         </section>
 
         {/* 잘못 찾아온 사람을 위한 탈출구 — 이미 고장 난 사람이 여기서 멈추면 둘 다 손해다. */}
@@ -296,7 +343,7 @@ export default async function InspectionLandingPage() {
             내 현황
           </Link>
           <Link href="/inspection/apply" className={buttonClasses('primary', 'lg', 'flex-1')}>
-            연 {formatWon(INSPECTION_PRICE_WON)} 신청하기
+            월 {formatWon(INSPECTION_MIN_MONTHLY_WON)}부터 신청하기
           </Link>
         </div>
       </div>

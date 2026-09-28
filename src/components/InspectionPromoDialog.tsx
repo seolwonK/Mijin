@@ -7,8 +7,8 @@ import { createPortal } from 'react-dom';
 import { buttonClasses } from '@/components/Button';
 import { CheckIcon } from '@/components/icons';
 import {
-  INSPECTION_PRICE_WON,
-  INSPECTION_VISITS_PER_TERM,
+  INSPECTION_CHECKS_PER_YEAR,
+  INSPECTION_MIN_MONTHLY_WON,
   formatWon,
 } from '@/lib/inspection';
 import {
@@ -32,18 +32,16 @@ import {
 // 모바일은 바텀시트, md+ 는 가운데 카드다. 화면 전체를 덮지 않는 형태를 고른 것도
 // (1)과 같은 이유다.
 
-const PER_VISIT_WON = INSPECTION_PRICE_WON / INSPECTION_VISITS_PER_TERM;
-
 const FACTS = [
-  { label: '연회비', value: formatWon(INSPECTION_PRICE_WON) },
-  { label: '방문', value: `연 ${INSPECTION_VISITS_PER_TERM}회` },
-  { label: '1회당', value: formatWon(PER_VISIT_WON) },
+  { label: '월 요금', value: `${formatWon(INSPECTION_MIN_MONTHLY_WON)}~` },
+  { label: '점검', value: `연 ${INSPECTION_CHECKS_PER_YEAR}회` },
+  { label: '방식', value: '전화 점검' },
 ] as const;
 
 const POINTS = [
-  '분기마다 1번, 원하는 날짜에 방문',
-  '분전반·누전차단기·콘센트·조명 점검',
-  '출장비 없음 · 결과는 현장에서 바로 안내',
+  '원하는 날짜에 전화로 점검',
+  '필요하다고 판단되면 전기기사가 방문 점검',
+  '분전반·누전차단기·콘센트·조명 확인 · 방문도 출장비 없음',
 ] as const;
 
 export default function InspectionPromoDialog() {
@@ -155,9 +153,9 @@ function PromoDialog({ onClose }: { onClose: () => void }) {
                 id="inspection-promo-title"
                 className="mt-1.5 text-xl font-extrabold leading-snug text-fg"
               >
-                1년에 {INSPECTION_PRICE_WON.toLocaleString('ko-KR')}원,
+                월 {INSPECTION_MIN_MONTHLY_WON.toLocaleString('ko-KR')}원부터,
                 <br />
-                분기마다 전기를 봐 드려요
+                1년에 {INSPECTION_CHECKS_PER_YEAR}번 전기를 봐 드려요
               </h2>
             </div>
             {/* 팝업에서는 상반신 크롭을 쓴다 — 96px 높이에 전신을 넣으면 얼굴도 분전반도

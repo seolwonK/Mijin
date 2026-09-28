@@ -31,7 +31,7 @@ export default function AdminInspectionSummary({ data, error }: {
   const loading = !s;
   const aria = (label: string, value: number | undefined, tail: string) =>
     loading ? `${label} 불러오는 중, ${tail}` : `${label} ${count(value ?? 0)}건, ${tail}`;
-  const breakdown = s ? `미확정 ${count(s.unconfirmed)} · 지난 방문 ${count(s.overdue)}` : '미확정 — · 지난 방문 —';
+  const breakdown = s ? `미확정 ${count(s.unconfirmed)} · 지난 점검 ${count(s.overdue)}` : '미확정 — · 지난 점검 —';
 
   return <section className={styles.band} aria-labelledby="inspection-summary-title">
     <div className={styles.head}>
@@ -41,21 +41,21 @@ export default function AdminInspectionSummary({ data, error }: {
     <div className={styles.metrics}>
       <Metric href={PENDING} label="입금 대기" value={s?.pendingPayment ?? null} note="입금 확인 필요"
         ariaLabel={aria('입금 대기', s?.pendingPayment, '입금 대기 구독 보기')} />
-      <Metric href={SCHEDULE} label="오늘 방문" value={s?.todayVisits ?? null} note="확정 방문"
-        ariaLabel={aria('오늘 방문', s?.todayVisits, '방문 일정 보기')} />
-      <Metric href={SCHEDULE} label="이번 주 방문" value={s?.weekVisits ?? null} note="오늘 포함 7일"
-        ariaLabel={aria('이번 주 방문', s?.weekVisits, '방문 일정 보기')} />
+      <Metric href={SCHEDULE} label="오늘 점검" value={s?.todayVisits ?? null} note="전화·방문 확정"
+        ariaLabel={aria('오늘 점검', s?.todayVisits, '점검 일정 보기')} />
+      <Metric href={SCHEDULE} label="이번 주 점검" value={s?.weekVisits ?? null} note="오늘 포함 7일"
+        ariaLabel={aria('이번 주 점검', s?.weekVisits, '점검 일정 보기')} />
       <Metric href={SCHEDULE} label="처리 필요" value={s?.needsAction ?? null} note={breakdown} title={breakdown}
         attention={!!s?.needsAction}
-        ariaLabel={loading ? '처리 필요 불러오는 중, 방문 일정 보기' : `처리 필요 ${count(s.needsAction)}건(${breakdown}), 방문 일정 보기`} />
+        ariaLabel={loading ? '처리 필요 불러오는 중, 점검 일정 보기' : `처리 필요 ${count(s.needsAction)}건(${breakdown}), 점검 일정 보기`} />
     </div>
     {s && <div className={styles.lists}>
       <div className={styles.group}>
-        <span className={styles.groupLabel}>오늘 방문</span>
+        <span className={styles.groupLabel}>오늘 점검</span>
         {s.todayList.length ? <ul>{s.todayList.map(v => <li key={v.visitId} className={styles.chip}>
-          <span>{TIME_SLOT_LABEL[v.timeSlot]}</span><strong>{v.contactName}</strong><span>{v.address}</span><span>{v.quarter}회차</span>
+          <span>{TIME_SLOT_LABEL[v.timeSlot]}</span><strong>{v.contactName}</strong><span>{v.address}</span><span>{v.round}회차</span>{v.method === 'ONSITE' ? <strong>방문</strong> : <span>전화</span>}
         </li>)}{s.todayVisits > s.todayList.length && <li className={styles.more}><Link href={SCHEDULE}>외 {count(s.todayVisits - s.todayList.length)}건</Link></li>}</ul>
-          : <p className={styles.empty}>오늘 예정된 방문이 없어요</p>}
+          : <p className={styles.empty}>오늘 예정된 점검이 없어요</p>}
       </div>
       <div className={styles.group}>
         <span className={styles.groupLabel}>최근 입금 대기</span>
@@ -65,6 +65,6 @@ export default function AdminInspectionSummary({ data, error }: {
           : <p className={styles.empty}>입금 대기 신청이 없어요</p>}
       </div>
     </div>}
-    {error && <p role="status" className={`${queue.pageError} ${styles.error}`}>{data ? '정기점검 현황을 갱신하지 못했습니다. 마지막 조회 결과입니다.' : '정기점검 현황을 불러오지 못했습니다. 새로고침해 주세요.'}</p>}
+    {error && <p role="status" className={`${queue.pageError} ${styles.error}`}>{data ? '전기점검 현황을 갱신하지 못했습니다. 마지막 조회 결과입니다.' : '전기점검 현황을 불러오지 못했습니다. 새로고침해 주세요.'}</p>}
   </section>;
 }

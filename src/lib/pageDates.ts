@@ -6,7 +6,7 @@ import { COMPANY } from '@/lib/company';
 export const PAGE_UPDATED = {
   home: '2026-09-26',
   requestNew: '2026-08-23',
-  inspection: '2026-09-20',
+  inspection: '2026-09-28',
   about: '2026-09-15',
   support: '2026-09-15',
   lookup: '2026-08-14',

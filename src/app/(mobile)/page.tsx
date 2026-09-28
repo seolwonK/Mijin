@@ -12,7 +12,7 @@ import { getFaqPageSchema, getProcessListSchema, getWebPageGraph } from '@/lib/s
 import { GUIDES } from '@/lib/guides';
 import { PAGE_UPDATED } from '@/lib/pageDates';
 import { AREAS_PATH, PRIORITY_AREA_LINKS } from '@/lib/areas';
-import { INSPECTION_PRICE_WON, INSPECTION_VISITS_PER_TERM } from '@/lib/inspection';
+import { INSPECTION_CHECKS_PER_YEAR, INSPECTION_MIN_MONTHLY_WON, INSPECTION_PRICING } from '@/lib/inspection';
 import InspectionPromoDialog from '@/components/InspectionPromoDialog';
 
 // title·description 은 루트 기본값을 그대로 쓴다. canonical 만 정식 도메인의 '/' 로 고정(CloudType 원본 호스트 대비).
@@ -36,8 +36,8 @@ const LEAK_SIGNS = [
 
 const FAQ_ITEMS = [
   {
-    q: '전기점검은 1년에 얼마이고 몇 번 방문하나요?',
-    a: `정기 전기점검은 연 ${INSPECTION_PRICE_WON.toLocaleString('ko-KR')}원에 분기마다 1회씩 1년에 ${INSPECTION_VISITS_PER_TERM}회, 전기기사가 방문해 분전반·누전차단기·콘센트·조명을 점검하는 구독 서비스입니다. 방문 날짜는 분기마다 직접 고를 수 있습니다.`,
+    q: '전기점검은 얼마이고 1년에 몇 번 받나요?',
+    a: `정기 전기점검은 월 ${INSPECTION_MIN_MONTHLY_WON.toLocaleString('ko-KR')}원부터(2년권, 총 ${INSPECTION_PRICING.TWO_YEAR.totalWon.toLocaleString('ko-KR')}원 일시 입금 · 1년권은 월 ${INSPECTION_PRICING.ONE_YEAR.monthlyWon.toLocaleString('ko-KR')}원, 총 ${INSPECTION_PRICING.ONE_YEAR.totalWon.toLocaleString('ko-KR')}원) 1년에 ${INSPECTION_CHECKS_PER_YEAR}회, 원하는 날짜에 전화로 분전반·누전차단기·콘센트·조명 상태를 점검하는 구독 서비스입니다. 모든 회차에 방문하지는 않고, 필요하다고 판단되면 전기기사가 방문해 점검합니다.`,
   },
   {
     q: '요금은 어떻게 책정되나요?',
@@ -95,7 +95,7 @@ export default function Home() {
           <section aria-labelledby="home-title" className={styles.intro}>
             <div className={styles.heroHeading}>
               <div>
-                <p className={styles.eyebrow}>정기 전기점검 · 1년 {INSPECTION_PRICE_WON.toLocaleString('ko-KR')}원</p>
+                <p className={styles.eyebrow}>정기 전기점검 · 월 {INSPECTION_MIN_MONTHLY_WON.toLocaleString('ko-KR')}원부터</p>
                 <h1 id="home-title" className={styles.title}>
                   <span>전기점검 하러,</span>
                   <span>아저씨가 갑니다</span>
@@ -111,12 +111,12 @@ export default function Home() {
                 className={styles.character}
               />
             </div>
-            <p className={styles.lead}>분기마다 한 번, 전기기사가 찾아가 <span className={styles.keepWide}>분전반·차단기·콘센트를</span> <span>살펴 드려요.</span></p>
+            <p className={styles.lead}>원하는 날 전화로 <span className={styles.keepWide}>분전반·차단기·콘센트를</span> <span>살펴 드리고, 필요하면 직접 찾아가요.</span></p>
             <div className={styles.heroAction}>
               <Link href="/inspection/apply" className={styles.primaryLink}>전기점검 신청하기 <span aria-hidden="true">↗</span></Link>
               <Link href="/request/new" className={styles.secondaryLink}>전기 수리 요청하기 <span aria-hidden="true">→</span></Link>
             </div>
-            <p className={styles.priceNote}><CheckIcon className="h-4 w-4 shrink-0" />1년 {INSPECTION_PRICE_WON.toLocaleString('ko-KR')}원 · 연 {INSPECTION_VISITS_PER_TERM}회 방문 · 날짜는 직접 선택</p>
+            <p className={styles.priceNote}><CheckIcon className="h-4 w-4 shrink-0" />월 {INSPECTION_MIN_MONTHLY_WON.toLocaleString('ko-KR')}원부터 · 1년에 {INSPECTION_CHECKS_PER_YEAR}회 전화 점검 · 필요하면 방문</p>
           </section>
 
           <section aria-labelledby="symptom-title" className={styles.symptoms}>
@@ -144,16 +144,16 @@ export default function Home() {
         <section aria-labelledby="inspection-title" className={styles.inspectionPromo}>
           <div>
             <p className={styles.eyebrow}>고장 나기 전에, 미리 점검</p>
-            <h2 id="inspection-title">1년에 {INSPECTION_PRICE_WON.toLocaleString('ko-KR')}원, 분기마다 전기를 봐 드려요</h2>
+            <h2 id="inspection-title">월 {INSPECTION_MIN_MONTHLY_WON.toLocaleString('ko-KR')}원부터, 1년에 {INSPECTION_CHECKS_PER_YEAR}번 전기를 봐 드려요</h2>
             <p>
-              연회비만 내시면 전기기사가 3개월에 한 번씩 찾아가 분전반·누전차단기·콘센트·조명을
-              점검해요. 방문 날짜는 분기마다 직접 고르시면 돼요.
+              원하는 날짜를 고르시면 그날 전화로 분전반·누전차단기·콘센트·조명 상태를 함께
+              점검해요. 필요하다고 판단되면 전기기사가 방문해 점검해요.
             </p>
           </div>
           <dl className={styles.inspectionFacts}>
-            <div><dt>연회비</dt><dd>{INSPECTION_PRICE_WON.toLocaleString('ko-KR')}원</dd></div>
-            <div><dt>방문 횟수</dt><dd>연 {INSPECTION_VISITS_PER_TERM}회</dd></div>
-            <div><dt>방문 주기</dt><dd>분기당 1회</dd></div>
+            <div><dt>월 요금</dt><dd>{INSPECTION_MIN_MONTHLY_WON.toLocaleString('ko-KR')}원부터</dd></div>
+            <div><dt>점검 횟수</dt><dd>연 {INSPECTION_CHECKS_PER_YEAR}회</dd></div>
+            <div><dt>점검 방식</dt><dd>전화 · 필요 시 방문</dd></div>
           </dl>
           <Link href="/inspection" className={styles.textLink}>정기 전기점검 자세히 보기 <span aria-hidden="true">→</span></Link>
         </section>

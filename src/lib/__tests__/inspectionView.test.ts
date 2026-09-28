@@ -1,25 +1,27 @@
 import { describe, expect, it } from 'vitest';
 import type { InspectionVisit } from '@prisma/client';
-import { fromDateString } from '@/lib/inspection';
+import { fromDateString, roundsOfYear } from '@/lib/inspection';
 import {
   type PlanWithVisits,
   buildPlanView,
   planHeadline,
-  quarterDisplay,
+  visitBadge,
+  visitDisplay,
 } from '@/lib/inspectionView';
 
 // buildPlanView 는 고객·관리자 화면이 함께 쓰는 유일한 파생 계산이다. 여기서 틀리면 두 화면이
-// 같이 틀리므로, 화면 문구를 가르는 필드(bookable·blocked·needsReschedule·actionQuarter)를 고정한다.
+// 같이 틀리므로, 화면 문구를 가르는 필드(bookable·blocked·needsReschedule·남은 횟수·달력 범위)를 고정한다.
 
 const NOW = new Date('2026-10-01T03:00:00Z'); // KST 2026-10-01 12:00
 
-function visit(over: Partial<InspectionVisit> & { quarter: number; date: string }): InspectionVisit {
+function visit(over: Partial<InspectionVisit> & { round: number; date: string }): InspectionVisit {
   const { date, ...rest } = over;
   return {
-    id: `v${over.quarter}`,
+    id: `v${over.round}`,
     planId: 'p1',
     preferredDate: fromDateString(date),
     timeSlot: 'ANY',
+    method: 'PHONE',
     status: 'SCHEDULED',
     note: null,
     adminMemo: null,
@@ -43,7 +45,8 @@ function plan(over: Partial<PlanWithVisits> = {}): PlanWithVisits {
     lng: null,
     memo: null,
     status: 'ACTIVE',
-    priceWon: 50_000,
+    termMonths: 12,
+    priceWon: 92_400,
     depositorName: '홍길동',
     paidConfirmedAt: NOW,
     paidConfirmedByUserId: 'admin',
@@ -60,145 +63,134 @@ function plan(over: Partial<PlanWithVisits> = {}): PlanWithVisits {
 
 describe('buildPlanView', () => {
   it('관리자 메모는 고객 뷰에 싣지 않는다', () => {
-    const p = plan({ visits: [visit({ quarter: 1, date: '2026-10-10', adminMemo: '김기사 · 1톤' })] });
-    expect(buildPlanView(p, 'customer', NOW).quarters[0].visit?.adminMemo).toBeNull();
-    expect(buildPlanView(p, 'admin', NOW).quarters[0].visit?.adminMemo).toBe('김기사 · 1톤');
+    const p = plan({ visits: [visit({ round: 1, date: '2026-10-10', adminMemo: '김기사 · 1톤' })] });
+    expect(buildPlanView(p, 'customer', NOW).visits[0].adminMemo).toBeNull();
+    expect(buildPlanView(p, 'admin', NOW).visits[0].adminMemo).toBe('김기사 · 1톤');
   });
 
   it('신청일은 UTC 가 아니라 한국 달력으로 낸다', () => {
     expect(buildPlanView(plan(), 'admin', NOW).createdDate).toBe('2026-09-20');
   });
 
-  it('입금 전에는 분기 창이 없고 아무 회차도 예약할 수 없다', () => {
+  it('입금 전에는 연차 창도 달력 범위도 없다', () => {
     const view = buildPlanView(
-      plan({ status: 'PENDING_PAYMENT', startDate: null, endDate: null }),
+      plan({
+        status: 'PENDING_PAYMENT',
+        startDate: null,
+        endDate: null,
+        visits: [visit({ round: 1, date: '2026-10-05', status: 'REQUESTED' })],
+      }),
       'customer',
       NOW,
     );
-    expect(view.quarters.every((q) => q.window == null && !q.bookable)).toBe(true);
-    expect(view.actionQuarter).toBeNull();
+    expect(view.years.every((y) => y.window == null && !y.bookable)).toBe(true);
+    expect(view.bookRange).toBeNull();
+    expect(view.visits[0].bookable).toBe(false);
+    expect(visitDisplay(view.visits[0])).toBe('AWAITING_PAYMENT');
+    expect(planHeadline(view)).toBeNull();
   });
 
-  it('현재 분기에 날짜가 없으면 그 회차가 "지금 할 일"이다', () => {
+  it('1년권은 연차 하나에 12회, 달력은 내일부터 기간 끝까지', () => {
     const view = buildPlanView(plan(), 'customer', NOW);
-    expect(view.quarters[0].isCurrent).toBe(true);
-    expect(view.actionQuarter).toBe(1);
+    expect(view.years).toHaveLength(1);
+    expect(view.years[0]).toMatchObject({ quota: 12, used: 0, remaining: 12, isCurrent: true, bookable: true });
+    expect(view.bookRange).toEqual({ earliest: '2026-10-02', latest: '2027-09-19' });
+    expect(planHeadline(view)).toEqual({ kind: 'BOOK', remaining: 12 });
   });
 
-  it('날짜를 다시 골라야 하는 회차가 현재 분기보다 먼저다', () => {
-    const p = plan({ visits: [visit({ quarter: 1, date: '2026-09-25', status: 'REQUESTED' })] });
+  it('2년권은 연차가 둘이고 회차 번호로 연차를 가른다', () => {
+    const p = plan({
+      termMonths: 24,
+      priceWon: 132_000,
+      endDate: fromDateString('2028-09-19'),
+      visits: [visit({ round: 13, date: '2027-10-01' })],
+    });
     const view = buildPlanView(p, 'customer', NOW);
-    expect(view.quarters[0].needsReschedule).toBe(true);
-    expect(view.quarters[0].bookable).toBe(true);
-    expect(view.actionQuarter).toBe(1);
+    expect(view.years.map((y) => [y.year, y.used, y.remaining])).toEqual([
+      [1, 0, 12],
+      [2, 1, 11],
+    ]);
+    expect(view.visits[0].year).toBe(2);
+    expect(view.bookRange).toEqual({ earliest: '2026-10-02', latest: '2028-09-19' });
   });
 
-  it('관리자가 취소한 방문은 다시 잡을 수 있고 할 일로 잡힌다', () => {
-    const p = plan({ visits: [visit({ quarter: 1, date: '2026-10-10', status: 'CANCELED' })] });
+  it('한 연차를 다 쓰면 달력 범위에서 빠진다', () => {
+    const full = roundsOfYear(1).map((round, i) =>
+      visit({ round, date: `2026-11-${String(i + 1).padStart(2, '0')}` }),
+    );
+    const p = plan({ termMonths: 24, endDate: fromDateString('2028-09-19'), visits: full });
     const view = buildPlanView(p, 'customer', NOW);
-    expect(view.quarters[0].bookable).toBe(true);
-    expect(view.actionQuarter).toBe(1);
+    expect(view.years[0]).toMatchObject({ used: 12, remaining: 0, bookable: false });
+    expect(view.bookRange).toEqual({ earliest: '2027-09-20', latest: '2028-09-19' });
+    // 1년권이라면 더 잡을 날이 없다
+    const oneYear = buildPlanView(plan({ visits: full }), 'customer', NOW);
+    expect(oneYear.bookRange).toBeNull();
   });
 
-  it('현재 분기가 예약돼 있으면 할 일이 없다 — 미래 분기를 재촉하지 않는다', () => {
-    const p = plan({ visits: [visit({ quarter: 1, date: '2026-10-10' })] });
-    const view = buildPlanView(p, 'customer', NOW);
-    expect(view.actionQuarter).toBeNull();
-    expect(view.quarters[1].bookable).toBe(true); // 미리 잡는 것은 허용
-  });
-
-  it('임박한 확정 방문은 잠기고 이유를 알려 준다', () => {
-    const p = plan({ visits: [visit({ quarter: 1, date: '2026-10-02' })] });
-    const q1 = buildPlanView(p, 'customer', NOW).quarters[0];
-    expect(q1.bookable).toBe(false);
-    expect(q1.blocked).toBe('VISIT_IMMINENT');
-  });
-
-  it('완료 회차 수를 센다', () => {
+  it('취소된 회차는 횟수를 차지하지 않고, 같은 날 중복 검사에서도 빠진다', () => {
     const p = plan({
       visits: [
-        visit({ quarter: 1, date: '2026-09-25', status: 'COMPLETED' }),
-        visit({ quarter: 2, date: '2027-01-10' }),
+        visit({ round: 1, date: '2026-10-10', status: 'CANCELED' }),
+        visit({ round: 2, date: '2026-10-12' }),
       ],
     });
     const view = buildPlanView(p, 'customer', NOW);
+    expect(view.years[0].used).toBe(1);
+    expect(view.bookedDates).toEqual(['2026-10-12']);
+  });
+
+  it('날짜를 다시 골라야 하는 회차가 다음 점검보다 먼저다', () => {
+    const p = plan({
+      visits: [
+        visit({ round: 1, date: '2026-09-25', status: 'REQUESTED' }),
+        visit({ round: 2, date: '2026-10-10' }),
+      ],
+    });
+    const view = buildPlanView(p, 'customer', NOW);
+    const v1 = view.visits.find((v) => v.round === 1)!;
+    expect(v1.needsReschedule).toBe(true);
+    expect(v1.bookable).toBe(true);
+    expect(visitDisplay(v1)).toBe('RESCHEDULE');
+    expect(planHeadline(view)).toEqual({ kind: 'RESCHEDULE', visitId: 'v1', round: 1 });
+  });
+
+  it('다음 점검은 오늘 이후 가장 가까운 확정 점검이고 방식을 싣는다', () => {
+    const p = plan({
+      visits: [
+        visit({ round: 1, date: '2026-09-25', status: 'COMPLETED', method: 'ONSITE' }),
+        visit({ round: 3, date: '2026-10-20', method: 'ONSITE' }),
+        visit({ round: 2, date: '2026-10-01' }), // 오늘
+      ],
+    });
+    const view = buildPlanView(p, 'customer', NOW);
+    expect(view.visits.map((v) => v.round)).toEqual([1, 2, 3]); // 날짜순
+    expect(view.nextVisit).toMatchObject({ round: 2, date: '2026-10-01', method: 'PHONE' });
     expect(view.completedCount).toBe(1);
-    expect(view.quarters[0].blocked).toBe('COMPLETED');
+    expect(view.years[0].completed).toBe(1);
   });
 
-  it('1분기 창이 지난 REQUESTED 1회차는 "다시 선택"이 아니라 "기간 지남"으로 보인다', () => {
-    // 창: 2026-09-20 ~ 12-19. KST 12-19 에는 리드타임(2일)을 지킬 날짜가 창 안에 없다.
-    const late = new Date('2026-12-19T03:00:00Z');
-    const p = plan({ visits: [visit({ quarter: 1, date: '2026-09-25', status: 'REQUESTED' })] });
-    const view = buildPlanView(p, 'customer', late);
-    const q1 = view.quarters[0];
-    expect(q1.needsReschedule).toBe(true); // 관리자 화면용 원래 뜻은 그대로
-    expect(q1.bookable).toBe(false);
-    expect(q1.blocked).toBe('WINDOW_PASSED');
-    expect(quarterDisplay(q1)).toBe('WINDOW_PASSED');
-    expect(planHeadline(view)).toBeNull();
+  it('임박한 확정 점검은 잠기고 이유를 알려 준다', () => {
+    const p = plan({ visits: [visit({ round: 1, date: '2026-10-01' })] }); // 오늘
+    const v = buildPlanView(p, 'customer', NOW).visits[0];
+    expect(v.bookable).toBe(false);
+    expect(v.blocked).toBe('VISIT_IMMINENT');
   });
 
-  it('창이 남은 REQUESTED 1회차는 "다시 선택"이고 맨 위 한 줄도 재선택을 알린다', () => {
-    const p = plan({ visits: [visit({ quarter: 1, date: '2026-09-25', status: 'REQUESTED' })] });
-    const view = buildPlanView(p, 'customer', NOW);
-    expect(quarterDisplay(view.quarters[0])).toBe('RESCHEDULE');
-    expect(planHeadline(view)).toEqual({ kind: 'RESCHEDULE', quarter: 1 });
-  });
-
-  it('입금 전 희망일은 "입금 확인 후 확정"으로 보인다', () => {
-    const p = plan({
-      status: 'PENDING_PAYMENT',
-      startDate: null,
-      endDate: null,
-      visits: [visit({ quarter: 1, date: '2026-10-10', status: 'REQUESTED' })],
-    });
-    const view = buildPlanView(p, 'customer', NOW);
-    expect(quarterDisplay(view.quarters[0])).toBe('AWAITING_PAYMENT');
-    expect(view.nextVisit).toBeNull();
-    expect(planHeadline(view)).toBeNull();
-  });
-
-  it('완료·예약·미정을 구분한다', () => {
+  it('예정 배지는 방식을 말한다 — 방문 점검만 집에서 기다린다', () => {
     const p = plan({
       visits: [
-        visit({ quarter: 1, date: '2026-09-25', status: 'COMPLETED' }),
-        visit({ quarter: 2, date: '2027-01-10' }),
+        visit({ round: 1, date: '2026-10-10' }),
+        visit({ round: 2, date: '2026-10-11', method: 'ONSITE' }),
       ],
     });
-    const [q1, q2, q3] = buildPlanView(p, 'customer', NOW).quarters;
-    expect(quarterDisplay(q1)).toBe('COMPLETED');
-    expect(quarterDisplay(q2)).toBe('SCHEDULED');
-    expect(quarterDisplay(q3)).toBe('UNSET');
+    const [phone, onsite] = buildPlanView(p, 'customer', NOW).visits;
+    expect(visitBadge(phone)).toBe('전화 예정');
+    expect(visitBadge(onsite)).toBe('방문 예정');
   });
 
-  it('현재 분기가 비어 있으면 맨 위 한 줄은 그 회차 날짜 정하기다', () => {
-    // 2회차 창(2026-12-20~) 안, 1회차는 완료.
-    const now = new Date('2027-01-05T03:00:00Z');
-    const p = plan({ visits: [visit({ quarter: 1, date: '2026-10-10', status: 'COMPLETED' })] });
-    expect(planHeadline(buildPlanView(p, 'customer', now))).toEqual({ kind: 'BOOK', quarter: 2 });
-  });
-
-  it('할 일이 없으면 가장 가까운 예정 방문을 알린다 — 지난 방문·취소는 제외', () => {
-    const p = plan({
-      visits: [
-        visit({ quarter: 1, date: '2026-10-14', timeSlot: 'MORNING' }),
-        visit({ quarter: 2, date: '2027-01-10' }),
-        visit({ quarter: 3, date: '2027-04-10', status: 'CANCELED' }),
-      ],
-    });
-    const view = buildPlanView(p, 'customer', NOW);
-    expect(view.nextVisit).toEqual({ quarter: 1, date: '2026-10-14', timeSlot: 'MORNING' });
-    expect(planHeadline(view)).toEqual({
-      kind: 'NEXT_VISIT',
-      quarter: 1,
-      date: '2026-10-14',
-      timeSlot: 'MORNING',
-    });
-  });
-
-  it('오늘 방문도 다음 방문이다', () => {
-    const p = plan({ visits: [visit({ quarter: 1, date: '2026-10-01' })] });
-    expect(buildPlanView(p, 'customer', NOW).nextVisit?.date).toBe('2026-10-01');
+  it('만료된 구독에는 헤드라인도 예약도 없다', () => {
+    const view = buildPlanView(plan({ status: 'EXPIRED' }), 'customer', NOW);
+    expect(planHeadline(view)).toBeNull();
+    expect(view.bookRange).toBeNull();
   });
 });
