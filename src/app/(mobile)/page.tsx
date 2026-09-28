@@ -12,8 +12,13 @@ import { getFaqPageSchema, getProcessListSchema, getWebPageGraph } from '@/lib/s
 import { GUIDES } from '@/lib/guides';
 import { PAGE_UPDATED } from '@/lib/pageDates';
 import { AREAS_PATH, PRIORITY_AREA_LINKS } from '@/lib/areas';
-import { INSPECTION_CHECKS_PER_YEAR, INSPECTION_MIN_MONTHLY_WON, INSPECTION_PRICING } from '@/lib/inspection';
-import InspectionPromoDialog from '@/components/InspectionPromoDialog';
+import {
+  INSPECTION_CHECKS_PER_YEAR,
+  INSPECTION_MIN_MONTHLY_WON,
+  INSPECTION_PRICING,
+  INSPECTION_TERMS,
+  planYears,
+} from '@/lib/inspection';
 
 // title·description 은 루트 기본값을 그대로 쓴다. canonical 만 정식 도메인의 '/' 로 고정(CloudType 원본 호스트 대비).
 export const metadata: Metadata = {
@@ -26,6 +31,23 @@ const PROCESS_STEPS = [
   { title: '현장 방문·수리', desc: '업체가 접수를 수락하면 출동해요. 비용은 현장 확인 후 안내해요.' },
   { title: '완료 확인', desc: '처리 결과는 접수 내역에서 확인할 수 있어요.' },
 ] as const;
+
+const won = (n: number) => `${n.toLocaleString('ko-KR')}원`;
+
+// 첫 화면 가격표 아래의 "무엇을 받나" — 랜딩(/inspection)의 약속과 같은 범위만 말한다.
+const INSPECTION_INCLUDES = [
+  `1년에 ${INSPECTION_CHECKS_PER_YEAR}회, 원하는 날짜를 직접 골라요`,
+  '그날 전화로 분전반·누전차단기·콘센트·조명을 함께 점검해요',
+  '통화해 보고 필요하면 전기기사가 직접 방문해요',
+] as const;
+
+const INSPECTION_STEPS = [
+  { title: '요금제 고르고 신청', desc: '2년권·1년권 중 고르고 첫 점검 날짜를 정해요. 이용료는 한 번에 입금해요.' },
+  { title: '원하는 날 전화 점검', desc: '고른 날짜·시간대에 전기아저씨가 전화드려 집 전기 상태를 같이 확인해요.' },
+  { title: '필요하면 방문 점검', desc: '통화 내용을 보고 필요하다고 판단되면 전기기사가 직접 찾아가 점검해요.' },
+] as const;
+
+const INSPECTION_CHECKS = ['분전반(두꺼비집)', '누전차단기', '콘센트·스위치', '조명·배선'] as const;
 
 const LEAK_SIGNS = [
   '두꺼비집(차단기)이 자꾸 내려가요',
@@ -111,51 +133,102 @@ export default function Home() {
                 className={styles.character}
               />
             </div>
-            <p className={styles.lead}>원하는 날 전화로 <span className={styles.keepWide}>분전반·차단기·콘센트를</span> <span>살펴 드리고, 필요하면 직접 찾아가요.</span></p>
+            <p className={styles.lead}>원하는 날 전화로 <span className={styles.keepWide}>분전반·차단기·콘센트를</span> 살펴 드리고, 필요하면 직접 찾아가요.</p>
             <div className={styles.heroAction}>
               <Link href="/inspection/apply" className={styles.primaryLink}>전기점검 신청하기 <span aria-hidden="true">↗</span></Link>
-              <Link href="/request/new" className={styles.secondaryLink}>전기 수리 요청하기 <span aria-hidden="true">→</span></Link>
+              <Link href="#inspection-how" className={`${styles.secondaryLink} ${styles.desktopOnly}`}>어떻게 점검하나요? <span aria-hidden="true">↓</span></Link>
             </div>
-            <p className={styles.priceNote}><CheckIcon className="h-4 w-4 shrink-0" />월 {INSPECTION_MIN_MONTHLY_WON.toLocaleString('ko-KR')}원부터 · 1년에 {INSPECTION_CHECKS_PER_YEAR}회 전화 점검 · 필요하면 방문</p>
+            <p className={styles.priceNote}>
+              <AlertIcon className="h-4 w-4 shrink-0" />지금 고장이 났다면{' '}
+              <Link href="/request/new" className={styles.repairLink}>전기 수리 무료 접수 <span aria-hidden="true">→</span></Link>
+            </p>
           </section>
 
-          <section aria-labelledby="symptom-title" className={styles.symptoms}>
-            <h2 id="symptom-title">전기가 고장나면, 아저씨가 갑니다</h2>
-            <p className={styles.sectionDescription}>이미 고장이 났다면 증상을 골라 무료로 접수하세요. 가까운 출동 업체를 연결해 드려요.</p>
-            <div className={styles.symptomGrid}>
-              {SYMPTOM_ITEMS.map((symptom) => (
-                <Link key={symptom.key} href={`/request/new?symptom=${symptom.key}`} className={styles.symptomLink}>
-                  <HomeSymptomIcon symptom={symptom.key} className={styles.symptomIcon} />
-                  <span>{symptom.label}</span>
-                </Link>
-              ))}
+          {/* 첫 화면 가격표 — 들어오자마자 요금과 신청 버튼이 함께 보이게 한다(사용자 요청 2026-09-28).
+              요금제별 버튼은 신청서에 그 요금제를 미리 골라 둔다(?term=). */}
+          <section aria-labelledby="pricing-title" className={styles.pricing}>
+            <div className={styles.pricingHead}>
+              <h2 id="pricing-title">정기 전기점검 요금</h2>
+              <span>기간 총액 한 번 입금</span>
             </div>
-            <Link href="/request/new" className={styles.otherSymptom}>다른 증상이거나 잘 모르겠어요 <span aria-hidden="true">→</span></Link>
+            <ul className={styles.planList}>
+              {INSPECTION_TERMS.map((term) => {
+                const p = INSPECTION_PRICING[term];
+                const featured = term === 'TWO_YEAR';
+                return (
+                  <li key={term} className={featured ? `${styles.plan} ${styles.planFeatured}` : styles.plan}>
+                    <div className={styles.planTop}>
+                      <strong className={styles.planName}>{p.label}</strong>
+                      {featured && <span className={styles.planBadge}>추천</span>}
+                    </div>
+                    <p className={styles.planPrice}><span>월</span> {won(p.monthlyWon)}</p>
+                    <p className={styles.planMeta}>
+                      {p.months}개월 · 총 {won(p.totalWon)} · 점검 {INSPECTION_CHECKS_PER_YEAR * planYears(p.months)}회
+                    </p>
+                    <p className={styles.planFine}>공급가 {won(p.supplyWon)} + 수수료 {won(p.feeWon)}</p>
+                    <Link href={`/inspection/apply?term=${term}`} className={featured ? styles.planCtaPrimary : styles.planCta}>
+                      {p.label}으로 신청하기 <span aria-hidden="true">→</span>
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+            <ul className={styles.includeList}>
+              {INSPECTION_INCLUDES.map((line) => (
+                <li key={line}><CheckIcon className="h-4 w-4 shrink-0" />{line}</li>
+              ))}
+            </ul>
           </section>
         </div>
+
+        {/* 전기점검 진행 방식 — 가격표 바로 다음에 "무엇을 받는가"를 세 단계로 보여 준다. */}
+        <section id="inspection-how" aria-labelledby="inspection-title" className={styles.inspectionPromo}>
+          <div className={styles.inspectionIntro}>
+            <p className={styles.eyebrow}>고장 나기 전에, 미리 점검</p>
+            <h2 id="inspection-title">1년에 {INSPECTION_CHECKS_PER_YEAR}번, 원하는 날 전화로 전기를 봐 드려요</h2>
+            <p>
+              매번 집에 찾아가지 않아요. 통화로 먼저 확인하고, 필요할 때만 전기기사가 방문해요.
+              그래서 월 {won(INSPECTION_MIN_MONTHLY_WON)}부터 부담 없이 받을 수 있어요.
+            </p>
+            <ul className={styles.checkChips} aria-label="점검 항목">
+              {INSPECTION_CHECKS.map((item) => <li key={item}>{item}</li>)}
+            </ul>
+          </div>
+          <ol className={styles.inspectionSteps}>
+            {INSPECTION_STEPS.map((step, index) => (
+              <li key={step.title}>
+                <span className={styles.stepNumber} aria-hidden="true">0{index + 1}</span>
+                <div><h3>{step.title}</h3><p>{step.desc}</p></div>
+              </li>
+            ))}
+          </ol>
+          <div className={styles.inspectionCta}>
+            <Link href="/inspection/apply" className={styles.primaryLink}>
+              월 {won(INSPECTION_MIN_MONTHLY_WON)}부터 전기점검 신청하기 <span aria-hidden="true">↗</span>
+            </Link>
+            <Link href="/inspection" className={styles.textLink}>정기 전기점검 자세히 보기 <span aria-hidden="true">→</span></Link>
+          </div>
+        </section>
+
+        {/* 고장 수리 접수 — 홈의 서브 상품. 전기점검 다음 구획으로 내렸다(사용자 요청 2026-09-28). */}
+        <section aria-labelledby="symptom-title" className={`${styles.section} ${styles.symptoms}`}>
+          <h2 id="symptom-title">전기가 고장나면, 아저씨가 갑니다</h2>
+          <p className={styles.sectionDescription}>이미 고장이 났다면 증상을 골라 무료로 접수하세요. 가까운 출동 업체를 연결해 드려요.</p>
+          <div className={styles.symptomGrid}>
+            {SYMPTOM_ITEMS.map((symptom) => (
+              <Link key={symptom.key} href={`/request/new?symptom=${symptom.key}`} className={styles.symptomLink}>
+                <HomeSymptomIcon symptom={symptom.key} className={styles.symptomIcon} />
+                <span>{symptom.label}</span>
+              </Link>
+            ))}
+          </div>
+          <Link href="/request/new" className={styles.otherSymptom}>다른 증상이거나 잘 모르겠어요 <span aria-hidden="true">→</span></Link>
+        </section>
 
         <section aria-label="접수와 비용 안내" className={styles.serviceNotes}>
           <div><h2>접수는 무료예요</h2><p>글이나 음성으로 고장 내용을 남겨 주세요.</p></div>
           <div><h2>수리비는 현장에서 안내해요</h2><p>고장 원인과 자재에 따라 비용이 달라져요.</p></div>
           <div><h2>승인된 업체를 연결해요</h2><p>지역별 출동 가능 여부를 확인해 배정해요.</p></div>
-        </section>
-
-        {/* 정기 전기점검 — 고장 접수의 반대편 상품(사고 전 예방). 홈에서 한 번은 만나게 한다. */}
-        <section aria-labelledby="inspection-title" className={styles.inspectionPromo}>
-          <div>
-            <p className={styles.eyebrow}>고장 나기 전에, 미리 점검</p>
-            <h2 id="inspection-title">월 {INSPECTION_MIN_MONTHLY_WON.toLocaleString('ko-KR')}원부터, 1년에 {INSPECTION_CHECKS_PER_YEAR}번 전기를 봐 드려요</h2>
-            <p>
-              원하는 날짜를 고르시면 그날 전화로 분전반·누전차단기·콘센트·조명 상태를 함께
-              점검해요. 필요하다고 판단되면 전기기사가 방문해 점검해요.
-            </p>
-          </div>
-          <dl className={styles.inspectionFacts}>
-            <div><dt>월 요금</dt><dd>{INSPECTION_MIN_MONTHLY_WON.toLocaleString('ko-KR')}원부터</dd></div>
-            <div><dt>점검 횟수</dt><dd>연 {INSPECTION_CHECKS_PER_YEAR}회</dd></div>
-            <div><dt>점검 방식</dt><dd>전화 · 필요 시 방문</dd></div>
-          </dl>
-          <Link href="/inspection" className={styles.textLink}>정기 전기점검 자세히 보기 <span aria-hidden="true">→</span></Link>
         </section>
 
         <section aria-labelledby="areas-title" className={styles.section}>
@@ -243,11 +316,6 @@ export default function Home() {
 
         <div className={styles.partnerLink}><span>전기아저씨와 함께 일하고 계신가요?</span><Link href="/login">업체 · 전기기사 로그인 <span aria-hidden="true">→</span></Link></div>
       </div>
-
-      {/* 전기점검 첫 방문 팝업 — 홈에만 단다. 가이드·지역 페이지는 검색 유입이 바로 떨어지는
-          자리라 팝업이 침입형 간지 광고로 잡힐 위험이 크다. 본문은 클라이언트에서 지연 렌더되므로
-          서버 HTML·크롤러가 보는 문서에는 들어가지 않는다. */}
-      <InspectionPromoDialog />
     </main>
   );
 }

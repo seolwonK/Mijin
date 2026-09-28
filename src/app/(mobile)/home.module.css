@@ -149,15 +149,169 @@
 .priceNote {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 6px;
   margin-top: 14px;
-  color: var(--color-brand-700);
+  color: var(--color-muted);
   font-size: 13px;
   line-height: 1.6;
 }
 
 .symptoms {
-  margin-top: 32px;
+  border-top: 1px solid var(--color-border);
+}
+
+/* 첫 화면 가격표 — 히어로 오른쪽(모바일은 신청 버튼 아래). 추천 요금제만 브랜드 테두리로 띄운다. */
+.pricing {
+  margin-top: 28px;
+  padding: 18px;
+  border-radius: 20px;
+  background: linear-gradient(160deg, var(--color-brand-50), #fff 60%);
+  border: 1px solid var(--color-brand-100);
+}
+
+.pricingHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.pricingHead h2 {
+  font-size: 18px;
+  font-weight: 750;
+  letter-spacing: -0.03em;
+}
+
+.pricingHead span {
+  color: var(--color-muted);
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.planList {
+  display: grid;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.plan {
+  display: grid;
+  gap: 2px;
+  padding: 16px;
+  border-radius: 14px;
+  border: 1px solid var(--color-border);
+  background: #fff;
+}
+
+.planFeatured {
+  border: 2px solid var(--color-brand-600);
+  padding: 15px;
+}
+
+.planTop {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.planName {
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.planBadge {
+  border-radius: 999px;
+  background: var(--color-brand-700);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 8px;
+}
+
+.planPrice {
+  margin-top: 4px;
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: -0.035em;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.2;
+}
+
+.planPrice span {
+  font-size: 15px;
+  font-weight: 650;
+  color: var(--color-muted);
+}
+
+.planMeta {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-fg);
+  font-variant-numeric: tabular-nums;
+}
+
+.planFine {
+  font-size: 12px;
+  color: var(--color-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.planCta,
+.planCtaPrimary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 46px;
+  margin-top: 12px;
+  padding: 11px 16px;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 650;
+  transition: background-color 160ms, border-color 160ms;
+}
+
+.planCtaPrimary {
+  background: var(--color-brand-700);
+  color: #fff;
+}
+
+.planCtaPrimary:hover { background: var(--color-brand-800); }
+.planCtaPrimary:active { background: var(--color-brand-900); }
+
+.planCta {
+  border: 1px solid var(--color-brand-200);
+  color: var(--color-brand-700);
+  background: #fff;
+}
+
+.planCta:hover { border-color: var(--color-brand-300); background: var(--color-brand-50); }
+.planCta:active { background: var(--color-brand-100); }
+
+.includeList {
+  display: grid;
+  gap: 8px;
+  margin-top: 16px;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--color-fg);
+}
+
+.includeList li {
+  display: flex;
+  gap: 6px;
+  align-items: flex-start;
+}
+
+.includeList svg {
+  margin-top: 2px;
+  color: var(--color-brand-700);
+}
+
+.repairLink {
+  font-weight: 650;
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
 .symptoms h2 {
@@ -275,6 +429,60 @@
   color: var(--color-muted);
   font-size: 14px;
   line-height: 1.65;
+}
+
+.inspectionIntro p {
+  margin-top: 8px;
+}
+
+.checkChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 14px;
+}
+
+.checkChips li {
+  border-radius: 999px;
+  background: #fff;
+  border: 1px solid var(--color-brand-100);
+  padding: 4px 10px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-brand-800);
+}
+
+.inspectionSteps {
+  display: grid;
+  gap: 12px;
+}
+
+.inspectionSteps li {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  border-radius: 14px;
+  background: #fff;
+  padding: 14px;
+}
+
+.inspectionSteps h3 {
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.inspectionSteps p {
+  margin-top: 4px;
+}
+
+.inspectionCta {
+  display: grid;
+  gap: 8px;
+  justify-items: start;
+}
+
+.inspectionCta .primaryLink {
+  width: 100%;
 }
 
 .inspectionFacts {
@@ -514,6 +722,10 @@
 }
 
 @media (max-width: 767px) {
+  /* 모바일은 첫 화면에 가격표가 들어오도록 보조 버튼을 뺀다 — 바로 아래 가격표가 그 설명이다. */
+  .desktopOnly {
+    display: none;
+  }
   .intro {
     display: grid;
     grid-template-columns: minmax(0, 1fr) 44%;
@@ -597,6 +809,27 @@
   .symptomGrid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
+  .planList {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .inspectionPromo {
+    padding: 32px;
+  }
+  .inspectionSteps {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .inspectionSteps li {
+    flex-direction: column;
+  }
+  .inspectionCta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 20px;
+  }
+  .inspectionCta .primaryLink {
+    width: auto;
+  }
   .serviceNotes {
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 24px;
@@ -664,13 +897,15 @@
     max-width: 30ch;
     font-size: 17px;
   }
-  .symptoms {
+  .pricing {
     margin-top: 0;
-    padding-left: 32px;
-    border-left: 1px solid var(--color-border);
+    padding: 22px;
+  }
+  .planList {
+    grid-template-columns: 1fr;
   }
   .symptomGrid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(6, minmax(0, 1fr));
   }
   .symptomLink {
     min-height: 112px;
@@ -681,7 +916,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .symptomLink, .primaryLink, .secondaryLink {
+  .symptomLink, .primaryLink, .secondaryLink, .planCta, .planCtaPrimary {
     transition: none;
   }
 }

@@ -7,7 +7,7 @@ import LogoutButton from '@/components/LogoutButton';
 import { getSession, type SessionRole } from '@/lib/auth';
 import { prisma } from '@/lib/db';
 import { readInspectionAccount } from '@/lib/inspectionAccount';
-import { INSPECTION_MIN_MONTHLY_WON } from '@/lib/inspection';
+import { INSPECTION_MIN_MONTHLY_WON, INSPECTION_TERMS, type InspectionTerm } from '@/lib/inspection';
 import { expireDuePlans } from '@/lib/inspectionLifecycle';
 
 export const metadata: Metadata = {
@@ -79,7 +79,14 @@ function OtherRoleNotice({ role }: { role: Exclude<SessionRole, 'CUSTOMER'> }) {
   );
 }
 
-export default async function InspectionApplyPage() {
+export default async function InspectionApplyPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ term?: string }>;
+}) {
+  const { term } = await searchParams;
+  // 홈·랜딩 가격표의 요금제별 버튼이 ?term= 으로 넘긴다. 모르는 값은 무시(기본 2년권).
+  const initialTerm = INSPECTION_TERMS.find((t) => t === term) as InspectionTerm | undefined;
   const [account, session] = await Promise.all([readInspectionAccount(), getSession()]);
   if (session && session.role !== 'CUSTOMER') {
     return <OtherRoleNotice role={session.role} />;
@@ -97,6 +104,7 @@ export default async function InspectionApplyPage() {
     <ApplyForm
       account={account}
       renewal={customerUserId != null}
+      initialTerm={initialTerm}
       prefill={
         prefill && {
           name: prefill.contactName,

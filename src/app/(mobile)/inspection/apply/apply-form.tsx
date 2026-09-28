@@ -87,11 +87,14 @@ export default function ApplyForm({
   account,
   renewal = false,
   prefill = null,
+  initialTerm = 'TWO_YEAR',
 }: {
   account: PublicBankAccount | null;
   /** 이미 로그인한 고객의 갱신 신청 — 계정을 새로 만들지 않는다. */
   renewal?: boolean;
   prefill?: ApplyPrefill | null;
+  /** 홈·랜딩 가격표에서 고른 요금제(?term=). 없으면 추천인 2년권. */
+  initialTerm?: InspectionTerm;
 }) {
   const router = useRouter();
   // 날짜 경계는 서버 검증(applyDateIssue)과 같은 함수로 계산한다 — 화면이 허용한 날짜를
@@ -108,8 +111,8 @@ export default function ApplyForm({
     address: prefill?.address ?? '',
   });
   const [addressDetail, setAddressDetail] = useState(prefill?.addressDetail ?? '');
-  // 2년권이 추천·기본 선택이다(사용자 결정 2026-09-28).
-  const [term, setTerm] = useState<InspectionTerm>('TWO_YEAR');
+  // 2년권이 추천·기본 선택이다(사용자 결정 2026-09-28). 가격표에서 골라 왔으면 그 요금제.
+  const [term, setTerm] = useState<InspectionTerm>(initialTerm);
   const plan = INSPECTION_PRICING[term];
   const [preferredDate, setPreferredDate] = useState('');
   const [timeSlot, setTimeSlot] = useState<TimeSlot>('ANY');
