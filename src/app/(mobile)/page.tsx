@@ -38,13 +38,13 @@ const won = (n: number) => `${n.toLocaleString('ko-KR')}원`;
 const INSPECTION_INCLUDES = [
   `1년에 ${INSPECTION_CHECKS_PER_YEAR}회, 원하는 날짜를 직접 골라요`,
   '그날 전화로 분전반·누전차단기·콘센트·조명을 함께 점검해요',
-  '통화해 보고 필요하면 전기기사가 직접 방문해요',
+  '유·무선 check 후 필요하면 전기기사가 직접 방문해요',
 ] as const;
 
 const INSPECTION_STEPS = [
-  { title: '약정 고르고 신청', desc: '2년·1년 약정 중 고르고 첫 점검 날짜를 정해요. 첫 달만 입금하고, 그다음부터는 매월 자동이체예요.' },
-  { title: '원하는 날 전화 점검', desc: '고른 날짜·시간대에 전기아저씨가 전화드려 집 전기 상태를 같이 확인해요.' },
-  { title: '필요하면 방문 점검', desc: '통화 내용을 보고 필요하다고 판단되면 전기기사가 직접 찾아가 점검해요.' },
+  { title: '구독 신청', desc: '2년·1년 약정 중 고르고 첫 점검 날짜를 정해요. 자동이체를 신청해요.' },
+  { title: '유·무선 check', desc: '고른 날짜·시간대에 전기아저씨가 check해요.' },
+  { title: '필요하면 방문 점검', desc: '유·무선 check 후 필요하다고 판단되면 전기기사가 직접 찾아가 점검해요.' },
 ] as const;
 
 const INSPECTION_CHECKS = ['분전반(두꺼비집)', '누전차단기', '콘센트·스위치', '조명·배선'] as const;
@@ -185,11 +185,8 @@ export default function Home() {
         <section id="inspection-how" aria-labelledby="inspection-title" className={styles.inspectionPromo}>
           <div className={styles.inspectionIntro}>
             <p className={styles.eyebrow}>고장 나기 전에, 미리 점검</p>
-            <h2 id="inspection-title">1년에 {INSPECTION_CHECKS_PER_YEAR}번, 원하는 날 전화로 전기를 봐 드려요</h2>
-            <p>
-              매번 집에 찾아가지 않아요. 통화로 먼저 확인하고, 필요할 때만 전기기사가 방문해요.
-              그래서 월 {won(INSPECTION_MIN_MONTHLY_WON)}부터 부담 없이 받을 수 있어요.
-            </p>
+            <h2 id="inspection-title">1년에 {INSPECTION_CHECKS_PER_YEAR}번, <span aria-hidden="true">⚡</span>check check</h2>
+            <p>(유·무선 check 후 필요 판단시 방문)</p>
             <ul className={styles.checkChips} aria-label="점검 항목">
               {INSPECTION_CHECKS.map((item) => <li key={item}>{item}</li>)}
             </ul>
@@ -204,7 +201,7 @@ export default function Home() {
           </ol>
           <div className={styles.inspectionCta}>
             <Link href="/inspection/apply" className={styles.primaryLink}>
-              월 {won(INSPECTION_MIN_MONTHLY_WON)}부터 전기점검 신청하기 <span aria-hidden="true">↗</span>
+              월 {won(INSPECTION_MIN_MONTHLY_WON)}부터 전기점검 구독하기 <span aria-hidden="true">↗</span>
             </Link>
             <Link href="/inspection" className={styles.textLink}>정기 전기점검 자세히 보기 <span aria-hidden="true">→</span></Link>
           </div>
