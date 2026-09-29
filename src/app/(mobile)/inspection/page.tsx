@@ -140,7 +140,8 @@ export default async function InspectionLandingPage() {
                 1년에 {INSPECTION_CHECKS_PER_YEAR}번이나 <span className="whitespace-nowrap">check check</span>
               </h1>
               <p className="mt-3 text-sm leading-relaxed text-muted">
-                필요하다고 판단되면 전기기사가 방문해 점검합니다.
+                분전반·누전차단기·콘센트·조명 상태를 함께 점검합니다. 필요하다고 판단되면
+                전기기사가 방문해 점검합니다.
               </p>
             </div>
             <div className="flex justify-center px-5 pb-2 md:w-2/5 md:justify-end md:pb-0">
