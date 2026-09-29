@@ -37,8 +37,6 @@ import {
   formatWon,
   isDateString,
   planYears,
-  planLabel,
-  planPricing,
   todayKst,
 } from '@/lib/inspection';
 
@@ -135,10 +133,11 @@ export default function MyInspection() {
   // 저장한 사람 눈에 안 보인다.
   const [savedNotice, setSavedNotice] = useState<{ key: string; message: string } | null>(null);
   const headline = plan ? planHeadline(plan) : null;
-  // 입금액은 신청 때 동결된 총액이다. 월 요금은 그 총액이 요금표와 맞을 때만 보여 준다 —
-  // 개편 전 구독(연 50,000원)에 월 요금을 붙이면 제시한 적 없는 가격이 된다.
-  const pricing = plan ? planPricing(plan.termMonths, plan.priceWon) : null;
-  const label = plan ? planLabel(plan.termMonths, plan.priceWon) : '';
+  // 월 요금은 신청 때 동결된 plan.monthlyWon 이다. 개편 전 일시 납부 구독(monthlyWon null)은
+  // 월 요금을 붙이지 않는다 — 제시한 적 없는 가격이 된다.
+  const label = plan ? `${planYears(plan.termMonths)}년 ${plan.monthlyWon != null ? '약정' : '이용'}` : '';
+  // 입금 대기 화면의 입금액 — 첫 달 이용료. 개편 전 신청이면 신청 때의 총액.
+  const firstWon = plan ? (plan.monthlyWon ?? plan.priceWon) : 0;
 
   function onSaved(key: string, message: string) {
     setSavedNotice({ key, message });
@@ -209,7 +208,9 @@ export default function MyInspection() {
               </h2>
               <p className="mt-2 text-sm leading-relaxed">
                 {plan.status === 'PENDING_PAYMENT' &&
-                  `아래 계좌로 ${formatWon(plan.priceWon)}을 입금해 주세요. 관리자가 확인하면 그날부터 ${planYears(plan.termMonths)}년 이용이 시작됩니다.`}
+                  (plan.monthlyWon != null
+                    ? `첫 달 이용료 ${formatWon(plan.monthlyWon)}을 아래 계좌로 입금해 주세요. 입금이 확인된 날이 매월 납부일이 되며, 그날에 맞춰 매월 ${formatWon(plan.monthlyWon)} 자동이체를 걸어 주세요.`
+                    : `아래 계좌로 ${formatWon(plan.priceWon)}을 입금해 주세요. 관리자가 확인하면 그날부터 ${planYears(plan.termMonths)}년 이용이 시작됩니다.`)}
                 {plan.status === 'ACTIVE' &&
                   `1년에 ${INSPECTION_CHECKS_PER_YEAR}번, 원하는 날짜를 직접 골라 점검을 받으세요.`}
                 {plan.status === 'EXPIRED' &&
@@ -221,18 +222,18 @@ export default function MyInspection() {
               {plan.status === 'PENDING_PAYMENT' && (
                 <dl className="mt-4 space-y-1 rounded-xl bg-white/70 p-3 text-sm">
                   <div className="flex justify-between gap-2">
-                    <dt className="opacity-70">요금제</dt>
+                    <dt className="opacity-70">약정</dt>
                     <dd className="font-semibold">
-                      {pricing
-                        ? `${label} · 월 ${formatWon(pricing.monthlyWon)} × ${plan.termMonths}개월`
+                      {plan.monthlyWon != null
+                        ? `${label} · 월 ${formatWon(plan.monthlyWon)} (VAT 포함)`
                         : label}
                     </dd>
                   </div>
                   <div className="flex justify-between gap-2">
-                    <dt className="opacity-70">입금하실 금액</dt>
-                    <dd className="text-base font-extrabold tabular-nums">
-                      {formatWon(plan.priceWon)}
-                    </dd>
+                    <dt className="opacity-70">
+                      {plan.monthlyWon != null ? '첫 달 입금액' : '입금하실 금액'}
+                    </dt>
+                    <dd className="text-base font-extrabold tabular-nums">{formatWon(firstWon)}</dd>
                   </div>
                 </dl>
               )}
@@ -289,6 +290,9 @@ export default function MyInspection() {
                     <dd className="font-medium">{formatDateRange(plan.startDate, plan.endDate)}</dd>
                   </div>
                 )}
+                {plan.status === 'ACTIVE' && plan.startDate && (
+                  <BillingRows plan={plan} startDate={plan.startDate} />
+                )}
                 <div className="flex gap-2">
                   <dt className="shrink-0 opacity-70">점검 주소</dt>
                   <dd className="font-medium">
@@ -303,6 +307,7 @@ export default function MyInspection() {
                   </dd>
                 </div>
               </dl>
+              {plan.status === 'ACTIVE' && <BillingDueNote plan={plan} />}
               {(plan.status === 'EXPIRED' || plan.status === 'CANCELED') && (
                 <Link
                   href="/inspection/apply"
@@ -317,7 +322,7 @@ export default function MyInspection() {
               <div className="space-y-2">
                 <BankAccountCard
                   account={data.account}
-                  amountWon={plan.priceWon}
+                  amountWon={firstWon}
                   depositorName={plan.depositorName}
                 />
                 <p className="px-1 text-sm leading-relaxed text-muted">
@@ -410,7 +415,9 @@ export default function MyInspection() {
  * 이후일 때만 확정하고 아니면 REQUESTED 로 남겨 고객이 다시 고르게 한다. 그 경계를 날짜로 알려 준다.
  */
 function depositDeadlineNote(plan: PlanView): string {
-  const base = `입금 기한은 따로 없어요. 입금이 확인된 날부터 ${planYears(plan.termMonths)}년 이용이 시작돼요.`;
+  const base = `입금 기한은 따로 없어요. 입금이 확인된 날부터 ${planYears(plan.termMonths)}년 이용이 시작돼요.${
+    plan.monthlyWon != null ? ' 위약금 없이 해지할 수 있어요(고객센터로 연락해 주시고, 자동이체는 직접 해지해 주세요).' : ''
+  }`;
   const first = plan.visits.find((v) => v.round === 1);
   if (!first || first.status !== 'REQUESTED') return base;
   // 희망일 >= 확인일 + 리드타임  ⇔  확인일 <= 희망일 - 리드타임
@@ -419,6 +426,59 @@ function depositDeadlineNote(plan: PlanView): string {
     return `${base} 희망하신 첫 점검 날짜(${formatVisitDate(first.date)})가 가까워져, 입금이 확인되면 첫 점검 날짜를 다시 고르게 돼요.`;
   }
   return `${base} ${formatDate(lastConfirmDay)}까지 확인되면 첫 점검은 희망하신 ${formatVisitDate(first.date)}에 진행하고, 그보다 늦어지면 날짜를 다시 고르게 돼요.`;
+}
+
+/**
+ * 이용 중 화면의 이용료 줄. 매월 자동이체 구독은 납부일(시작일의 날짜)·납부 횟수·다음 납부일을,
+ * 개편 전 일시 납부 구독은 납부 완료만 보여 준다. 미납은 표시만 한다 — 겁주는 문구를 쓰지 않는다.
+ */
+function BillingRows({ plan, startDate }: { plan: PlanView; startDate: string }) {
+  const { billing } = plan;
+  if (billing.mode === 'PREPAID') {
+    return (
+      <div className="flex gap-2">
+        <dt className="shrink-0 opacity-70">이용료</dt>
+        <dd className="font-medium">기간 이용료 납부 완료</dd>
+      </div>
+    );
+  }
+  const day = Number(startDate.slice(8, 10));
+  const upcoming = billing.payments.find((p) => p.status === 'UPCOMING');
+  return (
+    <>
+      <div className="flex gap-2">
+        <dt className="shrink-0 opacity-70">이용료</dt>
+        <dd className="font-medium">
+          월 {formatWon(billing.monthlyWon ?? 0)} · 매월 {day}일 자동이체
+          {day >= 29 ? ' (없는 달은 말일)' : ''}
+        </dd>
+      </div>
+      <div className="flex gap-2">
+        <dt className="shrink-0 opacity-70">납부</dt>
+        <dd className="font-medium tabular-nums">
+          {billing.paidCount}/{billing.totalCount}회
+        </dd>
+      </div>
+      {upcoming && (
+        <div className="flex gap-2">
+          <dt className="shrink-0 opacity-70">다음 납부일</dt>
+          <dd className="font-medium">{formatDate(upcoming.dueDate)}</dd>
+        </div>
+      )}
+    </>
+  );
+}
+
+/** 납부일이 지났는데 아직 입금 확인 전인 달이 있을 때의 안내(<dl> 밖에 둔다). */
+function BillingDueNote({ plan }: { plan: PlanView }) {
+  const due = plan.billing.mode === 'MONTHLY' && plan.billing.dueCount > 0 ? plan.billing.nextDue : null;
+  if (!due) return null;
+  return (
+    <p className="mt-3 rounded-xl bg-white/70 p-3 text-sm leading-relaxed">
+      {Number(due.dueDate.slice(5, 7))}월 이용료 입금 확인 중이에요 — 자동이체가 되어 있는지 확인해
+      주세요.
+    </p>
+  );
 }
 
 /** 사용량 칸의 세 가지 모양 — 완료(진한 채움)·예약(옅은 채움+테두리)·남음(빈 칸). */
@@ -430,7 +490,7 @@ const SEGMENT_SHAPE = {
 
 /**
  * 연차 하나의 사용량 — 12칸 막대. 완료·예약·남음을 모양으로 나눠 "몇 번 남았는지"를 숫자를
- * 세지 않고도 보이게 한다. 2년권은 연차마다 한 줄씩(연차마다 12회라 한 줄로 합치면 몫이 흐려진다).
+ * 세지 않고도 보이게 한다. 2년 약정은 연차마다 한 줄씩(연차마다 12회라 한 줄로 합치면 몫이 흐려진다).
  */
 function UsageMeter({ year }: { year: YearView }) {
   const booked = Math.max(0, year.used - year.completed);

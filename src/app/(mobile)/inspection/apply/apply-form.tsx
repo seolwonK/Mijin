@@ -93,7 +93,7 @@ export default function ApplyForm({
   /** 이미 로그인한 고객의 갱신 신청 — 계정을 새로 만들지 않는다. */
   renewal?: boolean;
   prefill?: ApplyPrefill | null;
-  /** 홈·랜딩 가격표에서 고른 요금제(?term=). 없으면 추천인 2년권. */
+  /** 홈·랜딩 가격표에서 고른 요금제(?term=). 없으면 2년 약정. */
   initialTerm?: InspectionTerm;
 }) {
   const router = useRouter();
@@ -111,7 +111,7 @@ export default function ApplyForm({
     address: prefill?.address ?? '',
   });
   const [addressDetail, setAddressDetail] = useState(prefill?.addressDetail ?? '');
-  // 2년권이 추천·기본 선택이다(사용자 결정 2026-09-28). 가격표에서 골라 왔으면 그 요금제.
+  // 2년 약정이 기본 선택이다(사용자 결정 2026-09-28). 가격표에서 골라 왔으면 그 요금제.
   const [term, setTerm] = useState<InspectionTerm>(initialTerm);
   const plan = INSPECTION_PRICING[term];
   const [preferredDate, setPreferredDate] = useState('');
@@ -263,7 +263,7 @@ export default function ApplyForm({
       if (!passwordConfirm) next['ins-passwordConfirm'] = '비밀번호를 한 번 더 입력해 주세요';
       else if (passwordConfirm !== password) next['ins-passwordConfirm'] = PASSWORD_MISMATCH;
     }
-    if (!agreed) next['ins-agree'] = '개인정보 수집·이용에 동의해 주세요';
+    if (!agreed) next['ins-agree'] = '자동이체 약정과 개인정보 수집·이용에 동의해 주세요';
     return next;
   }
 
@@ -398,22 +398,12 @@ export default function ApplyForm({
                       onChange={() => setTerm(t)}
                       className="sr-only"
                     />
-                    <span className="flex items-center gap-2">
-                      <span className="font-bold text-fg">{p.label}</span>
-                      {t === 'TWO_YEAR' && (
-                        <span className="rounded-full bg-brand-600 px-2 py-0.5 text-xs font-bold text-white">
-                          추천
-                        </span>
-                      )}
-                    </span>
-                    <span className="mt-1 block text-xl font-extrabold text-fg">
-                      월 {formatWon(p.monthlyWon)}
+                    <span className="block text-xl font-extrabold text-fg">
+                      월 {formatWon(p.monthlyWon)}{' '}
+                      <span className="text-sm font-semibold text-muted">(VAT 포함)</span>
                     </span>
                     <span className="mt-1 block text-sm text-fg">
-                      {p.months}개월 · 총 {formatWon(p.totalWon)} 일시 입금
-                    </span>
-                    <span className="mt-0.5 block text-xs text-muted">
-                      공급가 {formatWon(p.supplyWon)} + 수수료 {formatWon(p.feeWon)}
+                      ({planYears(p.months)}년 자동이체 약정시)
                     </span>
                     <span className="mt-2 block text-sm font-semibold text-brand-700">
                       점검 {checks}회
@@ -427,8 +417,9 @@ export default function ApplyForm({
           <p className="mt-3 text-sm leading-relaxed text-muted">
             점검은 전화로 진행하고, 필요하다고 판단되면 전기기사가 방문해 점검합니다. 1년에{' '}
             {INSPECTION_CHECKS_PER_YEAR}회를 이용 연차 안에서 원하는 날짜에 자유롭게 쓰실 수
-            있어요. 아래 내용을 남기시면 입금 계좌를 안내해 드리고, 입금이 확인된 날부터 이용
-            기간이 시작됩니다.
+            있어요. 이용료는 매월 자동이체로 내시고, 첫 달 입금이 확인된 날부터 이용이
+            시작됩니다. 위약금 없이 해지할 수 있어요(고객센터로 연락해 주시고, 자동이체는 직접
+            해지해 주세요).
           </p>
         </section>
 
@@ -577,7 +568,12 @@ export default function ApplyForm({
 
         <section className="space-y-4 rounded-2xl border border-border bg-white p-5">
           <h2 className="font-bold text-fg">3. 입금 정보</h2>
-          <BankAccountCard account={account} amountWon={plan.totalWon} />
+          <p className="text-sm leading-relaxed text-fg">
+            첫 달 이용료 {formatWon(plan.monthlyWon)}을 아래 계좌로 입금해 주세요. 입금이 확인된
+            날이 매월 납부일이 되며, 그날에 맞춰 매월 {formatWon(plan.monthlyWon)} 자동이체를 걸어
+            주세요.
+          </p>
+          <BankAccountCard account={account} amountWon={plan.monthlyWon} />
           <div>
             <label htmlFor="ins-depositor" className="mb-1 block text-sm font-medium">
               입금자명 <span className="font-normal text-muted">(이름과 다를 때만)</span>
@@ -718,7 +714,9 @@ export default function ApplyForm({
             className="mt-0.5 h-5 w-5 shrink-0 accent-brand-600"
           />
           <span className="leading-relaxed text-muted">
-            점검 연락·방문과 입금 확인을 위해 이름·연락처·주소를 수집·이용하는 데 동의합니다.{' '}
+            {planYears(plan.months)}년 동안 매월 {formatWon(plan.monthlyWon)}을 자동이체로 납부하는
+            약정에 동의하며, 점검 연락·방문과 입금 확인을 위해 이름·연락처·주소를 수집·이용하는 데
+            동의합니다.{' '}
             <Link href="/privacy" className="font-semibold text-brand-700 underline">
               개인정보처리방침
             </Link>
@@ -738,10 +736,10 @@ export default function ApplyForm({
           disabled={busy}
           className={buttonClasses('primary', 'lg', 'w-full')}
         >
-          {busy ? '신청 중…' : `${plan.label} ${formatWon(plan.totalWon)} 전기점검 신청하기`}
+          {busy ? '신청 중…' : `월 ${formatWon(plan.monthlyWon)} 전기구독 신청하기`}
         </button>
         <p className="text-center text-xs text-muted">
-          신청 후 입금해 주시면 관리자가 확인한 뒤 점검이 시작됩니다.
+          신청 후 첫 달 이용료를 입금해 주시면 관리자가 확인한 뒤 점검이 시작됩니다.
         </p>
       </form>
     </main>

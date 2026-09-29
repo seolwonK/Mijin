@@ -25,7 +25,7 @@ import {
 } from '@/lib/inspection';
 import { readInspectionAccount } from '@/lib/inspectionAccount';
 
-/** 표시 순서(2년권 먼저)대로 늘어놓은 요금제. */
+/** 표시 순서(2년 약정 먼저)대로 늘어놓은 요금제. */
 const PLANS = INSPECTION_TERMS.map((t) => INSPECTION_PRICING[t]);
 const TWO_YEAR = INSPECTION_PRICING.TWO_YEAR;
 const ONE_YEAR = INSPECTION_PRICING.ONE_YEAR;
@@ -33,7 +33,7 @@ const MIN_MONTHLY = INSPECTION_MIN_MONTHLY_WON.toLocaleString('ko-KR');
 
 export const metadata: Metadata = {
   title: `정기 전기점검 — 월 ${MIN_MONTHLY}원부터, 1년 ${INSPECTION_CHECKS_PER_YEAR}회 전화 점검`,
-  description: `${COMPANY.name} 정기 전기점검은 월 ${MIN_MONTHLY}원부터(2년권), 1년에 ${INSPECTION_CHECKS_PER_YEAR}회 원하는 날짜에 전화로 분전반·누전차단기·콘센트·조명 상태를 점검하고, 필요하다고 판단되면 전기기사가 방문해 점검합니다. 고장 나기 전에 미리 확인하세요.`,
+  description: `${COMPANY.name} 정기 전기점검은 월 ${MIN_MONTHLY}원부터(VAT 포함, 2년 자동이체 약정시), 1년에 ${INSPECTION_CHECKS_PER_YEAR}회 원하는 날짜에 전화로 분전반·누전차단기·콘센트·조명 상태를 점검하고, 필요하다고 판단되면 전기기사가 방문해 점검합니다. 고장 나기 전에 미리 확인하세요.`,
   alternates: { canonical: '/inspection' },
 };
 
@@ -54,12 +54,12 @@ const CHECK_ITEMS = [
 ] as const;
 
 const PROCESS_STEPS = [
-  { title: '신청하기', desc: '요금제를 고르고 점검받을 주소와 첫 전화 점검 희망 날짜를 남겨 주세요.' },
+  { title: '신청하기', desc: '약정 기간(1년·2년)을 고르고 점검받을 주소와 첫 전화 점검 희망 날짜를 남겨 주세요.' },
   {
-    title: '이용료 입금',
-    desc: `안내된 계좌로 기간 총액(2년권 ${formatWon(TWO_YEAR.totalWon)}, 1년권 ${formatWon(ONE_YEAR.totalWon)})을 한 번에 입금해 주세요.`,
+    title: '첫 달 입금 · 매월 자동이체',
+    desc: `안내된 계좌로 첫 달 이용료(월 ${formatWon(TWO_YEAR.monthlyWon)} 또는 ${formatWon(ONE_YEAR.monthlyWon)})를 입금하고, 입금이 확인된 날에 맞춰 매월 자동이체를 걸어 주세요.`,
   },
-  { title: '입금 확인', desc: '확인되면 문자로 알려드리고, 그날부터 이용 기간이 시작돼요.' },
+  { title: '입금 확인', desc: '확인되면 문자로 알려드리고, 그날부터 이용이 시작돼요. 그날이 매월 납부일이 돼요.' },
   {
     title: '원하는 날 전화 점검',
     desc: `1년에 ${INSPECTION_CHECKS_PER_YEAR}회, 원하는 날짜를 고르면 그날 전화로 점검해요. 필요하면 전기기사가 방문해요.`,
@@ -69,11 +69,11 @@ const PROCESS_STEPS = [
 const FAQ_ITEMS = [
   {
     q: '비용은 얼마인가요?',
-    a: `2년권은 월 ${formatWon(TWO_YEAR.monthlyWon)}(공급가 ${formatWon(TWO_YEAR.supplyWon)} + 수수료 ${formatWon(TWO_YEAR.feeWon)})로 ${TWO_YEAR.months}개월 총 ${formatWon(TWO_YEAR.totalWon)}, 1년권은 월 ${formatWon(ONE_YEAR.monthlyWon)}(공급가 ${formatWon(ONE_YEAR.supplyWon)} + 수수료 ${formatWon(ONE_YEAR.feeWon)})로 ${ONE_YEAR.months}개월 총 ${formatWon(ONE_YEAR.totalWon)}입니다. 기간 총액을 한 번에 입금하며, 필요해서 방문 점검을 하더라도 출장비를 따로 받지 않습니다.`,
+    a: `2년 자동이체 약정시 월 ${formatWon(TWO_YEAR.monthlyWon)}, 1년 자동이체 약정시 월 ${formatWon(ONE_YEAR.monthlyWon)}이며 모두 VAT 포함입니다. 이용료는 매월 자동이체로 내시고, 필요해서 방문 점검을 하더라도 출장비를 따로 받지 않습니다.`,
   },
   {
     q: '결제는 어떻게 하나요?',
-    a: '카드 결제는 받지 않고 계좌이체(무통장입금)로만 받습니다. 신청하면 화면과 문자로 입금 계좌를 안내해 드리고, 관리자가 입금을 확인하면 구독이 시작됩니다.',
+    a: '카드 결제는 받지 않고 계좌이체로만 받습니다. 신청하면 화면과 문자로 입금 계좌를 안내해 드려요. 첫 달 이용료를 입금하시면 관리자가 확인한 날부터 구독이 시작되고, 그날이 매월 납부일이 됩니다. 이후에는 쓰시는 은행에서 매월 같은 날 자동이체를 걸어 주세요.',
   },
   {
     q: '정말 매번 방문하나요?',
@@ -81,7 +81,7 @@ const FAQ_ITEMS = [
   },
   {
     q: `${INSPECTION_CHECKS_PER_YEAR}회는 어떻게 쓰나요?`,
-    a: `입금이 확인된 날부터 1년 단위(이용 연차)로 ${INSPECTION_CHECKS_PER_YEAR}회씩 드립니다. 그 1년 안에서 원하는 날짜에 자유롭게 쓰시면 되고, 한 달에 여러 번 받으셔도 됩니다(같은 날 2회는 불가). 2년권은 1년차 ${INSPECTION_CHECKS_PER_YEAR}회, 2년차 ${INSPECTION_CHECKS_PER_YEAR}회입니다.`,
+    a: `입금이 확인된 날부터 1년 단위(이용 연차)로 ${INSPECTION_CHECKS_PER_YEAR}회씩 드립니다. 그 1년 안에서 원하는 날짜에 자유롭게 쓰시면 되고, 한 달에 여러 번 받으셔도 됩니다(같은 날 2회는 불가). 2년 약정은 1년차 ${INSPECTION_CHECKS_PER_YEAR}회, 2년차 ${INSPECTION_CHECKS_PER_YEAR}회입니다.`,
   },
   {
     q: '점검 날짜는 제가 정하나요?',
@@ -97,8 +97,8 @@ const FAQ_ITEMS = [
     a: '아닙니다. 이미 고장이 났다면 전기점검이 아니라 전기 고장 접수를 이용해 주세요. 접수는 무료이고 가까운 출동 업체를 바로 연결해 드립니다.',
   },
   {
-    q: '중간에 그만두면 환불되나요?',
-    a: '남은 회차가 있으면 사용하지 않은 회차만큼 환불해 드립니다. 고객센터로 문의해 주세요.',
+    q: '약정 기간 중에 해지할 수 있나요?',
+    a: `네, 위약금 없이 해지할 수 있습니다. 고객센터(${COMPANY.tel})로 연락해 주시면 구독을 해지해 드리고, 은행에 걸어 두신 자동이체는 직접 해지해 주세요.`,
   },
 ] as const;
 
@@ -166,7 +166,7 @@ export default async function InspectionLandingPage() {
           </h2>
           <dl className="grid grid-cols-2 gap-2 sm:grid-cols-4">
             {[
-              { label: '월 요금', value: `${formatWon(INSPECTION_MIN_MONTHLY_WON)}부터` },
+              { label: '월 요금(VAT 포함)', value: `${formatWon(INSPECTION_MIN_MONTHLY_WON)}부터` },
               { label: '점검 횟수', value: `연 ${INSPECTION_CHECKS_PER_YEAR}회` },
               { label: '점검 방식', value: '전화 · 필요 시 방문' },
               { label: '날짜', value: '원하는 날 자유롭게' },
@@ -246,7 +246,7 @@ export default async function InspectionLandingPage() {
         <section aria-labelledby="pay-title" className="mt-10">
           <h2 id="pay-title" className="flex items-center gap-2 text-xl font-extrabold text-fg">
             <WonIcon className="h-5 w-5 shrink-0 text-brand-600" />
-            요금제와 입금 방법
+            요금과 납부 방법
           </h2>
           <ul className="mt-4 grid gap-3 sm:grid-cols-2">
             {PLANS.map((p) => (
@@ -256,23 +256,11 @@ export default async function InspectionLandingPage() {
                   p.term === 'TWO_YEAR' ? 'border-brand-600' : 'border-border'
                 }`}
               >
-                <p className="flex items-center gap-2">
-                  <span className="font-bold text-fg">{p.label}</span>
-                  {p.term === 'TWO_YEAR' && (
-                    <span className="rounded-full bg-brand-600 px-2 py-0.5 text-xs font-bold text-white">
-                      추천
-                    </span>
-                  )}
+                <p className="text-xl font-extrabold tabular-nums text-fg">
+                  월 {formatWon(p.monthlyWon)}{' '}
+                  <span className="text-sm font-semibold text-muted">(VAT 포함)</span>
                 </p>
-                <p className="mt-1 text-xl font-extrabold tabular-nums text-fg">
-                  월 {formatWon(p.monthlyWon)}
-                </p>
-                <p className="mt-1 text-sm text-fg">
-                  {p.months}개월 · 총 {formatWon(p.totalWon)} 일시 입금
-                </p>
-                <p className="mt-0.5 text-xs text-muted">
-                  공급가 {formatWon(p.supplyWon)} + 수수료 {formatWon(p.feeWon)}
-                </p>
+                <p className="mt-1 text-sm text-fg">({planYears(p.months)}년 자동이체 약정시)</p>
                 <p className="mt-2 text-sm font-semibold text-brand-700">
                   점검 {INSPECTION_CHECKS_PER_YEAR * planYears(p.months)}회
                   {p.months > 12 ? ` (1년에 ${INSPECTION_CHECKS_PER_YEAR}회)` : ''}
@@ -281,9 +269,11 @@ export default async function InspectionLandingPage() {
             ))}
           </ul>
           <p className="mt-4 text-sm leading-relaxed text-muted">
-            이용료는 고른 요금제의 기간 총액을 계좌이체(무통장입금)로 한 번에 받습니다. 아래
-            계좌로 입금하신 뒤 관리자가 입금을 확인하면 그날부터 이용 기간이 시작됩니다.
-            입금자명이 신청자 이름과 다르면 신청서에 입금자명을 따로 적어 주세요.
+            이용료는 매월 자동이체로 받습니다. 아래 계좌로 첫 달 이용료를 입금하시면 관리자가
+            확인한 날부터 이용이 시작되고, 그날이 매월 납부일이 됩니다. 그날에 맞춰 매월 같은
+            금액의 자동이체를 걸어 주세요. 위약금 없이 해지할 수 있어요(고객센터로 연락해 주시고,
+            자동이체는 직접 해지해 주세요). 입금자명이 신청자 이름과 다르면 신청서에 입금자명을
+            따로 적어 주세요.
           </p>
           {/* 금액은 요금제마다 달라 계좌만 보여 준다 — 입금액은 위 요금표와 신청서가 안내한다. */}
           <BankAccountCard account={account} className="mt-4" />

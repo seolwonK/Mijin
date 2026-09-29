@@ -16,6 +16,7 @@ import {
   INSPECTION_PRICING,
   isDateString,
   isYearBookable,
+  paymentDueDate,
   planLabel,
   planPricing,
   planEndDate,
@@ -90,7 +91,7 @@ describe('요금표 — 사용자 결정 2026-09-28', () => {
     expect(planPricing(12, 92_400)?.term).toBe('ONE_YEAR');
     expect(planPricing(12, 50_000)).toBeNull();
     expect(planLabel(12, 50_000)).toBe('기존 요금제(1년)');
-    expect(planLabel(24, 132_000)).toBe('2년권');
+    expect(planLabel(24, 132_000)).toBe('2년 약정');
   });
 
   it('저장된 기간(개월)에서 요금제를 되찾는다', () => {
@@ -131,6 +132,20 @@ describe('이용 기간과 연차 창', () => {
     expect(yearOfRound(12)).toBe(1);
     expect(yearOfRound(13)).toBe(2);
     expect(roundsOfYear(2)).toEqual([13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24]);
+  });
+});
+
+describe('매월 납부일 — 첫 입금 확인일과 같은 날', () => {
+  it('매달 같은 날, 없는 날은 그달 말일', () => {
+    expect(paymentDueDate('2026-09-29', 1)).toBe('2026-09-29');
+    expect(paymentDueDate('2026-09-29', 2)).toBe('2026-10-29');
+    expect(paymentDueDate('2026-09-29', 6)).toBe('2027-02-28');
+  });
+
+  it('31일 시작은 짧은 달 뒤에도 31일로 돌아온다 — 전달에서 더하면 28일로 굳는다', () => {
+    expect(paymentDueDate('2026-01-31', 2)).toBe('2026-02-28');
+    expect(paymentDueDate('2026-01-31', 3)).toBe('2026-03-31');
+    expect(paymentDueDate('2026-01-31', 24)).toBe('2027-12-31');
   });
 });
 

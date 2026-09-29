@@ -8,6 +8,7 @@ import {
   INSPECTION_MIN_LEAD_DAYS,
   addDays,
   fromDateString,
+  paymentDueDate,
   planEndDate,
   toDateString,
   todayKst,
@@ -16,6 +17,7 @@ import type { PlanWithVisits } from '@/lib/inspectionView';
 
 const PLAN_WITH_VISITS = {
   visits: { orderBy: { round: 'asc' } },
+  payments: { orderBy: { seq: 'asc' } },
 } as const;
 
 /** 문자에 싣는 고객 포털 주소. 조사 링크(lib/survey.ts)와 같은 우선순위로 호스트를 고른다. */
@@ -70,7 +72,7 @@ export async function activatePlan(
   return prisma.$transaction(async (tx): Promise<ActivateResult> => {
     const pending = await tx.inspectionPlan.findUnique({
       where: { id: planId },
-      select: { termMonths: true },
+      select: { termMonths: true, monthlyWon: true },
     });
     if (!pending) return { ok: false, reason: 'NOT_FOUND' };
     const endDate = planEndDate(today, pending.termMonths);
@@ -92,6 +94,19 @@ export async function activatePlan(
         select: { id: true },
       });
       return { ok: false, reason: exists ? 'ALREADY_SETTLED' : 'NOT_FOUND' };
+    }
+
+    // 매월 자동이체 구독이면 약정 기간 전체의 납부 일정을 만든다. 지금 확인한 입금이 첫 달이다.
+    if (pending.monthlyWon != null) {
+      await tx.inspectionPayment.createMany({
+        data: Array.from({ length: pending.termMonths }, (_, i) => ({
+          planId,
+          seq: i + 1,
+          dueDate: fromDateString(paymentDueDate(today, i + 1)),
+          amountWon: pending.monthlyWon!,
+          ...(i === 0 ? { paidAt: now, confirmedByUserId: adminUserId } : {}),
+        })),
+      });
     }
 
     // 1회차 희망일이 아직 유효하면 점검 예정으로 확정한다.

@@ -2,9 +2,11 @@
 //
 // 상품(사용자 결정 2026-09-28): 1년에 12회, 고객이 원하는 날짜에 **전화(유선)로** 점검한다.
 // 모든 회차에 기사가 가지 않는다 — 통화 결과 플랫폼이 필요하다고 판단한 회차만 관리자가
-// 방문 점검(ONSITE)으로 돌린다. 요금은 1년권 월 7,700원·2년권 월 5,500원(각각 공급가
-// 7,000원·5,000원 + 수수료 10%)이고, 기간 총액을 계좌이체로 한 번에 입금한다. 관리자가 입금을
-// 확인한 날부터 기간이 시작된다.
+// 방문 점검(ONSITE)으로 돌린다. 요금은 1년 약정 월 7,700원·2년 약정 월 5,500원(VAT 포함)이다.
+//
+// 결제(사용자 결정 2026-09-29): **매월 자동이체**. 고객이 첫 달 요금을 입금하고 관리자가 확인한
+// 날부터 기간이 시작되며, 매달 같은 날(말일 클램프)이 납부일이다. 미납은 관리자에게 표시만 하고,
+// 해지는 위약금 없이 관리자가 구독을 취소한다.
 //
 // 12회는 **이용 연차(시작일 기준 1년 단위) 안에서 자유롭게** 쓴다(한 달에 여러 번도 가능).
 // 회차 번호는 1년차 1~12, 2년차 13~24 — 번호가 곧 "어느 연차의 몫인가"를 말한다.
@@ -29,7 +31,7 @@ export type InspectionPricing = {
   supplyWon: number;
   /** 월 수수료 = monthlyWon - supplyWon. */
   feeWon: number;
-  /** 기간 총액 = 한 번에 입금하는 금액. InspectionPlan.priceWon 에 동결된다. */
+  /** 약정 총액 = 월 요금 × 개월. InspectionPlan.priceWon 에 동결된다. */
   totalWon: number;
   label: string;
 };
@@ -46,10 +48,13 @@ function pricing(term: InspectionTerm, months: number, supplyWon: number, monthl
   };
 }
 
-/** 요금표. 신청 시점 값이 InspectionPlan.priceWon 에 동결된다 — 인상해도 기존 구독은 불변. */
+/**
+ * 요금표. 신청 시점의 월 요금이 InspectionPlan.monthlyWon, 약정 총액이 priceWon 에 동결된다 —
+ * 인상해도 기존 구독은 불변.
+ */
 export const INSPECTION_PRICING: Record<InspectionTerm, InspectionPricing> = {
-  ONE_YEAR: pricing('ONE_YEAR', 12, 7_000, 7_700, '1년권'),
-  TWO_YEAR: pricing('TWO_YEAR', 24, 5_000, 5_500, '2년권'),
+  ONE_YEAR: pricing('ONE_YEAR', 12, 7_000, 7_700, '1년 약정'),
+  TWO_YEAR: pricing('TWO_YEAR', 24, 5_000, 5_500, '2년 약정'),
 };
 
 /** 가장 싼 월 요금 — 랜딩·홈 머리글의 "월 5,500원부터". */
@@ -57,7 +62,7 @@ export const INSPECTION_MIN_MONTHLY_WON = INSPECTION_PRICING.TWO_YEAR.monthlyWon
 
 /** 이용 연차 1년마다 받는 점검 횟수. */
 export const INSPECTION_CHECKS_PER_YEAR = 12;
-/** 회차 번호의 상한 — 2년권의 마지막 회차. */
+/** 회차 번호의 상한 — 2년 약정의 마지막 회차. */
 export const INSPECTION_MAX_ROUND = INSPECTION_CHECKS_PER_YEAR * 2;
 /** 점검 준비에 필요한 최소 리드타임(일). 전화 점검이라 내일부터 받는다. */
 export const INSPECTION_MIN_LEAD_DAYS = 1;
@@ -68,7 +73,7 @@ export function termOfMonths(months: number): InspectionTerm {
 
 /**
  * 이 구독이 지금 요금표의 어느 요금제로 들었는가. 동결된 총액이 요금표와 다르면(개편 전
- * 연 50,000원 구독이 1년권으로 전환된 경우 등) null — 그런 구독에 "월 7,700원"이나
+ * 연 50,000원 구독이 1년 약정으로 전환된 경우 등) null — 그런 구독에 "월 7,700원"이나
  * 총액을 나눈 "월 4,167원"을 붙이면 제시한 적 없는 가격이 된다.
  */
 export function planPricing(termMonths: number, priceWon: number): InspectionPricing | null {
@@ -81,7 +86,7 @@ export function planLabel(termMonths: number, priceWon: number): string {
   return planPricing(termMonths, priceWon)?.label ?? `기존 요금제(${planYears(termMonths)}년)`;
 }
 
-/** 이용 기간의 연차 수(1년권 1, 2년권 2). */
+/** 이용 기간의 연차 수(1년 약정 1, 2년 약정 2). */
 export function planYears(termMonths: number): number {
   return Math.max(1, Math.round(termMonths / 12));
 }
@@ -209,6 +214,14 @@ export type YearWindow = {
   /** 이 연차의 마지막 날 (포함) — 화면 표기용. */
   lastDay: string;
 };
+
+/**
+ * n번째 달의 납부일 — 첫 입금 확인일(=시작일)과 같은 날. 시작일에서 바로 개월을 더하므로
+ * 31일 시작이면 2월엔 28(29)일, 3월엔 다시 31일이다(전달 납부일에서 더하면 28일로 굳어 버린다).
+ */
+export function paymentDueDate(startDate: string, seq: number): string {
+  return addMonths(startDate, seq - 1);
+}
 
 /** 구독 마지막 날(포함). 시작일 + 기간 - 1일. */
 export function planEndDate(startDate: string, termMonths: number): string {

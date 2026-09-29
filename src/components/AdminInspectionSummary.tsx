@@ -12,6 +12,7 @@ import styles from '@/components/admin-inspection-summary.module.css';
 const INSPECTIONS = '/admin/inspections';
 const SCHEDULE = `${INSPECTIONS}?tab=schedule`;
 const PENDING = `${INSPECTIONS}?status=PENDING_PAYMENT`;
+const DUES = `${INSPECTIONS}?tab=dues`;
 
 const count = (value: number | null) => (value == null ? '—' : value.toLocaleString('ko-KR'));
 
@@ -31,7 +32,12 @@ export default function AdminInspectionSummary({ data, error }: {
   const loading = !s;
   const aria = (label: string, value: number | undefined, tail: string) =>
     loading ? `${label} 불러오는 중, ${tail}` : `${label} ${count(value ?? 0)}건, ${tail}`;
-  const breakdown = s ? `미확정 ${count(s.unconfirmed)} · 지난 점검 ${count(s.overdue)}` : '미확정 — · 지난 점검 —';
+  const breakdown = s
+    ? `미확정 ${count(s.unconfirmed)} · 지난 점검 ${count(s.overdue)} · 월 입금 ${count(s.duePayments)}`
+    : '미확정 — · 지난 점검 — · 월 입금 —';
+  // 처리할 일이 월 입금뿐이면 월 입금 탭으로 바로 보낸다.
+  const actionHref = s && s.duePayments > 0 && s.duePayments === s.needsAction ? DUES : SCHEDULE;
+  const actionTail = actionHref === DUES ? '월 입금 확인 보기' : '점검 일정 보기';
 
   return <section className={styles.band} aria-labelledby="inspection-summary-title">
     <div className={styles.head}>
@@ -45,9 +51,9 @@ export default function AdminInspectionSummary({ data, error }: {
         ariaLabel={aria('오늘 점검', s?.todayVisits, '점검 일정 보기')} />
       <Metric href={SCHEDULE} label="이번 주 점검" value={s?.weekVisits ?? null} note="오늘 포함 7일"
         ariaLabel={aria('이번 주 점검', s?.weekVisits, '점검 일정 보기')} />
-      <Metric href={SCHEDULE} label="처리 필요" value={s?.needsAction ?? null} note={breakdown} title={breakdown}
+      <Metric href={actionHref} label="처리 필요" value={s?.needsAction ?? null} note={breakdown} title={breakdown}
         attention={!!s?.needsAction}
-        ariaLabel={loading ? '처리 필요 불러오는 중, 점검 일정 보기' : `처리 필요 ${count(s.needsAction)}건(${breakdown}), 점검 일정 보기`} />
+        ariaLabel={loading ? '처리 필요 불러오는 중, 점검 일정 보기' : `처리 필요 ${count(s.needsAction)}건(${breakdown}), ${actionTail}`} />
     </div>
     {s && <div className={styles.lists}>
       <div className={styles.group}>

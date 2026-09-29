@@ -285,13 +285,13 @@ export function getSiteGraph() {
 // 가격은 코드 상수(INSPECTION_PRICING)를 그대로 받아 화면 표기와 어긋날 수 없게 한다.
 export function getInspectionServiceSchema(opts: {
   path: string;
-  /** 요금제들(INSPECTION_PRICING 의 값). price 는 한 번에 입금하는 기간 총액이다. */
-  plans: readonly Pick<InspectionPricing, 'months' | 'monthlyWon' | 'totalWon' | 'label'>[];
+  /** 요금제들(INSPECTION_PRICING 의 값). price 는 매월 자동이체하는 월 요금(VAT 포함)이다. */
+  plans: readonly Pick<InspectionPricing, 'months' | 'monthlyWon'>[];
   checksPerYear: number;
 }) {
   const url = `${SITE_URL}${opts.path}`;
-  const totals = opts.plans.map((p) => p.totalWon);
-  const minMonthly = Math.min(...opts.plans.map((p) => p.monthlyWon));
+  const monthlies = opts.plans.map((p) => p.monthlyWon);
+  const minMonthly = Math.min(...monthlies);
   return {
     '@context': 'https://schema.org',
     '@type': 'Service',
@@ -303,40 +303,53 @@ export function getInspectionServiceSchema(opts: {
     areaServed: { '@type': 'Country', name: 'KR' },
     audience: { '@type': 'Audience', audienceType: '주택·상가의 전기 안전을 미리 점검받으려는 일반 소비자' },
     description:
-      `월 ${minMonthly.toLocaleString('ko-KR')}원부터, 1년에 ${opts.checksPerYear}회 원하는 날짜에 ` +
+      `월 ${minMonthly.toLocaleString('ko-KR')}원부터(VAT 포함, 매월 자동이체), 1년에 ${opts.checksPerYear}회 원하는 날짜에 ` +
       '전화로 분전반·누전차단기·콘센트·조명 등 생활 전기 설비 상태를 점검하고, 필요하다고 판단되면 ' +
       '전기기사가 방문해 점검하는 전기점검 서비스. 고장이 난 뒤 부르는 출동 수리와 달리 사고가 나기 전에 미리 확인한다.',
     url,
-    // 요금제마다 기간 총액을 한 번에 입금한다 — Offer.price 는 총액, 월 요금은 설명에 적는다.
+    // 약정 기간 동안 매월 자동이체한다 — Offer.price 는 월 요금, 약정 기간은 billingDuration 에 적는다.
     offers: {
       '@type': 'AggregateOffer',
-      lowPrice: Math.min(...totals),
-      highPrice: Math.max(...totals),
+      lowPrice: minMonthly,
+      highPrice: Math.max(...monthlies),
       priceCurrency: 'KRW',
       offerCount: opts.plans.length,
-      offers: opts.plans.map((p) => ({
-        '@type': 'Offer',
-        name: `정기 전기점검 ${p.label}`,
-        description: `월 ${p.monthlyWon.toLocaleString('ko-KR')}원 × ${p.months}개월, 기간 총액 일시 입금`,
-        price: p.totalWon,
-        priceCurrency: 'KRW',
-        url,
-        availability: 'https://schema.org/InStock',
-        // 계좌이체(무통장입금) 단일 수단 — PG 결제는 쓰지 않는다.
-        acceptedPaymentMethod: {
-          '@type': 'PaymentMethod',
-          name: '계좌이체(무통장입금)',
-        },
-        eligibleDuration: {
-          '@type': 'QuantitativeValue',
-          value: p.months,
-          unitCode: 'MON',
-        },
-        itemOffered: {
-          '@type': 'Service',
-          name: `정기 전기점검 ${p.label} (연 ${opts.checksPerYear}회 전화 점검)`,
-        },
-      })),
+      offers: opts.plans.map((p) => {
+        const term = `${Math.max(1, Math.round(p.months / 12))}년 약정`;
+        return {
+          '@type': 'Offer',
+          name: `정기 전기점검 ${term}`,
+          description: `월 ${p.monthlyWon.toLocaleString('ko-KR')}원(VAT 포함), ${p.months}개월 매월 자동이체`,
+          price: p.monthlyWon,
+          priceCurrency: 'KRW',
+          priceSpecification: {
+            '@type': 'UnitPriceSpecification',
+            price: p.monthlyWon,
+            priceCurrency: 'KRW',
+            valueAddedTaxIncluded: true,
+            unitText: '월',
+            unitCode: 'MON',
+            referenceQuantity: { '@type': 'QuantitativeValue', value: 1, unitCode: 'MON' },
+            billingDuration: { '@type': 'QuantitativeValue', value: p.months, unitCode: 'MON' },
+          },
+          url,
+          availability: 'https://schema.org/InStock',
+          // 계좌 자동이체 단일 수단 — PG 결제는 쓰지 않는다.
+          acceptedPaymentMethod: {
+            '@type': 'PaymentMethod',
+            name: '계좌 자동이체',
+          },
+          eligibleDuration: {
+            '@type': 'QuantitativeValue',
+            value: p.months,
+            unitCode: 'MON',
+          },
+          itemOffered: {
+            '@type': 'Service',
+            name: `정기 전기점검 ${term} (연 ${opts.checksPerYear}회 전화 점검)`,
+          },
+        };
+      }),
     },
   };
 }

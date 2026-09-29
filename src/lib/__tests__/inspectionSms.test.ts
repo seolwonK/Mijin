@@ -12,8 +12,8 @@ describe('전기점검 문자', () => {
   it('이름·입금자명의 줄바꿈이 본문의 새 줄이 되지 않는다 — 계좌 안내 문자에 줄을 끼워 넣을 수 없다', () => {
     const body = smsInspectionApplied({
       customerName: '홍길동',
-      planLabel: '2년권',
-      priceWon: 132_000,
+      years: 2,
+      monthlyWon: 5_500,
       account: { bankName: '국민', accountNumber: '123-45', accountHolder: '전기아저씨' },
       depositorName: '김철수\n※ 계좌 변경: 카카오 3333-01-1234567',
     });
@@ -24,8 +24,8 @@ describe('전기점검 문자', () => {
   it('U+2028/U+2029(줄·문단 구분자)와 서식 문자도 새 줄이 되지 않는다 — \\p{Cc} 만으로는 빠진다', () => {
     const body = smsInspectionApplied({
       customerName: '홍\u2029길동',
-      planLabel: '2년권',
-      priceWon: 132_000,
+      years: 2,
+      monthlyWon: 5_500,
       account: { bankName: '국민', accountNumber: '123-45', accountHolder: '전기아저씨' },
       depositorName: '김철수\u2028※ 계좌 변경:\u202e카카오 3333-01-1234567',
     });
@@ -73,6 +73,24 @@ describe('전기점검 문자', () => {
     expect(
       smsInspectionVisitCanceled({ round: 1, date: '2026-09-27', method: 'PHONE', portalUrl: url }),
     ).toContain(url);
+  });
+
+  it('신청 문자는 첫 달 금액과 매월 자동이체를, 시작 문자는 납부일을 알린다', () => {
+    const applied = smsInspectionApplied({
+      customerName: '홍길동',
+      years: 2,
+      monthlyWon: 5_500,
+      account: null,
+      depositorName: '홍길동',
+    });
+    expect(applied).toContain('첫 달 이용료 5,500원');
+    expect(applied).toContain('2년 약정, 매월 같은 날 자동이체');
+    const base = { customerName: '홍길동', endDate: '2028-09-28', firstVisitDate: null, portalUrl: 'x' };
+    expect(smsInspectionActivated({ ...base, monthly: { day: 29, won: 5_500 } })).toContain(
+      '매월 29일(없는 달은 말일)에 5,500원 자동이체를 걸어 주세요.',
+    );
+    expect(smsInspectionActivated({ ...base, monthly: { day: 5, won: 7_700 } })).toContain('매월 5일에 7,700원');
+    expect(smsInspectionActivated(base)).not.toContain('자동이체');
   });
 
   it('방문 점검 전환 문자는 방문일과 시간대를 함께 알린다 — 고객이 집에 있어야 하므로', () => {

@@ -13,6 +13,7 @@ import type { AdminInspectionDetail } from '@/app/api/admin/inspections/[id]/rou
 import {
   PLAN_STATUS_LABEL,
   VISIT_STATUS_LABEL,
+  type PaymentView,
   type PlanView,
   type VisitView,
 } from '@/lib/inspectionView';
@@ -24,6 +25,7 @@ import {
   formatVisitDate,
   formatWon,
   planLabel,
+  planYears,
   todayKst,
 } from '@/lib/inspection';
 
@@ -50,6 +52,9 @@ const cardClass = 'rounded-admin-md border border-border bg-white p-4';
 const cellClass = 'px-3 py-2 align-top text-sm';
 const headClass = 'whitespace-nowrap px-3 py-2 text-left text-xs font-semibold text-muted';
 const fieldClass = 'min-h-11 w-full rounded-admin-md border border-border bg-white px-3 text-sm';
+
+/** 미납이 이만큼 지나면 강조한다(표시만 — 이용은 막지 않는다). 목록 화면의 월 입금 탭과 같은 기준. */
+const DUE_LATE_EMPHASIS_DAYS = 7;
 
 /** ISO 시각 → 한국 달력 날짜. 앞 10자리를 자르면 UTC 날짜가 나와 하루 밀린다. */
 function kstDate(iso: string): string {
@@ -126,6 +131,13 @@ export default function AdminInspectionDetailPage({
   const patchPlan = (body: Record<string, unknown>) =>
     run(async () => {
       setDetail(await send<AdminInspectionDetail>(`/api/admin/inspections/${id}`, 'PATCH', body));
+    });
+
+  /** 월 납부 1건의 입금 확인·되돌리기·메모. 성공하면 상세를 다시 불러온다. */
+  const savePayment = (paymentId: string, body: { paid: boolean; note?: string | null }) =>
+    run(async () => {
+      await send(`/api/admin/inspections/payments/${paymentId}`, 'POST', body);
+      await load();
     });
 
   async function saveResult(visit: VisitView, complete: boolean, input: ResultInput) {
@@ -216,12 +228,21 @@ export default function AdminInspectionDetailPage({
         <section className={`${cardClass} flex flex-wrap gap-x-8 gap-y-2 text-sm`}>
           <div>
             <p className="text-xs text-muted">요금제</p>
-            <p className="font-semibold">
-              {planLabel(plan.termMonths, plan.priceWon)}
-              <span className="ml-1 font-normal text-muted tabular-nums">
-                총 {formatWon(plan.priceWon)}
-              </span>
-            </p>
+            {plan.monthlyWon != null ? (
+              <p className="font-semibold tabular-nums">
+                {planYears(plan.termMonths)}년 약정 · 월 {formatWon(plan.monthlyWon)}
+                <span className="ml-1 font-normal text-muted">
+                  약정 총액 {formatWon(plan.priceWon)}
+                </span>
+              </p>
+            ) : (
+              <p className="font-semibold">
+                {planLabel(plan.termMonths, plan.priceWon)}
+                <span className="ml-1 font-normal text-muted tabular-nums">
+                  총 {formatWon(plan.priceWon)}
+                </span>
+              </p>
+            )}
           </div>
           <div>
             <p className="text-xs text-muted">이용 기간</p>
@@ -433,6 +454,8 @@ export default function AdminInspectionDetailPage({
             </table>
           </div>
         </section>
+
+        <PaymentsCard plan={plan} busy={busy} onSave={savePayment} />
 
         <RefundCard plan={plan} busy={busy} onSave={patchPlan} confirm={confirm} />
 
@@ -704,6 +727,226 @@ function CustomerCard({
   );
 }
 
+/** 납부 상태 한 칸 — 납부 완료 날짜 / 확인 필요 N일 지남 / 예정. */
+function PaymentStatus({ payment }: { payment: PaymentView }) {
+  if (payment.status === 'PAID') {
+    return (
+      <span className="text-brand-700">
+        납부 완료
+        {payment.paidAt && (
+          <span className="ml-1 text-xs text-muted tabular-nums">{kstDate(payment.paidAt)}</span>
+        )}
+      </span>
+    );
+  }
+  if (payment.status === 'DUE') {
+    const late = payment.daysLate ?? 0;
+    return (
+      <span
+        className={`rounded-full px-2 py-0.5 text-xs font-semibold ${
+          late >= DUE_LATE_EMPHASIS_DAYS ? 'bg-red-50 text-red-700' : 'bg-amber-100 text-amber-900'
+        }`}
+      >
+        확인 필요 · {late === 0 ? '오늘' : `${late}일 지남`}
+      </span>
+    );
+  }
+  return <span className="text-muted">예정</span>;
+}
+
+/**
+ * 월 납부(매월 자동이체). 고객 은행이 보낸 입금을 관리자가 통장에서 보고 표시한다 — 미납은
+ * 표시만 하고 이용을 막지 않는다. 납부일 전에 들어온 입금도 확인할 수 있게 예정 건에도 버튼을 둔다.
+ * 1회차는 구독을 시작한 입금 확인 그 자체라 되돌릴 수 없다(서버도 409).
+ */
+function PaymentsCard({
+  plan,
+  busy,
+  onSave,
+}: {
+  plan: PlanView;
+  busy: boolean;
+  onSave: (paymentId: string, body: { paid: boolean; note?: string | null }) => Promise<boolean>;
+}) {
+  const [editing, setEditing] = useState<{ id: string; note: string } | null>(null);
+  const { billing } = plan;
+
+  if (billing.mode === 'PREPAID') {
+    return (
+      <section className={cardClass} aria-labelledby="payments-title">
+        <h2 id="payments-title" className="text-sm font-bold">
+          월 납부
+        </h2>
+        <p className="mt-2 text-sm text-muted">
+          개편 전 기간 총액 일시 납부 구독입니다. 월 납부 일정이 없습니다.
+        </p>
+      </section>
+    );
+  }
+
+  const payDay = billing.payments[0]?.dueDate.slice(8, 10);
+
+  async function saveNote(payment: PaymentView) {
+    if (!editing) return;
+    const ok = await onSave(payment.id, {
+      paid: payment.status === 'PAID',
+      note: editing.note.trim() || null,
+    });
+    if (ok) setEditing(null);
+  }
+
+  return (
+    <section className={cardClass} aria-labelledby="payments-title">
+      <div className="flex flex-wrap items-baseline gap-3">
+        <h2 id="payments-title" className="text-sm font-bold">
+          월 납부
+        </h2>
+        <span className="text-xs text-muted">
+          고객 통장 자동이체 입금을 확인하면 눌러 주세요. 미납이어도 이용은 막지 않습니다.
+        </span>
+      </div>
+      <dl className="mt-3 flex flex-wrap gap-x-8 gap-y-2 text-sm">
+        <div>
+          <dt className="text-xs text-muted">월 요금</dt>
+          <dd className="font-semibold tabular-nums">
+            {billing.monthlyWon != null ? formatWon(billing.monthlyWon) : '—'}
+          </dd>
+        </div>
+        <div>
+          <dt className="text-xs text-muted">납부일</dt>
+          <dd className="font-semibold tabular-nums">
+            {payDay ? `매월 ${Number(payDay)}일` : '입금 확인 후 정해짐'}
+          </dd>
+        </div>
+        <div>
+          <dt className="text-xs text-muted">납부</dt>
+          <dd className="font-semibold tabular-nums">
+            {billing.paidCount}/{billing.totalCount}
+          </dd>
+        </div>
+        <div>
+          <dt className="text-xs text-muted">미납</dt>
+          <dd
+            className={`font-semibold tabular-nums ${billing.dueCount > 0 ? 'text-red-700' : ''}`}
+          >
+            {billing.dueCount}
+          </dd>
+        </div>
+      </dl>
+      {billing.payments.length === 0 ? (
+        <p className="mt-3 text-sm text-muted">입금을 확인하면 납부 일정이 만들어집니다.</p>
+      ) : (
+        <div className="mt-3 overflow-x-auto rounded-admin-md border border-border">
+          <table className="w-full min-w-[48rem] border-collapse">
+            <thead className="border-b border-border bg-neutral-50">
+              <tr>
+                <th className={headClass}>회차</th>
+                <th className={headClass}>납부일</th>
+                <th className={headClass}>금액</th>
+                <th className={headClass}>상태</th>
+                <th className={headClass}>메모</th>
+                <th className={headClass}>처리</th>
+              </tr>
+            </thead>
+            <tbody>
+              {billing.payments.map((payment) => {
+                const isEditing = editing?.id === payment.id;
+                return (
+                  <tr key={payment.id} className="border-b border-border last:border-0">
+                    <td className={`${cellClass} whitespace-nowrap tabular-nums`}>
+                      {payment.seq}개월째
+                    </td>
+                    <td className={`${cellClass} whitespace-nowrap tabular-nums`}>
+                      {formatVisitDate(payment.dueDate)}
+                    </td>
+                    <td className={`${cellClass} whitespace-nowrap tabular-nums`}>
+                      {formatWon(payment.amountWon)}
+                    </td>
+                    <td className={`${cellClass} whitespace-nowrap`}>
+                      <PaymentStatus payment={payment} />
+                    </td>
+                    <td className={`${cellClass} min-w-[12rem] break-keep text-xs`}>
+                      {isEditing ? (
+                        <form
+                          className="flex items-center gap-1"
+                          onSubmit={(e) => {
+                            e.preventDefault();
+                            void saveNote(payment);
+                          }}
+                        >
+                          <input
+                            value={editing.note}
+                            maxLength={200}
+                            autoFocus
+                            aria-label={`${payment.seq}개월째 납부 메모`}
+                            onChange={(e) => setEditing({ id: payment.id, note: e.target.value })}
+                            className="min-h-9 w-full rounded-admin-md border border-border bg-white px-2 text-sm"
+                          />
+                          <button
+                            type="submit"
+                            disabled={busy}
+                            className={buttonClasses('primary', 'sm', 'whitespace-nowrap')}
+                          >
+                            저장
+                          </button>
+                          <button
+                            type="button"
+                            disabled={busy}
+                            onClick={() => setEditing(null)}
+                            className={buttonClasses('secondary', 'sm', 'whitespace-nowrap')}
+                          >
+                            취소
+                          </button>
+                        </form>
+                      ) : (
+                        (payment.note ?? '')
+                      )}
+                    </td>
+                    <td className={cellClass}>
+                      <div className="flex flex-wrap gap-1">
+                        {payment.status !== 'PAID' && (
+                          <button
+                            type="button"
+                            disabled={busy}
+                            onClick={() => void onSave(payment.id, { paid: true })}
+                            className={buttonClasses('primary', 'sm', 'whitespace-nowrap')}
+                          >
+                            입금 확인
+                          </button>
+                        )}
+                        {payment.status === 'PAID' && payment.seq !== 1 && (
+                          <button
+                            type="button"
+                            disabled={busy}
+                            onClick={() => void onSave(payment.id, { paid: false })}
+                            className={buttonClasses('secondary', 'sm', 'whitespace-nowrap')}
+                          >
+                            되돌리기
+                          </button>
+                        )}
+                        {!isEditing && (
+                          <button
+                            type="button"
+                            disabled={busy}
+                            onClick={() => setEditing({ id: payment.id, note: payment.note ?? '' })}
+                            className={buttonClasses('secondary', 'sm', 'whitespace-nowrap')}
+                          >
+                            메모
+                          </button>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </section>
+  );
+}
+
 /** 입금·환불. 환불은 기록일 뿐 돈을 돌려보내지 않는다 — 이체는 관리자가 따로 한다. */
 function RefundCard({
   plan,
@@ -719,6 +962,11 @@ function RefundCard({
   const [won, setWon] = useState('');
   const [note, setNote] = useState('');
   const paid = plan.paidConfirmedAt != null;
+  const monthly = plan.billing.mode === 'MONTHLY';
+  // 매월 자동이체 구독은 입금 확인 때 첫 달 이용료만 받는다 — 지금까지 받은 돈은 납부 합계다.
+  const paidTotal = plan.billing.payments
+    .filter((p) => p.status === 'PAID')
+    .reduce((sum, p) => sum + p.amountWon, 0);
   const amount = Number(won);
   const issue =
     won === ''
@@ -726,7 +974,7 @@ function RefundCard({
       : !Number.isInteger(amount) || amount <= 0
         ? '환불 금액은 0보다 큰 원 단위 정수로 입력해 주세요.'
         : amount > plan.priceWon
-          ? `입금액(${formatWon(plan.priceWon)})보다 클 수 없습니다.`
+          ? `${monthly ? '약정 총액' : '입금액'}(${formatWon(plan.priceWon)})보다 클 수 없습니다.`
           : null;
 
   async function record() {
@@ -753,8 +1001,26 @@ function RefundCard({
         입금·환불
       </h2>
       <dl className="mt-3 grid grid-cols-[6rem_1fr] gap-y-1.5 text-sm">
-        <dt className="text-muted">입금액</dt>
-        <dd className="font-semibold tabular-nums">{formatWon(plan.priceWon)}</dd>
+        {monthly ? (
+          <>
+            <dt className="text-muted">첫 달 입금</dt>
+            <dd className="font-semibold tabular-nums">
+              {plan.monthlyWon != null ? formatWon(plan.monthlyWon) : '—'}
+            </dd>
+            <dt className="text-muted">납부 합계</dt>
+            <dd className="tabular-nums">
+              {formatWon(paidTotal)}
+              <span className="ml-1 text-xs text-muted">
+                ({plan.billing.paidCount}/{plan.billing.totalCount}개월)
+              </span>
+            </dd>
+          </>
+        ) : (
+          <>
+            <dt className="text-muted">입금액</dt>
+            <dd className="font-semibold tabular-nums">{formatWon(plan.priceWon)}</dd>
+          </>
+        )}
         <dt className="text-muted">입금자명</dt>
         <dd>{plan.depositorName}</dd>
         <dt className="text-muted">입금 확인</dt>

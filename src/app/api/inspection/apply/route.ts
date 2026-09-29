@@ -12,7 +12,7 @@ import { INSPECTION_PRICING, applyDateIssue, fromDateString, todayKst } from '@/
 import { readInspectionAccount } from '@/lib/inspectionAccount';
 import { expireDuePlans } from '@/lib/inspectionLifecycle';
 
-// 정기 전기점검 구독 신청 — 계정 생성 + 구독(입금 대기, 1년권·2년권) + 1회차 희망일을 한 번에 받는다.
+// 정기 전기점검 구독 신청 — 계정 생성 + 구독(입금 대기, 1년·2년 약정) + 1회차 희망일을 한 번에 받는다.
 // 입금 전에 희망일까지 받는 것은 사용자 결정(2026-09-20): 고객이 두 번 들어오지 않게 한다.
 //
 // 이미 로그인한 고객(CUSTOMER 세션)은 계정을 새로 만들지 않고 구독만 추가한다 — 기간이 지나
@@ -119,7 +119,7 @@ const applySchema = z.object({
       if (issue) ctx.addIssue({ code: 'custom', message: issue });
     }),
   timeSlot: z.enum(['MORNING', 'AFTERNOON', 'ANY']),
-  // 요금제 — 2년권(월 5,500원)·1년권(월 7,700원). 금액은 서버의 요금표로 정한다(클라이언트 값 불신).
+  // 요금제 — 2년 약정(월 5,500원)·1년 약정(월 7,700원). 금액은 서버의 요금표로 정한다(클라이언트 값 불신).
   term: z.enum(['ONE_YEAR', 'TWO_YEAR'], { error: '요금제를 선택해 주세요' }),
   memo: z.string().trim().max(500, '요청 사항은 500자 이내로 입력해 주세요').nullish(),
   // 입금자명이 신청자 이름과 다를 수 있다(가족 계좌 등). 비우면 이름을 그대로 쓴다.
@@ -250,6 +250,8 @@ export async function POST(req: NextRequest) {
     memo: data.memo || null,
     termMonths: pricing.months,
     priceWon: pricing.totalWon,
+    // 매월 자동이체(사용자 결정 2026-09-29) — 첫 달 입금 확인 때 이 금액으로 납부 일정이 만들어진다.
+    monthlyWon: pricing.monthlyWon,
     depositorName,
     visits: {
       create: {
@@ -314,8 +316,8 @@ export async function POST(req: NextRequest) {
         data.phone,
         smsInspectionApplied({
           customerName: applied.userName,
-          planLabel: pricing.label,
-          priceWon: pricing.totalWon,
+          years: pricing.months / 12,
+          monthlyWon: pricing.monthlyWon,
           account,
           depositorName,
         }),

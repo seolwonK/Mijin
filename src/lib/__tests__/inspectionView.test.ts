@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { InspectionVisit } from '@prisma/client';
+import type { InspectionPayment, InspectionVisit } from '@prisma/client';
 import { fromDateString, roundsOfYear } from '@/lib/inspection';
 import {
   type PlanWithVisits,
@@ -49,6 +49,7 @@ function plan(over: Partial<PlanWithVisits> = {}): PlanWithVisits {
     status: 'ACTIVE',
     termMonths: 12,
     priceWon: 92_400,
+    monthlyWon: 7_700,
     depositorName: '홍길동',
     paidConfirmedAt: NOW,
     paidConfirmedByUserId: 'admin',
@@ -65,6 +66,51 @@ function plan(over: Partial<PlanWithVisits> = {}): PlanWithVisits {
     ...over,
   };
 }
+
+function payment(seq: number, date: string, paid: boolean): InspectionPayment {
+  return {
+    id: `pay${seq}`,
+    planId: 'p1',
+    seq,
+    dueDate: fromDateString(date),
+    amountWon: 7_700,
+    paidAt: paid ? NOW : null,
+    confirmedByUserId: paid ? 'admin' : null,
+    note: '통장 확인',
+    createdAt: NOW,
+    updatedAt: NOW,
+  };
+}
+
+describe('월 납부 (매월 자동이체)', () => {
+  it('납부일이 지났거나 오늘인데 확인 전이면 DUE, 다음 납부는 가장 이른 미확인', () => {
+    const p = plan({
+      payments: [
+        payment(1, '2026-09-20', true),
+        payment(2, '2026-10-01', false), // 오늘
+        payment(3, '2026-11-20', false),
+      ],
+    });
+    const b = buildPlanView(p, 'admin', NOW).billing;
+    expect(b.mode).toBe('MONTHLY');
+    expect(b.payments.map((x) => x.status)).toEqual(['PAID', 'DUE', 'UPCOMING']);
+    expect(b.payments[1].daysLate).toBe(0);
+    expect([b.paidCount, b.totalCount, b.dueCount]).toEqual([1, 3, 1]);
+    expect(b.nextDue).toEqual({ seq: 2, dueDate: '2026-10-01', amountWon: 7_700 });
+  });
+
+  it('관리자 메모는 고객에게 싣지 않는다', () => {
+    const p = plan({ payments: [payment(1, '2026-09-20', true)] });
+    expect(buildPlanView(p, 'customer', NOW).billing.payments[0].note).toBeNull();
+    expect(buildPlanView(p, 'admin', NOW).billing.payments[0].note).toBe('통장 확인');
+  });
+
+  it('월 요금이 없는 개편 전 구독은 PREPAID — 받을 돈이 없다', () => {
+    const b = buildPlanView(plan({ monthlyWon: null, priceWon: 50_000 }), 'admin', NOW).billing;
+    expect(b.mode).toBe('PREPAID');
+    expect(b.nextDue).toBeNull();
+  });
+});
 
 describe('buildPlanView', () => {
   it('관리자 메모는 고객 뷰에 싣지 않는다', () => {

@@ -102,15 +102,15 @@ function oneLine(value: string): string {
 
 export function smsInspectionApplied(p: {
   customerName: string;
-  /** '1년권' / '2년권' */
-  planLabel: string;
-  priceWon: number;
+  /** 약정 연수(1·2). */
+  years: number;
+  monthlyWon: number;
   account: { bankName: string; accountNumber: string; accountHolder: string } | null;
   depositorName: string;
 }): string {
   const lines = [
     `[전기아저씨] ${oneLine(p.customerName)}님, 정기 전기점검 신청이 접수되었습니다.`,
-    `${p.planLabel} ${p.priceWon.toLocaleString('ko-KR')}원을 입금해 주시면 점검이 시작됩니다.`,
+    `첫 달 이용료 ${p.monthlyWon.toLocaleString('ko-KR')}원을 입금해 주시면 점검이 시작됩니다(${p.years}년 약정, 매월 같은 날 자동이체).`,
   ];
   if (p.account) {
     lines.push(`${p.account.bankName} ${p.account.accountNumber} (예금주 ${p.account.accountHolder})`);
@@ -127,11 +127,18 @@ export function smsInspectionActivated(p: {
   firstVisitTimeSlot?: TimeSlot | null;
   /** 고객 포털(/my) 주소 — 날짜를 다시 골라야 할 때만 본문에 싣는다. */
   portalUrl: string;
+  /** 매월 자동이체 구독의 납부일(일)·월 요금. 개편 전 일시 납부 구독은 null. */
+  monthly?: { day: number; won: number } | null;
 }): string {
   const lines = [
     `[전기아저씨] ${oneLine(p.customerName)}님, 입금이 확인되어 정기 전기점검이 시작되었습니다.`,
     `이용 기간: ${monthDayYear(p.endDate)}까지 · 1년에 ${INSPECTION_CHECKS_PER_YEAR}회, 원하시는 날 전화로 점검해 드립니다.`,
   ];
+  if (p.monthly) {
+    // 29~31일 시작이면 그 날이 없는 달이 있다 — 납부 일정(paymentDueDate)은 그달 말일로 잡는다.
+    const day = `매월 ${p.monthly.day}일${p.monthly.day > 28 ? '(없는 달은 말일)' : ''}`;
+    lines.push(`${day}에 ${p.monthly.won.toLocaleString('ko-KR')}원 자동이체를 걸어 주세요.`);
+  }
   lines.push(
     p.firstVisitDate
       ? `1회차 점검 예정일: ${monthDay(p.firstVisitDate)}${

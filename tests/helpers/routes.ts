@@ -1,7 +1,7 @@
 // ───────────────────────────────────────────────────────────────────────────
 // API 라우트 매트릭스 — 단일 진실 원천.
 //
-// 88개 route.ts 파일이 103개 핸들러를 export 한다 (15개 라우트가 2개 메서드).
+// 89개 route.ts 파일이 104개 핸들러를 export 한다 (15개 라우트가 2개 메서드).
 // 그중 19개가 설계상 공개이고, 나머지 **79개가 가드 대상**이다.
 //
 // 이 표를 손으로 유지하지 않는다: tests/cross/matrix-completeness.spec.ts 가
@@ -61,7 +61,7 @@ const open = (path: string, method: HttpMethod, note: string): RouteEntry => ({
 });
 
 export const ROUTES: RouteEntry[] = [
-  // ── 관리자 (52 핸들러, 전부 ADMIN 세션 필요) ──────────────────────────
+  // ── 관리자 (53 핸들러, 전부 ADMIN 세션 필요) ──────────────────────────
   admin('/api/admin/analytics/dashboard', 'GET'),
   admin('/api/admin/analytics/map/dispatch', 'GET'),
   admin('/api/admin/analytics/map/regions', 'GET'),
@@ -110,6 +110,7 @@ export const ROUTES: RouteEntry[] = [
   admin('/api/admin/inspections/[id]', 'PATCH'),
   admin('/api/admin/inspections/[id]/confirm-payment', 'POST'),
   admin('/api/admin/inspections/[id]/reset-password', 'POST'),
+  admin('/api/admin/inspections/payments/[paymentId]', 'POST'),
   admin('/api/admin/inspections/[id]/cancel', 'POST'),
   admin('/api/admin/inspections/[id]/visits', 'POST'),
   admin('/api/admin/inspections/visits/[visitId]', 'PATCH'),
@@ -211,7 +212,7 @@ export const ROUTES: RouteEntry[] = [
   ),
 ];
 
-/** 무세션 401 을 단언해야 하는 핸들러 (103 − 공개 19 = 84). */
+/** 무세션 401 을 단언해야 하는 핸들러 (104 − 공개 19 = 85). */
 export const GUARDED_ROUTES = ROUTES.filter((r) => !r.isPublic);
 
 /** 설계상 공개인 핸들러 — 401 오탐 방지용으로 명시 보관한다. */

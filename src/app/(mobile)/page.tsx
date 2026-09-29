@@ -42,7 +42,7 @@ const INSPECTION_INCLUDES = [
 ] as const;
 
 const INSPECTION_STEPS = [
-  { title: '요금제 고르고 신청', desc: '2년권·1년권 중 고르고 첫 점검 날짜를 정해요. 이용료는 한 번에 입금해요.' },
+  { title: '약정 고르고 신청', desc: '2년·1년 약정 중 고르고 첫 점검 날짜를 정해요. 첫 달만 입금하고, 그다음부터는 매월 자동이체예요.' },
   { title: '원하는 날 전화 점검', desc: '고른 날짜·시간대에 전기아저씨가 전화드려 집 전기 상태를 같이 확인해요.' },
   { title: '필요하면 방문 점검', desc: '통화 내용을 보고 필요하다고 판단되면 전기기사가 직접 찾아가 점검해요.' },
 ] as const;
@@ -59,7 +59,7 @@ const LEAK_SIGNS = [
 const FAQ_ITEMS = [
   {
     q: '전기점검은 얼마이고 1년에 몇 번 받나요?',
-    a: `정기 전기점검은 월 ${INSPECTION_MIN_MONTHLY_WON.toLocaleString('ko-KR')}원부터(2년권, 총 ${INSPECTION_PRICING.TWO_YEAR.totalWon.toLocaleString('ko-KR')}원 일시 입금 · 1년권은 월 ${INSPECTION_PRICING.ONE_YEAR.monthlyWon.toLocaleString('ko-KR')}원, 총 ${INSPECTION_PRICING.ONE_YEAR.totalWon.toLocaleString('ko-KR')}원) 1년에 ${INSPECTION_CHECKS_PER_YEAR}회, 원하는 날짜에 전화로 분전반·누전차단기·콘센트·조명 상태를 점검하는 구독 서비스입니다. 모든 회차에 방문하지는 않고, 필요하다고 판단되면 전기기사가 방문해 점검합니다.`,
+    a: `정기 전기점검은 월 ${INSPECTION_PRICING.TWO_YEAR.monthlyWon.toLocaleString('ko-KR')}원(2년 약정)·${INSPECTION_PRICING.ONE_YEAR.monthlyWon.toLocaleString('ko-KR')}원(1년 약정)이며 VAT 포함, 매월 자동이체로 내는 구독 서비스입니다. 1년에 ${INSPECTION_CHECKS_PER_YEAR}회, 원하는 날짜에 전화로 분전반·누전차단기·콘센트·조명 상태를 점검합니다. 모든 회차에 방문하지는 않고, 필요하다고 판단되면 전기기사가 방문해 점검합니다.`,
   },
   {
     q: '요금은 어떻게 책정되나요?',
@@ -160,7 +160,7 @@ export default function Home() {
                     <p className={styles.planPrice}><span>월</span> {won(p.monthlyWon)}<small>(VAT 포함)</small></p>
                     <p className={styles.planTerm}>({planYears(p.months)}년 자동이체 약정시)</p>
                     <p className={styles.planMeta}>
-                      {p.months}개월 · 총 {won(p.totalWon)} · 점검 {INSPECTION_CHECKS_PER_YEAR * planYears(p.months)}회
+                      점검 {INSPECTION_CHECKS_PER_YEAR * planYears(p.months)}회 (1년에 {INSPECTION_CHECKS_PER_YEAR}회)
                     </p>
                     <Link
                       href={`/inspection/apply?term=${term}`}

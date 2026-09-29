@@ -40,6 +40,10 @@ export async function POST(
         ? (plan.visits.find((v) => v.round === 1)?.timeSlot ?? null)
         : null,
       portalUrl: inspectionPortalUrl(),
+      monthly:
+        plan.monthlyWon != null && plan.startDate
+          ? { day: plan.startDate.getUTCDate(), won: plan.monthlyWon }
+          : null,
     }),
   );
 

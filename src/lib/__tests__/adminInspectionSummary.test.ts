@@ -43,7 +43,7 @@ function input(over: Partial<InspectionSummaryInput> = {}): InspectionSummaryInp
 describe('summarizeInspections', () => {
   it('빈 응답이면 전부 0 과 빈 목록', () => {
     const s = summarizeInspections(input());
-    expect(s).toMatchObject({ pendingPayment: 0, todayVisits: 0, weekVisits: 0, needsAction: 0, unconfirmed: 0, overdue: 0 });
+    expect(s).toMatchObject({ pendingPayment: 0, todayVisits: 0, weekVisits: 0, needsAction: 0, unconfirmed: 0, overdue: 0, duePayments: 0 });
     expect(s.todayList).toEqual([]);
     expect(s.recentPending).toEqual([]);
   });
@@ -89,6 +89,15 @@ describe('summarizeInspections', () => {
     }));
     expect(s.unconfirmed).toBe(2);
     expect(s.overdue).toBe(1);
+    expect(s.needsAction).toBe(3);
+  });
+
+  it('월 입금 확인(dues)도 처리 필요에 더한다', () => {
+    const s = summarizeInspections(input({
+      schedule: [visit({ date: '2026-09-20', status: 'REQUESTED' })],
+      dues: [{ paymentId: 'pay1' }, { paymentId: 'pay2' }],
+    }));
+    expect(s.duePayments).toBe(2);
     expect(s.needsAction).toBe(3);
   });
 

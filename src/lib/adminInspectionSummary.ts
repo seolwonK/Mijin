@@ -31,11 +31,18 @@ export type InspectionSummaryPlanRow = {
   contactPhone: string;
 };
 
+/** 입금 확인이 필요한 월 납부(매월 자동이체) — 건수만 쓰므로 식별자만 받는다. */
+export type InspectionSummaryDueRow = {
+  paymentId: string;
+};
+
 export type InspectionSummaryInput = {
   today: string;
   pendingCount: number;
   plans: InspectionSummaryPlanRow[];
   schedule: InspectionSummaryScheduleRow[];
+  /** 배포 순서가 어긋나 옛 응답이 오면 없을 수 있다 — 없으면 0건으로 본다. */
+  dues?: InspectionSummaryDueRow[];
 };
 
 export type InspectionSummary = {
@@ -45,12 +52,14 @@ export type InspectionSummary = {
   todayVisits: number;
   /** 오늘 ~ 오늘+6 확정 방문 수. */
   weekVisits: number;
-  /** 처리 필요 = unconfirmed + overdue. */
+  /** 처리 필요 = unconfirmed + overdue + duePayments. */
   needsAction: number;
   /** 고객이 날짜를 다시 골라야 하는 방문(REQUESTED). */
   unconfirmed: number;
   /** 날짜가 지났는데 아직 SCHEDULED 인 방문 — 완료 처리가 필요하다. */
   overdue: number;
+  /** 납부일이 지났거나 오늘인데 입금 확인 전인 월 납부. */
+  duePayments: number;
   /** 오늘 방문 목록(시간대 순, 최대 3). */
   todayList: {
     visitId: string;
@@ -82,6 +91,7 @@ export function summarizeInspections(data: InspectionSummaryInput): InspectionSu
   const weekVisits = scheduled.filter((v) => v.date >= today && v.date <= weekEnd).length;
   const unconfirmed = data.schedule.filter((v) => v.status === 'REQUESTED').length;
   const overdue = scheduled.filter((v) => v.date < today).length;
+  const duePayments = data.dues?.length ?? 0;
 
   const todayList = [...todays]
     .sort((a, b) => TIME_SLOTS.indexOf(a.timeSlot) - TIME_SLOTS.indexOf(b.timeSlot))
@@ -110,9 +120,10 @@ export function summarizeInspections(data: InspectionSummaryInput): InspectionSu
     pendingPayment: data.pendingCount,
     todayVisits: todays.length,
     weekVisits,
-    needsAction: unconfirmed + overdue,
+    needsAction: unconfirmed + overdue + duePayments,
     unconfirmed,
     overdue,
+    duePayments,
     todayList,
     recentPending,
   };

@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import type { InspectionAccountSettings } from '@/lib/inspectionAccount';
 import PortalLoadState from '@/components/PortalLoadState';
-import { INSPECTION_PRICING, INSPECTION_TERMS, formatWon } from '@/lib/inspection';
+import { INSPECTION_PRICING, INSPECTION_TERMS, formatWon, planYears } from '@/lib/inspection';
 
 // 점검 구독료 입금 계좌 설정 — AdminEggChargeSettings 와 같은 구조·같은 문법.
 // 알 충전 계좌와 따로 두는 이유는 schema.prisma 의 AppSettings 주석 참조.
@@ -89,13 +89,13 @@ export default function AdminInspectionAccountSettings() {
     <section id="inspection-account" className="rounded-admin-md border border-border bg-white p-4">
       <h2 className="font-bold">전기점검 구독료 입금 계좌</h2>
       <p className="mt-1 text-sm leading-relaxed text-muted">
-        고객이 정기 전기점검을 신청할 때 안내되는 계좌입니다. 요금은{' '}
+        고객이 정기 전기점검을 신청할 때 안내되는 계좌입니다. 요금은 매월 자동이체로{' '}
         {INSPECTION_TERMS.map((term) => {
           const p = INSPECTION_PRICING[term];
-          return `${p.label} 월 ${formatWon(p.monthlyWon)}(총 ${formatWon(p.totalWon)})`;
+          return `${planYears(p.months)}년 약정 월 ${formatWon(p.monthlyWon)}`;
         }).join(' / ')}
-        이고 기간 총액을 한 번에 입금받습니다. 입금을 확인한 뒤 <strong className="font-semibold text-fg">전기점검</strong> 화면에서
-        구독을 시작해 주세요. 알 충전 계좌와는 별개로 관리됩니다.
+        (VAT 포함)입니다. 첫 달 이용료 입금을 확인한 뒤 <strong className="font-semibold text-fg">전기점검</strong> 화면에서
+        구독을 시작해 주세요. 그날이 매월 납부일이 되고, 고객이 이 계좌로 자동이체를 겁니다. 알 충전 계좌와는 별개로 관리됩니다.
       </p>
       {!loaded ? (
         <div className="mt-4">

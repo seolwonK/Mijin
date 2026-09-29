@@ -1589,7 +1589,7 @@ export const GATES: Record<string, HandlerGates> = {
       {
         order: 10,
         status: 409,
-        line: 300,
+        line: 302,
         kind: 'race',
         message: null,
         reach:
@@ -1844,6 +1844,53 @@ export const GATES: Record<string, HandlerGates> = {
         kind: 'state',
         message: '새 비밀번호가 지금과 같습니다.',
         reach: '현재 비밀번호는 맞고 새 비밀번호가 같음',
+      },
+    ],
+  },
+
+  'POST /api/admin/inspections/payments/[paymentId]': {
+    file: 'src/app/api/admin/inspections/payments/[paymentId]/route.ts',
+    note: '월 납부 입금 확인·되돌리기. 미납은 표시만 하므로 구독 상태를 바꾸는 부수효과가 없다.',
+    gates: [
+      {
+        order: 1,
+        status: 400,
+        line: 31,
+        kind: 'body-parse',
+        message: '잘못된 요청입니다',
+        reach: 'JSON 이 아닌 본문',
+      },
+      {
+        order: 2,
+        status: 400,
+        line: 37,
+        kind: 'schema',
+        message: null,
+        reach: 'paid 누락·불리언 아님, note 200자 초과',
+      },
+      {
+        order: 3,
+        status: 404,
+        line: 47,
+        kind: 'not-found',
+        message: '납부 기록을 찾을 수 없습니다',
+        reach: '존재하지 않는 paymentId + 유효한 본문',
+      },
+      {
+        order: 4,
+        status: 409,
+        line: 53,
+        kind: 'state',
+        message: '첫 달 입금은 구독 시작 기록이라 되돌릴 수 없습니다.',
+        reach: 'seq 1 납부에 paid:false',
+      },
+      {
+        order: 5,
+        status: 409,
+        line: 73,
+        kind: 'race',
+        message: '방금 다른 곳에서 처리되었습니다. 화면을 새로고침해 주세요.',
+        reach: '읽기와 쓰기 사이에 다른 관리자가 같은 납부의 확인 상태를 바꿈 — CAS(paidAt) 0행',
       },
     ],
   },

@@ -30,6 +30,7 @@ import {
   fromDateString,
   isDateString,
   planLabel,
+  planYears,
   yearOfDate,
 } from '@/lib/inspection';
 
@@ -53,13 +54,38 @@ type ScheduleRow = {
   planEndDate: string | null;
 };
 
+type DueRow = {
+  paymentId: string;
+  planId: string;
+  seq: number;
+  termMonths: number;
+  dueDate: string;
+  amountWon: number;
+  /** 납부일로부터 지난 일수(0 = 오늘). */
+  daysLate: number;
+  contactName: string;
+  contactPhone: string;
+  depositorName: string;
+};
+
 type InspectionsData = {
   today: string;
   pendingCount: number;
   plans: PlanRow[];
   schedule: ScheduleRow[];
   settled: ScheduleRow[];
+  dues: DueRow[];
 };
+
+type Tab = 'plans' | 'schedule' | 'dues';
+
+/** 미납이 이만큼 지나면 강조한다(표시만 — 이용은 막지 않는다). */
+const DUE_LATE_EMPHASIS_DAYS = 7;
+
+/** 관리자 화면의 약정 표기 — "2년 약정 · 월 5,500원". */
+function monthlyPlanLabel(termMonths: number, monthlyWon: number): string {
+  return `${planYears(termMonths)}년 약정 · 월 ${formatWon(monthlyWon)}`;
+}
 
 type VisitPatch = {
   status?: 'SCHEDULED' | 'COMPLETED' | 'CANCELED';
@@ -151,7 +177,7 @@ async function send(url: string, method: 'POST' | 'PATCH', body?: unknown) {
 // 통화·방문 담당자는 일정표의 '담당 메모' 자유 입력으로 남긴다.
 //
 // 대시보드 요약 띠가 바로 들어올 수 있도록 두 쿼리 파라미터를 **초기값으로만** 읽는다.
-//   ?tab=plans|schedule  ?status=ALL|PENDING_PAYMENT|ACTIVE|EXPIRED|CANCELED
+//   ?tab=plans|schedule|dues  ?status=ALL|PENDING_PAYMENT|ACTIVE|EXPIRED|CANCELED
 // 모르는 값은 무시하고 기본값(plans·ALL)을 쓴다. 들어온 뒤 탭·필터를 바꿔도 URL 은 건드리지 않는다.
 // useSearchParams 는 정적 프리렌더에서 가장 가까운 Suspense 까지 클라이언트 렌더로 넘기므로 경계를 둔다.
 export default function AdminInspectionsPage() {
@@ -162,8 +188,8 @@ export default function AdminInspectionsPage() {
   );
 }
 
-function initialTab(value: string | null): 'plans' | 'schedule' {
-  return value === 'schedule' ? 'schedule' : 'plans';
+function initialTab(value: string | null): Tab {
+  return value === 'schedule' || value === 'dues' ? value : 'plans';
 }
 
 function initialFilter(value: string | null): StatusFilter {
@@ -176,7 +202,7 @@ function AdminInspections() {
     '/api/admin/inspections',
     20_000,
   );
-  const [tab, setTab] = useState<'plans' | 'schedule'>(() => initialTab(searchParams.get('tab')));
+  const [tab, setTab] = useState<Tab>(() => initialTab(searchParams.get('tab')));
   const [filter, setFilter] = useState<StatusFilter>(() => initialFilter(searchParams.get('status')));
   const [query, setQuery] = useState('');
   const [busyId, setBusyId] = useState<string | null>(null);
@@ -206,9 +232,14 @@ function AdminInspections() {
   }
 
   async function confirmPayment(plan: PlanRow) {
+    // 매월 자동이체 구독은 첫 달 이용료만 먼저 받는다. monthlyWon 이 없는 개편 전 신청은 총액 문구 그대로.
+    const message =
+      plan.monthlyWon != null
+        ? `${plan.userName}님(입금자명 ${plan.depositorName})의 ${monthlyPlanLabel(plan.termMonths, plan.monthlyWon)} — 첫 달 이용료 ${formatWon(plan.monthlyWon)} 입금을 확인했습니까? 오늘이 매월 납부일이 되고, 오늘부터 이용 기간이 시작되며 고객에게 문자가 발송됩니다.`
+        : `${plan.userName}님(입금자명 ${plan.depositorName})의 ${planLabel(plan.termMonths, plan.priceWon)} ${formatWon(plan.priceWon)} 입금을 확인했습니까? 확인하면 오늘부터 이용 기간이 시작되고 고객에게 문자가 발송됩니다.`;
     const ok = await confirm({
       title: '입금 확인',
-      message: `${plan.userName}님(입금자명 ${plan.depositorName})의 ${planLabel(plan.termMonths, plan.priceWon)} ${formatWon(plan.priceWon)} 입금을 확인했습니까? 확인하면 오늘부터 이용 기간이 시작되고 고객에게 문자가 발송됩니다.`,
+      message,
       confirmText: '입금 확인',
     });
     if (!ok) return;
@@ -216,6 +247,12 @@ function AdminInspections() {
       send(`/api/admin/inspections/${plan.id}/confirm-payment`, 'POST'),
     );
   }
+
+  // 월 입금 확인 — 통장에서 본 입금을 표시만 한다. 되돌리기는 상세 화면에서 하므로 확인 창 없이 바로.
+  const confirmDue = (due: DueRow) =>
+    run(due.paymentId, () =>
+      send(`/api/admin/inspections/payments/${due.paymentId}`, 'POST', { paid: true }),
+    );
 
   const patchVisit = (visitId: string, body: VisitPatch) =>
     run(visitId, () => send(`/api/admin/inspections/visits/${visitId}`, 'PATCH', body));
@@ -261,6 +298,7 @@ function AdminInspections() {
   }, [data, filter, query]);
   const schedule = data?.schedule ?? [];
   const settled = data?.settled ?? [];
+  const dues = data?.dues ?? [];
   const scheduleGroups = useMemo(() => {
     const today = data?.today ?? '';
     return SCHEDULE_GROUPS.map((group) => ({
@@ -284,17 +322,17 @@ function AdminInspections() {
             </p>
           </div>
           <div className="rounded-admin-md border border-border bg-white px-4 py-3">
-            <p className="text-xs text-muted">요금(총액 일시 입금)</p>
+            <p className="text-xs text-muted">요금(매월 자동이체)</p>
             <p className="mt-0.5 text-sm font-semibold tabular-nums">
               {INSPECTION_TERMS.map((term) => {
                 const p = INSPECTION_PRICING[term];
                 return (
                   <span key={term} className="block whitespace-nowrap">
-                    {p.label} 월 {formatWon(p.monthlyWon)}
-                    <span className="font-normal text-muted"> · 총 {formatWon(p.totalWon)}</span>
+                    {planYears(p.months)}년 약정 월 {formatWon(p.monthlyWon)}
                   </span>
                 );
               })}
+              <span className="block text-xs font-normal text-muted">(VAT 포함)</span>
             </p>
           </div>
           <div className="ml-auto flex gap-1 rounded-admin-md border border-border bg-white p-1">
@@ -302,6 +340,7 @@ function AdminInspections() {
               [
                 ['plans', `구독 ${data?.plans.length ?? 0}`],
                 ['schedule', `점검 일정 ${schedule.length}`],
+                ['dues', `월 입금 ${dues.length}`],
               ] as const
             ).map(([key, label]) => (
               <button
@@ -421,12 +460,28 @@ function AdminInspections() {
                       </td>
                       <td className={`${cellClass} whitespace-nowrap`}>{plan.depositorName}</td>
                       <td className={`${cellClass} whitespace-nowrap`}>
-                        <p className="font-semibold">
-                          {planLabel(plan.termMonths, plan.priceWon)}
-                          <span className="ml-1 text-xs font-normal text-muted tabular-nums">
-                            {formatWon(plan.priceWon)}
-                          </span>
-                        </p>
+                        {plan.billing.mode === 'MONTHLY' && plan.monthlyWon != null ? (
+                          <p className="font-semibold tabular-nums">
+                            {monthlyPlanLabel(plan.termMonths, plan.monthlyWon)}
+                          </p>
+                        ) : (
+                          <p className="font-semibold">
+                            {planLabel(plan.termMonths, plan.priceWon)}
+                            <span className="ml-1 text-xs font-normal text-muted tabular-nums">
+                              {formatWon(plan.priceWon)}
+                            </span>
+                          </p>
+                        )}
+                        {plan.billing.mode === 'MONTHLY' && plan.billing.totalCount > 0 && (
+                          <p className="text-xs tabular-nums text-muted">
+                            납부 {plan.billing.paidCount}/{plan.billing.totalCount}
+                            {plan.billing.dueCount > 0 && (
+                              <span className="ml-1 rounded-full bg-red-50 px-2 py-0.5 font-semibold text-red-700">
+                                미납 {plan.billing.dueCount}
+                              </span>
+                            )}
+                          </p>
+                        )}
                         {plan.startDate ? (
                           <>
                             <p className="tabular-nums">{plan.startDate}</p>
@@ -503,6 +558,87 @@ function AdminInspections() {
               </table>
             </div>
           </>
+        )}
+
+        {tab === 'dues' && data && (
+          <div className="space-y-3">
+            <p className="text-sm text-muted">
+              고객 통장 자동이체 입금을 확인하면 눌러 주세요. 미납이어도 이용은 막지 않습니다.
+            </p>
+            <div className="overflow-x-auto rounded-admin-md border border-border bg-white">
+              <table className="w-full min-w-[48rem] border-collapse">
+                <thead className="border-b border-border bg-neutral-50">
+                  <tr>
+                    <th className={headClass}>납부일</th>
+                    <th className={headClass}>회차</th>
+                    <th className={headClass}>고객</th>
+                    <th className={headClass}>입금자명</th>
+                    <th className={headClass}>금액</th>
+                    <th className={headClass}>경과</th>
+                    <th className={headClass}>처리</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {dues.length === 0 && (
+                    <tr>
+                      <td colSpan={7} className="px-3 py-8 text-center text-sm text-muted">
+                        확인할 월 입금이 없어요
+                      </td>
+                    </tr>
+                  )}
+                  {dues.map((due) => (
+                    <tr key={due.paymentId} className="border-b border-border last:border-0">
+                      <td className={`${cellClass} whitespace-nowrap tabular-nums`}>
+                        {formatVisitDate(due.dueDate)}
+                      </td>
+                      <td className={`${cellClass} whitespace-nowrap tabular-nums`}>
+                        {due.seq}개월째 / {due.termMonths}
+                      </td>
+                      <td className={`${cellClass} whitespace-nowrap`}>
+                        <Link
+                          href={`/admin/inspections/${due.planId}`}
+                          className="font-semibold text-admin-cyan-ink underline"
+                        >
+                          {due.contactName}
+                        </Link>
+                        <p className="text-xs">
+                          <a href={`tel:${due.contactPhone}`} className="underline">
+                            {formatPhone(due.contactPhone)}
+                          </a>
+                        </p>
+                      </td>
+                      <td className={`${cellClass} whitespace-nowrap`}>{due.depositorName}</td>
+                      <td className={`${cellClass} whitespace-nowrap tabular-nums`}>
+                        {formatWon(due.amountWon)}
+                      </td>
+                      <td className={`${cellClass} whitespace-nowrap`}>
+                        <span
+                          className={
+                            due.daysLate >= DUE_LATE_EMPHASIS_DAYS
+                              ? 'rounded-full bg-red-50 px-2 py-0.5 text-xs font-semibold text-red-700'
+                              : 'text-xs text-muted'
+                          }
+                        >
+                          {due.daysLate === 0 ? '오늘' : `${due.daysLate}일 지남`}
+                        </span>
+                      </td>
+                      <td className={cellClass}>
+                        <button
+                          type="button"
+                          disabled={busyId === due.paymentId}
+                          onClick={() => confirmDue(due)}
+                          aria-label={`${due.contactName}님 ${due.seq}개월째 입금 확인`}
+                          className={buttonClasses('primary', 'sm', 'whitespace-nowrap')}
+                        >
+                          {busyId === due.paymentId ? '처리 중…' : '입금 확인'}
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
         )}
 
         {tab === 'schedule' && data && (

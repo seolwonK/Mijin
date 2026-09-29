@@ -535,7 +535,10 @@ model InspectionPlan {
 
   status     InspectionPlanStatus @default(PENDING_PAYMENT)
   termMonths Int                  @default(12) // 이용 기간(개월) — 12(1년권) 또는 24(2년권)
-  priceWon   Int // 신청 시점 기간 총액(일시 입금액) 동결 — 가격을 올려도 기존 구독엔 영향이 없다
+  priceWon   Int // 신청 시점 약정 총액(월 요금 × 개월) 동결 — 가격을 올려도 기존 구독엔 영향이 없다
+  // 월 요금(매월 자동이체액) 동결. null 이면 개편 전 방식(기간 총액 일시 입금)으로 이미 낸 구독 —
+  // 매달 받을 돈이 없으므로 월 납부 일정(InspectionPayment)도 만들지 않는다.
+  monthlyWon Int?
 
   // 입금 대조용 입금자명. 계좌이체는 우리가 "누가 보냈는지"를 이 문자열로만 알 수 있다.
   depositorName         String
@@ -558,6 +561,7 @@ model InspectionPlan {
   refundNote  String?
 
   visits    InspectionVisit[]
+  payments  InspectionPayment[]
   createdAt DateTime          @default(now())
   updatedAt DateTime          @updatedAt
 
@@ -590,4 +594,26 @@ model InspectionVisit {
 
   @@unique([planId, round]) // 회차당 1건
   @@index([preferredDate, status]) // 관리자 일정표: 날짜순 조회
+}
+
+// 월 납부 1건 (2026-09-29 사용자 결정: 매월 자동이체). 첫 달 입금을 확인해 구독을 시작할 때
+// 약정 기간 전체(1~termMonths)를 한 번에 만든다 — 납부일은 첫 입금 확인일과 같은 날(말일 클램프).
+// 자동이체는 고객 은행에서 걸고, 이 표는 관리자가 입금을 확인한 기록이다(미납은 표시만 한다).
+model InspectionPayment {
+  id     String         @id @default(cuid())
+  plan   InspectionPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+  planId String
+
+  seq               Int // 1 = 첫 달
+  dueDate           DateTime  @db.Date
+  amountWon         Int
+  paidAt            DateTime? // 관리자가 입금을 확인한 시각. null = 아직 확인 안 됨
+  confirmedByUserId String?
+  note              String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([planId, seq])
+  @@index([dueDate, paidAt]) // 관리자: 입금 확인이 필요한 납부 조회
 }

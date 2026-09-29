@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import type { InspectionVisit, Prisma } from '@prisma/client';
 import { requireSession } from '@/lib/auth';
 import { prisma } from '@/lib/db';
-import { addDays, fromDateString, toDateString, todayKst } from '@/lib/inspection';
+import { addDays, daysBetween, fromDateString, toDateString, todayKst } from '@/lib/inspection';
 import { expireDuePlans } from '@/lib/inspectionLifecycle';
 import { buildPlanView, type PlanView } from '@/lib/inspectionView';
 
@@ -10,6 +10,7 @@ import { buildPlanView, type PlanView } from '@/lib/inspectionView';
 //   plans    : 누가 신청했고 입금이 확인됐는지 (구독 목록)
 //   schedule : 언제 누가 점검을 예약했는지 (날짜순 일정표 — 전화·방문 점검 모두)
 //   settled  : 최근에 완료·취소 처리한 방문 — 잘못 누른 처리를 되돌리는 자리
+//   dues     : 납부일이 지났거나 오늘인데 아직 입금 확인 전인 월 납부(매월 자동이체)
 // 기사 배정은 이 시스템의 관심사가 아니다(사용자 결정 2026-09-20) — 일정표를 보고
 // 오프라인으로 기사를 보낸다. 그래서 여기에 후보 추천·배정 API 가 없다.
 
@@ -24,6 +25,23 @@ export type AdminInspectionPlanRow = PlanView & {
   loginId: string;
   userName: string;
 };
+
+export type AdminInspectionDueRow = {
+  paymentId: string;
+  planId: string;
+  seq: number;
+  termMonths: number;
+  dueDate: string;
+  amountWon: number;
+  /** 납부일로부터 지난 일수(0 = 오늘). */
+  daysLate: number;
+  contactName: string;
+  contactPhone: string;
+  depositorName: string;
+};
+
+/** 월 입금 확인 목록 상한 — 미납이 이만큼 쌓였다면 목록보다 운영 방식을 먼저 봐야 한다. */
+const DUE_LIMIT = 300;
 
 export type AdminInspectionScheduleRow = {
   visitId: string;
@@ -95,7 +113,7 @@ export async function GET(req: NextRequest) {
       : null;
 
   const today = todayKst();
-  const [plans, visits, settled, pendingCount] = await Promise.all([
+  const [plans, visits, settled, pendingCount, dues] = await Promise.all([
     prisma.inspectionPlan.findMany({
       where: status ? { status } : undefined,
       // status 오름차순은 enum 선언 순서를 따른다 — PENDING_PAYMENT 가 첫 값이라
@@ -104,6 +122,7 @@ export async function GET(req: NextRequest) {
       take: PLAN_LIMIT,
       include: {
         visits: { orderBy: { round: 'asc' } },
+        payments: { orderBy: { seq: 'asc' } },
         user: { select: { loginId: true, name: true } },
       },
     }),
@@ -133,6 +152,21 @@ export async function GET(req: NextRequest) {
       include: { plan: { select: VISIT_PLAN_SELECT } },
     }),
     prisma.inspectionPlan.count({ where: { status: 'PENDING_PAYMENT' } }),
+    // 해지·만료된 구독의 남은 달은 받을 돈이 아니다 — 이용 중인 구독만 본다.
+    prisma.inspectionPayment.findMany({
+      where: {
+        paidAt: null,
+        dueDate: { lte: fromDateString(today) },
+        plan: { status: 'ACTIVE' },
+      },
+      orderBy: [{ dueDate: 'asc' }, { seq: 'asc' }],
+      take: DUE_LIMIT,
+      include: {
+        plan: {
+          select: { id: true, termMonths: true, contactName: true, contactPhone: true, depositorName: true },
+        },
+      },
+    }),
   ]);
 
   return NextResponse.json(
@@ -146,6 +180,21 @@ export async function GET(req: NextRequest) {
       })),
       schedule: visits.map(toScheduleRow),
       settled: settled.map(toScheduleRow),
+      dues: dues.map<AdminInspectionDueRow>((p) => {
+        const dueDate = toDateString(p.dueDate);
+        return {
+          paymentId: p.id,
+          planId: p.plan.id,
+          seq: p.seq,
+          termMonths: p.plan.termMonths,
+          dueDate,
+          amountWon: p.amountWon,
+          daysLate: daysBetween(dueDate, today),
+          contactName: p.plan.contactName,
+          contactPhone: p.plan.contactPhone,
+          depositorName: p.plan.depositorName,
+        };
+      }),
     },
     { headers: { 'Cache-Control': 'no-store' } },
   );

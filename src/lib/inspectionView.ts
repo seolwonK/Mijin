@@ -3,7 +3,7 @@
 // 연차 창(날짜 범위)·남은 횟수·예약 가능 여부는 저장된 값이 아니라 시작일에서 매번 계산되는
 // 파생값이다. 고객 화면과 관리자 화면이 각자 계산하면 하루 차이로 어긋나므로, 계산은 여기
 // 한 곳에서만 한다.
-import type { InspectionPlan, InspectionVisit } from '@prisma/client';
+import type { InspectionPayment, InspectionPlan, InspectionVisit } from '@prisma/client';
 import {
   type BookingBlock,
   INSPECTION_CHECKS_PER_YEAR,
@@ -13,6 +13,7 @@ import {
   type TimeSlot,
   addDays,
   bookingBlock,
+  daysBetween,
   isYearBookable,
   occupiesRound,
   planYears,
@@ -71,11 +72,41 @@ export type YearView = {
   bookable: boolean;
 };
 
+/** 월 납부 1건. DUE = 납부일이 지났거나 오늘인데 아직 입금 확인 전(미납은 표시만 한다). */
+export type PaymentView = {
+  id: string;
+  seq: number;
+  dueDate: string;
+  amountWon: number;
+  paidAt: string | null;
+  status: 'PAID' | 'DUE' | 'UPCOMING';
+  /** DUE 일 때 납부일로부터 지난 일수(0 = 오늘). */
+  daysLate: number | null;
+  /** 관리자 전용 메모 — 고객 뷰에서는 null. */
+  note: string | null;
+};
+
+export type BillingView = {
+  /** MONTHLY = 매월 자동이체, PREPAID = 개편 전 기간 총액을 이미 낸 구독. */
+  mode: 'MONTHLY' | 'PREPAID';
+  monthlyWon: number | null;
+  paidCount: number;
+  totalCount: number;
+  /** 입금 확인이 필요한(납부일이 지났거나 오늘인) 납부 수. */
+  dueCount: number;
+  /** 아직 확인 안 된 가장 이른 납부 — 지난 것 포함. 다 냈거나 일정이 없으면 null. */
+  nextDue: { seq: number; dueDate: string; amountWon: number } | null;
+  payments: PaymentView[];
+};
+
 export type PlanView = {
   id: string;
   status: InspectionPlan['status'];
   termMonths: number;
   priceWon: number;
+  /** 월 요금(매월 자동이체액). 개편 전 일시 납부 구독은 null. */
+  monthlyWon: number | null;
+  billing: BillingView;
   startDate: string | null;
   endDate: string | null;
   contactName: string;
@@ -115,7 +146,42 @@ export type PlanView = {
   } | null;
 };
 
-export type PlanWithVisits = InspectionPlan & { visits: InspectionVisit[] };
+export type PlanWithVisits = InspectionPlan & {
+  visits: InspectionVisit[];
+  /** 납부 일정. 조회에서 빼면(과거 호출부) 빈 일정으로 본다. */
+  payments?: InspectionPayment[];
+};
+
+function buildBilling(plan: PlanWithVisits, audience: ViewAudience, today: string): BillingView {
+  const payments = (plan.payments ?? [])
+    .slice()
+    .sort((a, b) => a.seq - b.seq)
+    .map<PaymentView>((p) => {
+      const dueDate = toDateString(p.dueDate);
+      const paid = p.paidAt != null;
+      const due = !paid && dueDate <= today;
+      return {
+        id: p.id,
+        seq: p.seq,
+        dueDate,
+        amountWon: p.amountWon,
+        paidAt: p.paidAt?.toISOString() ?? null,
+        status: paid ? 'PAID' : due ? 'DUE' : 'UPCOMING',
+        daysLate: due ? daysBetween(dueDate, today) : null,
+        note: audience === 'admin' ? p.note : null,
+      };
+    });
+  const next = payments.find((p) => p.status !== 'PAID');
+  return {
+    mode: plan.monthlyWon != null ? 'MONTHLY' : 'PREPAID',
+    monthlyWon: plan.monthlyWon,
+    paidCount: payments.filter((p) => p.status === 'PAID').length,
+    totalCount: payments.length,
+    dueCount: payments.filter((p) => p.status === 'DUE').length,
+    nextDue: next ? { seq: next.seq, dueDate: next.dueDate, amountWon: next.amountWon } : null,
+    payments,
+  };
+}
 
 function byDateThenRound(a: VisitView, b: VisitView): number {
   if (a.date !== b.date) return a.date < b.date ? -1 : 1;
@@ -215,6 +281,8 @@ export function buildPlanView(
     status: plan.status,
     termMonths: plan.termMonths,
     priceWon: plan.priceWon,
+    monthlyWon: plan.monthlyWon,
+    billing: buildBilling(plan, audience, today),
     startDate,
     endDate,
     contactName: plan.contactName,
