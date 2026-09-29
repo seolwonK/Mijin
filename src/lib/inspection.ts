@@ -100,6 +100,14 @@ export function roundsOfYear(year: number): number[] {
 export type TimeSlot = 'MORNING' | 'AFTERNOON' | 'ANY';
 export const TIME_SLOTS: readonly TimeSlot[] = ['MORNING', 'AFTERNOON', 'ANY'];
 
+export type InspectionResult = 'NORMAL' | 'CAUTION' | 'NEEDS_VISIT';
+export const INSPECTION_RESULTS: readonly InspectionResult[] = ['NORMAL', 'CAUTION', 'NEEDS_VISIT'];
+export const RESULT_LABEL: Record<InspectionResult, string> = {
+  NORMAL: '이상 없음',
+  CAUTION: '주의',
+  NEEDS_VISIT: '방문 점검 필요',
+};
+
 export type InspectionMethod = 'PHONE' | 'ONSITE';
 export const METHOD_LABEL: Record<InspectionMethod, string> = {
   PHONE: '전화 점검',

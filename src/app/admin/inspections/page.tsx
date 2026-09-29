@@ -2,12 +2,14 @@
 
 import { Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import PageHeader from '@/components/PageHeader';
 import { buttonClasses } from '@/components/Button';
 import { usePolling } from '@/components/usePolling';
 import { useConfirm } from '@/components/useConfirm';
 import PortalLoadState from '@/components/PortalLoadState';
+import { InspectionResultDialog } from '@/components/InspectionResult';
 import { requestError } from '@/lib/clientApi';
 import { PLAN_STATUS_LABEL, VISIT_STATUS_LABEL, type PlanView } from '@/lib/inspectionView';
 import {
@@ -17,6 +19,7 @@ import {
   TIME_SLOTS,
   TIME_SLOT_LABEL,
   type InspectionMethod,
+  type InspectionResult,
   type TimeSlot,
   type VisitStatus,
   formatPhone,
@@ -64,6 +67,8 @@ type VisitPatch = {
   date?: string;
   timeSlot?: TimeSlot;
   method?: InspectionMethod;
+  result?: InspectionResult | null;
+  resultNote?: string | null;
 };
 
 type StatusFilter = PlanView['status'] | 'ALL';
@@ -179,6 +184,9 @@ function AdminInspections() {
   const [canceling, setCanceling] = useState<PlanRow | null>(null);
   const [booking, setBooking] = useState<PlanRow | null>(null);
   const [switching, setSwitching] = useState<ScheduleRow | null>(null);
+  const [completing, setCompleting] = useState<{ visit: ScheduleRow; unsavedMemo?: string } | null>(
+    null,
+  );
   // 확인 모달은 기본 모양을 쓴다 — 'admin' 모양의 주 버튼은 노란색이라 이 화면의 남색 주 버튼
   // (buttonClasses('primary'))과 어긋났다. 기본 모양은 같은 primary, 파괴적 동작은 danger(빨강)다.
   const [confirm, confirmUI] = useConfirm();
@@ -213,19 +221,9 @@ function AdminInspections() {
     run(visitId, () => send(`/api/admin/inspections/visits/${visitId}`, 'PATCH', body));
 
   // 완료하면 카드가 일정표에서 사라진다 — 입력만 하고 저장하지 않은 담당 메모를 같이 보내지
-  // 않으면 "누가 다녀왔는지"가 기록될 기회 없이 없어진다.
-  async function completeVisit(visit: ScheduleRow, unsavedMemo?: string) {
-    const ok = await confirm({
-      title: '점검 완료',
-      message: `${visit.contactName}님 ${visit.round}회차 ${METHOD_LABEL[visit.method]}(${formatVisitDate(visit.date)})을 완료 처리합니다.`,
-      confirmText: '완료 처리',
-    });
-    if (ok) {
-      await patchVisit(visit.visitId, {
-        status: 'COMPLETED',
-        ...(unsavedMemo !== undefined ? { adminMemo: unsavedMemo } : {}),
-      });
-    }
+  // 않으면 "누가 다녀왔는지"가 기록될 기회 없이 없어진다. 점검 결과도 같은 요청으로 남긴다.
+  function completeVisit(visit: ScheduleRow, unsavedMemo?: string) {
+    setCompleting({ visit, unsavedMemo });
   }
 
   // 방문 점검 → 전화 점검. 날짜는 그대로 두고 방식만 되돌린다.
@@ -398,7 +396,12 @@ function AdminInspections() {
                         <p className="mt-1 text-xs text-muted">{plan.createdDate} 신청</p>
                       </td>
                       <td className={`${cellClass} whitespace-nowrap`}>
-                        <p className="font-semibold">{plan.contactName}</p>
+                        <Link
+                          href={`/admin/inspections/${plan.id}`}
+                          className="font-semibold text-admin-cyan-ink underline"
+                        >
+                          {plan.contactName}
+                        </Link>
                         <p className="text-xs text-muted">{plan.loginId}</p>
                       </td>
                       <td className={`${cellClass} whitespace-nowrap`}>
@@ -615,6 +618,23 @@ function AdminInspections() {
           }}
         />
       )}
+      {completing && (
+        <InspectionResultDialog
+          title="점검 완료"
+          description={`${completing.visit.contactName}님 ${completing.visit.round}회차 ${METHOD_LABEL[completing.visit.method]}(${formatVisitDate(completing.visit.date)})을 완료 처리합니다. 통화·방문 결과를 함께 남길 수 있습니다.`}
+          confirmText="완료 처리"
+          onClose={() => setCompleting(null)}
+          onSubmit={async (input) => {
+            const { visit, unsavedMemo } = completing;
+            setCompleting(null);
+            await patchVisit(visit.visitId, {
+              status: 'COMPLETED',
+              ...input,
+              ...(unsavedMemo !== undefined ? { adminMemo: unsavedMemo } : {}),
+            });
+          }}
+        />
+      )}
       {switching && (
         <SwitchOnsiteDialog
           visit={switching}
@@ -658,7 +678,7 @@ function ScheduleCard({
   today: string;
   busy: boolean;
   onPatch: (visitId: string, body: VisitPatch) => Promise<void>;
-  onComplete: (visit: ScheduleRow, unsavedMemo?: string) => Promise<void>;
+  onComplete: (visit: ScheduleRow, unsavedMemo?: string) => void;
   onCancel: (visit: ScheduleRow) => Promise<void>;
   onSwitchOnsite: (visit: ScheduleRow) => void;
   onRevertPhone: (visit: ScheduleRow) => Promise<void>;
@@ -745,7 +765,13 @@ function ScheduleCard({
         </div>
         <div className="min-w-[14rem] flex-1">
           <p className="font-semibold">
-            {visit.contactName} ·{' '}
+            <Link
+              href={`/admin/inspections/${visit.planId}`}
+              className="text-admin-cyan-ink underline"
+            >
+              {visit.contactName}
+            </Link>{' '}
+            ·{' '}
             <a href={`tel:${visit.contactPhone}`} className="underline">
               {formatPhone(visit.contactPhone)}
             </a>

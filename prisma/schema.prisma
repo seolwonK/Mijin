@@ -497,6 +497,14 @@ enum InspectionMethod {
   ONSITE // 전기기사 방문 점검
 }
 
+// 점검 결과 (2026-09-29). 전화 점검 상품에서는 "점검받았다"는 기록이 곧 고객이 느끼는 가치라
+// 결과를 구조화해 남기고 고객 화면에도 보여 준다. NEEDS_VISIT 는 방문 점검 전환의 근거가 된다.
+enum InspectionResult {
+  NORMAL // 이상 없음
+  CAUTION // 주의 — 당장 위험하진 않지만 지켜볼 것
+  NEEDS_VISIT // 방문 점검·수리 필요
+}
+
 // 점검 시간대. 날짜별 인원 한도가 없으므로(사용자 확정) 정원 계산에는 쓰이지 않고,
 // 전화·방문 일정을 짜는 관리자에게 주는 힌트다.
 enum InspectionTimeSlot {
@@ -543,6 +551,12 @@ model InspectionPlan {
   canceledAt   DateTime?
   cancelReason String?
 
+  // 환불 기록 — 돈이 나간 사실을 남기는 칸이다(송금 자체는 시스템 밖). 취소 사유 글자만으로는
+  // 얼마를 언제 돌려줬는지 추적할 수 없다.
+  refundedWon Int?
+  refundedAt  DateTime?
+  refundNote  String?
+
   visits    InspectionVisit[]
   createdAt DateTime          @default(now())
   updatedAt DateTime          @updatedAt
@@ -565,7 +579,9 @@ model InspectionVisit {
   timeSlot      InspectionTimeSlot    @default(ANY)
   status        InspectionVisitStatus @default(REQUESTED)
   note          String? // 고객 요청사항
-  adminMemo     String? // 관리자 메모 — 누가 방문하는지 등 오프라인 배정 기록
+  adminMemo     String? // 관리자 메모 — 누가 방문하는지 등 오프라인 배정 기록 (고객에게 안 보임)
+  result        InspectionResult? // 점검 결과 — 고객 화면에도 보인다
+  resultNote    String? // 고객에게 보여 줄 결과 설명
 
   completedAt DateTime?
   canceledAt  DateTime?

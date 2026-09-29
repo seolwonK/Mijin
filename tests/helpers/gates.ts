@@ -681,6 +681,11 @@ export const GATES: Record<string, HandlerGates> = {
     gates: [{ order: 1, status: 404, line: 43, kind: 'not-found', message: '전기기사를 찾을 수 없습니다', reach: '없는 id' }],
   },
 
+  'GET /api/admin/inspections/[id]': {
+    file: 'src/app/api/admin/inspections/[id]/route.ts',
+    gates: [{ order: 1, status: 404, line: 173, kind: 'not-found', message: '구독을 찾을 수 없습니다', reach: '없는 id' }],
+  },
+
   'GET /api/admin/providers/[id]': {
     file: 'src/app/api/admin/providers/[id]/route.ts',
     gates: [{ order: 1, status: 404, line: 41, kind: 'not-found', message: '업체를 찾을 수 없습니다', reach: '없는 id' }],
@@ -1717,6 +1722,132 @@ export const GATES: Record<string, HandlerGates> = {
   },
 
 
+  'PATCH /api/admin/inspections/[id]': {
+    file: 'src/app/api/admin/inspections/[id]/route.ts',
+    note:
+      '구독 상세 화면의 고객 정보(연락처·주소·요청사항) 수정과 환불 기록.',
+    gates: [
+      {
+        order: 1,
+        status: 400,
+        line: 191,
+        kind: 'body-parse',
+        message: '잘못된 요청입니다',
+        reach: 'JSON 이 아닌 본문',
+      },
+      {
+        order: 2,
+        status: 400,
+        line: 197,
+        kind: 'schema',
+        message: null,
+        reach: '빈 객체, 전화번호 형식 오류, 줄바꿈이 든 이름·주소, 0 이하 환불 금액 등',
+      },
+      {
+        order: 3,
+        status: 404,
+        line: 207,
+        kind: 'not-found',
+        message: '구독을 찾을 수 없습니다',
+        reach: '존재하지 않는 구독 id + 유효한 본문',
+      },
+      {
+        order: 4,
+        status: 409,
+        line: 213,
+        kind: 'state',
+        message: '입금 확인 전인 구독에는 환불을 기록할 수 없습니다.',
+        reach: 'paidConfirmedAt 이 없는 구독에 refund 객체를 보냄',
+      },
+      {
+        order: 5,
+        status: 400,
+        line: 219,
+        kind: 'state',
+        message: '환불 금액이 입금액보다 클 수 없습니다.',
+        reach: '입금 확인된 구독 + refund.won > priceWon',
+      },
+    ],
+  },
+
+  'POST /api/admin/inspections/[id]/reset-password': {
+    file: 'src/app/api/admin/inspections/[id]/reset-password/route.ts',
+    note: '본문을 읽지 않는다. 임시 비밀번호 평문은 응답에 한 번만 실린다.',
+    gates: [
+      {
+        order: 1,
+        status: 404,
+        line: 38,
+        kind: 'not-found',
+        message: '구독을 찾을 수 없습니다',
+        reach: '존재하지 않는 구독 id',
+      },
+      {
+        order: 2,
+        status: 409,
+        line: 43,
+        kind: 'state',
+        message: '고객 계정이 아닙니다.',
+        reach: '구독 소유자의 역할이 CUSTOMER 가 아님 — 정상 흐름에선 생기지 않는 방어선',
+      },
+    ],
+  },
+
+  'POST /api/my/password': {
+    file: 'src/app/api/my/password/route.ts',
+    note: '교차 사이트 403 이 세션 확인보다 먼저다(자동 로그인 쿠키를 쓰는 경로라 로그인 CSRF 와 같은 위험).',
+    gates: [
+      {
+        order: 1,
+        status: 403,
+        line: 38,
+        kind: 'state',
+        message: '허용되지 않은 요청입니다',
+        reach: '다른 사이트의 Origin 헤더 — Origin 이 없는 호출은 통과',
+      },
+      {
+        order: 2,
+        status: 429,
+        line: 47,
+        kind: 'rate-limit',
+        message: '시도가 너무 많습니다. 잠시 후 다시 시도해 주세요.',
+        reach: '같은 계정(userId)으로 10분에 6회째 요청',
+      },
+      {
+        order: 3,
+        status: 400,
+        line: 55,
+        kind: 'body-parse',
+        message: '잘못된 요청입니다',
+        reach: 'JSON 이 아닌 본문',
+      },
+      {
+        order: 4,
+        status: 400,
+        line: 61,
+        kind: 'schema',
+        message: null,
+        reach: '현재 비밀번호 누락, 새 비밀번호 8자 미만 또는 72바이트 초과',
+      },
+      {
+        order: 5,
+        status: 400,
+        line: 70,
+        kind: 'state',
+        message: '현재 비밀번호가 맞지 않습니다.',
+        reach: '유효한 본문 + 틀린 현재 비밀번호',
+      },
+      {
+        order: 6,
+        status: 400,
+        line: 73,
+        kind: 'state',
+        message: '새 비밀번호가 지금과 같습니다.',
+        reach: '현재 비밀번호는 맞고 새 비밀번호가 같음',
+      },
+    ],
+  },
+
   'POST /api/admin/inspections/[id]/confirm-payment': {
     file: 'src/app/api/admin/inspections/[id]/confirm-payment/route.ts',
     note: '본문을 읽지 않는다(경로 파라미터만). 전이는 lib/inspectionLifecycle.activatePlan 의 CAS.',
@@ -1851,14 +1982,14 @@ export const GATES: Record<string, HandlerGates> = {
   'PATCH /api/admin/inspections/visits/[visitId]': {
     file: 'src/app/api/admin/inspections/visits/[visitId]/route.ts',
     note:
-      '완료·취소·되돌리기(status), 대리 일정 변경(date·timeSlot), 점검 방식 전환(method: 전화↔방문), 담당 메모(adminMemo)가 한 입구다. ' +
+      '완료·취소·되돌리기(status), 대리 일정 변경(date·timeSlot), 점검 방식 전환(method: 전화↔방문), 점검 결과(result·resultNote), 담당 메모(adminMemo)가 한 입구다. ' +
       '상태 전이는 lib/inspection.canTransitionVisit 의 표를 따르고, 메모만 고치는 요청은 ' +
-      ':111~:141 의 상태·날짜 게이트를 모두 건너뛰고, CAS(:194)도 날짜가 아니라 status 만 본다.',
+      ':116~:155 의 상태·날짜 게이트를 모두 건너뛰고, CAS(:217)도 날짜가 아니라 status 만 본다.',
     gates: [
       {
         order: 1,
         status: 400,
-        line: 59,
+        line: 62,
         kind: 'body-parse',
         message: '잘못된 요청입니다',
         reach: 'JSON 이 아닌 본문',
@@ -1866,7 +1997,7 @@ export const GATES: Record<string, HandlerGates> = {
       {
         order: 2,
         status: 400,
-        line: 65,
+        line: 68,
         kind: 'schema',
         message: null,
         reach:
@@ -1876,7 +2007,7 @@ export const GATES: Record<string, HandlerGates> = {
       {
         order: 3,
         status: 400,
-        line: 76,
+        line: 81,
         kind: 'state',
         message: '변경할 내용이 없습니다',
         reach: '빈 객체 `{}` — 스키마는 통과하지만 바꿀 필드가 없다',
@@ -1884,16 +2015,16 @@ export const GATES: Record<string, HandlerGates> = {
       {
         order: 4,
         status: 404,
-        line: 94,
+        line: 99,
         kind: 'not-found',
         message: '방문 일정을 찾을 수 없습니다',
         reach: '존재하지 않는 visitId + 바꿀 필드가 1개 이상',
-        trap: '본문이 `{}` 면 :76 의 400 이 먼저 나온다',
+        trap: '본문이 `{}` 면 :81 의 400 이 먼저 나온다',
       },
       {
         order: 5,
         status: 409,
-        line: 111,
+        line: 116,
         kind: 'state',
         message: '취소되었거나 입금 전인 구독의 방문은 바꿀 수 없습니다.',
         reach: '구독이 CANCELED/PENDING_PAYMENT 인 방문의 상태·날짜·시간대 변경',
@@ -1902,7 +2033,7 @@ export const GATES: Record<string, HandlerGates> = {
       {
         order: 6,
         status: 409,
-        line: 117,
+        line: 122,
         kind: 'state',
         message: '지금 상태에서는 그렇게 바꿀 수 없습니다. 화면을 새로고침해 주세요.',
         reach: '전이 표에 없는 이동 — 예: REQUESTED→COMPLETED, COMPLETED→CANCELED',
@@ -1911,7 +2042,7 @@ export const GATES: Record<string, HandlerGates> = {
       {
         order: 7,
         status: 409,
-        line: 123,
+        line: 128,
         kind: 'state',
         message: '방문일이 아직 오지 않았습니다. 미리 다녀왔다면 방문일을 먼저 바꿔 주세요.',
         reach: 'SCHEDULED + 방문일이 내일 이후인 방문을 COMPLETED 로',
@@ -1919,34 +2050,42 @@ export const GATES: Record<string, HandlerGates> = {
       {
         order: 8,
         status: 409,
-        line: 129,
+        line: 134,
         kind: 'state',
         message: '완료된 방문은 일정을 바꿀 수 없습니다. 먼저 완료를 되돌려 주세요.',
         reach: 'COMPLETED 방문에 date·timeSlot 또는 다른 method 를 보냄',
         trap:
-          'date 는 status 를 SCHEDULED 로 끌고 가므로 COMPLETED→SCHEDULED 는 전이 표(:117)를 통과한다 — ' +
+          'date 는 status 를 SCHEDULED 로 끌고 가므로 COMPLETED→SCHEDULED 는 전이 표(:122)를 통과한다 — ' +
           '그래서 이 게이트가 따로 있다',
       },
       {
         order: 9,
+        status: 409,
+        line: 143,
+        kind: 'state',
+        message: '점검 결과는 완료 처리한 회차에만 남길 수 있습니다.',
+        reach: 'result 또는 resultNote 를 보냈는데, 이 요청 뒤의 상태가 COMPLETED 가 아님',
+      },
+      {
+        order: 10,
         status: 400,
-        line: 141,
+        line: 155,
         kind: 'state',
         message: '옮길 수 없는 날짜입니다.',
         reach: 'date 가 과거이거나 구독 이용 기간(startDate~endDate) 밖, 그 회차의 이용 연차 밖, 또는 형식 오류',
       },
       {
-        order: 10,
+        order: 11,
         status: 409,
-        line: 153,
+        line: 167,
         kind: 'conflict',
         message: '그날은 이미 다른 점검이 잡혀 있습니다.',
         reach: '같은 구독의 취소되지 않은 다른 회차가 이미 있는 날짜로 date 를 옮김',
       },
       {
-        order: 11,
+        order: 12,
         status: 409,
-        line: 194,
+        line: 217,
         kind: 'race',
         message: '방금 다른 곳에서 일정이 바뀌었습니다. 화면을 새로고침해 주세요.',
         reach:

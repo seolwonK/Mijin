@@ -12,6 +12,7 @@ import { HomeIcon } from '@/components/icons';
 import InspectionCalendar, { SelectedDateLine } from '@/components/InspectionCalendar';
 import InspectionTimeSlotPicker from '@/components/InspectionTimeSlotPicker';
 import { buttonClasses } from '@/components/Button';
+import { ResultBadge } from '@/components/InspectionResult';
 import { redirectToLogin, usePolling } from '@/components/usePolling';
 import { requestError } from '@/lib/clientApi';
 import { COMPANY } from '@/lib/company';
@@ -395,6 +396,9 @@ export default function MyInspection() {
             </section>
           </>
         )}
+
+        {/* 신청 전·후 어느 상태에서든 바꿀 수 있어야 한다 — 임시 비밀번호로 들어온 고객이 쓴다. */}
+        {data && <PasswordSection />}
       </div>
     </main>
   );
@@ -633,6 +637,19 @@ function VisitCard({
       )}
       {visit.note && (
         <p className="mt-1 text-sm break-words text-muted">요청사항: {visit.note}</p>
+      )}
+      {visit.status === 'COMPLETED' && (visit.result || visit.resultNote) && (
+        <div className="mt-3 rounded-xl bg-neutral-50 p-3">
+          <p className="flex items-center gap-2 text-xs font-bold text-fg">
+            점검 결과
+            {visit.result && <ResultBadge result={visit.result} />}
+          </p>
+          {visit.resultNote && (
+            <p className="mt-1.5 text-sm leading-relaxed break-words whitespace-pre-line text-fg">
+              {visit.resultNote}
+            </p>
+          )}
+        </div>
       )}
 
       {visit.needsReschedule && visit.bookable && (
@@ -889,5 +906,127 @@ function BookingForm({
         </button>
       </div>
     </div>
+  );
+}
+
+/**
+ * 비밀번호 변경 — 관리자가 전화로 불러 준 임시 비밀번호를 자기 것으로 바꾸는 자리.
+ * 자주 쓰지 않으므로 접어 둔다.
+ */
+function PasswordSection() {
+  const router = useRouter();
+  const [current, setCurrent] = useState('');
+  const [next, setNext] = useState('');
+  const [confirmNext, setConfirmNext] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const [done, setDone] = useState(false);
+  const [busy, setBusy] = useState(false);
+
+  async function submit() {
+    if (busy) return;
+    setError(null);
+    setDone(false);
+    if (!current) return setError('현재 비밀번호를 입력해 주세요.');
+    if (next.length < 8) return setError('새 비밀번호는 8자 이상으로 입력해 주세요.');
+    if (next !== confirmNext) return setError('새 비밀번호가 서로 다릅니다. 다시 확인해 주세요.');
+    setBusy(true);
+    try {
+      const res = await fetch('/api/my/password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        signal: AbortSignal.timeout(20_000),
+        body: JSON.stringify({ currentPassword: current, newPassword: next }),
+      });
+      if (res.status === 401) {
+        redirectToLogin(router, window.location.pathname, window.location.search);
+        return;
+      }
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setError(body.error ?? '비밀번호를 바꾸지 못했습니다. 잠시 후 다시 시도해 주세요.');
+        return;
+      }
+      setCurrent('');
+      setNext('');
+      setConfirmNext('');
+      setDone(true);
+    } catch (e) {
+      setError(requestError(e));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <details className="rounded-2xl border border-border bg-white">
+      <summary className="flex min-h-12 cursor-pointer items-center px-5 font-bold text-fg">
+        비밀번호 변경
+      </summary>
+      <form
+        className="space-y-3 border-t border-border p-5"
+        onSubmit={(e) => {
+          e.preventDefault();
+          void submit();
+        }}
+      >
+        <p className="text-sm leading-relaxed text-muted">
+          고객센터에서 임시 비밀번호를 받으셨다면 여기서 새 비밀번호로 바꿔 주세요.
+        </p>
+        <div>
+          <label htmlFor="pw-current" className="mb-1 block text-sm font-medium">
+            현재 비밀번호
+          </label>
+          <input
+            id="pw-current"
+            type="password"
+            autoComplete="current-password"
+            value={current}
+            onChange={(e) => setCurrent(e.target.value)}
+            className={inputClass}
+          />
+        </div>
+        <div>
+          <label htmlFor="pw-new" className="mb-1 block text-sm font-medium">
+            새 비밀번호 <span className="font-normal text-muted">(8자 이상)</span>
+          </label>
+          <input
+            id="pw-new"
+            type="password"
+            autoComplete="new-password"
+            value={next}
+            onChange={(e) => setNext(e.target.value)}
+            className={inputClass}
+          />
+        </div>
+        <div>
+          <label htmlFor="pw-confirm" className="mb-1 block text-sm font-medium">
+            새 비밀번호 확인
+          </label>
+          <input
+            id="pw-confirm"
+            type="password"
+            autoComplete="new-password"
+            value={confirmNext}
+            onChange={(e) => setConfirmNext(e.target.value)}
+            className={inputClass}
+          />
+        </div>
+        {error && (
+          <p role="alert" className="text-sm text-red-700">
+            {error}
+          </p>
+        )}
+        <p role="status" className={done ? 'rounded-xl bg-brand-50 px-3 py-2 text-sm font-semibold text-brand-700' : ''}>
+          {done ? '비밀번호를 바꿨어요. 다음 로그인부터 새 비밀번호를 쓰세요.' : null}
+        </p>
+        <button
+          type="submit"
+          disabled={busy}
+          className={buttonClasses('primary', 'md', 'w-full')}
+        >
+          {busy ? '바꾸는 중…' : '비밀번호 바꾸기'}
+        </button>
+      </form>
+    </details>
   );
 }

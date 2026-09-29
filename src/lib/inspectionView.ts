@@ -9,6 +9,7 @@ import {
   INSPECTION_CHECKS_PER_YEAR,
   INSPECTION_MIN_LEAD_DAYS,
   type InspectionMethod,
+  type InspectionResult,
   type TimeSlot,
   addDays,
   bookingBlock,
@@ -37,6 +38,9 @@ export type VisitView = {
   note: string | null;
   /** 관리자 전용 — 고객 뷰에서는 항상 null. */
   adminMemo: string | null;
+  /** 점검 결과와 설명 — 고객에게도 보인다. */
+  result: InspectionResult | null;
+  resultNote: string | null;
   completedAt: string | null;
   /** 고객이 지금 이 회차의 날짜를 바꿀 수 있는가. 활성 구독이 아니면 거짓. */
   bookable: boolean;
@@ -82,6 +86,8 @@ export type PlanView = {
   depositorName: string;
   paidConfirmedAt: string | null;
   cancelReason: string | null;
+  /** 환불 기록 — 관리자 뷰에만 싣는다(고객 뷰는 null). */
+  refund: { won: number; at: string; note: string | null } | null;
   createdAt: string;
   /** 신청일(한국 달력). createdAt 을 화면에서 자르면 UTC 날짜가 나와 하루 밀린다. */
   createdDate: string;
@@ -143,6 +149,8 @@ export function buildPlanView(
         status: v.status,
         note: v.note,
         adminMemo: audience === 'admin' ? v.adminMemo : null,
+        result: v.result,
+        resultNote: v.resultNote,
         completedAt: v.completedAt?.toISOString() ?? null,
         bookable: active && blocked == null,
         blocked,
@@ -217,6 +225,10 @@ export function buildPlanView(
     depositorName: plan.depositorName,
     paidConfirmedAt: plan.paidConfirmedAt?.toISOString() ?? null,
     cancelReason: plan.cancelReason,
+    refund:
+      audience === 'admin' && plan.refundedWon != null && plan.refundedAt
+        ? { won: plan.refundedWon, at: plan.refundedAt.toISOString(), note: plan.refundNote }
+        : null,
     createdAt: plan.createdAt.toISOString(),
     createdDate: todayKst(plan.createdAt),
     completedCount: visits.filter((v) => v.status === 'COMPLETED').length,

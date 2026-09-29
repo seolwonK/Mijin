@@ -1,7 +1,7 @@
 // ───────────────────────────────────────────────────────────────────────────
 // API 라우트 매트릭스 — 단일 진실 원천.
 //
-// 84개 route.ts 파일이 98개 핸들러를 export 한다 (14개 라우트가 2개 메서드).
+// 88개 route.ts 파일이 103개 핸들러를 export 한다 (15개 라우트가 2개 메서드).
 // 그중 19개가 설계상 공개이고, 나머지 **79개가 가드 대상**이다.
 //
 // 이 표를 손으로 유지하지 않는다: tests/cross/matrix-completeness.spec.ts 가
@@ -61,7 +61,7 @@ const open = (path: string, method: HttpMethod, note: string): RouteEntry => ({
 });
 
 export const ROUTES: RouteEntry[] = [
-  // ── 관리자 (49 핸들러, 전부 ADMIN 세션 필요) ──────────────────────────
+  // ── 관리자 (52 핸들러, 전부 ADMIN 세션 필요) ──────────────────────────
   admin('/api/admin/analytics/dashboard', 'GET'),
   admin('/api/admin/analytics/map/dispatch', 'GET'),
   admin('/api/admin/analytics/map/regions', 'GET'),
@@ -106,17 +106,21 @@ export const ROUTES: RouteEntry[] = [
   admin('/api/admin/technicians/[id]/reject', 'POST'),
   // 정기 전기점검 구독 운영 — 입금 확인·취소·대리 예약·방문 상태·입금 계좌 설정
   admin('/api/admin/inspections', 'GET'),
+  admin('/api/admin/inspections/[id]', 'GET'),
+  admin('/api/admin/inspections/[id]', 'PATCH'),
   admin('/api/admin/inspections/[id]/confirm-payment', 'POST'),
+  admin('/api/admin/inspections/[id]/reset-password', 'POST'),
   admin('/api/admin/inspections/[id]/cancel', 'POST'),
   admin('/api/admin/inspections/[id]/visits', 'POST'),
   admin('/api/admin/inspections/visits/[visitId]', 'PATCH'),
   admin('/api/admin/inspection-account', 'GET'),
   admin('/api/admin/inspection-account', 'PUT'),
 
-  // ── 정기 점검 고객 (2 핸들러, CUSTOMER 세션 필요) ──────────────────────
+  // ── 정기 점검 고객 (3 핸들러, CUSTOMER 세션 필요) ──────────────────────
   // 유일한 CUSTOMER 계열이다. 신청(/api/inspection/apply)만 공개이고, 그 뒤는 전부 세션.
   customer('/api/my/inspection', 'GET'),
   customer('/api/my/inspection/visits', 'POST'),
+  customer('/api/my/password', 'POST'),
 
   // ── 전기기사 (15 핸들러, TECHNICIAN 세션 필요) ─────────────────────────
   tech('/api/tech/commissions', 'GET'),
@@ -207,7 +211,7 @@ export const ROUTES: RouteEntry[] = [
   ),
 ];
 
-/** 무세션 401 을 단언해야 하는 핸들러 (98 − 공개 19 = 79). */
+/** 무세션 401 을 단언해야 하는 핸들러 (103 − 공개 19 = 84). */
 export const GUARDED_ROUTES = ROUTES.filter((r) => !r.isPublic);
 
 /** 설계상 공개인 핸들러 — 401 오탐 방지용으로 명시 보관한다. */

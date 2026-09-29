@@ -38,10 +38,13 @@ export function adminView(href: string): { path: string; href: string; label: st
       if (item.href === path) return { path, href: path + url.search + url.hash, label: 'tabLabel' in item ? item.tabLabel : item.label };
     }
   }
-  const match = path.match(/^\/admin\/(requests|providers|technicians)\/([a-zA-Z0-9_-]+)(\/contract)?$/);
+  const match = path.match(/^\/admin\/(requests|providers|technicians|inspections)\/([a-zA-Z0-9_-]+)(\/contract)?$/);
   if (!match || (match[3] && match[1] !== 'technicians')) return null;
+  // 전기점검에는 등록 화면이 없다 — /admin/inspections/new 는 없는 경로다.
+  if (match[1] === 'inspections' && match[2] === 'new') return null;
   const label = match[3] ? '기사 계약서'
     : match[1] === 'requests' ? '접수 상세'
+    : match[1] === 'inspections' ? '전기점검 고객'
     : match[1] === 'providers' ? (match[2] === 'new' ? '업체 등록' : '업체 상세')
     : match[2] === 'new' ? '기사 등록' : '기사 상세';
   return { path, href: path + url.search + url.hash, label };

@@ -25,6 +25,8 @@ function visit(over: Partial<InspectionVisit> & { round: number; date: string })
     status: 'SCHEDULED',
     note: null,
     adminMemo: null,
+    result: null,
+    resultNote: null,
     completedAt: null,
     canceledAt: null,
     createdAt: NOW,
@@ -54,6 +56,9 @@ function plan(over: Partial<PlanWithVisits> = {}): PlanWithVisits {
     endDate: fromDateString('2027-09-19'),
     canceledAt: null,
     cancelReason: null,
+    refundedWon: null,
+    refundedAt: null,
+    refundNote: null,
     createdAt: new Date('2026-09-19T16:00:00Z'), // KST 2026-09-20 01:00
     updatedAt: NOW,
     visits: [],

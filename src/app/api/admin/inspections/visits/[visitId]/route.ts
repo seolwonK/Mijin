@@ -37,6 +37,9 @@ const patchSchema = z
     date: z.string().trim().optional(),
     timeSlot: z.enum(['MORNING', 'AFTERNOON', 'ANY']).optional(),
     method: z.enum(['PHONE', 'ONSITE']).optional(),
+    // 점검 결과 — 완료된(또는 이 요청으로 완료되는) 회차에만. 고객 화면에도 보인다.
+    result: z.enum(['NORMAL', 'CAUTION', 'NEEDS_VISIT']).nullish(),
+    resultNote: z.string().trim().max(500, '결과 설명은 500자 이내로 입력해 주세요').nullish(),
   })
   .refine(
     (v) => v.date === undefined || v.status === undefined || v.status === 'SCHEDULED',
@@ -65,13 +68,15 @@ export async function PATCH(
       { status: 400 },
     );
   }
-  const { adminMemo, date, timeSlot, method } = parsed.data;
+  const { adminMemo, date, timeSlot, method, result, resultNote } = parsed.data;
   if (
     parsed.data.status === undefined &&
     adminMemo === undefined &&
     date === undefined &&
     timeSlot === undefined &&
-    method === undefined
+    method === undefined &&
+    result === undefined &&
+    resultNote === undefined
   ) {
     return NextResponse.json({ error: '변경할 내용이 없습니다' }, { status: 400 });
   }
@@ -129,6 +134,15 @@ export async function PATCH(
       { status: 409 },
     );
   }
+  // 결과는 점검을 마친 회차의 기록이다 — 예정·취소된 회차에 결과가 붙으면 고객 화면이
+  // "점검하지 않은 날의 결과"를 보여 주게 된다.
+  const touchesResult = result !== undefined || resultNote !== undefined;
+  if (touchesResult && (nextStatus ?? visit.status) !== 'COMPLETED') {
+    return NextResponse.json(
+      { error: '점검 결과는 완료 처리한 회차에만 남길 수 있습니다.' },
+      { status: 409 },
+    );
+  }
   if (date !== undefined) {
     const issue = adminVisitDateIssue({
       date,
@@ -162,6 +176,8 @@ export async function PATCH(
     preferredDate?: Date;
     timeSlot?: 'MORNING' | 'AFTERNOON' | 'ANY';
     method?: 'PHONE' | 'ONSITE';
+    result?: 'NORMAL' | 'CAUTION' | 'NEEDS_VISIT' | null;
+    resultNote?: string | null;
     completedAt?: Date | null;
     canceledAt?: Date | null;
   } = {};
@@ -169,12 +185,19 @@ export async function PATCH(
   if (date !== undefined) data.preferredDate = fromDateString(date);
   if (timeSlot !== undefined) data.timeSlot = timeSlot;
   if (methodChanges) data.method = method;
+  if (result !== undefined) data.result = result ?? null;
+  if (resultNote !== undefined) data.resultNote = resultNote || null;
   if (statusChanges) {
     data.status = nextStatus;
     // 상태와 타임스탬프를 항상 함께 옮긴다 — 되돌릴 때 이전 흔적이 남아 있으면
     // "완료인데 취소 시각이 있는" 모순된 행이 만들어진다.
     data.completedAt = nextStatus === 'COMPLETED' ? now : null;
     data.canceledAt = nextStatus === 'CANCELED' ? now : null;
+    // 완료를 되돌리면 그 점검은 일어나지 않은 것이다 — 결과도 함께 지운다.
+    if (visit.status === 'COMPLETED' && nextStatus !== 'COMPLETED') {
+      data.result = null;
+      data.resultNote = null;
+    }
   }
 
   // CAS — 읽은 뒤에 고객이 날짜를 바꾸거나 다른 관리자가 먼저 처리했다면 덮어쓰지 않는다.
@@ -245,6 +268,9 @@ export async function PATCH(
       date: newDate,
       status: nextStatus ?? visit.status,
       method: newMethod,
+      // 저장한 값 그대로 — 완료를 되돌려 결과를 지운 경우(data.result = null)도 반영한다.
+      result: 'result' in data ? data.result : visit.result,
+      resultNote: 'resultNote' in data ? data.resultNote : visit.resultNote,
       adminMemo: adminMemo !== undefined ? adminMemo || null : visit.adminMemo,
     },
   });
