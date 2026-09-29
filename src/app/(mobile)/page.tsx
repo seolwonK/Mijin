@@ -119,7 +119,7 @@ export default function Home() {
               <div>
                 <p className={styles.eyebrow}>정기 전기점검 · 월 {INSPECTION_MIN_MONTHLY_WON.toLocaleString('ko-KR')}원부터</p>
                 <h1 id="home-title" className={styles.title}>
-                  <span>전기점검 하러,</span>
+                  <span><span aria-hidden="true">⚡</span>전기구독 하러,</span>
                   <span>아저씨가 갑니다</span>
                 </h1>
               </div>
@@ -133,23 +133,22 @@ export default function Home() {
                 className={styles.character}
               />
             </div>
-            <p className={styles.lead}>원하는 날 전화로 <span className={styles.keepWide}>분전반·차단기·콘센트를</span> 살펴 드리고, 필요하면 직접 찾아가요.</p>
+            <p className={styles.lead}>
+              <span>내 가정, 내 가족</span>
+              <span>전기안전은</span>
+              <span>내가 지킨다</span>
+            </p>
             <div className={styles.heroAction}>
-              <Link href="/inspection/apply" className={styles.primaryLink}>전기점검 신청하기 <span aria-hidden="true">↗</span></Link>
+              <Link href="/inspection/apply" className={styles.primaryLink}><span><span aria-hidden="true">⚡</span> 전기구독 신청하기</span> <span aria-hidden="true">↗</span></Link>
               <Link href="#inspection-how" className={`${styles.secondaryLink} ${styles.desktopOnly}`}>어떻게 점검하나요? <span aria-hidden="true">↓</span></Link>
             </div>
-            <p className={styles.priceNote}>
-              <AlertIcon className="h-4 w-4 shrink-0" />지금 고장이 났다면{' '}
-              <Link href="/request/new" className={styles.repairLink}>전기 수리 무료 접수 <span aria-hidden="true">→</span></Link>
-            </p>
           </section>
 
           {/* 첫 화면 가격표 — 들어오자마자 요금과 신청 버튼이 함께 보이게 한다(사용자 요청 2026-09-28).
               요금제별 버튼은 신청서에 그 요금제를 미리 골라 둔다(?term=). */}
           <section aria-labelledby="pricing-title" className={styles.pricing}>
             <div className={styles.pricingHead}>
-              <h2 id="pricing-title">정기 전기점검 요금</h2>
-              <span>기간 총액 한 번 입금</span>
+              <h2 id="pricing-title"><span aria-hidden="true">⚡</span>전기구독료</h2>
             </div>
             <ul className={styles.planList}>
               {INSPECTION_TERMS.map((term) => {
@@ -157,17 +156,18 @@ export default function Home() {
                 const featured = term === 'TWO_YEAR';
                 return (
                   <li key={term} className={featured ? `${styles.plan} ${styles.planFeatured}` : styles.plan}>
-                    <div className={styles.planTop}>
-                      <strong className={styles.planName}>{p.label}</strong>
-                      {featured && <span className={styles.planBadge}>추천</span>}
-                    </div>
-                    <p className={styles.planPrice}><span>월</span> {won(p.monthlyWon)}</p>
+                    {/* 요금제 이름·추천 배지 없이 월 요금과 약정 조건만 보인다(사용자 요청 2026-09-29). */}
+                    <p className={styles.planPrice}><span>월</span> {won(p.monthlyWon)}<small>(VAT 포함)</small></p>
+                    <p className={styles.planTerm}>({planYears(p.months)}년 자동이체 약정시)</p>
                     <p className={styles.planMeta}>
                       {p.months}개월 · 총 {won(p.totalWon)} · 점검 {INSPECTION_CHECKS_PER_YEAR * planYears(p.months)}회
                     </p>
-                    <p className={styles.planFine}>공급가 {won(p.supplyWon)} + 수수료 {won(p.feeWon)}</p>
-                    <Link href={`/inspection/apply?term=${term}`} className={featured ? styles.planCtaPrimary : styles.planCta}>
-                      {p.label}으로 신청하기 <span aria-hidden="true">→</span>
+                    <Link
+                      href={`/inspection/apply?term=${term}`}
+                      className={featured ? styles.planCtaPrimary : styles.planCta}
+                      aria-label={`월 ${won(p.monthlyWon)} ${planYears(p.months)}년 약정 구독하기`}
+                    >
+                      구독하기 <span aria-hidden="true">→</span>
                     </Link>
                   </li>
                 );

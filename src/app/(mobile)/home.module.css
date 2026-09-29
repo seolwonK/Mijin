@@ -72,7 +72,7 @@
   font-weight: 800;
 }
 
-.title span {
+.title > span {
   display: block;
   white-space: nowrap;
 }
@@ -91,11 +91,14 @@
 }
 
 .lead span {
+  display: block;
   white-space: nowrap;
 }
 
-.lead .keepWide {
-  white-space: normal;
+/* 슬로건(내 가정, 내 가족 / 전기안전은 / 내가 지킨다) — 설명문이 아니라 구호라 본문색·굵게. */
+.lead {
+  color: var(--color-fg);
+  font-weight: 650;
 }
 
 .heroAction {
@@ -144,17 +147,6 @@
 
 .primaryLink:active {
   background: var(--color-brand-900);
-}
-
-.priceNote {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-top: 14px;
-  color: var(--color-muted);
-  font-size: 13px;
-  line-height: 1.6;
 }
 
 .symptoms {
@@ -209,26 +201,6 @@
   padding: 15px;
 }
 
-.planTop {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.planName {
-  font-size: 15px;
-  font-weight: 700;
-}
-
-.planBadge {
-  border-radius: 999px;
-  background: var(--color-brand-700);
-  color: #fff;
-  font-size: 11px;
-  font-weight: 700;
-  padding: 2px 8px;
-}
-
 .planPrice {
   margin-top: 4px;
   font-size: 28px;
@@ -244,16 +216,24 @@
   color: var(--color-muted);
 }
 
+.planPrice small {
+  margin-left: 4px;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0;
+  color: var(--color-muted);
+}
+
+.planTerm {
+  font-size: 13px;
+  font-weight: 650;
+  color: var(--color-brand-700);
+}
+
 .planMeta {
   font-size: 13px;
   font-weight: 600;
   color: var(--color-fg);
-  font-variant-numeric: tabular-nums;
-}
-
-.planFine {
-  font-size: 12px;
-  color: var(--color-muted);
   font-variant-numeric: tabular-nums;
 }
 
@@ -306,12 +286,6 @@
 .includeList svg {
   margin-top: 2px;
   color: var(--color-brand-700);
-}
-
-.repairLink {
-  font-weight: 650;
-  text-decoration: underline;
-  text-underline-offset: 3px;
 }
 
 .symptoms h2 {
@@ -756,10 +730,6 @@
     grid-column: 1 / -1;
     margin-top: 0;
   }
-  .priceNote {
-    grid-column: 1 / -1;
-    margin-top: 0;
-  }
 }
 
 @media (min-width: 768px) {
@@ -789,9 +759,6 @@
   }
   .eyebrow {
     font-size: 13px;
-  }
-  .lead .keepWide {
-    white-space: nowrap;
   }
   .heroAction {
     display: flex;
@@ -877,18 +844,29 @@
     gap: 64px;
     padding-block: 52px;
   }
+  /* 글은 왼쪽 칸을 채우고, 아저씨는 글 오른쪽으로 뺀다(사용자 요청 2026-09-29) — 버튼 아래
+     가운데에 캐릭터가 떠 있던 빈자리를 없앤다. */
   .intro {
-    position: relative;
-    padding-bottom: 148px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 150px;
+    column-gap: 16px;
+    align-content: start;
   }
   .heroHeading {
-    display: block;
+    display: contents;
+  }
+  .heroHeading > div,
+  .lead {
+    grid-column: 1;
   }
   .character {
-    position: absolute;
-    width: 148px;
-    right: 0;
-    bottom: 0;
+    grid-column: 2;
+    grid-row: 1 / 3;
+    align-self: center;
+    width: 150px;
+  }
+  .heroAction {
+    grid-column: 1 / -1;
   }
   .title {
     font-size: 48px;
