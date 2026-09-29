@@ -230,12 +230,6 @@
   color: var(--color-brand-700);
 }
 
-.planMeta {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--color-fg);
-  font-variant-numeric: tabular-nums;
-}
 
 .planCta,
 .planCtaPrimary {

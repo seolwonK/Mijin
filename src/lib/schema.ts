@@ -157,7 +157,7 @@ export function getFaqPageSchema(items: ReadonlyArray<{ q: string; a: string }>)
 }
 
 // 접수 처리 절차 — HowTo 는 폐기된 타입이라 순서 있는 ItemList 로 표현한다.
-export function getProcessListSchema(name: string, steps: ReadonlyArray<{ title: string; desc: string }>) {
+export function getProcessListSchema(name: string, steps: ReadonlyArray<{ title: string; desc?: string }>) {
   return {
     '@context': 'https://schema.org',
     '@type': 'ItemList',
@@ -168,7 +168,8 @@ export function getProcessListSchema(name: string, steps: ReadonlyArray<{ title:
       '@type': 'ListItem',
       position: i + 1,
       name: s.title,
-      description: s.desc,
+      // 설명 없는 단계(제목만으로 충분한 단계)는 빈 description 을 싣지 않는다.
+      ...(s.desc ? { description: s.desc } : {}),
     })),
   };
 }

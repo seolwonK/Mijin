@@ -53,8 +53,9 @@ const CHECK_ITEMS = [
   { title: '점검 결과 안내', desc: '당장 고쳐야 할 것과 지켜봐도 되는 것을 구분해 알려드려요.' },
 ] as const;
 
-const PROCESS_STEPS = [
-  { title: '신청하기', desc: '약정 기간(1년·2년)을 고르고 점검받을 주소와 첫 전화 점검 희망 날짜를 남겨 주세요.' },
+// 첫 단계는 제목만 둔다(사용자 요청 2026-09-29) — 신청서가 그 자체로 설명이다.
+const PROCESS_STEPS: ReadonlyArray<{ title: string; desc?: string }> = [
+  { title: '구독 신청' },
   {
     title: '첫 달 입금 · 매월 자동이체',
     desc: `안내된 계좌로 첫 달 이용료(월 ${formatWon(TWO_YEAR.monthlyWon)} 또는 ${formatWon(ONE_YEAR.monthlyWon)})를 입금하고, 입금이 확인된 날에 맞춰 매월 자동이체를 걸어 주세요.`,
@@ -64,7 +65,7 @@ const PROCESS_STEPS = [
     title: '원하는 날 전화 점검',
     desc: `1년에 ${INSPECTION_CHECKS_PER_YEAR}회, 원하는 날짜를 고르면 그날 전화로 점검해요. 필요하면 전기기사가 방문해요.`,
   },
-] as const;
+];
 
 const FAQ_ITEMS = [
   {
@@ -132,16 +133,14 @@ export default async function InspectionLandingPage() {
         <section className="mt-4 overflow-hidden rounded-3xl bg-gradient-to-br from-brand-50 via-white to-brand-100/50 md:mt-6">
           <div className="flex flex-col md:flex-row md:items-center">
             <div className="px-6 pt-6 pb-4 md:w-3/5 md:py-10">
-              <p className="text-xs font-bold text-brand-600">고장 나기 전에, 미리 점검</p>
+              <p className="text-xs font-bold text-brand-600">고장 나기 전에, 미리 check check</p>
               <h1 className="mt-2 text-2xl leading-tight font-extrabold break-keep text-fg md:text-3xl">
                 월 {MIN_MONTHLY}원부터,
                 <br />
-                1년에 {INSPECTION_CHECKS_PER_YEAR}번 전기를 봐 드려요
+                1년에 {INSPECTION_CHECKS_PER_YEAR}번이나 <span className="whitespace-nowrap">check check</span>
               </h1>
               <p className="mt-3 text-sm leading-relaxed text-muted">
-                원하는 날짜를 고르시면 그날 전화로 분전반·누전차단기·콘센트·조명 상태를 함께
-                점검합니다. 필요하다고 판단되면 전기기사가 방문해 점검합니다. 1년에{' '}
-                {INSPECTION_CHECKS_PER_YEAR}회를 이용 연차 안에서 자유롭게 쓰세요.
+                필요하다고 판단되면 전기기사가 방문해 점검합니다.
               </p>
             </div>
             <div className="flex justify-center px-5 pb-2 md:w-2/5 md:justify-end md:pb-0">
@@ -164,19 +163,20 @@ export default async function InspectionLandingPage() {
           <h2 id="summary-title" className="sr-only">
             핵심 정리
           </h2>
-          <dl className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+          <dl className="grid grid-cols-3 gap-2">
             {[
               { label: '월 요금(VAT 포함)', value: `${formatWon(INSPECTION_MIN_MONTHLY_WON)}부터` },
               { label: '점검 횟수', value: `연 ${INSPECTION_CHECKS_PER_YEAR}회` },
               { label: '점검 방식', value: '전화 · 필요 시 방문' },
-              { label: '날짜', value: '원하는 날 자유롭게' },
             ].map((item) => (
               <div
                 key={item.label}
-                className="rounded-2xl border border-border bg-white px-3 py-3 text-center"
+                className="rounded-2xl border border-border bg-white px-2 py-3 text-center"
               >
-                <dt className="text-xs text-muted">{item.label}</dt>
-                <dd className="mt-1 font-bold tabular-nums text-fg">{item.value}</dd>
+                <dt className="text-xs break-keep text-muted">{item.label}</dt>
+                <dd className="mt-1 text-sm font-bold break-keep tabular-nums text-fg sm:text-base">
+                  {item.value}
+                </dd>
               </div>
             ))}
           </dl>
@@ -236,7 +236,9 @@ export default async function InspectionLandingPage() {
                 </span>
                 <div className="min-w-0">
                   <h3 className="font-bold text-fg">{step.title}</h3>
-                  <p className="mt-0.5 text-sm leading-relaxed text-muted">{step.desc}</p>
+                  {step.desc && (
+                    <p className="mt-0.5 text-sm leading-relaxed text-muted">{step.desc}</p>
+                  )}
                 </div>
               </li>
             ))}

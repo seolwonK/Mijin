@@ -159,9 +159,6 @@ export default function Home() {
                     {/* 요금제 이름·추천 배지 없이 월 요금과 약정 조건만 보인다(사용자 요청 2026-09-29). */}
                     <p className={styles.planPrice}><span>월</span> {won(p.monthlyWon)}<small>(VAT 포함)</small></p>
                     <p className={styles.planTerm}>({planYears(p.months)}년 자동이체 약정시)</p>
-                    <p className={styles.planMeta}>
-                      점검 {INSPECTION_CHECKS_PER_YEAR * planYears(p.months)}회 (1년에 {INSPECTION_CHECKS_PER_YEAR}회)
-                    </p>
                     <Link
                       href={`/inspection/apply?term=${term}`}
                       className={featured ? styles.planCtaPrimary : styles.planCta}
@@ -185,7 +182,7 @@ export default function Home() {
         <section id="inspection-how" aria-labelledby="inspection-title" className={styles.inspectionPromo}>
           <div className={styles.inspectionIntro}>
             <p className={styles.eyebrow}>고장 나기 전에, 미리 점검</p>
-            <h2 id="inspection-title">1년에 {INSPECTION_CHECKS_PER_YEAR}번, <span aria-hidden="true">⚡</span>check check</h2>
+            <h2 id="inspection-title">1년에 {INSPECTION_CHECKS_PER_YEAR}번이나 <span aria-hidden="true">⚡</span>check check</h2>
             <p>(유·무선 check 후 필요 판단시 방문)</p>
             <ul className={styles.checkChips} aria-label="점검 항목">
               {INSPECTION_CHECKS.map((item) => <li key={item}>{item}</li>)}
