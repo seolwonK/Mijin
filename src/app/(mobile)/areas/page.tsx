@@ -33,8 +33,7 @@ export default function AreasIndexPage() {
           송파·하남·성남·경기 광주·분당·위례 전기수리 출동 안내
         </h1>
         <p className="mt-3 text-sm leading-relaxed text-neutral-700">
-          {COMPANY.name}는 전국 시/도·시/군/구 단위로 전기 고장을 접수받아 등록된 출동 업체·전기기사를 연결하는 중개
-          플랫폼입니다. 접수 시 남긴 주소로 지역을 자동 판별해 그 지역을 담당하는 파트너에게 배정하고, 담당 파트너가
+          {COMPANY.name}는 전국 시/도·시/군/구 단위로 전기 고장을 접수받는 중개 플랫폼입니다. 접수 시 남긴 주소로 지역을 자동 판별해 그 지역을 담당하는 파트너에게 배정하고, 담당 파트너가
           없는 지역은 관리자가 확인해 배정 결과를 문자로 안내합니다.
         </p>
 
@@ -87,7 +86,7 @@ export default function AreasIndexPage() {
         <Surface tint as="section" className="mt-10 rounded-2xl p-5">
           <h2 className="text-lg font-extrabold text-fg">지금 전기 고장을 접수하세요</h2>
           <p className="mt-2 text-sm leading-relaxed text-neutral-700">
-            증상·주소·긴급도를 남기면 담당 파트너에게 배정하고 진행 상황을 문자로 알려 드립니다. 접수는 무료입니다.
+            증상·주소·긴급도를 남기면 담당 파트너에게 배정하고 진행 상황을 문자로 알려 드립니다.
           </p>
           <div className="mt-4 flex flex-col gap-2 sm:flex-row">
             <Link href="/request/new" className={buttonClasses('primary', 'md', 'flex-1')}>

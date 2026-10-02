@@ -64,7 +64,7 @@ export default function GuideArticle({
         <Surface tint as="section" className="mt-10 rounded-2xl p-5">
           <h2 className="text-lg font-extrabold text-fg">직접 해결이 어렵다면 접수해 주세요</h2>
           <p className="mt-2 text-sm leading-relaxed text-neutral-700">
-            접수는 무료이고, 승인된 출동 업체·전기기사가 현장을 확인한 뒤 비용을 안내합니다. 전국 시/군/구 단위로
+            승인된 출동 업체·전기기사가 현장을 확인한 뒤 비용을 안내합니다. 전국 시/군/구 단위로
             접수할 수 있으며 성남시를 가장 먼저 집중 운영하고 있습니다.
           </p>
           <div className="mt-4 flex flex-col gap-2 sm:flex-row">

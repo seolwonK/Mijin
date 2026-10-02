@@ -97,7 +97,7 @@ export default async function RegionAreaPage({ params }: { params: Promise<{ are
           <p className="mt-3 text-sm leading-relaxed text-neutral-700">
             {COMPANY.name}는 전국 시/군/구 단위로 전기 고장을 접수받는 중개 플랫폼이며, {withEul(r.name)} 우선 집중 지역으로
             운영합니다. 정전·누전·두꺼비집·콘센트·조명 고장을 접수하면 {withEul(r.name)} 담당하는 승인 출동 업체·전기기사에게
-            배정합니다. 접수는 무료이고 수리비는 현장에서 안내합니다.
+            배정합니다. 수리비는 현장에서 안내합니다.
           </p>
           <p className="mt-2 text-sm font-semibold text-brand-700">
             초긴급(정전·누전·타는 냄새)은 1시간 내, 긴급은 2시간 내 응대를 목표로 우선 배정합니다.

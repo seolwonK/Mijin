@@ -26,7 +26,7 @@ export function getOrganizationSchema() {
       height: 917,
     },
     image: `${SITE_URL}/brand/og-default.png`,
-    description: '전기 고장 접수부터 가까운 출동 업체·전기기사 연결까지 돕는 전기 출동 중개 서비스.',
+    description: '전기 고장 접수부터 출동까지 돕는 전기 출동 중개 서비스.',
     telephone: TELEPHONE,
     address: {
       '@type': 'PostalAddress',
@@ -85,7 +85,7 @@ export function getServiceSchema() {
     audience: { '@type': 'Audience', audienceType: '전기 고장을 겪는 일반 소비자' },
     description:
       '전기 고장(정전·누전·콘센트·조명·차단기·가전)을 접수하면 관리자 확인 또는 자동배정을 거쳐 ' +
-      '등록된 출동 업체·전기기사가 현장으로 출동하는 전기 출동 중개 서비스. 접수 무료, 수리 대금은 현장에서 시공 업체와 직접 정산.',
+      '등록된 출동 업체·전기기사가 현장으로 출동하는 전기 출동 중개 서비스. 수리 대금은 현장에서 시공 업체와 직접 정산.',
     url: `${SITE_URL}/request/new`,
     hasOfferCatalog: {
       '@type': 'OfferCatalog',
