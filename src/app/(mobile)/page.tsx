@@ -27,18 +27,20 @@ export const metadata: Metadata = {
 
 const PROCESS_STEPS = [
   { title: '고장 내용 접수', desc: '글이나 음성으로 증상과 주소를 남겨 주세요.' },
-  { title: '담당 업체 연결', desc: '지역과 긴급도를 확인해 출동 가능한 업체를 배정해요.' },
   { title: '현장 방문·수리', desc: '업체가 접수를 수락하면 출동해요. 비용은 현장 확인 후 안내해요.' },
   { title: '완료 확인', desc: '처리 결과는 접수 내역에서 확인할 수 있어요.' },
 ] as const;
 
 const won = (n: number) => `${n.toLocaleString('ko-KR')}원`;
 
+// 번개 이모지(⚡) 대신 쓰는 브랜드 마크 — 네모 테두리 안에 "일렉트릭"(사용자 요청 2026-10-02).
+const ElectricTag = () => <span className={styles.electricTag}>일렉트릭</span>;
+
 // 첫 화면 가격표 아래의 "무엇을 받나" — 랜딩(/inspection)의 약속과 같은 범위만 말한다.
 const INSPECTION_INCLUDES = [
-  `1년에 ${INSPECTION_CHECKS_PER_YEAR}회, 원하는 날짜를 직접 골라요`,
-  '그날 전화로 분전반·누전차단기·콘센트·조명을 함께 점검해요',
-  '유·무선 check 후 필요하면 전기기사가 직접 방문해요',
+  `1년에 ${INSPECTION_CHECKS_PER_YEAR}회 전기점검`,
+  '분전반·누전차단기·콘센트·조명을 함께 점검해요',
+  '유·무선 check 후 전기기사가 방문',
 ] as const;
 
 const INSPECTION_STEPS = [
@@ -62,10 +64,6 @@ const FAQ_ITEMS = [
     a: `정기 전기점검은 월 ${INSPECTION_PRICING.TWO_YEAR.monthlyWon.toLocaleString('ko-KR')}원(2년 약정)·${INSPECTION_PRICING.ONE_YEAR.monthlyWon.toLocaleString('ko-KR')}원(1년 약정)이며 VAT 포함, 매월 자동이체로 내는 구독 서비스입니다. 1년에 ${INSPECTION_CHECKS_PER_YEAR}회, 원하는 날짜에 전화로 분전반·누전차단기·콘센트·조명 상태를 점검합니다. 모든 회차에 방문하지는 않고, 필요하다고 판단되면 전기기사가 방문해 점검합니다.`,
   },
   {
-    q: '요금은 어떻게 책정되나요?',
-    a: '접수는 무료예요. 수리 비용은 고장 원인과 필요한 자재에 따라 달라져 현장 확인 후 안내해요. 수리 대금은 현장에서 시공 업체와 직접 정산합니다.',
-  },
-  {
     q: '접수하면 얼마나 빨리 배정되나요?',
     a: '접수 시 선택한 긴급도에 따라 목표 응대 시간이 다릅니다. 초긴급은 1시간 내, 긴급은 2시간 내, 일반은 순차적으로 처리됩니다. 실제 배정은 담당 지역의 업체·전기기사 현황에 따라 달라질 수 있습니다.',
   },
@@ -79,11 +77,7 @@ const FAQ_ITEMS = [
   },
   {
     q: '서비스 가능 지역은 어디인가요?',
-    a: '송파·하남·성남·경기 광주·분당·위례를 중심으로 운영하며 전국 시/도·시/군/구 단위로 접수 가능합니다. 실제 배정은 등록된 업체·전기기사 현황에 따라 다르며, 담당 업체가 없는 지역은 관리자가 확인 후 안내합니다.',
-  },
-  {
-    q: '어떤 업체와 전기기사가 방문하나요?',
-    a: '관리자 승인을 거친 업체와 전기기사를 연결해 드려요. 전기기사는 근로확인서 전자 서명도 완료해야 배정 대상이 됩니다.',
+    a: '서울·경기 전지역에서 운영하며 전국 시/도·시/군/구 단위로 접수 가능합니다. 실제 배정은 등록된 업체·전기기사 현황에 따라 다르며, 담당 업체가 없는 지역은 관리자가 확인 후 안내합니다.',
   },
   {
     q: '진행 상황은 어떻게 확인하나요?',
@@ -98,7 +92,7 @@ const FAQ_ITEMS = [
 export default function Home() {
   return (
     <main className={styles.page}>
-      {/* 구조화 데이터 — 화면의 절차 4단계·FAQ 9문답과 같은 배열을 넘긴다(보이지 않는 내용을 마크업하지 않는다) */}
+      {/* 구조화 데이터 — 화면의 절차 3단계·FAQ 7문답과 같은 배열을 넘긴다(보이지 않는 내용을 마크업하지 않는다) */}
       <JsonLd data={getWebPageGraph({ path: '/', name: '전기아저씨 — 정기 전기점검 · 전기 고장 출동 접수', dateModified: PAGE_UPDATED.home })} />
       <JsonLd data={getProcessListSchema('전기 고장 접수 처리 절차', PROCESS_STEPS)} />
       <JsonLd data={getFaqPageSchema(FAQ_ITEMS)} />
@@ -119,8 +113,9 @@ export default function Home() {
               <div>
                 <p className={styles.eyebrow}>정기 전기점검 · 월 {INSPECTION_MIN_MONTHLY_WON.toLocaleString('ko-KR')}원부터</p>
                 <h1 id="home-title" className={styles.title}>
-                  <span><span aria-hidden="true">⚡</span>전기구독 하러,</span>
-                  <span>아저씨가 갑니다</span>
+                  {/* 마크를 윗줄에 따로 둔다 — 한 줄로 이으면 모바일에서 마스코트 그림 뒤로 넘친다. */}
+                  <span><ElectricTag /></span>
+                  <span>전기구독 하세요</span>
                 </h1>
               </div>
               <Image
@@ -139,7 +134,7 @@ export default function Home() {
               <span>내가 지킨다</span>
             </p>
             <div className={styles.heroAction}>
-              <Link href="/inspection/apply" className={styles.primaryLink}><span><span aria-hidden="true">⚡</span> 전기구독 신청하기</span> <span aria-hidden="true">↗</span></Link>
+              <Link href="/inspection/apply" className={styles.primaryLink}><span><ElectricTag />전기구독 신청하기</span> <span aria-hidden="true">↗</span></Link>
               <Link href="#inspection-how" className={`${styles.secondaryLink} ${styles.desktopOnly}`}>어떻게 점검하나요? <span aria-hidden="true">↓</span></Link>
             </div>
           </section>
@@ -148,7 +143,7 @@ export default function Home() {
               요금제별 버튼은 신청서에 그 요금제를 미리 골라 둔다(?term=). */}
           <section aria-labelledby="pricing-title" className={styles.pricing}>
             <div className={styles.pricingHead}>
-              <h2 id="pricing-title"><span aria-hidden="true">⚡</span>전기구독료</h2>
+              <h2 id="pricing-title"><ElectricTag />전기구독료</h2>
             </div>
             <ul className={styles.planList}>
               {INSPECTION_TERMS.map((term) => {
@@ -182,7 +177,7 @@ export default function Home() {
         <section id="inspection-how" aria-labelledby="inspection-title" className={styles.inspectionPromo}>
           <div className={styles.inspectionIntro}>
             <p className={styles.eyebrow}>고장 나기 전에, 미리 점검</p>
-            <h2 id="inspection-title">1년에 {INSPECTION_CHECKS_PER_YEAR}번이나 <span aria-hidden="true">⚡</span>check check</h2>
+            <h2 id="inspection-title">1년에 {INSPECTION_CHECKS_PER_YEAR}번이나 <ElectricTag />check check</h2>
             <p>(유·무선 check 후 필요 판단시 방문)</p>
             <ul className={styles.checkChips} aria-label="점검 항목">
               {INSPECTION_CHECKS.map((item) => <li key={item}>{item}</li>)}
@@ -207,7 +202,7 @@ export default function Home() {
         {/* 고장 수리 접수 — 홈의 서브 상품. 전기점검 다음 구획으로 내렸다(사용자 요청 2026-09-28). */}
         <section aria-labelledby="symptom-title" className={`${styles.section} ${styles.symptoms}`}>
           <h2 id="symptom-title">전기가 고장나면, 아저씨가 갑니다</h2>
-          <p className={styles.sectionDescription}>이미 고장이 났다면 증상을 골라 무료로 접수하세요. 가까운 출동 업체를 연결해 드려요.</p>
+          <p className={styles.sectionDescription}>이미 고장이 났다면 증상을 골라 접수하세요.</p>
           <div className={styles.symptomGrid}>
             {SYMPTOM_ITEMS.map((symptom) => (
               <Link key={symptom.key} href={`/request/new?symptom=${symptom.key}`} className={styles.symptomLink}>
@@ -219,19 +214,13 @@ export default function Home() {
           <Link href="/request/new" className={styles.otherSymptom}>다른 증상이거나 잘 모르겠어요 <span aria-hidden="true">→</span></Link>
         </section>
 
-        <section aria-label="접수와 비용 안내" className={styles.serviceNotes}>
-          <div><h2>접수는 무료예요</h2><p>글이나 음성으로 고장 내용을 남겨 주세요.</p></div>
-          <div><h2>수리비는 현장에서 안내해요</h2><p>고장 원인과 자재에 따라 비용이 달라져요.</p></div>
-          <div><h2>승인된 업체를 연결해요</h2><p>지역별 출동 가능 여부를 확인해 배정해요.</p></div>
-        </section>
-
         <section aria-labelledby="areas-title" className={styles.section}>
           <div className={styles.sectionHeading}>
             <h2 id="areas-title">우리 동네 전기수리 출동 안내</h2>
             <Link href={AREAS_PATH} className={styles.textLink}>전체 지역 <span aria-hidden="true">→</span></Link>
           </div>
           <p className={styles.sectionDescription}>
-            송파·하남·성남·경기 광주·분당·위례를 중심으로 운영해요. 누전 점검, 차단기·콘센트·조명 교체가
+            서울·경기 전지역에서 운영해요. 누전 점검, 차단기·콘센트·조명 교체가
             필요하면 지역별 접수 방법과 비용 안내를 확인하세요.
           </p>
           <ul className={styles.areaGrid}>

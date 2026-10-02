@@ -77,6 +77,22 @@
   white-space: nowrap;
 }
 
+/* 번개 이모지(⚡) 자리의 브랜드 마크 — 네모 테두리 안에 "일렉트릭". 글자색을 따라가(currentColor)
+   제목·버튼·소제목 어디서든 같은 모양으로 보이고, 크기는 부모 글자에 비례하되 11px 아래로는 안 줄어든다. */
+.electricTag {
+  display: inline-block;
+  vertical-align: 0.12em;
+  margin-right: 0.4em;
+  padding: 0.08em 0.42em 0.1em;
+  border: 0.12em solid currentColor;
+  border-radius: 0.25em;
+  font-size: max(11px, 0.5em);
+  font-weight: 800;
+  line-height: 1.25;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
 .character {
   width: 64px;
   height: auto;
@@ -353,25 +369,6 @@
 
 .otherSymptom > span {
   font-size: 20px;
-}
-
-.serviceNotes {
-  border-block: 1px solid var(--color-border);
-  padding-block: 24px;
-  display: grid;
-  gap: 20px;
-}
-
-.serviceNotes h2 {
-  font-size: 16px;
-  font-weight: 700;
-}
-
-.serviceNotes p {
-  margin-top: 5px;
-  color: var(--color-muted);
-  font-size: 14px;
-  line-height: 1.6;
 }
 
 /* 정기 전기점검 프로모 — 고장 접수(사고 후)와 다른 상품이라 리듬을 끊어 따로 세운다.
@@ -791,11 +788,6 @@
   .inspectionCta .primaryLink {
     width: auto;
   }
-  .serviceNotes {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 24px;
-    padding-block: 28px;
-  }
   .section {
     padding-block: 48px;
   }
@@ -881,9 +873,6 @@
   }
   .symptomLink {
     min-height: 112px;
-  }
-  .serviceNotes {
-    gap: 40px;
   }
 }
 
