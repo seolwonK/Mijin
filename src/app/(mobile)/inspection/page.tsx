@@ -95,7 +95,7 @@ const FAQ_ITEMS = [
   },
   {
     q: '지금 전기가 고장 났는데 이걸 신청하면 되나요?',
-    a: '아닙니다. 이미 고장이 났다면 전기점검이 아니라 전기 고장 접수를 이용해 주세요. 접수는 무료이고 가까운 출동 업체를 바로 연결해 드립니다.',
+    a: '아닙니다. 이미 고장이 났다면 전기점검이 아니라 전기 고장 접수를 이용해 주세요.',
   },
   {
     q: '약정 기간 중에 해지할 수 있나요?',
@@ -290,7 +290,6 @@ export default async function InspectionLandingPage() {
           </h2>
           <p className="mt-1.5 text-sm leading-relaxed text-amber-900">
             정전·누전처럼 이미 일어난 고장은 전기점검이 아니라 고장 접수를 이용해 주세요.
-            접수는 무료이고 가까운 출동 업체를 바로 연결해 드립니다.
           </p>
           <Link
             href="/request/new"
