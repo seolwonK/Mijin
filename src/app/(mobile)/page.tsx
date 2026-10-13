@@ -11,7 +11,6 @@ import JsonLd from '@/components/JsonLd';
 import { getFaqPageSchema, getProcessListSchema, getWebPageGraph } from '@/lib/schema';
 import { GUIDES } from '@/lib/guides';
 import { PAGE_UPDATED } from '@/lib/pageDates';
-import { AREAS_PATH, PRIORITY_AREA_LINKS } from '@/lib/areas';
 import {
   INSPECTION_CHECKS_PER_YEAR,
   INSPECTION_MIN_MONTHLY_WON,
@@ -102,7 +101,6 @@ export default function Home() {
           <nav aria-label="메인 메뉴" className={styles.headerNav}>
             <Link href="#process" className={styles.desktopLink}>이용 방법</Link>
             <Link href="/inspection" className={styles.desktopLink}>전기점검</Link>
-            <Link href="/lookup">접수 내역 조회</Link>
             <Link href="/login" className={styles.desktopLink}>업체 · 전기기사 로그인</Link>
           </nav>
         </header>
@@ -111,7 +109,6 @@ export default function Home() {
           <section aria-labelledby="home-title" className={styles.intro}>
             <div className={styles.heroHeading}>
               <div>
-                <p className={styles.eyebrow}>정기 전기점검 · 월 {INSPECTION_MIN_MONTHLY_WON.toLocaleString('ko-KR')}원부터</p>
                 <h1 id="home-title" className={styles.title}>
                   {/* 마크를 윗줄에 따로 둔다 — 한 줄로 이으면 모바일에서 마스코트 그림 뒤로 넘친다. */}
                   <span><ElectricTag /></span>
@@ -133,6 +130,12 @@ export default function Home() {
               <span>전기안전은</span>
               <span>내가 지킨다</span>
             </p>
+            <div className={styles.heroLinks}>
+              <a href="https://mjelectric.qshop.ai/" target="_blank" rel="noopener noreferrer" className={styles.heroChip}>
+                미진전기 <span aria-hidden="true">↗</span>
+              </a>
+              <Link href="/blog" className={styles.heroChip}>블로그 <span aria-hidden="true">→</span></Link>
+            </div>
             <div className={styles.heroAction}>
               <Link href="/inspection/apply" className={styles.primaryLink}><span><ElectricTag />전기구독 신청하기</span> <span aria-hidden="true">↗</span></Link>
               <Link href="#inspection-how" className={`${styles.secondaryLink} ${styles.desktopOnly}`}>어떻게 점검하나요? <span aria-hidden="true">↓</span></Link>
@@ -214,25 +217,11 @@ export default function Home() {
           <Link href="/request/new" className={styles.otherSymptom}>다른 증상이거나 잘 모르겠어요 <span aria-hidden="true">→</span></Link>
         </section>
 
-        <section aria-labelledby="areas-title" className={styles.section}>
-          <div className={styles.sectionHeading}>
-            <h2 id="areas-title">우리 동네 전기수리 출동 안내</h2>
-            <Link href={AREAS_PATH} className={styles.textLink}>전체 지역 <span aria-hidden="true">→</span></Link>
-          </div>
+        <section aria-label="운영 지역" className={styles.section}>
           <p className={styles.sectionDescription}>
             서울·경기 전지역에서 운영해요. 누전 점검, 차단기·콘센트·조명 교체가
             필요하면 지역별 접수 방법과 비용 안내를 확인하세요.
           </p>
-          <ul className={styles.areaGrid}>
-            {PRIORITY_AREA_LINKS.map((area) => (
-              <li key={area.key}>
-                <Link href={area.path} className={styles.guideCard}>
-                  <strong>{area.name} 전기수리</strong>
-                  <span>{area.detail}</span>
-                </Link>
-              </li>
-            ))}
-          </ul>
         </section>
 
         <section id="process" aria-labelledby="process-title" className={styles.section}>
