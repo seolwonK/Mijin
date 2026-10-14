@@ -75,7 +75,7 @@ export default function GuideIndexPage() {
         <p className="mt-10 text-sm text-neutral-700">
           지역별 출동 안내:{' '}
           <Link href="/areas" className="font-bold text-brand-700 underline">
-            전국 접수 · 성남 우선 집중 지역
+            전국 접수 · 전국 운영
           </Link>
         </p>
       </div>

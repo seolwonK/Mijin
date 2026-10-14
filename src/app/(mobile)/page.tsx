@@ -76,7 +76,7 @@ const FAQ_ITEMS = [
   },
   {
     q: '서비스 가능 지역은 어디인가요?',
-    a: '서울·경기 전지역에서 운영하며 전국 시/도·시/군/구 단위로 접수 가능합니다. 실제 배정은 등록된 업체·전기기사 현황에 따라 다르며, 담당 업체가 없는 지역은 관리자가 확인 후 안내합니다.',
+    a: '전국에서 운영하며 시/도·시/군/구 단위로 접수 가능합니다. 실제 배정은 등록된 업체·전기기사 현황에 따라 다르며, 담당 업체가 없는 지역은 관리자가 확인 후 안내합니다.',
   },
   {
     q: '진행 상황은 어떻게 확인하나요?',
@@ -129,6 +129,11 @@ export default function Home() {
               <span>내 가정, 내 가족</span>
               <span>전기안전은</span>
               <span>내가 지킨다</span>
+            </p>
+            <p className={styles.always}>
+              <span>365일</span>
+              <span>24시</span>
+              <span>Always</span>
             </p>
             <div className={styles.heroLinks}>
               <a href="https://mjelectric.qshop.ai/" target="_blank" rel="noopener noreferrer" className={styles.heroChip}>
@@ -221,7 +226,7 @@ export default function Home() {
 
         <section aria-label="운영 지역" className={styles.section}>
           <p className={styles.sectionDescription}>
-            서울·경기 전지역에서 운영해요. 누전 점검, 차단기·콘센트·조명 교체가
+            전국에서 운영해요. 누전 점검, 차단기·콘센트·조명 교체가
             필요하면 지역별 접수 방법과 비용 안내를 확인하세요.
           </p>
         </section>

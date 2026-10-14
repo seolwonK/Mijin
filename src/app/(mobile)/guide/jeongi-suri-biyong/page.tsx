@@ -360,7 +360,7 @@ export default function Page() {
           </li>
         </ol>
         <p>
-          접수와 조회는 전국 시·군·구 단위로 가능하며, 성남시를 가장 먼저 집중 운영하고 있습니다. 세입자라면
+          접수와 조회는 전국 시·군·구 어디서나 가능합니다. 세입자라면
           결제 주체가 누구인지 미리 정리해 두어야 합니다.{' '}
           <Link href="/guide/wonrum-jeongi-gojang" className="font-bold text-brand-700 underline">
             원룸·오피스텔 전기 고장, 누가 수리비를 내나

@@ -12,7 +12,7 @@ import { PAGE_UPDATED, formatKoreanDate } from '@/lib/pageDates';
 export const metadata: Metadata = {
   title: '전기수리 지역 안내 · 송파·하남·성남·경기 광주·분당·위례',
   description:
-    '전기아저씨는 전국 시/도·시/군/구 단위로 전기 고장을 접수받는 출동 중개 플랫폼입니다. 성남(분당·판교·수정·중원)·위례·하남·송파·경기 광주를 우선 집중 운영하며 지역을 넓혀 갑니다. 지역별 출동 안내와 접수 방법.',
+    '전기아저씨는 전국 시/도·시/군/구 단위로 전기 고장을 접수받는 출동 중개 플랫폼입니다. 전국에서 운영하며, 성남(분당·판교·수정·중원)·위례·하남·송파·경기 광주 지역별 출동 안내와 접수 방법을 정리했습니다.',
   alternates: { canonical: AREAS_PATH },
 };
 
@@ -38,7 +38,7 @@ export default function AreasIndexPage() {
         </p>
 
         <section className="mt-8">
-          <h2 className="text-xl font-extrabold text-fg">집중 운영 지역</h2>
+          <h2 className="text-xl font-extrabold text-fg">지역별 안내</h2>
           <div className="mt-4 space-y-3">
             {FOCUS_AREAS.map((a) => (
               <Surface key={a.slug} as="section" className="rounded-2xl p-5">
@@ -69,8 +69,8 @@ export default function AreasIndexPage() {
         <section className="mt-8">
           <h2 className="text-xl font-extrabold text-fg">다른 지역도 접수할 수 있나요</h2>
           <p className="mt-3 text-sm leading-relaxed text-neutral-700">
-            네. 서울·경기·인천을 비롯한 전국 시/군/구에서 접수할 수 있습니다. 지역별 실제 배정은 등록된 업체·전기기사
-            현황에 따라 달라지며, 집중 운영 지역은 접수 건과 파트너가 쌓이는 순서대로 늘려 갑니다. 출동 업체·전기기사로
+            네. 전국 시/군/구에서 접수할 수 있습니다. 지역별 실제 배정은 등록된 업체·전기기사
+            현황에 따라 달라집니다. 출동 업체·전기기사로
             함께하려면{' '}
             <Link href="/partner/signup" className="font-bold text-brand-700 underline">
               업체 가입

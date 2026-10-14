@@ -20,7 +20,7 @@ export const FOCUS_AREAS: readonly FocusArea[] = [
     name: '성남시',
     sido: '경기도',
     label: '성남 전기 수리 출동',
-    summary: '분당·판교·위례·수정·중원 — 가장 먼저 집중 운영하는 지역입니다. 구별 동 목록과 주거 형태별 전기 환경, 자주 접수되는 고장을 안내합니다.',
+    summary: '분당·판교·위례·수정·중원 — 구별 동 목록과 주거 형태별 전기 환경, 자주 접수되는 고장을 안내합니다.',
     updated: '2026-09-15',
     children: SEONGNAM_GU.map((g) => ({ slug: g.slug, gu: g.gu, note: g.note })),
   },

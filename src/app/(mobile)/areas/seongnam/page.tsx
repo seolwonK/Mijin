@@ -103,15 +103,15 @@ export default async function SeongnamAreaPage() {
 
       <div className="mx-auto w-full max-w-2xl px-5 pt-6">
         <Surface tint as="section" className="rounded-2xl p-5">
-          <p className="text-xs font-bold text-brand-600">전국 전기 출동 중개 플랫폼 {COMPANY.siteDisplayUrl} · 성남시 우선 집중 지역</p>
+          <p className="text-xs font-bold text-brand-600">전국 전기 출동 중개 플랫폼 {COMPANY.siteDisplayUrl} · 전국 운영</p>
           <h1 className="mt-2 text-2xl leading-tight font-extrabold text-fg md:text-3xl">
             성남 전기 수리 출동
             <br />
             분당·판교·위례·수정·중원 전기 고장, 접수하면 담당 업체가 갑니다
           </h1>
           <p className="mt-3 text-sm leading-relaxed text-neutral-700">
-            {COMPANY.name}는 전국 시/군/구 단위로 전기 고장을 접수받는 중개 플랫폼이며, 성남시를 가장 먼저 집중
-            운영합니다. 성남의 정전·누전·두꺼비집·콘센트·조명 고장을 접수하면 성남을 담당하는 승인 출동 업체·전기기사에게
+            {COMPANY.name}는 전국 시/군/구 단위로 전기 고장을 접수받는 중개 플랫폼으로
+            전국에서 운영합니다. 성남의 정전·누전·두꺼비집·콘센트·조명 고장을 접수하면 성남을 담당하는 승인 출동 업체·전기기사에게
             배정합니다. 수리비는 현장에서 안내합니다.
           </p>
           <p className="mt-2 text-sm font-semibold text-brand-700">
