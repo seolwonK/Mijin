@@ -132,7 +132,7 @@ export default function Home() {
             </p>
             <div className={styles.heroLinks}>
               <a href="https://mjelectric.qshop.ai/" target="_blank" rel="noopener noreferrer" className={styles.heroChip}>
-                미진전기 <span aria-hidden="true">↗</span>
+                홈페이지 <span aria-hidden="true">↗</span>
               </a>
               <a href="https://m.blog.naver.com/mr-electric?noTrackingCode=true&proxyReferer=&tab=1" target="_blank" rel="noopener noreferrer" className={styles.heroChip}>
                 블로그 <span aria-hidden="true">↗</span>
