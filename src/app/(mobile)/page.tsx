@@ -134,7 +134,9 @@ export default function Home() {
               <a href="https://mjelectric.qshop.ai/" target="_blank" rel="noopener noreferrer" className={styles.heroChip}>
                 미진전기 <span aria-hidden="true">↗</span>
               </a>
-              <Link href="/blog" className={styles.heroChip}>블로그 <span aria-hidden="true">→</span></Link>
+              <a href="https://m.blog.naver.com/mr-electric?noTrackingCode=true&proxyReferer=&tab=1" target="_blank" rel="noopener noreferrer" className={styles.heroChip}>
+                블로그 <span aria-hidden="true">↗</span>
+              </a>
             </div>
             <div className={styles.heroAction}>
               <Link href="/inspection/apply" className={styles.primaryLink}><span><ElectricTag />전기구독 신청하기</span> <span aria-hidden="true">↗</span></Link>
