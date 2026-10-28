@@ -47,6 +47,42 @@ export function smsAdminAttention(p: {
   return `[전기아저씨/관리] 접수 ${p.lookupCode}(${p.urgencyLabel}) 확인요망 — ${p.reason}. 관제탑에서 조치해 주세요.`;
 }
 
+// 새 접수 알림 — 접수가 들어오는 즉시 운영 담당자에게 내용 전체를 보낸다 (LMS).
+// 고객이 적은 값은 줄바꿈을 걷어 한 줄로 싣고, 고장 내용은 너무 길면 자른다(원문은 관리자 화면).
+const NEW_REQUEST_DESCRIPTION_MAX = 300;
+
+export function smsNewRequestAlert(p: {
+  lookupCode: string;
+  urgency: string;
+  customerName: string;
+  customerPhone: string;
+  address: string | null;
+  /** 주소 없이 위치 좌표만으로 접수된 경우를 구분한다. */
+  hasCoords: boolean;
+  /** 음성만으로 접수됐으면 null. */
+  description: string | null;
+  hasVoice: boolean;
+  photoCount: number;
+  adminUrl: string;
+}): string {
+  const description = p.description ? oneLine(p.description) : '';
+  const attachments = [p.hasVoice && '음성', p.photoCount > 0 && `사진 ${p.photoCount}장`].filter(Boolean);
+  return [
+    `[전기아저씨/관리] 새 접수 ${p.lookupCode} (${URGENCY_LABEL[p.urgency] ?? p.urgency})`,
+    `고객: ${oneLine(p.customerName)} ${formatPhone(p.customerPhone)}`,
+    `주소: ${p.address ? oneLine(p.address) : p.hasCoords ? '미입력 (위치 좌표로 접수)' : '미입력'}`,
+    `내용: ${
+      description
+        ? description.length > NEW_REQUEST_DESCRIPTION_MAX
+          ? `${description.slice(0, NEW_REQUEST_DESCRIPTION_MAX)}…`
+          : description
+        : '음성 접수 — 관리자 화면에서 들어 주세요'
+    }`,
+    ...(attachments.length ? [`첨부: ${attachments.join(', ')}`] : []),
+    p.adminUrl,
+  ].join('\n');
+}
+
 // 업체 배정 알림 — 고객 연락처·주소 포함 (장문이라 LMS 단가 적용 가능)
 export function smsProviderAssigned(p: {
   customerName: string;

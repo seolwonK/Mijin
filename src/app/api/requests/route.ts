@@ -9,6 +9,7 @@ import { transcribeVoiceNote, VOICE_PLACEHOLDER } from '@/lib/stt';
 import { collectPhotoUploads, saveRequestPhotos, type PhotoUpload } from '@/lib/photos';
 import { geocode } from '@/lib/geo';
 import { autoAssignNewRequest } from '@/lib/autoAssign';
+import { notifyNewRequest } from '@/lib/adminAlerts';
 
 // 좌표 없이 주소만 입력된 접수의 좌표 백필 — 고객 응답을 지연시키지 않도록
 // STT 와 같은 fire-and-forget 패턴. 실패해도 접수는 그대로(거리 미확인 폴백).
@@ -228,7 +229,10 @@ export async function POST(req: NextRequest) {
   }
 
   // 현장 사진 저장 — 실패한 사진은 내부적으로 생략되고 접수는 그대로 진행된다(photos.ts).
-  await saveRequestPhotos(request.id, photos);
+  const photoCount = await saveRequestPhotos(request.id, photos);
+
+  // 운영 담당자에게 새 접수 내용 문자 — 고객 응답을 지연시키지 않도록 대기하지 않음
+  void notifyNewRequest(request, photoCount);
 
   // 서버 STT (STT_PROVIDER 설정 시) — 고객 응답을 지연시키지 않도록 대기하지 않음
   if (voiceBytes && voiceMime) {
