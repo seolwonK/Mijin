@@ -1,4 +1,3 @@
-import { prisma } from '@/lib/db';
 import { sendSms } from '@/lib/sms';
 import { smsAdminAttention, smsNewRequestAlert } from '@/lib/sms/templates';
 import { VOICE_PLACEHOLDER } from '@/lib/stt';
@@ -18,30 +17,20 @@ const URGENCY_LABEL: Record<string, string> = {
 // 호출할 것. (워커는 30초 주기라 상태 기반 재발송이면 문자 폭탄이 된다.)
 // 문자 실패는 접수 처리에 영향을 주지 않는다(sendSms 내부 로깅·SmsLog 기록).
 
-// 수신 번호를 정하는 곳: ADMIN_ALERT_PHONES 환경변수(쉼표 구분)가 있으면 그 번호로만 보내고,
-// 없으면 관리자 계정에 등록된 전화번호로 보낸다.
+// 수신 번호를 정하는 곳: 환경변수(쉼표 구분)가 있으면 그 번호로만 보내고, 없으면 아래
+// 기본 번호로 보낸다. 확인요망 알림은 ADMIN_ALERT_PHONES, 새 접수 알림은 REQUEST_ALERT_PHONES.
 //
-// 환경변수를 둔 이유는 관리자 계정의 전화번호를 바꾸는 화면이 없기 때문이다. 시드로 만든
-// 관리자 계정의 번호는 01000000000 이라, 그대로 두면 확인요망 알림이 아무에게도 닿지 않는다.
-// 배포 환경변수에 실제 담당자 번호를 넣으면 DB 를 건드리지 않고 수신처를 바꿀 수 있다.
-function phonesFromEnv(name: string): string[] {
-  return (process.env[name] ?? '')
+// 예전에는 확인요망 알림을 관리자 계정 전화번호로 보냈는데, 그 번호를 바꾸는 화면이 없어
+// 시드 번호 01000000000 으로 나가고 있었다(운영 8건 무수신, 2026-10-28 확인). 배포 환경변수를
+// 건드리지 않아도 운영 담당자가 바로 받도록 기본 번호를 코드에 둔다.
+const DEFAULT_ALERT_PHONES = ['01079971644'];
+
+function alertPhones(envName: 'ADMIN_ALERT_PHONES' | 'REQUEST_ALERT_PHONES'): string[] {
+  const configured = (process.env[envName] ?? '')
     .split(',')
     .map((p) => p.replace(/[^0-9]/g, ''))
     .filter((p) => p.length >= 9);
-}
-
-function alertPhonesFromEnv(): string[] {
-  return phonesFromEnv('ADMIN_ALERT_PHONES');
-}
-
-// 새 접수 알림 수신 번호: REQUEST_ALERT_PHONES 환경변수(쉼표 구분)가 있으면 그 번호로,
-// 없으면 아래 기본 번호로 보낸다. 배포 환경변수를 건드리지 않아도 바로 받도록 기본값을 둔다.
-const DEFAULT_REQUEST_ALERT_PHONES = ['01079971644'];
-
-function requestAlertPhones(): string[] {
-  const configured = phonesFromEnv('REQUEST_ALERT_PHONES');
-  return configured.length ? configured : DEFAULT_REQUEST_ALERT_PHONES;
+  return configured.length ? configured : DEFAULT_ALERT_PHONES;
 }
 
 // 접수가 들어오면 운영 담당자에게 접수 내용을 문자로 보낸다. 확인요망 알림과 달리
@@ -75,7 +64,7 @@ export async function notifyNewRequest(
       photoCount,
       adminUrl: `${COMPANY.siteUrl}/admin/requests/${request.id}`,
     });
-    await Promise.all(requestAlertPhones().map((phone) => sendSms(phone, text)));
+    await Promise.all(alertPhones('REQUEST_ALERT_PHONES').map((phone) => sendSms(phone, text)));
   } catch (e) {
     console.error('[adminAlerts] 새 접수 알림 실패', e);
   }
@@ -86,25 +75,12 @@ export async function notifyAdminAttention(
   reason: string,
 ): Promise<void> {
   try {
-    const configured = alertPhonesFromEnv();
-    const phones = configured.length
-      ? configured
-      : (
-          await prisma.user.findMany({
-            where: { role: 'ADMIN', phone: { not: '' } },
-            select: { phone: true },
-          })
-        ).map((a) => a.phone);
-    if (phones.length === 0) {
-      console.warn('[adminAlerts] 확인요망 알림 수신 번호가 없습니다 — ADMIN_ALERT_PHONES 확인');
-      return;
-    }
     const text = smsAdminAttention({
       lookupCode: request.lookupCode,
       urgencyLabel: URGENCY_LABEL[request.urgency] ?? request.urgency,
       reason,
     });
-    await Promise.all(phones.map((phone) => sendSms(phone, text)));
+    await Promise.all(alertPhones('ADMIN_ALERT_PHONES').map((phone) => sendSms(phone, text)));
   } catch (e) {
     console.error('[adminAlerts] 관리자 알림 실패', e);
   }
