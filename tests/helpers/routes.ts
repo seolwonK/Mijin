@@ -95,6 +95,7 @@ export const ROUTES: RouteEntry[] = [
   admin('/api/admin/rotation', 'GET'),
   admin('/api/admin/settings', 'GET'),
   admin('/api/admin/settings', 'PUT'),
+  admin('/api/admin/sms/balance', 'GET'),
   admin('/api/admin/settlements', 'GET'),
   admin('/api/admin/technicians', 'GET'),
   admin('/api/admin/technicians', 'POST'),
