@@ -19,10 +19,30 @@ beforeEach(() => {
   findMany.mockReset();
   delete process.env.ADMIN_ALERT_PHONES;
   delete process.env.REQUEST_ALERT_PHONES;
+  delete process.env.ADMIN_ATTENTION_SMS;
 });
-afterEach(() => { delete process.env.ADMIN_ALERT_PHONES; delete process.env.REQUEST_ALERT_PHONES; });
+afterEach(() => {
+  delete process.env.ADMIN_ALERT_PHONES;
+  delete process.env.REQUEST_ALERT_PHONES;
+  delete process.env.ADMIN_ATTENTION_SMS;
+});
 
-describe('notifyAdminAttention 수신처', () => {
+describe('notifyAdminAttention 발송 스위치', () => {
+  it('기본은 꺼져 있어 문자를 보내지 않는다', async () => {
+    await notifyAdminAttention(REQ, '담당 지역 배정 후보 없음');
+    expect(sendSms).not.toHaveBeenCalled();
+  });
+
+  it('ADMIN_ATTENTION_SMS=on 이 아니면 보내지 않는다', async () => {
+    process.env.ADMIN_ATTENTION_SMS = 'true';
+    await notifyAdminAttention(REQ, '담당 지역 배정 후보 없음');
+    expect(sendSms).not.toHaveBeenCalled();
+  });
+});
+
+describe('notifyAdminAttention 수신처 (ADMIN_ATTENTION_SMS=on)', () => {
+  beforeEach(() => { process.env.ADMIN_ATTENTION_SMS = 'on'; });
+
   it('환경변수가 없으면 기본 번호로 보내고 관리자 계정 번호(시드 01000000000)는 쓰지 않는다', async () => {
     await notifyAdminAttention(REQ, '담당 지역 배정 후보 없음');
     expect(findMany).not.toHaveBeenCalled();

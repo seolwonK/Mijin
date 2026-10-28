@@ -16,6 +16,14 @@ const URGENCY_LABEL: Record<string, string> = {
 // 중복 발송 방지는 호출부 책임: needsAttention 이 false → true 로 "전환되는 순간"에만
 // 호출할 것. (워커는 30초 주기라 상태 기반 재발송이면 문자 폭탄이 된다.)
 // 문자 실패는 접수 처리에 영향을 주지 않는다(sendSms 내부 로깅·SmsLog 기록).
+//
+// 지금은 꺼 두었다(ADMIN_ATTENTION_SMS=on 일 때만 발송). 업체 없이 단독 운영하면 거의 모든
+// 접수가 확인요망이 되어 새 접수 알림 직후 같은 번호로 또 나가는데, SOLAPI 가 짧은 시간 안의
+// 동일 수신번호 반복 발송을 거부한다(2026-10-28 운영 실측). 접수 내용은 새 접수 알림에 다
+// 있으므로 문자는 그것 하나로 받는다. 대시보드의 확인요망 표시는 그대로 남는다.
+function attentionSmsEnabled(): boolean {
+  return process.env.ADMIN_ATTENTION_SMS === 'on';
+}
 
 // 수신 번호를 정하는 곳: 환경변수(쉼표 구분)가 있으면 그 번호로만 보내고, 없으면 아래
 // 기본 번호로 보낸다. 확인요망 알림은 ADMIN_ALERT_PHONES, 새 접수 알림은 REQUEST_ALERT_PHONES.
@@ -74,6 +82,7 @@ export async function notifyAdminAttention(
   request: { lookupCode: string; urgency: string },
   reason: string,
 ): Promise<void> {
+  if (!attentionSmsEnabled()) return;
   try {
     const text = smsAdminAttention({
       lookupCode: request.lookupCode,
