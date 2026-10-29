@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { type ReactNode, useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import SelectedRequestPanel from '@/components/SelectedRequestPanel';
+import { useConfirm } from '@/components/useConfirm';
 import { AdminStatusTag, AdminUrgencyTag } from '@/components/AdminStatusTag';
 import { RefreshIcon, SearchIcon } from '@/components/icons';
 import styles from '@/components/admin-queue.module.css';
@@ -54,6 +55,16 @@ function RequestContent({ request, selected, expanded, onSelect, onExpand }: {
 function Progress({ request }: { request: AdminWorkQueueRequest }) {
   return <><AdminStatusTag status={request.status} />{request.assigneeName && <span className={styles.secondary}>{request.assigneeName}</span>}{request.status === 'COMPLETED' && <span className={styles.secondary}>설문 {request.survey?.submitted ? request.survey.rating != null ? `${request.survey.rating} / 5점` : '응답 완료' : request.survey ? '미응답' : '미생성'}</span>}</>;
 }
+// 목록에서 바로 닫는 빠른 처리 — 단독 운영에서는 배정 대기 접수가 계속 쌓이므로 상세를 열지 않고 완료·취소한다.
+// 배정 대기(RECEIVED)에만 둔다. 업체가 낀 접수는 통지·설문·알 차감이 얽혀 있어 상세 화면에서 처리한다.
+type QuickAction = 'complete' | 'cancel';
+function QuickActions({ request, busy, onAction }: { request: AdminWorkQueueRequest; busy: boolean; onAction: (request: AdminWorkQueueRequest, action: QuickAction) => void }) {
+  if (request.status !== 'RECEIVED') return null;
+  return <div className={styles.quickActions} role="group" aria-label={`접수 ${request.lookupCode} 빠른 처리`}>
+    <button type="button" className={styles.button} disabled={busy} onClick={() => onAction(request, 'complete')}>처리 완료</button>
+    <button type="button" className={`${styles.button} ${styles.danger}`} disabled={busy} onClick={() => onAction(request, 'cancel')}>취소</button>
+  </div>;
+}
 function RequestTime({ value }: { value: string }) {
   const date = new Date(value);
   return <time dateTime={value} className={styles.time}><span>{date.toLocaleDateString('ko-KR', { month: '2-digit', day: '2-digit', timeZone: 'Asia/Seoul' })}</span><span>{date.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'Asia/Seoul' })}</span></time>;
@@ -73,6 +84,9 @@ export default function AdminWorkQueue({ requests, refresh, summary, lastUpdated
   const [page, setPage] = useState(1);
   const [order, setOrder] = useState<'priority' | 'oldest' | 'newest'>('priority');
   const [refreshing, setRefreshing] = useState(false);
+  const [actingId, setActingId] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
+  const [confirm, confirmUI] = useConfirm('admin');
   const root = useRef<HTMLElement>(null);
   const list = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -103,13 +117,16 @@ export default function AdminWorkQueue({ requests, refresh, summary, lastUpdated
   const selected = rows.find(r => r.id === selectedId);
   function resetList() { setPage(1); setSelectedId(null); list.current?.scrollTo({ top: 0 }); }
   function changeTab(value: string) { setTab(value); setAttentionOnly(false); resetList(); }
-  function closePanel() {
-    const id = selectedId;
-    setSelectedId(null);
+  function focusRequest(id: string | null) {
     requestAnimationFrame(() => {
       const buttons = root.current?.querySelectorAll<HTMLButtonElement>('[data-request-id]');
       Array.from(buttons ?? []).find(el => el.dataset.requestId === id && el.getClientRects().length)?.focus({ preventScroll: true });
     });
+  }
+  function closePanel() {
+    const id = selectedId;
+    setSelectedId(null);
+    focusRequest(id);
   }
   function changePage(value: number) {
     setPage(value); setSelectedId(null); list.current?.scrollTo({ top: 0 });
@@ -117,9 +134,32 @@ export default function AdminWorkQueue({ requests, refresh, summary, lastUpdated
   }
   function expand(id: string) { setExpandedIds(prev => { const next = new Set(prev); if (next.has(id)) next.delete(id); else next.add(id); return next; }); }
   async function reload() { setRefreshing(true); try { await refresh(); } finally { setRefreshing(false); } }
+  async function runQuickAction(request: AdminWorkQueueRequest, action: QuickAction) {
+    const ok = await confirm(action === 'complete'
+      ? { title: '처리 완료', message: `#${request.lookupCode} 접수를 처리 완료로 바꿀까요? 고객에게 문자는 가지 않습니다.`, confirmText: '처리 완료' }
+      : { title: '접수 취소', message: `#${request.lookupCode} 접수를 취소할까요?`, confirmText: '접수 취소', cancelText: '닫기', danger: true });
+    if (!ok) return;
+    setActingId(request.id); setActionError(null);
+    try {
+      const res = await fetch(`/api/admin/requests/${request.id}/${action}`, { method: 'POST' });
+      const data = await res.json().catch(() => ({}));
+      // 실패(대개 그사이 배정·완료된 409)여도 목록을 다시 받아 낡은 버튼을 걷어 낸다.
+      if (!res.ok) setActionError(`#${request.lookupCode} ${data.error ?? (action === 'complete' ? '완료 처리에 실패했습니다' : '취소에 실패했습니다')}`);
+      // 열려 있던 상세 패널은 8초 폴링 전까지 옛 상태(배정 버튼)를 보이므로 닫는다.
+      else if (selectedId === request.id) setSelectedId(null);
+      await refresh();
+    } catch {
+      setActionError('네트워크 오류가 발생했습니다');
+    } finally {
+      setActingId(null);
+      // 누른 버튼은 사라지므로 초점을 그 접수 줄로 돌린다.
+      focusRequest(request.id);
+    }
+  }
   const requestContent = (request: AdminWorkQueueRequest) => <RequestContent request={request} selected={selectedId === request.id} expanded={expandedIds.has(request.id)} onSelect={() => setSelectedId(request.id)} onExpand={() => expand(request.id)} />;
 
   return <section ref={root} className={styles.page} aria-label="관리자 접수 관리">
+    {confirmUI}
     <header className={styles.header}>
       <div className={styles.heading}><h1>접수 관리</h1><span>대시보드</span></div>
       <div className={styles.headerActions}>{lastUpdatedAt && <time className={styles.updated} dateTime={new Date(lastUpdatedAt).toISOString()}>{new Date(lastUpdatedAt).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'Asia/Seoul' })} 갱신</time>}<Link href="/admin/analytics/dashboard">분석 보기</Link><button type="button" className={styles.button} onClick={reload} disabled={refreshing}><RefreshIcon className={refreshing ? styles.spinning : ''} />{refreshing ? '갱신 중…' : '새로고침'}</button></div>
@@ -140,13 +180,14 @@ export default function AdminWorkQueue({ requests, refresh, summary, lastUpdated
             return <button key={item.key} type="button" onClick={() => changeTab(item.key)} aria-pressed={tab === item.key && !attentionOnly}>{item.label}<span>{number(count)}</span></button>;
           })}</div><select className={styles.sort} aria-label="접수 정렬" value={order} onChange={e => { setOrder(e.target.value as typeof order); resetList(); }}><option value="priority">처리 우선순</option><option value="oldest">오래된 순</option><option value="newest">최근 순</option></select></div>
           {attentionOnly && <p className={styles.filterNote}>관리자 확인이 필요한 접수 <button type="button" onClick={() => { setAttentionOnly(false); resetList(); }}>필터 해제 ×</button></p>}
+          {actionError && <p role="alert" className={styles.actionError}>{actionError} <button type="button" onClick={() => setActionError(null)}>닫기 ×</button></p>}
         </div>
         <div ref={list} className={styles.listScroll} role="region" aria-label="접수 목록 스크롤" tabIndex={0}>
           {!rows.length ? <div className={styles.empty}><strong>{query.trim() || tab !== 'ALL' || attentionOnly ? '조건에 해당하는 접수가 없습니다.' : '아직 접수된 요청이 없습니다.'}</strong><p>새 접수가 들어오면 이곳에서 확인할 수 있습니다.</p></div> : <>
             <div className={styles.tableViewport}><table className={styles.table}><caption className="sr-only">접수 내용과 고객, 진행 상태 목록</caption><thead><tr><th scope="col">접수 내용</th><th scope="col">고객</th><th scope="col">진행 상태</th><th scope="col" aria-sort={order === 'priority' ? 'none' : order === 'oldest' ? 'ascending' : 'descending'}><button type="button" onClick={() => { setOrder(order === 'oldest' ? 'newest' : 'oldest'); resetList(); }}>접수 시각 <span aria-hidden="true">{order === 'oldest' ? '↑' : order === 'newest' ? '↓' : '↕'}</span></button></th></tr></thead><tbody>{visible.map(request => <tr key={request.id} className={styles.row} data-selected={selectedId === request.id} onClick={e => { if (!(e.target as HTMLElement).closest('button, a')) setSelectedId(request.id); }}>
-              <td>{requestContent(request)}</td><td><p className={styles.customer}>{request.customerName}</p><a href={`tel:${request.customerPhone}`} className={styles.phone}>{request.customerPhone}</a></td><td><Progress request={request} /></td><td><RequestTime value={request.createdAt} /></td>
+              <td>{requestContent(request)}</td><td><p className={styles.customer}>{request.customerName}</p><a href={`tel:${request.customerPhone}`} className={styles.phone}>{request.customerPhone}</a></td><td><Progress request={request} /><QuickActions request={request} busy={actingId !== null} onAction={runQuickAction} /></td><td><RequestTime value={request.createdAt} /></td>
             </tr>)}</tbody></table></div>
-            <ul className={styles.mobileList}>{visible.map(request => <li key={request.id} className={styles.mobileItem} data-selected={selectedId === request.id}>{requestContent(request)}<div className={styles.mobileBottom}><div><p className={styles.customer}>{request.customerName}</p><a className={styles.phone} href={`tel:${request.customerPhone}`}>{request.customerPhone}</a></div><div><Progress request={request} /></div><RequestTime value={request.createdAt} /></div></li>)}</ul>
+            <ul className={styles.mobileList}>{visible.map(request => <li key={request.id} className={styles.mobileItem} data-selected={selectedId === request.id}>{requestContent(request)}<div className={styles.mobileBottom}><div><p className={styles.customer}>{request.customerName}</p><a className={styles.phone} href={`tel:${request.customerPhone}`}>{request.customerPhone}</a></div><div><Progress request={request} /></div><RequestTime value={request.createdAt} /></div><QuickActions request={request} busy={actingId !== null} onAction={runQuickAction} /></li>)}</ul>
           </>}
         </div>
         {!!rows.length && <nav className={styles.pagination} aria-label="접수 목록 페이지"><p>{number((currentPage - 1) * PAGE_SIZE + 1)}–{number(Math.min(currentPage * PAGE_SIZE, rows.length))} / {number(rows.length)}건</p><div><button type="button" className={styles.button} disabled={currentPage === 1} onClick={() => changePage(currentPage - 1)}>이전</button><span>{currentPage} / {pageCount}</span><button type="button" className={styles.button} disabled={currentPage === pageCount} onClick={() => changePage(currentPage + 1)}>다음</button></div></nav>}

@@ -90,6 +90,7 @@ export const ROUTES: RouteEntry[] = [
   admin('/api/admin/requests/[id]/assign', 'POST'),
   admin('/api/admin/requests/[id]/cancel', 'POST'),
   admin('/api/admin/requests/[id]/candidates', 'GET'),
+  admin('/api/admin/requests/[id]/complete', 'POST'),
   admin('/api/admin/requests/[id]/unassign', 'POST'),
   admin('/api/admin/requests/[id]/voice', 'GET'),
   admin('/api/admin/rotation', 'GET'),

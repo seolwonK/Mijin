@@ -179,6 +179,23 @@ export const GATES: Record<string, HandlerGates> = {
     ],
   },
 
+  'POST /api/admin/requests/[id]/complete': {
+    file: 'src/app/api/admin/requests/[id]/complete/route.ts',
+    note:
+      'RECEIVED 만 완료한다 — 배정 이후 상태·존재하지 않는 접수 모두 404 가 아니라 409 다(updateMany count=0). ' +
+      'createRequestFixture() 기본값이 CANCELED 라 **기본 픽스처는 409 다** — 200 을 보려면 RECEIVED 로 만들어야 한다.',
+    gates: [
+      {
+        order: 1,
+        status: 409,
+        line: 22,
+        kind: 'conflict',
+        message: '배정 대기 상태의 접수만 바로 완료할 수 있습니다',
+        reach: '접수가 RECEIVED 가 아님 (ASSIGNED·ACCEPTED·DISPATCHED·COMPLETED·CANCELED, 없는 id 포함)',
+      },
+    ],
+  },
+
   'POST /api/admin/providers': {
     file: 'src/app/api/admin/providers/route.ts',
     note:

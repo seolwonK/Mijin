@@ -119,6 +119,7 @@ export default function AdminRequestDetailPage({
         title: '접수 취소',
         message: '이 접수를 취소할까요?',
         confirmText: '접수 취소',
+        cancelText: '닫기',
         danger: true,
       }))
     )

@@ -13,6 +13,8 @@ type ConfirmOpts = {
   title?: string;
   message: string;
   confirmText?: string;
+  /** 닫기 버튼 문구(기본 '취소'). 확인 동작 자체가 '취소'일 때 두 버튼이 헷갈리지 않게 바꾼다. */
+  cancelText?: string;
   danger?: boolean;
 };
 
@@ -74,7 +76,7 @@ function ConfirmDialog({ opts, close, appearance }: { opts: ConfirmOpts; close: 
         {opts.title && <h2 className="text-base font-bold">{opts.title}</h2>}
         <p className="mt-3 whitespace-pre-line text-sm leading-relaxed text-slate-600">{opts.message}</p>
         <div className="mt-6 flex gap-2">
-          <button type="button" autoFocus onClick={() => close(false)} className={appearance === 'admin' ? `${adminStyles.button} flex-1` : buttonClasses('secondary', 'md', 'flex-1')}>취소</button>
+          <button type="button" autoFocus onClick={() => close(false)} className={appearance === 'admin' ? `${adminStyles.button} flex-1` : buttonClasses('secondary', 'md', 'flex-1')}>{opts.cancelText ?? '취소'}</button>
           <button type="button" onClick={() => close(true)} className={appearance === 'admin' && !opts.danger ? `${adminStyles.primary} flex-1` : buttonClasses(opts.danger ? 'danger' : 'primary', 'md', 'flex-1')}>{opts.confirmText ?? '확인'}</button>
         </div>
       </div>
