@@ -71,9 +71,6 @@ export default function GuideArticle({
             <Link href={requestHref} className={buttonClasses('primary', 'md', 'flex-1')}>
               고장 접수하기
             </Link>
-            <Link href="/areas" className={buttonClasses('secondary', 'md', 'flex-1')}>
-              지역 출동 안내
-            </Link>
           </div>
         </Surface>
 

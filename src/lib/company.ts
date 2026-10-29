@@ -23,7 +23,8 @@ export const COMPANY = {
 export const LEGAL_LINKS = [
   { href: '/inspection', label: '정기 전기점검' },
   { href: '/guide', label: '전기 상식' },
-  { href: '/areas', label: '지역 출동 안내' },
+  // 지역 출동 안내(/areas)는 사이트 안 링크에서 뺐다 — 전국 서비스인데 특정 지역만 내세우는 것처럼 보여서.
+  // 검색 유입이 있는 페이지라 페이지·사이트맵·색인은 그대로 둔다(2026-10-29).
   { href: '/about', label: '서비스 소개' },
   { href: '/terms', label: '이용약관' },
   { href: '/privacy', label: '개인정보처리방침', emphasis: true },

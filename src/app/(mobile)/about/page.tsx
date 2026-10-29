@@ -143,12 +143,6 @@ export default function AboutPage() {
               전국 시/도·시/군/구 단위로 접수할 수 있습니다. 다만 지역별 실제 배정은 등록된 업체·전기기사
               현황에 따라 달라지며, 담당 파트너가 없는 지역은 관리자가 확인 후 안내합니다.
             </p>
-            <p>
-              지역별 출동 안내:{' '}
-              <Link href="/areas" className="font-bold text-brand-700 underline">
-                전국 접수 · 전국 운영
-              </Link>
-            </p>
           </div>
         </section>
 
