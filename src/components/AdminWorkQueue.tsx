@@ -16,12 +16,14 @@ export type AdminWorkQueueRequest = {
   survey: { submitted: boolean; rating: number | null } | null;
 };
 export type AdminQueueSummary = { received: number | null; needsAttention: number | null; urgentOpen: number | null };
+// 기본 목록은 '처리 전' — 처리 완료·취소한 접수는 메인에서 빠지고 '완료/취소' 필터에서 본다.
 const TABS = [
-  { key: 'ALL', label: '전체', statuses: null },
+  { key: 'OPEN', label: '처리 전', statuses: ['RECEIVED', 'ASSIGNED', 'ACCEPTED', 'DISPATCHED'] },
   { key: 'RECEIVED', label: '배정대기', statuses: ['RECEIVED'] },
   { key: 'ASSIGNED', label: '배정됨', statuses: ['ASSIGNED'] },
   { key: 'ACTIVE', label: '진행중', statuses: ['ACCEPTED', 'DISPATCHED'] },
   { key: 'DONE', label: '완료/취소', statuses: ['COMPLETED', 'CANCELED'] },
+  { key: 'ALL', label: '전체', statuses: null },
 ] as const;
 const PAGE_SIZE = 25;
 const number = (value: number | null) => value == null ? '—' : value.toLocaleString('ko-KR');
@@ -76,7 +78,7 @@ export default function AdminWorkQueue({ requests, refresh, summary, lastUpdated
   beforeWorkspace?: ReactNode;
 }) {
   const searchParams = useSearchParams();
-  const [tab, setTab] = useState('ALL');
+  const [tab, setTab] = useState('OPEN');
   const [attentionOnly, setAttentionOnly] = useState(false);
   const [query, setQuery] = useState('');
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -86,6 +88,7 @@ export default function AdminWorkQueue({ requests, refresh, summary, lastUpdated
   const [refreshing, setRefreshing] = useState(false);
   const [actingId, setActingId] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
+  const [actionNotice, setActionNotice] = useState<string | null>(null);
   const [confirm, confirmUI] = useConfirm('admin');
   const root = useRef<HTMLElement>(null);
   const list = useRef<HTMLDivElement>(null);
@@ -116,11 +119,13 @@ export default function AdminWorkQueue({ requests, refresh, summary, lastUpdated
   const visible = rows.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
   const selected = rows.find(r => r.id === selectedId);
   function resetList() { setPage(1); setSelectedId(null); list.current?.scrollTo({ top: 0 }); }
-  function changeTab(value: string) { setTab(value); setAttentionOnly(false); resetList(); }
+  function changeTab(value: string) { setTab(value); setAttentionOnly(false); setActionNotice(null); resetList(); }
   function focusRequest(id: string | null) {
     requestAnimationFrame(() => {
       const buttons = root.current?.querySelectorAll<HTMLButtonElement>('[data-request-id]');
-      Array.from(buttons ?? []).find(el => el.dataset.requestId === id && el.getClientRects().length)?.focus({ preventScroll: true });
+      const target = Array.from(buttons ?? []).find(el => el.dataset.requestId === id && el.getClientRects().length);
+      // 처리해서 목록에서 빠진 줄이면 목록 영역으로 초점을 옮긴다.
+      (target ?? list.current)?.focus({ preventScroll: true });
     });
   }
   function closePanel() {
@@ -139,14 +144,17 @@ export default function AdminWorkQueue({ requests, refresh, summary, lastUpdated
       ? { title: '처리 완료', message: `#${request.lookupCode} 접수를 처리 완료로 바꿀까요? 고객에게 문자는 가지 않습니다.`, confirmText: '처리 완료' }
       : { title: '접수 취소', message: `#${request.lookupCode} 접수를 취소할까요?`, confirmText: '접수 취소', cancelText: '닫기', danger: true });
     if (!ok) return;
-    setActingId(request.id); setActionError(null);
+    setActingId(request.id); setActionError(null); setActionNotice(null);
     try {
       const res = await fetch(`/api/admin/requests/${request.id}/${action}`, { method: 'POST' });
       const data = await res.json().catch(() => ({}));
       // 실패(대개 그사이 배정·완료된 409)여도 목록을 다시 받아 낡은 버튼을 걷어 낸다.
       if (!res.ok) setActionError(`#${request.lookupCode} ${data.error ?? (action === 'complete' ? '완료 처리에 실패했습니다' : '취소에 실패했습니다')}`);
-      // 열려 있던 상세 패널은 8초 폴링 전까지 옛 상태(배정 버튼)를 보이므로 닫는다.
-      else if (selectedId === request.id) setSelectedId(null);
+      else {
+        setActionNotice(`#${request.lookupCode} ${action === 'complete' ? '처리 완료' : '접수 취소'} — 완료/취소에서 볼 수 있습니다.`);
+        // 열려 있던 상세 패널은 8초 폴링 전까지 옛 상태(배정 버튼)를 보이므로 닫는다.
+        if (selectedId === request.id) setSelectedId(null);
+      }
       await refresh();
     } catch {
       setActionError('네트워크 오류가 발생했습니다');
@@ -165,7 +173,7 @@ export default function AdminWorkQueue({ requests, refresh, summary, lastUpdated
       <div className={styles.headerActions}>{lastUpdatedAt && <time className={styles.updated} dateTime={new Date(lastUpdatedAt).toISOString()}>{new Date(lastUpdatedAt).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'Asia/Seoul' })} 갱신</time>}<Link href="/admin/analytics/dashboard">분석 보기</Link><button type="button" className={styles.button} onClick={reload} disabled={refreshing}><RefreshIcon className={refreshing ? styles.spinning : ''} />{refreshing ? '갱신 중…' : '새로고침'}</button></div>
     </header>
     <div className={styles.metrics} aria-label="접수 요약">
-      <button type="button" className={styles.metric} data-attention={!!attention} onClick={() => { setTab('ALL'); setAttentionOnly(true); resetList(); }} aria-label="관리자 확인 접수 보기"><span className={styles.metricLabel}>관리자 확인</span><span className={styles.metricMain}><strong>{number(attention)}</strong><span>{scope}</span></span></button>
+      <button type="button" className={styles.metric} data-attention={!!attention} onClick={() => { setTab('OPEN'); setAttentionOnly(true); resetList(); }} aria-label="관리자 확인 접수 보기"><span className={styles.metricLabel}>관리자 확인</span><span className={styles.metricMain}><strong>{number(attention)}</strong><span>{scope}</span></span></button>
       <button type="button" className={styles.metric} onClick={() => changeTab('RECEIVED')} aria-label="배정 대기 탭으로 이동"><span className={styles.metricLabel}>배정 대기</span><span className={styles.metricMain}><strong>{number(received)}</strong><span>{scope}</span></span></button>
       <button type="button" className={styles.metric} onClick={() => changeTab('ACTIVE')} aria-label="진행 중 접수 보기"><span className={styles.metricLabel}>진행 중</span><span className={styles.metricMain}><strong>{number(active)}</strong><span>조회된 접수 기준</span></span></button>
       <Link className={styles.metric} href="/admin/analytics/dashboard#operational" data-urgent={!!urgent}><span className={styles.metricLabel}>긴급 미완료</span><span className={styles.metricMain}><strong>{number(urgent)}</strong><span>{scope}</span></span></Link>
@@ -181,9 +189,10 @@ export default function AdminWorkQueue({ requests, refresh, summary, lastUpdated
           })}</div><select className={styles.sort} aria-label="접수 정렬" value={order} onChange={e => { setOrder(e.target.value as typeof order); resetList(); }}><option value="priority">처리 우선순</option><option value="oldest">오래된 순</option><option value="newest">최근 순</option></select></div>
           {attentionOnly && <p className={styles.filterNote}>관리자 확인이 필요한 접수 <button type="button" onClick={() => { setAttentionOnly(false); resetList(); }}>필터 해제 ×</button></p>}
           {actionError && <p role="alert" className={styles.actionError}>{actionError} <button type="button" onClick={() => setActionError(null)}>닫기 ×</button></p>}
+          {actionNotice && <p role="status" className={styles.actionNotice}>{actionNotice} {tab !== 'DONE' && <button type="button" onClick={() => changeTab('DONE')}>완료/취소 보기</button>}<button type="button" onClick={() => setActionNotice(null)} aria-label="안내 닫기">×</button></p>}
         </div>
         <div ref={list} className={styles.listScroll} role="region" aria-label="접수 목록 스크롤" tabIndex={0}>
-          {!rows.length ? <div className={styles.empty}><strong>{query.trim() || tab !== 'ALL' || attentionOnly ? '조건에 해당하는 접수가 없습니다.' : '아직 접수된 요청이 없습니다.'}</strong><p>새 접수가 들어오면 이곳에서 확인할 수 있습니다.</p></div> : <>
+          {!rows.length ? <div className={styles.empty}>{!requests.length ? <><strong>아직 접수된 요청이 없습니다.</strong><p>새 접수가 들어오면 이곳에서 확인할 수 있습니다.</p></> : tab === 'OPEN' && !query.trim() && !attentionOnly ? <><strong>처리할 접수가 없습니다.</strong><p>처리한 접수는 완료/취소에서 볼 수 있습니다.</p></> : <><strong>조건에 해당하는 접수가 없습니다.</strong><p>새 접수가 들어오면 이곳에서 확인할 수 있습니다.</p></>}</div> : <>
             <div className={styles.tableViewport}><table className={styles.table}><caption className="sr-only">접수 내용과 고객, 진행 상태 목록</caption><thead><tr><th scope="col">접수 내용</th><th scope="col">고객</th><th scope="col">진행 상태</th><th scope="col" aria-sort={order === 'priority' ? 'none' : order === 'oldest' ? 'ascending' : 'descending'}><button type="button" onClick={() => { setOrder(order === 'oldest' ? 'newest' : 'oldest'); resetList(); }}>접수 시각 <span aria-hidden="true">{order === 'oldest' ? '↑' : order === 'newest' ? '↓' : '↕'}</span></button></th></tr></thead><tbody>{visible.map(request => <tr key={request.id} className={styles.row} data-selected={selectedId === request.id} onClick={e => { if (!(e.target as HTMLElement).closest('button, a')) setSelectedId(request.id); }}>
               <td>{requestContent(request)}</td><td><p className={styles.customer}>{request.customerName}</p><a href={`tel:${request.customerPhone}`} className={styles.phone}>{request.customerPhone}</a></td><td><Progress request={request} /><QuickActions request={request} busy={actingId !== null} onAction={runQuickAction} /></td><td><RequestTime value={request.createdAt} /></td>
             </tr>)}</tbody></table></div>

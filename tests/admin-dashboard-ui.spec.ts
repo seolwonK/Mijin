@@ -6,7 +6,7 @@ test.beforeEach(async ({ page }) => { await seedSession(page.context(), 'ADMIN')
 
 test('목록 4열·전체 내용·연락처·반응형·선택 패널과 키보드 복귀', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 1000 });
-  await page.goto('/admin');
+  await page.goto('/admin?tab=ALL');
   const table = page.getByRole('table');
   await expect(table.getByRole('columnheader')).toHaveCount(4);
   await expect(table.locator('tbody tr')).toHaveCount(25);
@@ -38,7 +38,7 @@ test('목록 4열·전체 내용·연락처·반응형·선택 패널과 키보�
 });
 
 test('페이지 이동·필터·주소와 전화번호 검색·시각 정렬', async ({ page }) => {
-  await page.goto('/admin');
+  await page.goto('/admin?tab=ALL');
   await page.getByRole('button', { name: '다음', exact: true }).click();
   await expect(page.locator('tbody tr')).toHaveCount(3);
   await page.getByRole('button', { name: '배정 대기 탭으로 이동' }).click();
@@ -74,6 +74,38 @@ test('접수·후보 조회 실패를 구분하고 재시도 전에는 배정하
   await expect(panel.getByRole('button', { name: '배정', exact: true })).toBeEnabled();
 });
 
+test('모바일 기본 목록은 처리 전만 보이고, 빠른 처리한 접수는 완료/취소 필터로 빠진다', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  let rows = QUEUE_ROWS;
+  let sent = 0;
+  await page.route('**/api/admin/requests', route => route.fulfill({ json: { requests: rows } }));
+  await page.route('**/api/admin/requests/*/complete', route => {
+    sent++;
+    rows = rows.map(r => r.id === 'queue-request-0' ? { ...r, status: 'COMPLETED', needsAttention: false } : r);
+    return route.fulfill({ json: { ok: true } });
+  });
+  await page.goto('/admin');
+  const filters = page.getByRole('group', { name: '접수 상태 필터' });
+  await expect(filters.getByRole('button', { name: /^처리 전/ })).toHaveAttribute('aria-pressed', 'true');
+  const done = filters.getByRole('button', { name: /^완료\/취소/ });
+  expect((await done.boundingBox())!.x + (await done.boundingBox())!.width).toBeLessThanOrEqual(390);
+  const items = page.locator('ul li').filter({ has: page.getByRole('button', { name: /^접수 \d+ 선택$/ }) });
+  await expect(items).toHaveCount(2);
+  await expect(page.getByRole('group', { name: '접수 990001 빠른 처리' })).toHaveCount(0);
+  const quick = page.getByRole('group', { name: '접수 900011 빠른 처리' });
+  await quick.getByRole('button', { name: '처리 완료' }).click();
+  const confirm = page.getByRole('dialog', { name: '처리 완료' });
+  await confirm.getByRole('button', { name: '처리 완료' }).click();
+  await expect(items).toHaveCount(1);
+  expect(sent).toBe(1);
+  const notice = page.getByRole('status').filter({ hasText: '#900011 처리 완료' });
+  await expect(notice).toBeVisible();
+  await notice.getByRole('button', { name: '완료/취소 보기' }).click();
+  await expect(done).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.getByRole('button', { name: '접수 900011 선택' }).last()).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+});
+
 test('배정 확인은 키보드 초점을 유지하고 Escape로 취소한다', async ({ page }) => {
   let sent = 0;
   await page.route('**/api/admin/requests/*/assign', route => { sent++; return route.fulfill({ json: { ok: true } }); });
@@ -96,7 +128,7 @@ test('배정 확인은 키보드 초점을 유지하고 Escape로 취소한다',
 
 test('첫 접수 위치·내용 펼치기·갱신 후 펼침 유지·독립 스크롤', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 1000 });
-  await page.goto('/admin');
+  await page.goto('/admin?tab=ALL');
   const row = page.locator('tbody tr').first();
   expect((await row.boundingBox())!.y).toBeLessThanOrEqual(300);
   const expand = row.getByRole('button', { name: '접수 900011 내용 펼치기' });
