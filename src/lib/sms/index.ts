@@ -22,6 +22,14 @@ export async function sendReservedSms(log: { id: string; to: string; body: strin
   return { status, provider: provider.name };
 }
 
+// 업체·전기기사에게 가는 배정/회수 문자는 ASSIGNEE_SMS=on 일 때만 보낸다(기본 꺼짐).
+// 단독 운영 중에는 승인된 계정이 테스트 계정(전화 01012345678)뿐이라 실고객 이름·전화·주소가
+// 담긴 배정 문자가 그 번호로 나가고 있었다(2026-10-31 운영 확인, 접수 923727). 문자는 고객과
+// 운영 담당자(새 접수 알림)에게만 보낸다. 배정·회수 자체와 포털 표시는 그대로다.
+export function assigneeSmsEnabled(): boolean {
+  return process.env.ASSIGNEE_SMS === 'on';
+}
+
 // 발송 실패가 접수/배정 본 플로우를 깨지 않도록 예외를 삼키고 SmsLog에 기록만 한다.
 export async function sendSms(
   to: string,

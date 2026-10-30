@@ -8,7 +8,7 @@ vi.mock('@/lib/auth', () => ({ requireSession: vi.fn(async (role: string) => {
   const session = sessions.getStore();
   return session?.role === role ? session : null;
 }) }));
-vi.mock('@/lib/sms', () => ({ sendSms: vi.fn(async () => {}) }));
+vi.mock('@/lib/sms', () => ({ sendSms: vi.fn(async () => {}), assigneeSmsEnabled: () => true }));
 vi.mock('@/lib/adminAlerts', () => ({ notifyAdminAttention: vi.fn(async () => {}) }));
 
 import { prisma } from '@/lib/db';

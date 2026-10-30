@@ -11,7 +11,7 @@ vi.mock('@/lib/auth', () => ({
   requireSession: vi.fn(async (role: string) => (admin.signedIn && role === 'ADMIN' ? { role: 'ADMIN', userId: 'complete-test', name: '검증' } : null)),
 }));
 // 경합 테스트의 배정 통지가 실제 문자로 나가지 않게 막는다.
-vi.mock('@/lib/sms', () => ({ sendSms: vi.fn(async () => {}) }));
+vi.mock('@/lib/sms', () => ({ sendSms: vi.fn(async () => {}), assigneeSmsEnabled: () => true }));
 
 import { prisma } from '@/lib/db';
 import { claimAndAssign } from '@/lib/assignment';

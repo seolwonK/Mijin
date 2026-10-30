@@ -39,7 +39,9 @@ export default defineConfig({
     // 픽스처 정리가 그 행까지 회수한다(helpers/fixtures.ts).
     // IDENTITY_PROVIDER 도 같은 이유로 mock 고정 — 로컬 .env 가 portone(실 PASS 인증)으로 바뀌어도
     // E2E 가 실제 통신사 인증창을 부르지 않게 한다(tests/tech/* 는 mock 계약을 검증한다).
-    env: { SMS_PROVIDER: 'console', R2_BUCKET: '', IDENTITY_PROVIDER: 'mock' },
+    // ASSIGNEE_SMS 는 운영 기본값(꺼짐)과 달리 켠다 — 배정·회수 SmsLog 를 단언하는 스펙이 있다
+    // (SMS_PROVIDER=console 이라 실발송은 없다).
+    env: { SMS_PROVIDER: 'console', R2_BUCKET: '', IDENTITY_PROVIDER: 'mock', ASSIGNEE_SMS: 'on' },
     timeout: 180_000,
   },
   projects: [

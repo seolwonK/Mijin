@@ -1,6 +1,6 @@
 import type { AssignedBy, Prisma } from '@prisma/client';
 import { prisma } from '@/lib/db';
-import { sendSms } from '@/lib/sms';
+import { assigneeSmsEnabled, sendSms } from '@/lib/sms';
 import { smsProviderAssigned } from '@/lib/sms/templates';
 import type { AssigneeTarget } from '@/lib/assignee';
 import { assigneeFk } from '@/lib/assignee';
@@ -92,6 +92,7 @@ async function notifyAssignee(
   target: AssigneeTarget,
   distanceKm: number | null,
 ): Promise<void> {
+  if (!assigneeSmsEnabled()) return;
   try {
     const request = await prisma.serviceRequest.findUnique({
       where: { id: requestId },

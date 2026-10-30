@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { requireSession } from '@/lib/auth';
-import { sendSms } from '@/lib/sms';
+import { assigneeSmsEnabled, sendSms } from '@/lib/sms';
 import { smsAssignmentRecalled } from '@/lib/sms/templates';
 import { ASSIGNEE_INCLUDE, resolveAssignee } from '@/lib/assignee';
 import { transitionPendingAssignment } from '@/lib/assignment';
@@ -40,7 +40,7 @@ export async function POST(
 
   // 회수 안내 문자 — 담당자가 배정 문자만 보고 출동하는 일을 방지 (실패해도 회수는 유지)
   const assignee = resolveAssignee(pending);
-  if (assignee) void sendSms(assignee.phone, smsAssignmentRecalled(), id);
+  if (assignee && assigneeSmsEnabled()) void sendSms(assignee.phone, smsAssignmentRecalled(), id);
 
   return NextResponse.json({ ok: true });
 }

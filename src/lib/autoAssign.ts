@@ -3,7 +3,7 @@ import { getCandidates } from '@/lib/matching';
 import { claimAndAssign, transitionPendingAssignment, AssignmentTargetUnavailableError } from '@/lib/assignment';
 import { regionFromAddress } from '@/lib/regions';
 import { notifyAdminAttention } from '@/lib/adminAlerts';
-import { sendSms } from '@/lib/sms';
+import { assigneeSmsEnabled, sendSms } from '@/lib/sms';
 import { smsAssignmentRecalled } from '@/lib/sms/templates';
 import { assigneeKey } from '@/lib/assignee';
 import { RESPONSE_TIMEOUT_MINUTES } from '@/lib/responseTimeout';
@@ -133,7 +133,7 @@ export async function recallStaleAssignments(
       recalled++;
 
       const assigneePhone = a.provider?.user.phone ?? a.technician?.user.phone;
-      if (assigneePhone) void sendSms(assigneePhone, smsAssignmentRecalled(), a.requestId);
+      if (assigneePhone && assigneeSmsEnabled()) void sendSms(assigneePhone, smsAssignmentRecalled(), a.requestId);
       console.warn(
         `[autoAssign] 무응답 자동 회수: ${a.requestId} (${assigneeKey(a) ?? '?'}, ${
           RESPONSE_TIMEOUT_MINUTES[a.request.urgency]
