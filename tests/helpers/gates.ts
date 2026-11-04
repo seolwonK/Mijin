@@ -199,9 +199,9 @@ export const GATES: Record<string, HandlerGates> = {
   'POST /api/admin/providers': {
     file: 'src/app/api/admin/providers/route.ts',
     note:
-      '**400 이 5개다. 상태코드만으로는 어느 분기인지 알 수 없다 — message 로 단언할 것.** ' +
-      ':96 은 카카오 지오코딩 실패에 걸리는 외부 의존 분기라, lat/lng 를 명시하지 않으면 ' +
-      '키 만료·네트워크 장애가 happy path 200 테스트를 400 으로 뒤집는다.',
+      '**400 이 4개다. 상태코드만으로는 어느 분기인지 알 수 없다 — message 로 단언할 것.** ' +
+      '지오코딩 실패는 더 이상 400 이 아니다 — 좌표 없이(null) 저장된다. lat/lng 를 명시하면 ' +
+      '지오코딩 실호출을 건너뛰어 결정적이다.',
     gates: [
       {
         order: 1,
@@ -231,80 +231,59 @@ export const GATES: Record<string, HandlerGates> = {
       {
         order: 4,
         status: 400,
-        line: 96,
-        kind: 'external',
-        message: '주소를 좌표로 변환하지 못했습니다. 위도/경도를 직접 입력해 주세요.',
-        reach: 'lat 또는 lng 가 null/생략 **이고** 카카오 지오코딩이 실패',
-        trap:
-          '반대로 200 을 기대하는 테스트는 lat/lng 를 **반드시 명시**해야 한다. ' +
-          '지오코딩은 실호출이라 결정적이지 않다',
-      },
-      {
-        order: 5,
-        status: 400,
-        line: 124,
+        line: 117,
         kind: 'state',
         message: '추천인을 찾을 수 없습니다',
         reach: 'referrerUserId 지정 + 그 유저가 없거나 미승인이거나 비활성',
       },
       {
-        order: 6,
+        order: 5,
         status: 400,
-        line: 129,
+        line: 122,
         kind: 'state',
         message: '본인을 추천인으로 지정할 수 없습니다',
         reach: '추천인이 승인·활성이고 `referrer.phone === data.phone` (**전화번호** 비교)',
       },
       {
-        order: 7,
+        order: 6,
         status: 409,
-        line: 163,
+        line: 156,
         kind: 'conflict',
         message: '이미 사용 중인 아이디 또는 사업자등록번호입니다',
-        reach: 'P2002 — loginId 또는 bizRegNo 중복. 앞의 6게이트를 전부 통과해야 도달',
-        trap: 'lat/lng 를 생략하면 지오코딩(:96)에서 먼저 막혀 409 를 못 본다',
+        reach: 'P2002 — loginId 또는 bizRegNo 중복. 앞의 5게이트를 전부 통과해야 도달',
       },
     ],
   },
 
   'POST /api/admin/technicians': {
     file: 'src/app/api/admin/technicians/route.ts',
-    note: 'providers POST 와 같은 구조에서 사업자등록번호 게이트만 빠졌다. 400 이 4개.',
+    note: 'providers POST 와 같은 구조에서 사업자등록번호 게이트만 빠졌다. 400 이 3개. 지오코딩 실패는 400 이 아니라 좌표 없이(null) 저장된다.',
     gates: [
       { order: 1, status: 400, line: 66, kind: 'body-parse', message: '잘못된 요청입니다', reach: 'JSON 이 아닌 본문' },
       { order: 2, status: 400, line: 72, kind: 'schema', message: null, reach: 'zod 위반' },
       {
         order: 3,
         status: 400,
-        line: 87,
-        kind: 'external',
-        message: '주소를 좌표로 변환하지 못했습니다. 위도/경도를 직접 입력해 주세요.',
-        reach: 'lat/lng 생략 + 카카오 지오코딩 실패',
-        trap: '200 기대 테스트는 lat/lng 를 명시할 것',
-      },
-      {
-        order: 4,
-        status: 400,
-        line: 115,
+        line: 108,
         kind: 'state',
         message: '추천인을 찾을 수 없습니다',
         reach: 'referrerUserId 지정 + 미존재/미승인/비활성',
       },
       {
-        order: 5,
+        order: 4,
         status: 400,
-        line: 120,
+        line: 113,
         kind: 'state',
         message: '본인을 추천인으로 지정할 수 없습니다',
         reach: '`referrer.phone === data.phone` (**전화번호** 비교)',
       },
       {
-        order: 6,
+        order: 5,
         status: 409,
-        line: 154,
+        line: 147,
         kind: 'conflict',
         message: '이미 사용 중인 아이디입니다',
-        reach: 'P2002 loginId 중복. 지오코딩까지 통과해야 도달',
+        reach: 'P2002 loginId 중복. 앞의 4게이트를 전부 통과해야 도달',
       },
     ],
   },
@@ -315,21 +294,21 @@ export const GATES: Record<string, HandlerGates> = {
       'POST 와 달리 자기추천 판정이 **userId 비교**(`referrer.id === technician.userId`)다. ' +
       'POST 는 전화번호 비교였다 — 같은 문구의 400 이지만 트리거 조건이 다르다.',
     gates: [
-      { order: 1, status: 400, line: 108, kind: 'body-parse', message: '잘못된 요청입니다', reach: 'JSON 이 아닌 본문' },
-      { order: 2, status: 400, line: 114, kind: 'schema', message: null, reach: 'zod 위반' },
+      { order: 1, status: 400, line: 109, kind: 'body-parse', message: '잘못된 요청입니다', reach: 'JSON 이 아닌 본문' },
+      { order: 2, status: 400, line: 115, kind: 'schema', message: null, reach: 'zod 위반' },
       {
         order: 3,
         status: 404,
-        line: 121,
+        line: 122,
         kind: 'not-found',
         message: '전기기사를 찾을 수 없습니다',
         reach: '없는 전기기사 id + **유효한** 본문',
-        trap: '본문이 부실하면 :114 의 400 이 먼저다',
+        trap: '본문이 부실하면 :115 의 400 이 먼저다',
       },
       {
         order: 4,
         status: 400,
-        line: 155,
+        line: 163,
         kind: 'state',
         message: '추천인을 찾을 수 없습니다',
         reach: 'referredByUserId 가 null 이 아닌 값 + 미존재/미승인/비활성',
@@ -337,7 +316,7 @@ export const GATES: Record<string, HandlerGates> = {
       {
         order: 5,
         status: 400,
-        line: 160,
+        line: 168,
         kind: 'state',
         message: '본인을 추천인으로 지정할 수 없습니다',
         reach: '`referrer.id === technician.userId` (**userId** 비교)',
@@ -349,21 +328,21 @@ export const GATES: Record<string, HandlerGates> = {
     file: 'src/app/api/admin/providers/[id]/route.ts',
     note: 'technicians PATCH 와 동형. 자기추천은 `referrer.id === provider.userId` (userId 비교).',
     gates: [
-      { order: 1, status: 400, line: 107, kind: 'body-parse', message: '잘못된 요청입니다', reach: 'JSON 이 아닌 본문' },
-      { order: 2, status: 400, line: 113, kind: 'schema', message: null, reach: 'zod 위반' },
+      { order: 1, status: 400, line: 108, kind: 'body-parse', message: '잘못된 요청입니다', reach: 'JSON 이 아닌 본문' },
+      { order: 2, status: 400, line: 114, kind: 'schema', message: null, reach: 'zod 위반' },
       {
         order: 3,
         status: 404,
-        line: 120,
+        line: 121,
         kind: 'not-found',
         message: '업체를 찾을 수 없습니다',
         reach: '없는 업체 id + 유효한 본문',
-        trap: '본문이 부실하면 :112 의 400 이 먼저다',
+        trap: '본문이 부실하면 :114 의 400 이 먼저다',
       },
       {
         order: 4,
         status: 400,
-        line: 153,
+        line: 161,
         kind: 'state',
         message: '추천인을 찾을 수 없습니다',
         reach: 'referredByUserId 지정 + 미존재/미승인/비활성',
@@ -371,7 +350,7 @@ export const GATES: Record<string, HandlerGates> = {
       {
         order: 5,
         status: 400,
-        line: 158,
+        line: 166,
         kind: 'state',
         message: '본인을 추천인으로 지정할 수 없습니다',
         reach: '`referrer.id === provider.userId`',
@@ -695,7 +674,7 @@ export const GATES: Record<string, HandlerGates> = {
 
   'GET /api/admin/technicians/[id]': {
     file: 'src/app/api/admin/technicians/[id]/route.ts',
-    gates: [{ order: 1, status: 404, line: 43, kind: 'not-found', message: '전기기사를 찾을 수 없습니다', reach: '없는 id' }],
+    gates: [{ order: 1, status: 404, line: 44, kind: 'not-found', message: '전기기사를 찾을 수 없습니다', reach: '없는 id' }],
   },
 
   'GET /api/admin/inspections/[id]': {
@@ -705,7 +684,7 @@ export const GATES: Record<string, HandlerGates> = {
 
   'GET /api/admin/providers/[id]': {
     file: 'src/app/api/admin/providers/[id]/route.ts',
-    gates: [{ order: 1, status: 404, line: 41, kind: 'not-found', message: '업체를 찾을 수 없습니다', reach: '없는 id' }],
+    gates: [{ order: 1, status: 404, line: 42, kind: 'not-found', message: '업체를 찾을 수 없습니다', reach: '없는 id' }],
   },
 
   'GET /api/admin/technicians/[id]/contract': {
@@ -2184,7 +2163,7 @@ export function gatesFor(method: string, path: string): HandlerGates | undefined
  * 특정 분기를 노린 테스트가 **그 분기에 실제로 도달했는지** 확인한다.
  * 상태코드만 보는 단언이 앞선 게이트를 때리고도 통과하는 것을 막는다.
  *
- *   const gate = expectGate('POST /api/admin/providers', 96);
+ *   const gate = expectGate('POST /api/admin/providers', 81);
  *   expect(res.status()).toBe(gate.status);
  *   expect((await res.json()).error).toBe(gate.message);
  */

@@ -70,7 +70,7 @@ export default function EditProviderPage({
       detail &&
       (detail.lat == null || detail.lng == null) &&
       !window.confirm(
-        '좌표가 없는 업체입니다. 서비스 지역이 설정돼 있으면 지역 기준으로 자동배정되며, 좌표를 입력하면 거리순 배정까지 됩니다.\n그래도 승인할까요?',
+        '좌표가 없는 업체입니다. 서비스 지역이 설정돼 있으면 지역 기준으로 자동배정되며, 주소를 정확히 고쳐 저장하면 좌표가 잡혀 거리순 배정까지 됩니다.\n그래도 승인할까요?',
       )
     )
       return;
@@ -135,12 +135,6 @@ export default function EditProviderPage({
     setBusy(true);
     setError(null);
     try {
-      const lat = v.lat.trim() === '' ? null : Number(v.lat);
-      const lng = v.lng.trim() === '' ? null : Number(v.lng);
-      if ((lat != null && !Number.isFinite(lat)) || (lng != null && !Number.isFinite(lng))) {
-        setError('위도/경도는 숫자로 입력해 주세요');
-        return;
-      }
       const res = await fetch(`/api/admin/providers/${id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
@@ -148,8 +142,6 @@ export default function EditProviderPage({
           name: v.name,
           phone: v.phone,
           address: v.address,
-          lat,
-          lng,
           memo: v.memo.trim() || null,
           ...(v.password ? { password: v.password } : {}),
         }),
@@ -307,7 +299,8 @@ export default function EditProviderPage({
         {(detail.lat == null || detail.lng == null) && (
           <p className="rounded-admin-md bg-admin-cyan-ink/5 p-3 text-sm text-admin-cyan-ink">
             좌표가 없어 거리순 정렬은 안 되지만, 서비스 지역이 설정돼 있으면 지역
-            기준으로 자동배정됩니다. 정확한 거리 배정을 원하면 아래에서 좌표를 입력하세요.
+            기준으로 자동배정됩니다. 거리순 배정을 원하면 아래에서 주소를 정확히 고쳐
+            저장하세요. 좌표는 주소로 자동 계산됩니다.
           </p>
         )}
         {error && (
@@ -386,8 +379,6 @@ export default function EditProviderPage({
           name: detail.name,
           phone: detail.phone,
           address: detail.address,
-          lat: detail.lat == null ? '' : String(detail.lat),
-          lng: detail.lng == null ? '' : String(detail.lng),
           memo: detail.memo ?? '',
         }}
         isEdit

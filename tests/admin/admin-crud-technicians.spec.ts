@@ -44,7 +44,7 @@ function techBody(over: Record<string, unknown> = {}): Record<string, unknown> {
     password: PASSWORD,
     name: 'E2E 등록전기기사',
     phone: ephemeralPhone(),
-    // 좌표를 직접 주면 geocode() 호출 분기를 건너뛴다 (:79-92).
+    // 좌표를 직접 주면 geocode() 실호출(:79-85)을 건너뛴다.
     address: '서울특별시 강남구 테헤란로 152',
     employmentType: 'DAILY',
     lat: 37.5006,
@@ -152,19 +152,21 @@ test('technicians POST 400 (:72) — zod 검증 실패 메시지가 그대로 �
   expect((await type.json()).error).toMatch(/DAILY|PERMANENT|option|enum/i);
 });
 
-test('technicians POST 400 (:87) — 좌표를 생략했고 주소를 변환하지 못했다', async () => {
+test('technicians POST 200 — 좌표를 생략했고 주소를 변환하지 못해도 좌표 없이 등록된다', async () => {
   // lat/lng 를 빼면 geocode(address) 를 실제로 호출한다(카카오 실호출 유지, 계획 §확정 제약).
-  // 변환 불가 주소이거나 키가 없으면 두 경우 모두 null → 이 분기로 떨어진다.
+  // 관리자 폼에는 위도/경도 입력칸이 없다. 지오코딩 실패가 등록을 막으면 막다른 길이 된다.
   const body = techBody({ address: '존재하지않는주소ㅁㄴㅇㄹㅋㅌㅊㅍ 999999번지' });
   delete body.lat;
   delete body.lng;
 
   const res = await admin.post('/api/admin/technicians', { data: body });
-  expect(res.status()).toBe(400);
-  expect(await res.json()).toMatchObject({ needManualCoords: true });
+  expect(res.status()).toBe(200);
+  const { id } = (await res.json()) as { id: string };
+  const row = await prisma.technician.findUnique({ where: { id } });
+  expect(row).toMatchObject({ lat: null, lng: null });
 });
 
-test('technicians POST 400 (:115) — 추천인이 없거나 승인/활성 상태가 아니다', async () => {
+test('technicians POST 400 (:108) — 추천인이 없거나 승인/활성 상태가 아니다', async () => {
   const missing = await admin.post('/api/admin/technicians', {
     data: techBody({ referrerUserId: 'e2e-no-such-user-id' }),
   });
@@ -186,7 +188,7 @@ test('technicians POST 400 (:115) — 추천인이 없거나 승인/활성 상�
   expect(await notActive.json()).toMatchObject({ error: '추천인을 찾을 수 없습니다' });
 });
 
-test('technicians POST 400 (:120) — 추천인 전화번호가 신청자와 같다 (자기 추천)', async () => {
+test('technicians POST 400 (:113) — 추천인 전화번호가 신청자와 같다 (자기 추천)', async () => {
   const referrer = await f.createTechFixture();
   const res = await admin.post('/api/admin/technicians', {
     data: techBody({ referrerUserId: referrer.userId, phone: referrer.phone }),
@@ -195,7 +197,7 @@ test('technicians POST 400 (:120) — 추천인 전화번호가 신청자와 같
   expect(await res.json()).toMatchObject({ error: '본인을 추천인으로 지정할 수 없습니다' });
 });
 
-test('technicians POST 409 (:154) — loginId 중복', async () => {
+test('technicians POST 409 (:147) — loginId 중복', async () => {
   const body = techBody();
   const first = await admin.post('/api/admin/technicians', { data: body });
   expect(first.status()).toBe(200);
@@ -246,7 +248,7 @@ test('technicians POST 200 — 즉시 APPROVED 로 생성되고 추천인이 기
 
 // ── GET /api/admin/technicians/[id] ────────────────────────────────────────
 
-test('technicians/[id] GET 404 (:43) — 없는 id', async () => {
+test('technicians/[id] GET 404 (:44) — 없는 id', async () => {
   const res = await admin.get('/api/admin/technicians/e2e-no-such-technician');
   expect(res.status()).toBe(404);
   expect(await res.json()).toMatchObject({ error: '전기기사를 찾을 수 없습니다' });
@@ -305,7 +307,7 @@ test('technicians/[id] GET 200 — 상세 shape · 리뷰 0건 기본값 · 소�
 
 // ── PATCH /api/admin/technicians/[id] — 4xx 분기 ───────────────────────────
 
-test('technicians/[id] PATCH 400 (:108) — 본문이 JSON 이 아니다', async () => {
+test('technicians/[id] PATCH 400 (:109) — 본문이 JSON 이 아니다', async () => {
   const tech = await f.createTechFixture();
   const res = await admin.patch(`/api/admin/technicians/${tech.technicianId}`, {
     headers: { 'content-type': 'application/json' },
@@ -315,7 +317,7 @@ test('technicians/[id] PATCH 400 (:108) — 본문이 JSON 이 아니다', async
   expect(await res.json()).toMatchObject({ error: '잘못된 요청입니다' });
 });
 
-test('technicians/[id] PATCH 400 (:114) — zod 검증 실패', async () => {
+test('technicians/[id] PATCH 400 (:115) — zod 검증 실패', async () => {
   const tech = await f.createTechFixture();
   const bad = await admin.patch(`/api/admin/technicians/${tech.technicianId}`, {
     data: { phone: '123' },
@@ -330,7 +332,7 @@ test('technicians/[id] PATCH 400 (:114) — zod 검증 실패', async () => {
   expect(await shortPw.json()).toMatchObject({ error: '비밀번호는 8자 이상' });
 });
 
-test('technicians/[id] PATCH 404 (:121) — 본문은 유효하지만 대상이 없다', async () => {
+test('technicians/[id] PATCH 404 (:122) — 본문은 유효하지만 대상이 없다', async () => {
   const res = await admin.patch('/api/admin/technicians/e2e-no-such-technician', {
     data: { memo: '아무거나' },
   });
@@ -338,7 +340,7 @@ test('technicians/[id] PATCH 404 (:121) — 본문은 유효하지만 대상이 
   expect(await res.json()).toMatchObject({ error: '전기기사를 찾을 수 없습니다' });
 });
 
-test('technicians/[id] PATCH 400 (:155) — 소급 지정한 소개자가 유효하지 않다', async () => {
+test('technicians/[id] PATCH 400 (:163) — 소급 지정한 소개자가 유효하지 않다', async () => {
   const tech = await f.createTechFixture();
   const rejected = await f.createPartnerFixture({ approvalStatus: 'REJECTED' });
 
@@ -360,7 +362,7 @@ test('technicians/[id] PATCH 400 (:155) — 소급 지정한 소개자가 유효
   ).toBeNull();
 });
 
-test('technicians/[id] PATCH 400 (:160) — 자기 자신을 소개자로 지정', async () => {
+test('technicians/[id] PATCH 400 (:168) — 자기 자신을 소개자로 지정', async () => {
   const tech = await f.createTechFixture();
   const res = await admin.patch(`/api/admin/technicians/${tech.technicianId}`, {
     data: { referredByUserId: tech.userId },
@@ -409,6 +411,37 @@ test('technicians/[id] PATCH 200 — Technician·User 양쪽이 갱신되고 지
   expect(await bcrypt.compare('newpass12345', after!.user.passwordHash)).toBe(true);
 });
 
+test('technicians/[id] PATCH 200 — 좌표 없이 주소만 바꾸면 다시 지오코딩한다 (실패 시 좌표 없음)', async () => {
+  const tech = await f.createTechFixture({ lat: 37.5006, lng: 127.0364 });
+
+  // 좌표를 명시하면 그 값이 그대로 저장된다 (지오코딩 실호출 없음).
+  const explicit = await admin.patch(`/api/admin/technicians/${tech.technicianId}`, {
+    data: { address: '서울특별시 강남구 테헤란로 200', lat: 37.501, lng: 127.037 },
+  });
+  expect(explicit.status()).toBe(200);
+  expect(
+    await prisma.technician.findUnique({ where: { id: tech.technicianId } }),
+  ).toMatchObject({ lat: 37.501, lng: 127.037 });
+
+  // 주소가 그대로면 좌표를 건드리지 않는다.
+  const same = await admin.patch(`/api/admin/technicians/${tech.technicianId}`, {
+    data: { address: '서울특별시 강남구 테헤란로 200', memo: '메모만' },
+  });
+  expect(same.status()).toBe(200);
+  expect(
+    await prisma.technician.findUnique({ where: { id: tech.technicianId } }),
+  ).toMatchObject({ lat: 37.501, lng: 127.037 });
+
+  // 변환할 수 없는 주소로 바꾸면 옛 좌표를 남기지 않고 비운다.
+  const res = await admin.patch(`/api/admin/technicians/${tech.technicianId}`, {
+    data: { address: '존재하지않는주소ㅁㄴㅇㄹㅋㅌㅊㅍ 999999번지' },
+  });
+  expect(res.status()).toBe(200);
+  expect(
+    await prisma.technician.findUnique({ where: { id: tech.technicianId } }),
+  ).toMatchObject({ lat: null, lng: null });
+});
+
 test('technicians/[id] PATCH 200 — 소개자 지정 후 null 로 해제된다 (S1)', async () => {
   const tech = await f.createTechFixture();
   const referrer = await f.createTechFixture();
@@ -442,16 +475,15 @@ test('gate map 결박 — 이 스펙이 커버하는 분기와 문구가 gates.t
   const covered: Array<[string, number, number, string | null]> = [
     ['POST /api/admin/technicians', 66, 400, '잘못된 요청입니다'],
     ['POST /api/admin/technicians', 72, 400, null], // zod 위임 — 입력별 문구를 개별 단언
-    ['POST /api/admin/technicians', 87, 400, '주소를 좌표로 변환하지 못했습니다. 위도/경도를 직접 입력해 주세요.'],
-    ['POST /api/admin/technicians', 115, 400, '추천인을 찾을 수 없습니다'],
-    ['POST /api/admin/technicians', 120, 400, '본인을 추천인으로 지정할 수 없습니다'],
-    ['POST /api/admin/technicians', 154, 409, '이미 사용 중인 아이디입니다'],
-    ['GET /api/admin/technicians/[id]', 43, 404, '전기기사를 찾을 수 없습니다'],
-    ['PATCH /api/admin/technicians/[id]', 108, 400, '잘못된 요청입니다'],
-    ['PATCH /api/admin/technicians/[id]', 114, 400, null],
-    ['PATCH /api/admin/technicians/[id]', 121, 404, '전기기사를 찾을 수 없습니다'],
-    ['PATCH /api/admin/technicians/[id]', 155, 400, '추천인을 찾을 수 없습니다'],
-    ['PATCH /api/admin/technicians/[id]', 160, 400, '본인을 추천인으로 지정할 수 없습니다'],
+    ['POST /api/admin/technicians', 108, 400, '추천인을 찾을 수 없습니다'],
+    ['POST /api/admin/technicians', 113, 400, '본인을 추천인으로 지정할 수 없습니다'],
+    ['POST /api/admin/technicians', 147, 409, '이미 사용 중인 아이디입니다'],
+    ['GET /api/admin/technicians/[id]', 44, 404, '전기기사를 찾을 수 없습니다'],
+    ['PATCH /api/admin/technicians/[id]', 109, 400, '잘못된 요청입니다'],
+    ['PATCH /api/admin/technicians/[id]', 115, 400, null],
+    ['PATCH /api/admin/technicians/[id]', 122, 404, '전기기사를 찾을 수 없습니다'],
+    ['PATCH /api/admin/technicians/[id]', 163, 400, '추천인을 찾을 수 없습니다'],
+    ['PATCH /api/admin/technicians/[id]', 168, 400, '본인을 추천인으로 지정할 수 없습니다'],
   ];
   for (const [handler, line, status, message] of covered) {
     const gate = expectGate(handler, line);

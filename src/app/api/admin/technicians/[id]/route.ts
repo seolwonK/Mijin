@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { prisma } from '@/lib/db';
 import { requireSession } from '@/lib/auth';
 import { sanitizeRegionKeys } from '@/lib/regions';
+import { geocode } from '@/lib/geo';
 
 const patchSchema = z.object({
   name: z.string().trim().min(1).max(50).optional(),
@@ -123,8 +124,15 @@ export async function PATCH(
 
   const technicianData: Record<string, unknown> = {};
   if (data.address !== undefined) technicianData.address = data.address;
-  if (data.lat !== undefined) technicianData.lat = data.lat;
-  if (data.lng !== undefined) technicianData.lng = data.lng;
+  if (data.lat !== undefined || data.lng !== undefined) {
+    if (data.lat !== undefined) technicianData.lat = data.lat;
+    if (data.lng !== undefined) technicianData.lng = data.lng;
+  } else if (data.address !== undefined && data.address !== technician.address) {
+    // 좌표를 따로 받지 않으면 주소가 바뀔 때 다시 지오코딩한다 (실패 시 좌표 없음)
+    const geo = await geocode(data.address);
+    technicianData.lat = geo?.lat ?? null;
+    technicianData.lng = geo?.lng ?? null;
+  }
   if (data.isActive !== undefined) technicianData.isActive = data.isActive;
   if (data.memo !== undefined) technicianData.memo = data.memo;
   if (data.employmentType !== undefined) technicianData.employmentType = data.employmentType;

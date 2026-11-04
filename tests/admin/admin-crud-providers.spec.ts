@@ -51,7 +51,7 @@ function providerBody(over: Record<string, unknown> = {}): Record<string, unknow
     password: PASSWORD,
     name: 'E2E 등록업체',
     phone: ephemeralPhone(),
-    // 좌표를 직접 주면 geocode() 분기(:88-101)를 건너뛴다.
+    // 좌표를 직접 주면 geocode() 실호출(:88-94)을 건너뛴다.
     address: '서울특별시 강남구 테헤란로 152',
     lat: 37.5006,
     lng: 127.0364,
@@ -169,17 +169,20 @@ test('providers POST 400 (:81) — 사업자등록번호 체크섬 불일치', a
   expect(await tooShort.json()).toMatchObject({ error: '사업자등록번호가 올바르지 않습니다' });
 });
 
-test('providers POST 400 (:96) — 좌표를 생략했고 주소를 변환하지 못했다', async () => {
+test('providers POST 200 — 좌표를 생략했고 주소를 변환하지 못해도 좌표 없이 등록된다', async () => {
+  // 관리자 폼에는 위도/경도 입력칸이 없다. 지오코딩 실패가 등록을 막으면 막다른 길이 된다.
   const body = providerBody({ address: '존재하지않는주소ㅁㄴㅇㄹㅋㅌㅊㅍ 999999번지' });
   delete body.lat;
   delete body.lng;
 
   const res = await admin.post('/api/admin/providers', { data: body });
-  expect(res.status()).toBe(400);
-  expect(await res.json()).toMatchObject({ needManualCoords: true });
+  expect(res.status()).toBe(200);
+  const { id } = (await res.json()) as { id: string };
+  const row = await prisma.provider.findUnique({ where: { id } });
+  expect(row).toMatchObject({ lat: null, lng: null, approvalStatus: 'APPROVED' });
 });
 
-test('providers POST 400 (:124) — 추천인이 없거나 승인/활성 상태가 아니다', async () => {
+test('providers POST 400 (:117) — 추천인이 없거나 승인/활성 상태가 아니다', async () => {
   const missing = await admin.post('/api/admin/providers', {
     data: providerBody({ referrerUserId: 'e2e-no-such-user-id' }),
   });
@@ -201,7 +204,7 @@ test('providers POST 400 (:124) — 추천인이 없거나 승인/활성 상태�
   expect(await notActive.json()).toMatchObject({ error: '추천인을 찾을 수 없습니다' });
 });
 
-test('providers POST 400 (:129) — 추천인 전화번호가 신청자와 같다 (자기 추천)', async () => {
+test('providers POST 400 (:122) — 추천인 전화번호가 신청자와 같다 (자기 추천)', async () => {
   const referrer = await f.createPartnerFixture();
   const res = await admin.post('/api/admin/providers', {
     data: providerBody({ referrerUserId: referrer.userId, phone: referrer.phone }),
@@ -210,7 +213,7 @@ test('providers POST 400 (:129) — 추천인 전화번호가 신청자와 같�
   expect(await res.json()).toMatchObject({ error: '본인을 추천인으로 지정할 수 없습니다' });
 });
 
-test('providers POST 409 (:163) — loginId 중복 · bizRegNo 중복', async () => {
+test('providers POST 409 (:156) — loginId 중복 · bizRegNo 중복', async () => {
   const body = providerBody({ bizRegNo: validBizRegNo() });
   const first = await admin.post('/api/admin/providers', { data: body });
   expect(first.status()).toBe(200);
@@ -282,7 +285,7 @@ test('providers POST 200 — bizRegNo 를 비우면 null 로 저장된다 (:76 �
 
 // ── GET /api/admin/providers/[id] ──────────────────────────────────────────
 
-test('providers/[id] GET 404 (:41) — 없는 id', async () => {
+test('providers/[id] GET 404 (:42) — 없는 id', async () => {
   const res = await admin.get('/api/admin/providers/e2e-no-such-provider');
   expect(res.status()).toBe(404);
   expect(await res.json()).toMatchObject({ error: '업체를 찾을 수 없습니다' });
@@ -339,7 +342,7 @@ test('providers/[id] GET 200 — 상세 shape · 리뷰 0건 기본값 · 소개
 
 // ── PATCH /api/admin/providers/[id] — 4xx 분기 ─────────────────────────────
 
-test('providers/[id] PATCH 400 (:106) — 본문이 JSON 이 아니다', async () => {
+test('providers/[id] PATCH 400 (:108) — 본문이 JSON 이 아니다', async () => {
   const partner = await f.createPartnerFixture();
   const res = await admin.patch(`/api/admin/providers/${partner.providerId}`, {
     headers: { 'content-type': 'application/json' },
@@ -349,7 +352,7 @@ test('providers/[id] PATCH 400 (:106) — 본문이 JSON 이 아니다', async (
   expect(await res.json()).toMatchObject({ error: '잘못된 요청입니다' });
 });
 
-test('providers/[id] PATCH 400 (:112) — zod 검증 실패', async () => {
+test('providers/[id] PATCH 400 (:114) — zod 검증 실패', async () => {
   const partner = await f.createPartnerFixture();
   const bad = await admin.patch(`/api/admin/providers/${partner.providerId}`, {
     data: { phone: '123' },
@@ -364,7 +367,7 @@ test('providers/[id] PATCH 400 (:112) — zod 검증 실패', async () => {
   expect(await shortPw.json()).toMatchObject({ error: '비밀번호는 8자 이상' });
 });
 
-test('providers/[id] PATCH 404 (:119) — 본문은 유효하지만 대상이 없다', async () => {
+test('providers/[id] PATCH 404 (:121) — 본문은 유효하지만 대상이 없다', async () => {
   const res = await admin.patch('/api/admin/providers/e2e-no-such-provider', {
     data: { memo: '아무거나' },
   });
@@ -372,7 +375,7 @@ test('providers/[id] PATCH 404 (:119) — 본문은 유효하지만 대상이 �
   expect(await res.json()).toMatchObject({ error: '업체를 찾을 수 없습니다' });
 });
 
-test('providers/[id] PATCH 400 (:152) — 소급 지정한 소개자가 유효하지 않다', async () => {
+test('providers/[id] PATCH 400 (:161) — 소급 지정한 소개자가 유효하지 않다', async () => {
   const partner = await f.createPartnerFixture();
   const rejected = await f.createTechFixture({ approvalStatus: 'REJECTED' });
 
@@ -393,7 +396,7 @@ test('providers/[id] PATCH 400 (:152) — 소급 지정한 소개자가 유효�
   ).toBeNull();
 });
 
-test('providers/[id] PATCH 400 (:157) — 자기 자신을 소개자로 지정', async () => {
+test('providers/[id] PATCH 400 (:166) — 자기 자신을 소개자로 지정', async () => {
   const partner = await f.createPartnerFixture();
   const res = await admin.patch(`/api/admin/providers/${partner.providerId}`, {
     data: { referredByUserId: partner.userId },
@@ -438,6 +441,37 @@ test('providers/[id] PATCH 200 — Provider·User 양쪽이 갱신되고 지역�
   expect(await bcrypt.compare('newpass12345', after!.user.passwordHash)).toBe(true);
 });
 
+test('providers/[id] PATCH 200 — 좌표 없이 주소만 바꾸면 다시 지오코딩한다 (실패 시 좌표 없음)', async () => {
+  const partner = await f.createPartnerFixture({ lat: 37.5006, lng: 127.0364 });
+
+  // 좌표를 명시하면 그 값이 그대로 저장된다 (지오코딩 실호출 없음).
+  const explicit = await admin.patch(`/api/admin/providers/${partner.providerId}`, {
+    data: { address: '서울특별시 강남구 테헤란로 200', lat: 37.501, lng: 127.037 },
+  });
+  expect(explicit.status()).toBe(200);
+  expect(
+    await prisma.provider.findUnique({ where: { id: partner.providerId } }),
+  ).toMatchObject({ lat: 37.501, lng: 127.037 });
+
+  // 주소가 그대로면 좌표를 건드리지 않는다.
+  const same = await admin.patch(`/api/admin/providers/${partner.providerId}`, {
+    data: { address: '서울특별시 강남구 테헤란로 200', memo: '메모만' },
+  });
+  expect(same.status()).toBe(200);
+  expect(
+    await prisma.provider.findUnique({ where: { id: partner.providerId } }),
+  ).toMatchObject({ lat: 37.501, lng: 127.037 });
+
+  // 변환할 수 없는 주소로 바꾸면 옛 좌표를 남기지 않고 비운다.
+  const res = await admin.patch(`/api/admin/providers/${partner.providerId}`, {
+    data: { address: '존재하지않는주소ㅁㄴㅇㄹㅋㅌㅊㅍ 999999번지' },
+  });
+  expect(res.status()).toBe(200);
+  expect(
+    await prisma.provider.findUnique({ where: { id: partner.providerId } }),
+  ).toMatchObject({ lat: null, lng: null });
+});
+
 test('providers/[id] PATCH 200 — 소개자 지정 후 null 로 해제된다 (S1)', async () => {
   const partner = await f.createPartnerFixture();
   const referrer = await f.createTechFixture();
@@ -465,16 +499,15 @@ test('gate map 결박 — 이 스펙이 커버하는 분기와 문구가 gates.t
     ['POST /api/admin/providers', 64, 400, '잘못된 요청입니다'],
     ['POST /api/admin/providers', 70, 400, null], // zod 위임
     ['POST /api/admin/providers', 81, 400, '사업자등록번호가 올바르지 않습니다'],
-    ['POST /api/admin/providers', 96, 400, '주소를 좌표로 변환하지 못했습니다. 위도/경도를 직접 입력해 주세요.'],
-    ['POST /api/admin/providers', 124, 400, '추천인을 찾을 수 없습니다'],
-    ['POST /api/admin/providers', 129, 400, '본인을 추천인으로 지정할 수 없습니다'],
-    ['POST /api/admin/providers', 163, 409, '이미 사용 중인 아이디 또는 사업자등록번호입니다'],
-    ['GET /api/admin/providers/[id]', 41, 404, '업체를 찾을 수 없습니다'],
-    ['PATCH /api/admin/providers/[id]', 106, 400, '잘못된 요청입니다'],
-    ['PATCH /api/admin/providers/[id]', 112, 400, null],
-    ['PATCH /api/admin/providers/[id]', 119, 404, '업체를 찾을 수 없습니다'],
-    ['PATCH /api/admin/providers/[id]', 152, 400, '추천인을 찾을 수 없습니다'],
-    ['PATCH /api/admin/providers/[id]', 157, 400, '본인을 추천인으로 지정할 수 없습니다'],
+    ['POST /api/admin/providers', 117, 400, '추천인을 찾을 수 없습니다'],
+    ['POST /api/admin/providers', 122, 400, '본인을 추천인으로 지정할 수 없습니다'],
+    ['POST /api/admin/providers', 156, 409, '이미 사용 중인 아이디 또는 사업자등록번호입니다'],
+    ['GET /api/admin/providers/[id]', 42, 404, '업체를 찾을 수 없습니다'],
+    ['PATCH /api/admin/providers/[id]', 108, 400, '잘못된 요청입니다'],
+    ['PATCH /api/admin/providers/[id]', 114, 400, null],
+    ['PATCH /api/admin/providers/[id]', 121, 404, '업체를 찾을 수 없습니다'],
+    ['PATCH /api/admin/providers/[id]', 161, 400, '추천인을 찾을 수 없습니다'],
+    ['PATCH /api/admin/providers/[id]', 166, 400, '본인을 추천인으로 지정할 수 없습니다'],
   ];
   for (const [handler, line, status, message] of covered) {
     const gate = expectGate(handler, line);

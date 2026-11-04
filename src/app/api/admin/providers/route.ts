@@ -83,21 +83,14 @@ export async function POST(req: NextRequest) {
     }
   }
 
+  // 좌표는 주소로 자동 계산한다(폼에 위도/경도 입력칸 없음). 변환에 실패해도 등록은 막지 않는다 —
+  // 셀프 가입과 같이 좌표 없이 저장되고, 서비스 지역 기준 자동배정만 받는다.
   let lat = data.lat ?? null;
   let lng = data.lng ?? null;
   if (lat == null || lng == null) {
     const geo = await geocode(data.address);
-    if (!geo) {
-      return NextResponse.json(
-        {
-          error: '주소를 좌표로 변환하지 못했습니다. 위도/경도를 직접 입력해 주세요.',
-          needManualCoords: true,
-        },
-        { status: 400 },
-      );
-    }
-    lat = geo.lat;
-    lng = geo.lng;
+    lat = geo?.lat ?? null;
+    lng = geo?.lng ?? null;
   }
 
   // 추천인 검증(선택) — 관리자 직접 등록도 셀프 가입과 동일 규칙(존재·승인·활성·자기 자신 아님)을 적용

@@ -9,8 +9,6 @@ export type TechnicianFormValue = {
   phone: string;
   address: string;
   employmentType: 'DAILY' | 'PERMANENT';
-  lat: string;
-  lng: string;
   memo: string;
 };
 
@@ -37,40 +35,9 @@ export default function TechnicianForm({
   error: string | null;
 }) {
   const [v, setV] = useState(initial);
-  const [geoMsg, setGeoMsg] = useState<string | null>(null);
 
   function set<K extends keyof TechnicianFormValue>(key: K, value: TechnicianFormValue[K]) {
     setV((prev) => ({ ...prev, [key]: value }));
-  }
-
-  async function convertAddress() {
-    setGeoMsg(null);
-    if (!v.address.trim()) {
-      setGeoMsg('주소를 먼저 입력해 주세요');
-      return;
-    }
-    try {
-      const res = await fetch(
-        `/api/admin/geocode?query=${encodeURIComponent(v.address)}`,
-      );
-      const data = await res.json();
-      if (!data.enabled) {
-        setGeoMsg('주소 변환 기능을 사용할 수 없습니다. 좌표를 직접 입력해 주세요.');
-        return;
-      }
-      if (!data.result) {
-        setGeoMsg('주소를 찾지 못했습니다. 좌표를 직접 입력해 주세요.');
-        return;
-      }
-      setV((prev) => ({
-        ...prev,
-        lat: String(data.result.lat),
-        lng: String(data.result.lng),
-      }));
-      setGeoMsg('✓ 좌표 변환 완료');
-    } catch {
-      setGeoMsg('좌표 변환 중 오류가 발생했습니다');
-    }
   }
 
   return (
@@ -144,44 +111,14 @@ export default function TechnicianForm({
 
       <div className="space-y-2">
         <label className="text-sm font-semibold">위치</label>
-        <div className="flex gap-2">
-          <input
-            type="text"
-            value={v.address}
-            onChange={(e) => set('address', e.target.value)}
-            placeholder="주소"
-            aria-label="주소"
-            className={inputClass}
-          />
-          <button
-            type="button"
-            onClick={convertAddress}
-            className="shrink-0 rounded-admin-md border border-admin-cyan-ink/30 bg-admin-cyan-ink/5 px-3 text-sm font-bold text-admin-cyan-ink"
-          >
-            좌표 변환
-          </button>
-        </div>
-        {geoMsg && <p className="text-sm text-muted">{geoMsg}</p>}
-        <div className="flex gap-2">
-          <input
-            type="text"
-            inputMode="decimal"
-            value={v.lat}
-            onChange={(e) => set('lat', e.target.value)}
-            placeholder="위도 (예: 37.5006)"
-            aria-label="위도"
-            className={inputClass}
-          />
-          <input
-            type="text"
-            inputMode="decimal"
-            value={v.lng}
-            onChange={(e) => set('lng', e.target.value)}
-            placeholder="경도 (예: 127.0364)"
-            aria-label="경도"
-            className={inputClass}
-          />
-        </div>
+        <input
+          type="text"
+          value={v.address}
+          onChange={(e) => set('address', e.target.value)}
+          placeholder="주소"
+          aria-label="주소"
+          className={inputClass}
+        />
       </div>
 
       <div className="space-y-2">

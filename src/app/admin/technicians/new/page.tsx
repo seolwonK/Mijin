@@ -16,12 +16,6 @@ export default function NewTechnicianPage() {
     setBusy(true);
     setError(null);
     try {
-      const lat = v.lat.trim() === '' ? null : Number(v.lat);
-      const lng = v.lng.trim() === '' ? null : Number(v.lng);
-      if ((lat != null && !Number.isFinite(lat)) || (lng != null && !Number.isFinite(lng))) {
-        setError('위도/경도는 숫자로 입력해 주세요');
-        return;
-      }
       const res = await fetch('/api/admin/technicians', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -32,8 +26,6 @@ export default function NewTechnicianPage() {
           phone: v.phone,
           address: v.address,
           employmentType: v.employmentType,
-          lat,
-          lng,
           memo: v.memo.trim() || null,
           ...(referrer ? { referrerUserId: referrer.userId } : {}),
         }),
@@ -68,8 +60,6 @@ export default function NewTechnicianPage() {
           phone: '',
           address: '',
           employmentType: 'DAILY',
-          lat: '',
-          lng: '',
           memo: '',
         }}
         isEdit={false}
