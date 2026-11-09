@@ -1891,6 +1891,83 @@ export const GATES: Record<string, HandlerGates> = {
     ],
   },
 
+  'DELETE /api/admin/inspections/[id]': {
+    file: 'src/app/api/admin/inspections/[id]/route.ts',
+    note:
+      '구독 영구 삭제(점검 회차·월 납부는 onDelete: Cascade). 이용 중(ACTIVE)은 막는다 — ' +
+      '먼저 POST .../cancel 로 취소해야 한다. 409 가 두 개이므로 message 로만 구별된다.',
+    gates: [
+      {
+        order: 1,
+        status: 404,
+        line: 263,
+        kind: 'not-found',
+        message: '구독을 찾을 수 없습니다',
+        reach: '존재하지 않는 구독 id',
+      },
+      {
+        order: 2,
+        status: 409,
+        line: 268,
+        kind: 'state',
+        message: '이용 중인 구독은 삭제할 수 없습니다. 먼저 구독을 취소해 주세요.',
+        reach: 'ACTIVE 구독의 id',
+      },
+      {
+        order: 3,
+        status: 409,
+        line: 279,
+        kind: 'race',
+        message: '방금 다른 곳에서 처리되었습니다. 화면을 새로고침해 주세요.',
+        reach: '읽기와 쓰기 사이에 다른 관리자가 입금을 확인해 ACTIVE 가 됨 — CAS(status) 0행',
+        trap: 'ACTIVE 를 그냥 보내면 order 2 가 먼저 잡는다. 진짜 동시성 없이는 도달 불가.',
+      },
+    ],
+  },
+
+  'DELETE /api/admin/inspections/payments/[paymentId]': {
+    file: 'src/app/api/admin/inspections/payments/[paymentId]/route.ts',
+    note:
+      '납부 줄 영구 삭제. 첫 달(구독 시작 기록)과 입금 확인된 줄은 막는다 — 확인된 줄은 ' +
+      'POST 로 되돌린 뒤에야 지울 수 있다. 409 가 세 개이므로 message 로만 구별된다.',
+    gates: [
+      {
+        order: 1,
+        status: 404,
+        line: 99,
+        kind: 'not-found',
+        message: '납부 기록을 찾을 수 없습니다',
+        reach: '존재하지 않는 paymentId',
+      },
+      {
+        order: 2,
+        status: 409,
+        line: 104,
+        kind: 'state',
+        message: '첫 달 납부는 구독 시작 기록이라 삭제할 수 없습니다.',
+        reach: 'seq 1 납부의 id',
+      },
+      {
+        order: 3,
+        status: 409,
+        line: 110,
+        kind: 'state',
+        message: '입금 확인된 납부는 삭제할 수 없습니다. 먼저 되돌린 뒤 삭제해 주세요.',
+        reach: 'seq 2 이상이고 paidAt 이 있는 납부',
+        trap: 'seq 1 은 그 자체로 입금 확인 상태라 order 2 가 먼저 잡는다.',
+      },
+      {
+        order: 4,
+        status: 409,
+        line: 121,
+        kind: 'race',
+        message: '방금 다른 곳에서 처리되었습니다. 화면을 새로고침해 주세요.',
+        reach: '읽기와 쓰기 사이에 다른 관리자가 같은 납부의 입금을 확인함 — CAS(paidAt) 0행',
+        trap: '확인된 줄을 그냥 보내면 order 3 가 먼저 잡는다. 진짜 동시성 없이는 도달 불가.',
+      },
+    ],
+  },
+
   'POST /api/admin/inspections/[id]/confirm-payment': {
     file: 'src/app/api/admin/inspections/[id]/confirm-payment/route.ts',
     note: '본문을 읽지 않는다(경로 파라미터만). 전이는 lib/inspectionLifecycle.activatePlan 의 CAS.',

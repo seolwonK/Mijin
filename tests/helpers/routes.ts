@@ -1,8 +1,8 @@
 // ───────────────────────────────────────────────────────────────────────────
 // API 라우트 매트릭스 — 단일 진실 원천.
 //
-// 89개 route.ts 파일이 104개 핸들러를 export 한다 (15개 라우트가 2개 메서드).
-// 그중 19개가 설계상 공개이고, 나머지 **79개가 가드 대상**이다.
+// 91개 route.ts 파일이 108개 핸들러를 export 한다 (15개 라우트가 2개 이상 메서드).
+// 그중 19개가 설계상 공개이고, 나머지 **89개가 가드 대상**이다.
 //
 // 이 표를 손으로 유지하지 않는다: tests/cross/matrix-completeness.spec.ts 가
 // src/app/api/** 를 걸어 실제 export 와 대조하므로, 라우트가 추가·삭제되면
@@ -106,13 +106,15 @@ export const ROUTES: RouteEntry[] = [
   admin('/api/admin/technicians/[id]/contract', 'GET'),
   admin('/api/admin/technicians/[id]/contract', 'PUT'),
   admin('/api/admin/technicians/[id]/reject', 'POST'),
-  // 정기 전기점검 구독 운영 — 입금 확인·취소·대리 예약·방문 상태·입금 계좌 설정
+  // 정기 전기점검 구독 운영 — 입금 확인·취소·삭제·대리 예약·방문 상태·입금 계좌 설정
   admin('/api/admin/inspections', 'GET'),
   admin('/api/admin/inspections/[id]', 'GET'),
   admin('/api/admin/inspections/[id]', 'PATCH'),
+  admin('/api/admin/inspections/[id]', 'DELETE'),
   admin('/api/admin/inspections/[id]/confirm-payment', 'POST'),
   admin('/api/admin/inspections/[id]/reset-password', 'POST'),
   admin('/api/admin/inspections/payments/[paymentId]', 'POST'),
+  admin('/api/admin/inspections/payments/[paymentId]', 'DELETE'),
   admin('/api/admin/inspections/[id]/cancel', 'POST'),
   admin('/api/admin/inspections/[id]/visits', 'POST'),
   admin('/api/admin/inspections/visits/[visitId]', 'PATCH'),

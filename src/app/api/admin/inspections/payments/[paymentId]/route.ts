@@ -75,3 +75,52 @@ export async function POST(
   }
   return NextResponse.json({ ok: true });
 }
+
+// 납부 1건 영구 삭제 — 잘못 만들어진 납부 줄(중복·기간 착오)을 치우는 자리다.
+// 두 가지를 막는다:
+//  · 첫 달은 구독을 시작한 입금 그 자체다. 이것만 지우면 "시작은 했는데 첫 납부가 없는"
+//    구독이 남는다 — 지울 거라면 구독째 지우는 것이 올바른 길이다(DELETE .../inspections/[id]).
+//  · 입금을 확인한 납부는 돈이 들어온 사실이다. 먼저 '되돌리기'로 확인을 풀게 한다 —
+//    한 번 누르면 사라지는 자리에 금전 기록을 두지 않는다.
+export async function DELETE(
+  _req: NextRequest,
+  { params }: { params: Promise<{ paymentId: string }> },
+) {
+  if (!(await requireSession('ADMIN'))) {
+    return NextResponse.json({ error: '권한이 없습니다' }, { status: 401 });
+  }
+  const { paymentId } = await params;
+
+  const payment = await prisma.inspectionPayment.findUnique({
+    where: { id: paymentId },
+    select: { seq: true, paidAt: true },
+  });
+  if (!payment) {
+    return NextResponse.json({ error: '납부 기록을 찾을 수 없습니다' }, { status: 404 });
+  }
+  if (payment.seq === 1) {
+    return NextResponse.json(
+      { error: '첫 달 납부는 구독 시작 기록이라 삭제할 수 없습니다.' },
+      { status: 409 },
+    );
+  }
+  if (payment.paidAt != null) {
+    return NextResponse.json(
+      { error: '입금 확인된 납부는 삭제할 수 없습니다. 먼저 되돌린 뒤 삭제해 주세요.' },
+      { status: 409 },
+    );
+  }
+
+  // CAS — 읽은 뒤 다른 관리자가 같은 납부의 입금을 확인했다면 지우지 않는다.
+  const deleted = await prisma.inspectionPayment.deleteMany({
+    where: { id: paymentId, paidAt: null },
+  });
+  if (deleted.count === 0) {
+    return NextResponse.json(
+      { error: '방금 다른 곳에서 처리되었습니다. 화면을 새로고침해 주세요.' },
+      { status: 409 },
+    );
+  }
+
+  return NextResponse.json({ ok: true });
+}

@@ -237,3 +237,48 @@ export async function PATCH(
 
   return NextResponse.json(await loadDetail(id));
 }
+
+// 구독 영구 삭제 — 테스트 신청·오신청을 목록에서 치우는 자리다. 취소(CANCELED)와 다르다:
+// 취소는 "있었던 일"을 사유와 함께 남기고, 삭제는 행 자체를 없앤다(점검 회차·월 납부는
+// onDelete: Cascade 로 함께 사라진다). 그래서 이용 중(ACTIVE)인 구독은 막는다 — 운영 중
+// 고객을 실수로 날리는 것이 이 화면에서 가장 비싼 사고고, 되돌릴 방법이 없다. 먼저
+// '구독 취소'를 거치면 삭제할 수 있다(취소는 고객에게 문자가 가므로 의도가 분명해진다).
+//
+// 고객 계정(User)은 남긴다 — 같은 계정으로 다시 신청할 수 있어야 하고, 계정을 지우는 일은
+// 이 구독 하나의 결정이 아니다(같은 번호의 고장 수리 접수·다른 구독이 매달려 있다).
+export async function DELETE(
+  _req: NextRequest,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  if (!(await requireSession('ADMIN'))) {
+    return NextResponse.json({ error: '권한이 없습니다' }, { status: 401 });
+  }
+  const { id } = await params;
+
+  const plan = await prisma.inspectionPlan.findUnique({
+    where: { id },
+    select: { status: true },
+  });
+  if (!plan) {
+    return NextResponse.json({ error: '구독을 찾을 수 없습니다' }, { status: 404 });
+  }
+  if (plan.status === 'ACTIVE') {
+    return NextResponse.json(
+      { error: '이용 중인 구독은 삭제할 수 없습니다. 먼저 구독을 취소해 주세요.' },
+      { status: 409 },
+    );
+  }
+
+  // CAS — 읽은 뒤 다른 관리자가 입금을 확인해 ACTIVE 가 됐다면 지우지 않는다.
+  const deleted = await prisma.inspectionPlan.deleteMany({
+    where: { id, status: { in: ['PENDING_PAYMENT', 'EXPIRED', 'CANCELED'] } },
+  });
+  if (deleted.count === 0) {
+    return NextResponse.json(
+      { error: '방금 다른 곳에서 처리되었습니다. 화면을 새로고침해 주세요.' },
+      { status: 409 },
+    );
+  }
+
+  return NextResponse.json({ ok: true });
+}

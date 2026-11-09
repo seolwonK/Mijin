@@ -3,6 +3,7 @@
 import { use, useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import PageHeader from '@/components/PageHeader';
 import { buttonClasses } from '@/components/Button';
 import { useConfirm } from '@/components/useConfirm';
@@ -61,7 +62,7 @@ function kstDate(iso: string): string {
   return todayKst(new Date(iso));
 }
 
-async function send<T>(url: string, method: 'POST' | 'PATCH', body?: unknown): Promise<T> {
+async function send<T>(url: string, method: 'POST' | 'PATCH' | 'DELETE', body?: unknown): Promise<T> {
   const res = await fetch(url, {
     method,
     headers: { 'Content-Type': 'application/json' },
@@ -77,6 +78,7 @@ export default function AdminInspectionDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = use(params);
+  const router = useRouter();
   const [detail, setDetail] = useState<AdminInspectionDetail | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [notFound, setNotFound] = useState(false);
@@ -139,6 +141,37 @@ export default function AdminInspectionDetailPage({
       await send(`/api/admin/inspections/payments/${paymentId}`, 'POST', body);
       await load();
     });
+
+  /** 납부 1건 영구 삭제. 입금 확인된 줄·첫 달은 서버가 막는다(먼저 되돌리기). */
+  async function deletePayment(payment: PaymentView) {
+    const ok = await confirm({
+      title: '납부 줄 삭제',
+      message: `${payment.seq}개월째(${formatVisitDate(payment.dueDate)} · ${formatWon(payment.amountWon)}) 납부 줄을 영구 삭제합니다. 잘못 만들어진 줄만 지우세요 — 되돌릴 수 없습니다.`,
+      confirmText: '영구 삭제',
+      danger: true,
+    });
+    if (!ok) return;
+    await run(async () => {
+      await send(`/api/admin/inspections/payments/${payment.id}`, 'DELETE');
+      await load();
+    });
+  }
+
+  /** 구독 영구 삭제. 지우면 이 화면의 대상이 없어지므로 목록으로 되돌아간다. */
+  async function deletePlan() {
+    if (!detail) return;
+    const ok = await confirm({
+      title: '구독 삭제',
+      message: `${detail.plan.contactName}님(${detail.account.loginId})의 ${PLAN_STATUS_LABEL[detail.plan.status]} 구독을 영구 삭제합니다. 점검 회차 ${detail.plan.visits.length}건과 월 납부 기록도 함께 사라지고 되돌릴 수 없습니다. 고객 로그인 계정은 남습니다.`,
+      confirmText: '영구 삭제',
+      danger: true,
+    });
+    if (!ok) return;
+    const done = await run(async () => {
+      await send(`/api/admin/inspections/${id}`, 'DELETE');
+    });
+    if (done) router.replace('/admin/inspections');
+  }
 
   async function saveResult(visit: VisitView, complete: boolean, input: ResultInput) {
     await run(async () => {
@@ -455,7 +488,7 @@ export default function AdminInspectionDetailPage({
           </div>
         </section>
 
-        <PaymentsCard plan={plan} busy={busy} onSave={savePayment} />
+        <PaymentsCard plan={plan} busy={busy} onSave={savePayment} onDelete={deletePayment} />
 
         <RefundCard plan={plan} busy={busy} onSave={patchPlan} confirm={confirm} />
 
@@ -532,6 +565,43 @@ export default function AdminInspectionDetailPage({
                 </li>
               ))}
             </ul>
+          )}
+        </section>
+
+        {/* 구독 삭제 — 되돌릴 수 없는 조작이라 화면 맨 아래, 다른 버튼과 떨어진 곳에 둔다.
+            목록(/admin/inspections)의 행 버튼은 여러 건을 치울 때 쓰고, 여기는 한 고객을
+            들여다본 끝에 "이건 지워도 된다"고 판단하는 자리다. */}
+        <section
+          className="rounded-admin-md border border-red-200 bg-red-50/40 p-4"
+          aria-labelledby="delete-plan-title"
+        >
+          <h2 id="delete-plan-title" className="text-sm font-bold text-red-800">
+            구독 삭제
+          </h2>
+          {plan.status === 'ACTIVE' ? (
+            <p className="mt-2 text-sm leading-relaxed text-muted">
+              이용 중인 구독은 삭제할 수 없습니다.{' '}
+              <Link href="/admin/inspections" className="font-semibold underline">
+                전기점검 목록
+              </Link>
+              에서 <strong>구독 취소</strong>를 먼저 하세요 — 취소하면 고객에게 안내 문자가 갑니다.
+            </p>
+          ) : (
+            <>
+              <p className="mt-2 text-sm leading-relaxed text-muted">
+                테스트 신청·오신청을 정리하는 자리입니다. 점검 회차 {plan.visits.length}건과 월
+                납부 기록이 함께 사라지고 되돌릴 수 없습니다. 고객 로그인 계정(
+                {account.loginId})은 남습니다.
+              </p>
+              <button
+                type="button"
+                disabled={busy}
+                onClick={deletePlan}
+                className={buttonClasses('danger', 'sm', 'mt-3')}
+              >
+                구독 영구 삭제
+              </button>
+            </>
           )}
         </section>
       </div>
@@ -763,10 +833,12 @@ function PaymentsCard({
   plan,
   busy,
   onSave,
+  onDelete,
 }: {
   plan: PlanView;
   busy: boolean;
   onSave: (paymentId: string, body: { paid: boolean; note?: string | null }) => Promise<boolean>;
+  onDelete: (payment: PaymentView) => Promise<void>;
 }) {
   const [editing, setEditing] = useState<{ id: string; note: string } | null>(null);
   const { billing } = plan;
@@ -932,6 +1004,19 @@ function PaymentsCard({
                             className={buttonClasses('secondary', 'sm', 'whitespace-nowrap')}
                           >
                             메모
+                          </button>
+                        )}
+                        {/* 잘못 만들어진 줄만 지운다 — 입금 확인된 줄은 되돌린 뒤에야 지울 수
+                            있고(서버 409), 첫 달은 구독 시작 기록이라 아예 지울 수 없다. */}
+                        {payment.status !== 'PAID' && payment.seq !== 1 && (
+                          <button
+                            type="button"
+                            disabled={busy}
+                            onClick={() => void onDelete(payment)}
+                            aria-label={`${payment.seq}개월째 납부 줄 삭제`}
+                            className={buttonClasses('danger', 'sm', 'whitespace-nowrap')}
+                          >
+                            삭제
                           </button>
                         )}
                       </div>

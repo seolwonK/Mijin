@@ -158,7 +158,7 @@ function scheduleGroupOf(date: string, today: string): ScheduleGroup {
 }
 
 /** 상태를 바꾸는 요청 하나. 실패하면 서버가 준 문구를 그대로 던진다. */
-async function send(url: string, method: 'POST' | 'PATCH', body?: unknown) {
+async function send(url: string, method: 'POST' | 'PATCH' | 'DELETE', body?: unknown) {
   const res = await fetch(url, {
     method,
     headers: { 'Content-Type': 'application/json' },
@@ -281,6 +281,20 @@ function AdminInspections() {
       danger: true,
     });
     if (ok) await patchVisit(visit.visitId, { status: 'CANCELED' });
+  }
+
+  // 구독 영구 삭제 — 테스트 신청·오신청을 목록에서 치우는 자리다. 취소와 달리 사유도 남지
+  // 않으므로, 함께 사라지는 것(점검 회차·월 납부)과 남는 것(로그인 계정)을 확인 창에 다 적는다.
+  // 이용 중 구독에는 버튼을 내지 않고 서버도 409 로 막는다 — 먼저 '구독 취소'를 거쳐야 한다.
+  async function deletePlan(plan: PlanRow) {
+    const ok = await confirm({
+      title: '구독 삭제',
+      message: `${plan.userName}님(${plan.loginId})의 ${PLAN_STATUS_LABEL[plan.status]} 구독을 영구 삭제합니다. 점검 회차 ${plan.visits.length}건과 월 납부 기록도 함께 사라지고 되돌릴 수 없습니다. 고객 로그인 계정은 남습니다.`,
+      confirmText: '영구 삭제',
+      danger: true,
+    });
+    if (!ok) return;
+    await run(plan.id, () => send(`/api/admin/inspections/${plan.id}`, 'DELETE'));
   }
 
   const plans = useMemo(() => {
@@ -545,6 +559,17 @@ function AdminInspections() {
                               className={buttonClasses('secondary', 'sm', 'whitespace-nowrap')}
                             >
                               구독 취소
+                            </button>
+                          )}
+                          {plan.status !== 'ACTIVE' && (
+                            <button
+                              type="button"
+                              disabled={busyId === plan.id}
+                              onClick={() => deletePlan(plan)}
+                              aria-label={`${plan.contactName}님 구독 삭제`}
+                              className={buttonClasses('danger', 'sm', 'whitespace-nowrap')}
+                            >
+                              삭제
                             </button>
                           )}
                           {plan.status === 'CANCELED' && plan.cancelReason && (
