@@ -1,8 +1,8 @@
 // ───────────────────────────────────────────────────────────────────────────
 // API 라우트 매트릭스 — 단일 진실 원천.
 //
-// 91개 route.ts 파일이 108개 핸들러를 export 한다 (15개 라우트가 2개 이상 메서드).
-// 그중 19개가 설계상 공개이고, 나머지 **89개가 가드 대상**이다.
+// 95개 route.ts 파일이 113개 핸들러를 export 한다 (17개 라우트가 2개 이상 메서드).
+// 그중 20개가 설계상 공개이고, 나머지 **93개가 가드 대상**이다.
 //
 // 이 표를 손으로 유지하지 않는다: tests/cross/matrix-completeness.spec.ts 가
 // src/app/api/** 를 걸어 실제 export 와 대조하므로, 라우트가 추가·삭제되면
@@ -120,6 +120,11 @@ export const ROUTES: RouteEntry[] = [
   admin('/api/admin/inspections/visits/[visitId]', 'PATCH'),
   admin('/api/admin/inspection-account', 'GET'),
   admin('/api/admin/inspection-account', 'PUT'),
+  // 블로그 글 CMS — 글 쓰기·수정·삭제, 본문 이미지 올리기(목록·상세 읽기는 관리자 화면이 직접 조회)
+  admin('/api/admin/blog', 'POST'),
+  admin('/api/admin/blog/[id]', 'PUT'),
+  admin('/api/admin/blog/[id]', 'DELETE'),
+  admin('/api/admin/blog/images', 'POST'),
 
   // ── 정기 점검 고객 (3 핸들러, CUSTOMER 세션 필요) ──────────────────────
   // 유일한 CUSTOMER 계열이다. 신청(/api/inspection/apply)만 공개이고, 그 뒤는 전부 세션.
@@ -172,7 +177,7 @@ export const ROUTES: RouteEntry[] = [
     note: '관리자 + 해당 접수에 배정된 업체/기술자',
   },
 
-  // ── 공개 19 핸들러 — 401 단언에서 제외한다 ───────────────────────────
+  // ── 공개 20 핸들러 — 401 단언에서 제외한다 ───────────────────────────
   open('/api/auth/check-login-id', 'GET', '아이디 중복 확인 — 가입 폼에서 호출'),
   open('/api/auth/login', 'POST', '로그인 자체 — 세션을 만드는 입구'),
   open('/api/auth/logout', 'POST', '로그아웃 — 세션 없이 호출해도 무해'),
@@ -194,6 +199,7 @@ export const ROUTES: RouteEntry[] = [
     'POST',
     'KCP 인증창 결과 콜백(Ret_URL) — 사용자의 브라우저에서 KCP 가 form POST 한다. 항상 HTML 200 또는 303',
   ),
+  open('/api/blog/images/[id]', 'GET', '블로그 본문 이미지 — 발행 글에 들어가는 공개 사진(BlogImage 에 등록된 파일만)'),
   open('/api/internal/auto-assign', 'GET', 'cron 백업. Authorization: Bearer 로 인증(route.ts:9-11)'),
   open('/api/internal/auto-assign', 'POST', 'cron 백업. x-cron-secret 으로 인증(route.ts:9-11)'),
   open('/api/partner/signup', 'POST', '업체 셀프 가입 — 승인 전 PENDING(signup:184)'),

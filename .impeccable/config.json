@@ -1,0 +1,17 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "broken-image",
+        "value": "*",
+        "files": [
+          "src/lib/blog/sanitize.ts"
+        ],
+        "createdAt": "2026-11-23T13:54:39.920Z",
+        "reason": "model triage: the flagged lines are regex literals that match <img> tags in stored HTML (firstImage/externalImages), not rendered markup"
+      }
+    ]
+  }
+}

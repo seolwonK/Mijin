@@ -29,10 +29,13 @@ const DISALLOW = [
   '/my',
 ];
 
+// /api 는 막되 블로그 본문 이미지는 연다 — 막으면 구글이 글 속 사진을 못 읽어 이미지 검색·미리보기에서 빠진다.
+const ALLOW = ['/', '/api/blog/images/'];
+
 export default function robots(): MetadataRoute.Robots {
   return {
     rules: [
-      { userAgent: '*', allow: '/', disallow: DISALLOW },
+      { userAgent: '*', allow: ALLOW, disallow: DISALLOW },
       // 명시 정책: 네이버(Yeti)와 AI 크롤러 3용도(학습·AI 검색 색인·실시간 fetch) 전부 허용 — 인용 유입이 목표.
       // 별도 그룹을 두면 그 UA 는 '*' 그룹을 상속하지 않으므로 disallow 목록을 같은 상수로 다시 건다.
       // 학습만 막고 싶어지면 GPTBot·ClaudeBot·Google-Extended·CCBot 만 별도 그룹으로 빼서 Disallow 할 것.
@@ -49,7 +52,7 @@ export default function robots(): MetadataRoute.Robots {
           'Perplexity-User',
           'Google-Extended',
         ],
-        allow: '/',
+        allow: ALLOW,
         disallow: DISALLOW,
       },
     ],

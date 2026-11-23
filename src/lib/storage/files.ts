@@ -2,7 +2,7 @@ import { randomUUID } from 'crypto';
 import { prisma } from '@/lib/db';
 import { isR2Configured, r2Delete, r2Get, r2Put } from './r2';
 
-type FileCategory = 'voice' | 'biz-cert' | 'elec-cert';
+type FileCategory = 'voice' | 'biz-cert' | 'elec-cert' | 'blog';
 
 /** R2 사용 시 DB에는 메타데이터만 저장한다. 업로드 오류를 DB 저장으로 숨기지 않는다. */
 export async function saveStoredFile(category: FileCategory, mime: string, body: Uint8Array) {

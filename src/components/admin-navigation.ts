@@ -18,6 +18,7 @@ export const ADMIN_GROUPS = [
     { href: '/admin/analytics/surveys', label: '설문', tabLabel: '고객 설문' },
     { href: '/admin/analytics/ratings', label: '평점', tabLabel: '평점 분석' },
   ] },
+  { id: 'content', label: '콘텐츠', items: [{ href: '/admin/blog', label: '블로그' }] },
   { id: 'settings', label: '시스템', items: [{ href: '/admin/settings', label: '설정' }] },
 ] as const;
 
@@ -38,13 +39,14 @@ export function adminView(href: string): { path: string; href: string; label: st
       if (item.href === path) return { path, href: path + url.search + url.hash, label: 'tabLabel' in item ? item.tabLabel : item.label };
     }
   }
-  const match = path.match(/^\/admin\/(requests|providers|technicians|inspections)\/([a-zA-Z0-9_-]+)(\/contract)?$/);
+  const match = path.match(/^\/admin\/(requests|providers|technicians|inspections|blog)\/([a-zA-Z0-9_-]+)(\/contract)?$/);
   if (!match || (match[3] && match[1] !== 'technicians')) return null;
   // 전기점검에는 등록 화면이 없다 — /admin/inspections/new 는 없는 경로다.
   if (match[1] === 'inspections' && match[2] === 'new') return null;
   const label = match[3] ? '기사 계약서'
     : match[1] === 'requests' ? '접수 상세'
     : match[1] === 'inspections' ? '전기점검 고객'
+    : match[1] === 'blog' ? (match[2] === 'new' ? '글쓰기' : '글 수정')
     : match[1] === 'providers' ? (match[2] === 'new' ? '업체 등록' : '업체 상세')
     : match[2] === 'new' ? '기사 등록' : '기사 상세';
   return { path, href: path + url.search + url.hash, label };

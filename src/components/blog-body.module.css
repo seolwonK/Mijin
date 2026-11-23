@@ -1,0 +1,29 @@
+/* 블로그 본문 — 관리자 편집기와 공개 글 화면이 같은 규칙을 써서, 쓰는 화면과 보이는 화면이 똑같다.
+   네이버 블로그 본문과 비슷한 리듬(넉넉한 줄 간격, 소제목·인용구·구분선·표·사진 캡션)을 따른다. */
+.body { font-size: 16px; line-height: 1.85; color: #222; overflow-wrap: anywhere; word-break: keep-all; }
+.body :global(p) { margin: 0; min-height: 1.85em; }
+.body :global(h2) { margin: 1.6em 0 0.6em; font-size: 1.375rem; line-height: 1.4; font-weight: 800; letter-spacing: -0.01em; }
+.body :global(h3) { margin: 1.4em 0 0.5em; font-size: 1.125rem; line-height: 1.45; font-weight: 800; }
+.body :global(h2:first-child), .body :global(h3:first-child) { margin-top: 0; }
+.body :global(a) { color: var(--color-brand-700, #0b6b4f); text-decoration: underline; text-underline-offset: 2px; }
+.body :global(strong) { font-weight: 800; }
+.body :global(ul), .body :global(ol) { margin: 0.6em 0; padding-left: 1.4em; }
+.body :global(ul) { list-style: disc; }
+.body :global(ol) { list-style: decimal; }
+.body :global(li) { margin: 0.2em 0; }
+.body :global(blockquote) { margin: 1.4em 0; padding: 0.9em 1.1em; border-left: 4px solid #cfd6d2; background: #f6f7f6; border-radius: 0 10px 10px 0; color: #333; }
+.body :global(blockquote cite) { display: block; margin-top: 0.5em; font-size: 0.875rem; font-style: normal; color: #6b7370; }
+.body :global(hr) { margin: 2em auto; width: 40%; border: 0; border-top: 1px solid #cfd6d2; }
+.body :global(figure) { margin: 1.4em 0; text-align: center; }
+.body :global(img) { display: inline-block; max-width: 100%; height: auto; border-radius: 10px; }
+.body :global(figcaption) { margin-top: 0.5em; font-size: 0.8125rem; line-height: 1.5; color: #6b7370; }
+.body :global(table) { display: block; width: 100%; margin: 1.4em 0; overflow-x: auto; border-collapse: collapse; font-size: 0.9375rem; line-height: 1.6; }
+.body :global(th), .body :global(td) { min-width: 5em; padding: 0.55em 0.7em; border: 1px solid #d8dedb; vertical-align: top; text-align: left; }
+.body :global(th), .body :global(tr:first-child td) { background: #f3f5f4; font-weight: 700; }
+.body :global(pre) { margin: 1.2em 0; padding: 1em; overflow-x: auto; border-radius: 10px; background: #f3f5f4; font-size: 0.875rem; line-height: 1.6; white-space: pre-wrap; }
+
+/* 편집기 전용 */
+.editor { min-height: 480px; padding: 20px; outline: none; }
+.editor:empty::before { content: attr(data-placeholder); color: #9aa3a0; }
+.editor :global(img) { cursor: default; }
+.editor :global(img[data-pending]) { opacity: 0.45; outline: 2px dashed #c9a227; }

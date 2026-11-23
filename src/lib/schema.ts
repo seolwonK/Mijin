@@ -182,8 +182,13 @@ export function getArticleGraph(opts: {
   datePublished: string;
   dateModified: string;
   keywords?: readonly string[];
+  /** 블로그 글: 대표 이미지(절대 주소)·분류명·상위 목록. 생략하면 가이드 글 기본값. */
+  image?: string;
+  section?: string;
+  parent?: { name: string; path: string };
 }) {
   const url = `${SITE_URL}${opts.path}`;
+  const parent = opts.parent ?? { name: '전기 상식', path: '/guide' };
   return {
     '@context': 'https://schema.org',
     '@graph': [
@@ -198,8 +203,8 @@ export function getArticleGraph(opts: {
         author: { '@id': ORG_ID },
         publisher: { '@id': ORG_ID },
         mainEntityOfPage: { '@id': `${url}#webpage` },
-        image: `${SITE_URL}/brand/og-default.png`,
-        articleSection: '전기 상식',
+        image: opts.image ?? `${SITE_URL}/brand/og-default.png`,
+        articleSection: opts.section ?? '전기 상식',
         ...(opts.keywords?.length ? { keywords: opts.keywords.join(', ') } : {}),
       },
       {
@@ -218,7 +223,7 @@ export function getArticleGraph(opts: {
         '@id': `${url}#breadcrumb`,
         itemListElement: [
           { '@type': 'ListItem', position: 1, name: '홈', item: `${SITE_URL}/` },
-          { '@type': 'ListItem', position: 2, name: '전기 상식', item: `${SITE_URL}/guide` },
+          { '@type': 'ListItem', position: 2, name: parent.name, item: `${SITE_URL}${parent.path}` },
           { '@type': 'ListItem', position: 3, name: opts.headline, item: url },
         ],
       },

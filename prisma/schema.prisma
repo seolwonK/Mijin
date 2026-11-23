@@ -617,3 +617,34 @@ model InspectionPayment {
   @@unique([planId, seq])
   @@index([dueDate, paidAt]) // 관리자: 입금 확인이 필요한 납부 조회
 }
+
+// 블로그 글(관리자 CMS) — 네이버 블로그 편집기에서 복사한 본문을 붙여 넣어 발행한다.
+// contentHtml 은 저장 시 서버에서 허용 목록으로 정화한 HTML(src/lib/blog/sanitize.ts).
+enum BlogPostStatus {
+  DRAFT
+  PUBLISHED
+}
+
+model BlogPost {
+  id          String         @id @default(cuid())
+  slug        String         @unique
+  title       String
+  summary     String // 검색 결과 설명(meta description). 비우면 본문 앞부분에서 만든다.
+  contentHtml String
+  coverImage  String? // 본문 첫 이미지 경로 — 목록 썸네일·OG 이미지
+  tags        String[]       @default([])
+  status      BlogPostStatus @default(DRAFT)
+  publishedAt DateTime?
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  @@index([status, publishedAt])
+}
+
+// 블로그 본문 이미지. StoredFile 은 사업자등록증·음성처럼 비공개 파일도 담으므로,
+// 공개 이미지 라우트(/api/blog/images/[id])는 이 표에 등록된 파일만 내보낸다.
+model BlogImage {
+  id        String   @id @default(cuid())
+  fileId    String   @unique
+  createdAt DateTime @default(now())
+}

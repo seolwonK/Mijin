@@ -2229,6 +2229,52 @@ export const GATES: Record<string, HandlerGates> = {
       },
     ],
   },
+
+  // ── 블로그 글 CMS ──────────────────────────────────────────────────────
+  'POST /api/admin/blog': {
+    file: 'src/app/api/admin/blog/route.ts',
+    note: '본문은 저장 전에 서버가 허용 목록으로 정화한다(lib/blog/sanitize.ts). 주소가 겹치면 409 가 아니라 -2, -3 을 붙여 저장한다.',
+    gates: [
+      { order: 1, status: 403, line: 14, kind: 'state', message: '잘못된 요청입니다', reach: 'Origin 이 다른 사이트이거나 sec-fetch-site: cross-site (Origin 헤더가 없으면 통과)' },
+      { order: 2, status: 400, line: 18, kind: 'schema', message: null, reach: '제목 없음·120자 초과, status 가 DRAFT/PUBLISHED 가 아님, JSON 이 아닌 본문' },
+      { order: 3, status: 400, line: 22, kind: 'state', message: null, reach: '정화하고 나면 비는 본문("본문을 입력해 주세요."), 또는 발행인데 우리 저장소 밖 이미지가 남아 있음' },
+    ],
+  },
+  'PUT /api/admin/blog/[id]': {
+    file: 'src/app/api/admin/blog/[id]/route.ts',
+    gates: [
+      { order: 1, status: 403, line: 18, kind: 'state', message: '잘못된 요청입니다', reach: '교차 사이트 요청' },
+      { order: 2, status: 400, line: 23, kind: 'schema', message: null, reach: '제목 없음·120자 초과, status 누락' },
+      { order: 3, status: 404, line: 27, kind: 'not-found', message: '글을 찾을 수 없습니다.', reach: '없는 id' },
+      { order: 4, status: 400, line: 31, kind: 'state', message: null, reach: '정화하고 나면 비는 본문, 또는 발행인데 외부 이미지가 남아 있음' },
+    ],
+  },
+  'DELETE /api/admin/blog/[id]': {
+    file: 'src/app/api/admin/blog/[id]/route.ts',
+    note: '글과 함께 그 글만 쓰던 본문 이미지도 지운다(다른 글이 쓰는 이미지는 남긴다).',
+    gates: [
+      { order: 1, status: 403, line: 47, kind: 'state', message: '잘못된 요청입니다', reach: '교차 사이트 요청' },
+      { order: 2, status: 404, line: 52, kind: 'not-found', message: '글을 찾을 수 없습니다.', reach: '없는 id' },
+    ],
+  },
+  'POST /api/admin/blog/images': {
+    file: 'src/app/api/admin/blog/images/route.ts',
+    note: 'JSON { url } 과 multipart file 두 입력을 받는다. url 은 네이버 이미지 서버(*.pstatic.net·blogfiles.naver.net, https, 기본 포트)만 — 임의 주소를 서버가 대신 요청하지 않는다.',
+    gates: [
+      { order: 1, status: 403, line: 14, kind: 'state', message: '잘못된 요청입니다', reach: '교차 사이트 요청' },
+      { order: 2, status: 400, line: 22, kind: 'state', message: '네이버 이미지 주소만 가져올 수 있습니다.', reach: 'JSON 본문의 url 이 없거나 네이버 이미지 서버가 아님(http, 다른 호스트, 포트·계정 포함)' },
+      { order: 3, status: 422, line: 26, kind: 'external', message: '이미지를 가져오지 못했습니다. 파일로 직접 올려 주세요.', reach: '네이버 서버가 200 이 아닌 응답·리다이렉트·15초 초과' },
+      { order: 4, status: 413, line: 29, kind: 'external', message: '이미지가 너무 큽니다 (최대 10MB).', reach: '원격 이미지가 10MB 초과(받는 도중 끊는다)' },
+      { order: 5, status: 400, line: 36, kind: 'body-parse', message: '이미지 파일을 선택해 주세요.', reach: 'multipart 에 file 필드가 없거나 파일이 아님' },
+      { order: 6, status: 413, line: 39, kind: 'state', message: '이미지가 너무 큽니다 (최대 10MB).', reach: '올린 파일이 10MB 초과' },
+      { order: 7, status: 415, line: 46, kind: 'state', message: 'JPG·PNG·GIF·WEBP 이미지만 올릴 수 있습니다.', reach: '파일 앞머리가 네 형식이 아님(SVG·HTML·PDF 등) — Content-Type 은 보지 않는다' },
+    ],
+  },
+  'GET /api/blog/images/[id]': {
+    file: 'src/app/api/blog/images/[id]/route.ts',
+    note: '공개. BlogImage 에 등록된 파일만 내보낸다 — StoredFile ID(사업자등록증·음성)를 넣어도 404.',
+    gates: [{ order: 1, status: 404, line: 12, kind: 'not-found', message: '이미지를 찾을 수 없습니다.', reach: '없는 id, 또는 BlogImage 가 아닌 StoredFile id' }],
+  },
 };
 
 /** `${METHOD} ${path}` 로 게이트 목록을 얻는다. 없으면 401 가드 외 4xx 분기가 없는 핸들러다. */
