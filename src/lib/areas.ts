@@ -1,6 +1,8 @@
-// 지역 출동 안내 레지스트리 — /areas(목록)·사이트맵·브레드크럼·가이드 CTA 가 읽는다.
-// 전기아저씨는 전국 시/도·시/군/구 단위로 접수받는 플랫폼이고, 여기 등재된 지역은 "집중 운영 지역"이다.
-// 새 지역을 늘릴 때는 이 배열에 항목을 추가하고 src/app/(mobile)/areas/<slug>/ 페이지를 만든다(성남 패턴 참조).
+// 지역 출동 안내 레지스트리 — /areas(목록)·사이트맵·지역 페이지 브레드크럼이 읽는다.
+// 분리 원칙(사용자 지시 2026-10-29, 2026-11-23 재확인): 사이트 본편(홈·소개·가이드·푸터·접수)은 "전국" 서비스로만 보이고,
+// 지역 페이지(/areas/**)는 검색으로만 들어오는 별도 섹션이다. 본편에서 /areas 로 가는 링크나 특정 지역명을 넣지 않는다
+// (src/lib/__tests__/areasIsolation.test.ts 가 막는다). 지역 페이지끼리의 링크·사이트맵·llms.txt 는 유지한다.
+// 새 지역은 src/lib/regionPages.ts 의 REGION_PAGES 에 항목을 추가한다(성남만 구 하위 페이지가 있어 별도 폴더).
 import { SEONGNAM_GU } from '@/lib/seongnamDistricts';
 import { REGION_PAGES } from '@/lib/regionPages';
 
@@ -13,6 +15,12 @@ export type FocusArea = {
   updated: string;
   children: readonly { slug: string; gu: string; note: string }[];
 };
+
+/** /areas 목록의 권역 묶음 — 시/도로 나눈다. */
+export const AREA_ZONES = [
+  { id: 'capital', label: '서울·경기', sidos: ['서울특별시', '경기도', '경기도·서울특별시'] },
+  { id: 'honam', label: '광주·전남·전북', sidos: ['전남광주통합특별시', '전북특별자치도'] },
+] as const;
 
 export const FOCUS_AREAS: readonly FocusArea[] = [
   {
@@ -36,16 +44,6 @@ export const FOCUS_AREAS: readonly FocusArea[] = [
 ] as const;
 
 export const AREAS_PATH = '/areas';
-
-// 홈과 광고에서 사용하는 집중 지역. 분당은 기존 구 페이지를 연결해 중복 문서를 만들지 않는다.
-export const PRIORITY_AREA_LINKS = [
-  { key: 'songpa', name: '송파', path: '/areas/songpa', detail: '잠실·가락·문정·거여·마천' },
-  { key: 'hanam', name: '하남', path: '/areas/hanam', detail: '미사·감일·덕풍·신장' },
-  { key: 'seongnam', name: '성남', path: '/areas/seongnam', detail: '수정·중원·분당·판교' },
-  { key: 'gwangju', name: '경기 광주', path: '/areas/gwangju', detail: '태전·오포·경안·초월·곤지암' },
-  { key: 'bundang', name: '분당', path: '/areas/seongnam/bundang', detail: '서현·정자·야탑·수내·판교' },
-  { key: 'wirye', name: '위례', path: '/areas/wirye', detail: '송파·하남·성남 위례신도시' },
-] as const;
 
 // 파트너 집계 줄 노출 하한 — 이 값 미만이면 숫자를 보여 주지 않는다(홈 리뷰 위젯 MIN_REVIEWS_TO_SHOW 와 같은 사고방식:
 // 작은 숫자는 신뢰를 깎고, 지역 확대 초기에는 배정이 시/도 전체 담당 파트너와 관리자 확인으로 이뤄진다).

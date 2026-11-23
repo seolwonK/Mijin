@@ -5,14 +5,14 @@ import Surface from '@/components/Surface';
 import JsonLd from '@/components/JsonLd';
 import { buttonClasses } from '@/components/Button';
 import { COMPANY } from '@/lib/company';
-import { AREAS_PATH, FOCUS_AREAS } from '@/lib/areas';
+import { AREAS_PATH, AREA_ZONES, FOCUS_AREAS } from '@/lib/areas';
 import { getWebPageGraph } from '@/lib/schema';
 import { PAGE_UPDATED, formatKoreanDate } from '@/lib/pageDates';
 
 export const metadata: Metadata = {
-  title: '전기수리 지역 안내 · 송파·하남·성남·경기 광주·분당·위례',
+  title: '지역별 전기수리 출동 안내 · 서울·경기, 광주·전남·전북',
   description:
-    '전기아저씨는 전국 시/도·시/군/구 단위로 전기 고장을 접수받는 출동 중개 플랫폼입니다. 전국에서 운영하며, 성남(분당·판교·수정·중원)·위례·하남·송파·경기 광주 지역별 출동 안내와 접수 방법을 정리했습니다.',
+    '전기아저씨는 전국 시/도·시/군/구 단위로 전기 고장을 접수받는 출동 중개 플랫폼입니다. 전국에서 운영하며, 성남(분당·판교·수정·중원)·위례·하남·송파·경기 광주와 전남광주통합특별시의 광주·나주·화순·담양·장성·영광·함평·곡성, 전북 순창 지역별 출동 안내와 접수 방법을 정리했습니다.',
   alternates: { canonical: AREAS_PATH },
 };
 
@@ -30,19 +30,20 @@ export default function AreasIndexPage() {
       <PageHeader title="지역 출동 안내" back="/" headingAs="p" />
       <div className="mx-auto w-full max-w-2xl px-5 pt-6">
         <h1 className="text-2xl leading-tight font-extrabold text-fg md:text-3xl">
-          송파·하남·성남·경기 광주·분당·위례 전기수리 출동 안내
+          지역별 전기수리 출동 안내
         </h1>
         <p className="mt-3 text-sm leading-relaxed text-neutral-700">
           {COMPANY.name}는 전국 시/도·시/군/구 단위로 전기 고장을 접수받는 중개 플랫폼입니다. 접수 시 남긴 주소로 지역을 자동 판별해 그 지역을 담당하는 파트너에게 배정하고, 담당 파트너가
           없는 지역은 관리자가 확인해 배정 결과를 문자로 안내합니다.
         </p>
 
-        <section className="mt-8">
-          <h2 className="text-xl font-extrabold text-fg">지역별 안내</h2>
+        {AREA_ZONES.map((zone) => (
+        <section key={zone.id} className="mt-8">
+          <h2 className="text-xl font-extrabold text-fg">{zone.label}</h2>
           <div className="mt-4 space-y-3">
-            {FOCUS_AREAS.map((a) => (
+            {FOCUS_AREAS.filter((a) => (zone.sidos as readonly string[]).includes(a.sido)).map((a) => (
               <Surface key={a.slug} as="section" className="rounded-2xl p-5">
-                <p className="text-xs font-bold text-brand-600">{a.sido} {a.name}</p>
+                <p className="text-xs font-bold text-brand-600">{a.sido === a.name ? a.name : `${a.sido} ${a.name}`}</p>
                 <Link href={`${AREAS_PATH}/${a.slug}`} className="mt-1 block text-lg font-bold text-fg underline-offset-2 hover:underline">
                   {a.label}
                 </Link>
@@ -65,6 +66,7 @@ export default function AreasIndexPage() {
             ))}
           </div>
         </section>
+        ))}
 
         <section className="mt-8">
           <h2 className="text-xl font-extrabold text-fg">다른 지역도 접수할 수 있나요</h2>

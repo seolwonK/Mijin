@@ -11,8 +11,8 @@
 - [접수 내역 조회](https://xn--ok0bp94bnc26kra.com/lookup): 전화번호로 접수 진행 상황 조회
 - [도움 및 문의](https://xn--ok0bp94bnc26kra.com/support): 계정·배정·근로확인서 등 업체·전기기사용 문제 해결 안내, 전화 문의 070-4995-3910
 
-## 지역 출동 안내 (전국 접수 · 성남 우선 집중)
-- [지역별 전기 수리 출동 안내](https://xn--ok0bp94bnc26kra.com/areas): 전국 시/군/구 접수 원칙, 집중 운영 지역 목록, 파트너 가입 안내
+## 지역별 출동 안내 (서비스는 전국 접수 — 아래는 지역 검색용 안내 페이지)
+- [지역별 전기 수리 출동 안내](https://xn--ok0bp94bnc26kra.com/areas): 전국 시/군/구 접수 원칙, 서울·경기와 광주·전남·전북 지역 안내 목록, 파트너 가입 안내
 - [성남 전기 수리 출동 — 분당·수정·중원](https://xn--ok0bp94bnc26kra.com/areas/seongnam): 성남시 3개 구·동별 출동 지역, 담당 파트너 현황, 긴급도별 응대 목표, 비용 구조, 성남 FAQ
 - [성남 수정구 전기 수리 출동](https://xn--ok0bp94bnc26kra.com/areas/seongnam/sujeong): 신흥·태평·수진·단대·산성 구도심과 위례·복정·고등 — 주거 형태별 전기 환경, 먼저 의심할 고장, 수정구 FAQ
 - [성남 중원구 전기 수리 출동](https://xn--ok0bp94bnc26kra.com/areas/seongnam/jungwon): 금광·은행·상대원 주택가, 상대원 산업단지 소규모 사업장, 도촌·성남동 — 중원구 FAQ
@@ -21,6 +21,15 @@
 - [하남 전기 수리 출동](https://xn--ok0bp94bnc26kra.com/areas/hanam): 미사강변도시·위례 하남권·감일·덕풍·신장·교산 — 신축 대단지·구도심·단독주택별 전기 환경, 하남 FAQ
 - [경기 광주 전기 수리 출동](https://xn--ok0bp94bnc26kra.com/areas/gwangju): 태전·역동·경안·송정·오포·초월·곤지암 — 전기아저씨 사업장 소재 지역, 전원주택·공장 옥내 설비, 광주 FAQ
 - [위례 전기 수리 출동](https://xn--ok0bp94bnc26kra.com/areas/wirye): 성남·하남·송파 3개 관할 위례신도시 — 주소로 관할 자동 판별, 신축 아파트 고장 유형, 위례 FAQ
+- [광주 전기 수리 출동](https://xn--ok0bp94bnc26kra.com/areas/gwangju-metro): 전남광주통합특별시 동구·서구·남구·북구·광산구(옛 광주광역시) — 충장로 구도심 상가, 상무지구 오피스텔, 택지지구 아파트, 수완·첨단, 하남·평동 산업단지 옥내 설비, 광주 FAQ(경기도 광주시와 구분)
+- [나주 전기 수리 출동](https://xn--ok0bp94bnc26kra.com/areas/naju): 빛가람혁신도시·원도심·영산포·남평·금천 — 한전 담당 구간과 집 안 설비의 경계, 배 저온저장고 차단기, 나주 FAQ
+- [화순 전기 수리 출동](https://xn--ok0bp94bnc26kra.com/areas/hwasun): 화순읍 아파트·도곡온천 숙박시설·동면·백아 산간 마을 — 겨울 열선·전기보일러 과부하, 비워 둔 주택 점검, 화순 FAQ
+- [담양 전기 수리 출동](https://xn--ok0bp94bnc26kra.com/areas/damyang): 담양읍 카페·식당, 창평 한옥, 수북·대전 시설하우스, 담양호 펜션 — 영업용 기기 과부하, 한옥 배선, 담양 FAQ
+- [장성 전기 수리 출동](https://xn--ok0bp94bnc26kra.com/areas/jangseong): 장성읍·황룡, 진원·남면 전원주택, 삼계 상무대 주변 원룸, 백양사·축령산 산간 — 폭설 뒤 정전, 지하수 펌프 누전, 장성 FAQ
+- [영광 전기 수리 출동](https://xn--ok0bp94bnc26kra.com/areas/yeonggwang): 영광읍, 법성포 굴비 상가 냉동 설비, 백수·염산 해안 마을, 낙월면 섬 — 염분 부식, 섬 지역 방문 일정, 영광 FAQ
+- [함평 전기 수리 출동](https://xn--ok0bp94bnc26kra.com/areas/hampyeong): 함평읍·학교, 월야 빛그린산업단지 배후, 축사·농가, 손불 해안 — 축사 환풍기 누전, 누전차단기 없는 분전반, 함평 FAQ
+- [곡성 전기 수리 출동](https://xn--ok0bp94bnc26kra.com/areas/gokseong): 곡성읍·섬진강기차마을, 옥과 원룸, 입면, 석곡·죽곡 산간 — 침수 뒤 전기 복구 순서, 긴 연장 배선 전압 강하, 곡성 FAQ
+- [순창 전기 수리 출동](https://xn--ok0bp94bnc26kra.com/areas/sunchang): 전북 순창읍·고추장 민속마을, 강천산 주변, 쌍치·복흥 산간 — 심야전기 보일러 차단기, 작업장 회로 분리, 순창 FAQ
 
 ## 전기 상식(가이드)
 - [전기 상식 목차](https://xn--ok0bp94bnc26kra.com/guide): 누전·차단기 / 정전 / 콘센트·화재·긴급 / 비용·점검·주거 4개 묶음 15편

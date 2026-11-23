@@ -14,7 +14,7 @@ export const PAGE_UPDATED = {
   privacy: COMPANY.privacyEffectiveDate,
   guideIndex: '2026-09-15',
   areaSeongnam: '2026-09-16',
-  areasIndex: '2026-09-16',
+  areasIndex: '2026-11-23',
 } as const;
 
 /** '2026-09-15' → '2026년 9월 15일' */
